@@ -16,8 +16,10 @@ export default function Navbar() {
     const navLinksRight = [
         { name: "Product", href: "/product" },
         { name: "Events", href: "/events" },
-        { name: "Contact Us", href: "/contact" },
+        { name: "Contact", href: "/contact" },
     ];
+
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     return (
         <nav className="absolute top-0 left-0 z-50 w-full flex justify-center pt-0">
@@ -27,12 +29,12 @@ export default function Navbar() {
                 <div className="relative h-20 bg-[#0A4834] rounded-b-2xl rounded-t-none shadow-xl flex items-center justify-between px-4 md:px-8 lg:px-12">
 
                     {/* Left Links */}
-                    <div className="hidden md:flex gap-4 lg:gap-10">
+                    <div className="hidden md:flex gap-3 lg:gap-6 xl:gap-8 items-center md:pr-12 lg:pr-20">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans"
+                                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans"
                             >
                                 {link.name}
                             </Link>
@@ -61,28 +63,54 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    {/* Right Links & Profile (Desktop) */}
-                    <div className="hidden md:flex items-center gap-4 lg:gap-8">
+                    {/* Right Links & User Menu (Desktop) */}
+                    <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 md:pl-12 lg:pl-20">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans mt-0.5"
+                                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans"
                             >
                                 {link.name}
                             </Link>
                         ))}
                         
-                        {/* Auth Section */}
-                        <div className="flex items-center gap-4 ml-2 pl-6 border-l border-white/20 h-8">
-                            <Link href="/login" className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans">
-                                Login
-                            </Link>
-                            <Link href="/profile" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all border border-white/10 group">
-                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        {/* User Breadcrumb Icon Menu */}
+                        <div className="relative ml-2 pl-4 border-l border-white/20 h-6 flex items-center">
+                            <button 
+                                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all border border-white/10 group overflow-hidden"
+                            >
+                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
-                            </Link>
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isUserMenuOpen && (
+                                <>
+                                    <div 
+                                        className="fixed inset-0 z-40" 
+                                        onClick={() => setIsUserMenuOpen(false)}
+                                    />
+                                    <div className="absolute right-0 top-12 w-40 bg-[#0A4834] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden transform transition-all">
+                                        <Link 
+                                            href="/login" 
+                                            className="block px-6 py-3 text-white/90 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                                            onClick={() => setIsUserMenuOpen(false)}
+                                        >
+                                            Login
+                                        </Link>
+                                        <Link 
+                                            href="/profile" 
+                                            className="block px-6 py-3 text-white/90 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors border-t border-white/5"
+                                            onClick={() => setIsUserMenuOpen(false)}
+                                        >
+                                            Profile
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
 
