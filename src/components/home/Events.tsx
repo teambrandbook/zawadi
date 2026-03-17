@@ -1,0 +1,90 @@
+import Image from "next/image";
+
+export default function Events() {
+    return (
+        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
+            <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+
+                {/* Left Column: Title and Toggle */}
+                <div className="lg:col-span-5 flex flex-col justify-start pt-4 gap-10">
+                    <div>
+                        <h2 className="font-display text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-[0.9]">
+                            Where Every Meal <br /> Becomes a Memory
+                        </h2>
+                        <p className="font-sans text-gray-300 text-lg leading-relaxed max-w-md">
+                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.
+                        </p>
+                    </div>
+
+                    {/* Custom Toggle Button */}
+                    <div className="w-48 h-16 bg-[#0A4834] rounded-full flex items-center justify-end px-2 shadow-xl cursor-pointer hover:bg-[#3A5A5A] transition-colors">
+                        <div className="w-12 h-12 bg-white rounded-full shadow-sm" />
+                    </div>
+                </div>
+
+                {/* Right Column: Timeline Events */}
+                <div className="lg:col-span-7 relative pl-4 md:pl-8">
+
+                    {/* Vertical Timeline Line */}
+                    {/* Centered on the 14px/3.5rem node. 3.5rem/2 = 1.75rem. 1.75*16 = 28px. Line is 2px, so 27px start. */}
+                    <div className="absolute left-[57px] top-6 bottom-6 w-[2px] bg-[#D4D4D4] h-[95%] hidden md:block" />
+
+                    <div className="flex flex-col gap-16 relative">
+
+                        {/* Event Item 1 (Active) */}
+                        <div className="flex gap-8 md:gap-12 relative items-start">
+                            {/* Node */}
+                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#0A4834] flex items-center justify-center shadow-md">
+                                <div className="w-4 h-4 bg-white rounded-full" />
+                            </div>
+
+                            {/* Card */}
+                            <div className="flex-1 bg-[#E5E5E5] p-6 md:p-8 rounded-sm shadow-sm transition-transform hover:-translate-y-1 duration-300">
+                                <h3 className="font-display text-2xl font-bold text-black mb-3 tracking-tight">
+                                    Where Every Meal Becomes a Memory
+                                </h3>
+                                <p className="font-sans text-xs text-[#555] mb-6 leading-relaxed max-w-sm">
+                                    Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+                                </p>
+                                <div className="w-full h-40 relative bg-white rounded-sm shadow-inner overflow-hidden">
+                                    <Image fill src="/home/section7-1.webp" alt="Event Image 1" className="object-cover" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Event Item 2 (Inactive) */}
+                        <div className="flex gap-8 md:gap-12 relative items-start">
+                            {/* Node */}
+                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#E5E5E5] flex items-center justify-center shadow-md">
+                                <div className="w-4 h-4 bg-[#0A4834] rounded-full" />
+                            </div>
+
+                            {/* Card */}
+                            <div className="flex-1 bg-[#E5E5E5] p-6 md:p-8 rounded-sm shadow-sm transition-transform hover:-translate-y-1 duration-300">
+                                <h3 className="font-display text-2xl font-bold text-black mb-3 tracking-tight">
+                                    Where Every Meal Becomes a Memory
+                                </h3>
+                                <p className="font-sans text-xs text-[#555] mb-6 leading-relaxed max-w-sm">
+                                    Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+                                </p>
+                                <div className="w-full h-40 relative bg-white rounded-sm shadow-inner overflow-hidden">
+                                    <Image fill src="/home/section7-2.webp" alt="Event Image 2" className="object-cover" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Bottom Node (Termination) */}
+                        <div className="flex gap-8 md:gap-12 relative items-center">
+                            {/* Node Only */}
+                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#E5E5E5] flex items-center justify-center shadow-md">
+                                <div className="w-4 h-4 bg-[#0A4834] rounded-full" />
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </section>
+    );
+}
