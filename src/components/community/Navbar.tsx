@@ -40,20 +40,8 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button (Left) */}
-                    <div className="md:hidden">
-                        <button 
-                            onClick={() => setIsOpen(!isOpen)}
-                            className="text-white p-2 focus:outline-none"
-                        >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                {isOpen ? (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                ) : (
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16" />
-                                )}
-                            </svg>
-                        </button>
-                    </div>
+                    {/* Mobile Menu Placeholder (Left) - for balance */}
+                    <div className="md:hidden w-10"></div>
 
                     {/* Center Logo Area - Hanging down */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform z-10">
@@ -73,21 +61,46 @@ export default function Navbar() {
                         </Link>
                     </div>
 
-                    {/* Right Links */}
-                    <div className="hidden md:flex gap-4 lg:gap-10">
+                    {/* Right Links & Profile (Desktop) */}
+                    <div className="hidden md:flex items-center gap-4 lg:gap-8">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans"
+                                className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans mt-0.5"
                             >
                                 {link.name}
                             </Link>
                         ))}
+                        
+                        {/* Auth Section */}
+                        <div className="flex items-center gap-4 ml-2 pl-6 border-l border-white/20 h-8">
+                            <Link href="/login" className="text-white/90 font-medium hover:text-white transition-colors text-sm uppercase tracking-wide font-sans">
+                                Login
+                            </Link>
+                            <Link href="/profile" className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all border border-white/10 group">
+                                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </Link>
+                        </div>
                     </div>
 
-                    {/* Mobile Menu Icon (Placeholder for balance) */}
-                    <div className="md:hidden w-10"></div>
+                    {/* Mobile Menu Button (Right) */}
+                    <div className="md:hidden">
+                        <button 
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="text-white p-2 focus:outline-none"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {isOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16" />
+                                )}
+                            </svg>
+                        </button>
+                    </div>
 
                 </div>
 
@@ -104,6 +117,26 @@ export default function Navbar() {
                                 {link.name}
                             </Link>
                         ))}
+                        {/* Mobile Auth */}
+                        <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
+                            <Link 
+                                href="/login" 
+                                onClick={() => setIsOpen(false)}
+                                className="w-full py-4 bg-white text-[#0A4834] font-bold rounded-xl text-center uppercase tracking-widest font-sans"
+                            >
+                                Login
+                            </Link>
+                            <Link 
+                                href="/profile" 
+                                onClick={() => setIsOpen(false)}
+                                className="flex items-center justify-center gap-3 text-white py-3 font-medium uppercase tracking-widest font-sans"
+                            >
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Profile
+                            </Link>
+                        </div>
                     </div>
                 )}
             </div>
