@@ -78,7 +78,7 @@ export default function Story() {
                     </div>
 
                     {/* Image 3: Large Square (Spans 2 cols) */}
-                    <div className="col-span-1 md:col-span-2 aspect-square relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm">
+                    <div className="col-span-1 md:col-span-2 aspect-square relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm md:mt-12">
                         <Image
                             src="/home/section4-3.webp"
                             alt="Story main"

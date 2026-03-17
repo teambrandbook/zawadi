@@ -9,12 +9,12 @@ export default function GridGallery() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                     {/* Item 1: Image (Top Left) */}
-                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm">
+                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm md:order-1 lg:order-none">
                         <Image src="/community/community-3.webp" alt="Gallery 1" fill className="object-cover" />
                     </div>
 
                     {/* Item 2: Text (Top Center) */}
-                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm">
+                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-2 lg:order-none">
                         <h3 className="font-display text-2xl font-bold text-white mb-4">
                             Zewadi
                         </h3>
@@ -23,13 +23,13 @@ export default function GridGallery() {
                         </p>
                     </div>
 
-                    {/* Item 3: Image (Top Right) */}
-                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm">
+                    {/* Item 3: Image */}
+                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm md:order-4 lg:order-none">
                         <Image src="/community/community-4.webp" alt="Gallery 2" fill className="object-cover" />
                     </div>
 
-                    {/* Item 4: Text (Bottom Left) */}
-                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm">
+                    {/* Item 4: Text */}
+                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-3 lg:order-none">
                         <h3 className="font-display text-2xl font-bold text-white mb-4">
                             Zewadi
                         </h3>
@@ -38,13 +38,13 @@ export default function GridGallery() {
                         </p>
                     </div>
 
-                    {/* Item 5: Image (Bottom Center) */}
-                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm">
+                    {/* Item 5: Image */}
+                    <div className="aspect-square relative rounded-sm overflow-hidden shadow-sm md:order-5 lg:order-none">
                         <Image src="/community/community-5.webp" alt="Gallery 3" fill className="object-cover" />
                     </div>
 
-                    {/* Item 6: Text (Bottom Right) */}
-                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm">
+                    {/* Item 6: Text */}
+                    <div className="aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-6 lg:order-none">
                         <h3 className="font-display text-2xl font-bold text-white mb-4">
                             Zewadi
                         </h3>

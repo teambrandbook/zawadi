@@ -1,7 +1,12 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
 export default function Navbar() {
+    const [isOpen, setIsOpen] = useState(false);
+
     const navLinksLeft = [
         { name: "Home", href: "/" },
         { name: "About Us", href: "/about" },
@@ -10,7 +15,7 @@ export default function Navbar() {
 
     const navLinksRight = [
         { name: "Product", href: "/product" },
-        { name: "Events", href: "/gallery" },
+        { name: "Events", href: "/events" },
         { name: "Contact Us", href: "/contact" },
     ];
 
@@ -19,10 +24,10 @@ export default function Navbar() {
             <div className="relative w-full max-w-[90rem] mx-6">
 
                 {/* Dark Bar Container */}
-                <div className="relative h-20 bg-[#0A4834] rounded-b-2xl rounded-t-none shadow-xl flex items-center justify-between px-8 md:px-12">
+                <div className="relative h-20 bg-[#0A4834] rounded-b-2xl rounded-t-none shadow-xl flex items-center justify-between px-4 md:px-8 lg:px-12">
 
                     {/* Left Links */}
-                    <div className="hidden md:flex gap-10">
+                    <div className="hidden md:flex gap-4 lg:gap-10">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
@@ -34,26 +39,42 @@ export default function Navbar() {
                         ))}
                     </div>
 
+                    {/* Mobile Menu Button (Left) */}
+                    <div className="md:hidden">
+                        <button 
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="text-white p-2 focus:outline-none"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {isOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16" />
+                                )}
+                            </svg>
+                        </button>
+                    </div>
+
                     {/* Center Logo Area - Hanging down */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform z-10">
-                        <div className="w-32 h-32 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-2 pb-4 border-t-0 border-x border-b border-black/5">
+                        <Link href="/" className="w-28 md:w-32 h-28 md:h-32 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-2 pb-4 border-t-0 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group">
                             {/* Logo Circle */}
-                            <div className="relative w-20 h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+                            <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
                                 <Image
-                                    src="/logo.png"
+                                    src="/logo/zawadi-logo.webp"
                                     alt="ZEWADI Logo"
                                     fill
-                                    className="object-cover"
+                                    className="object-cover group-hover:scale-110 transition-transform"
                                 />
                             </div>
-                            <span className="text-[#0A4834] font-bold tracking-[0.2em] text-[10px] font-display uppercase mt-1">
+                            <span className="text-[#0A4834] font-bold tracking-[0.2em] text-[8px] md:text-[10px] font-display uppercase mt-1">
                                 ZEWADI
                             </span>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Right Links */}
-                    <div className="hidden md:flex gap-10">
+                    <div className="hidden md:flex gap-4 lg:gap-10">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
@@ -65,14 +86,26 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    {/* Mobile Menu Icon (Visible on small screens) */}
-                    <div className="md:hidden flex items-center">
-                        <button className="text-white p-2">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                        </button>
-                    </div>
+                    {/* Mobile Menu Icon (Placeholder for balance) */}
+                    <div className="md:hidden w-10"></div>
 
                 </div>
+
+                {/* Mobile Dropdown Menu */}
+                {isOpen && (
+                    <div className="md:hidden absolute top-24 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
+                        {[...navLinksLeft, ...navLinksRight].map((link) => (
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                onClick={() => setIsOpen(false)}
+                                className="text-white/90 font-medium py-3 border-b border-white/10 last:border-0 text-center uppercase tracking-widest font-sans"
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </nav>
     );

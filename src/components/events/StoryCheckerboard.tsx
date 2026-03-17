@@ -11,21 +11,21 @@ export default function StoryCheckerboard() {
                 </div>
 
                 {/* Block 2: Text (Top Right) */}
-                <div className="aspect-square bg-[#0A4834] w-full h-full min-h-[400px] p-12 md:p-16 flex flex-col justify-center">
-                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
+                <div className="aspect-square bg-[#0A4834] w-full h-full min-h-[350px] md:min-h-[400px] p-6 md:p-10 lg:p-16 flex flex-col justify-center">
+                    <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 lg:mb-6 uppercase tracking-tight">
                         Zewadi story
                     </h3>
-                    <p className="font-sans text-white/80 text-sm md:text-base leading-relaxed">
+                    <p className="font-sans text-white/80 text-xs md:text-sm lg:text-base leading-relaxed overflow-hidden">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                     </p>
                 </div>
 
                 {/* Block 3: Text (Bottom Left) */}
-                <div className="aspect-square bg-[#0A4834] w-full h-full min-h-[400px] p-12 md:p-16 flex flex-col justify-center order-last md:order-none">
-                    <h3 className="font-display text-3xl md:text-4xl font-bold text-white mb-6">
+                <div className="aspect-square bg-[#0A4834] w-full h-full min-h-[350px] md:min-h-[400px] p-6 md:p-10 lg:p-16 flex flex-col justify-center order-last md:order-none">
+                    <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 lg:mb-6 uppercase tracking-tight">
                         Zewadi story
                     </h3>
-                    <p className="font-sans text-white/80 text-sm md:text-base leading-relaxed">
+                    <p className="font-sans text-white/80 text-xs md:text-sm lg:text-base leading-relaxed overflow-hidden">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                     </p>
                 </div>

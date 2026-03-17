@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Community() {
     return (
-        <section className="relative w-full bg-white pt-10 pb-20">
+        <section className="relative w-full overflow-hidden mb-[-1px]">
 
             {/* The Irregular Section */}
             <div className="relative w-full py-32">

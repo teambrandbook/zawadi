@@ -10,12 +10,12 @@ export default function Footer() {
 
                     {/* Brand Column */}
                     <div className="flex flex-col gap-6 lg:pr-8">
-                        <div className="flex flex-col items-start gap-2">
-                            {/* Logo Placeholder - simplified representation of the golden flower */}
-                            <div className="relative w-12 h-12">
-                                <Image src="/logo.png" alt="Zewadi Logo" fill className="object-contain" />
+                        <div className="flex flex-col items-start gap-4">
+                            {/* Logo */}
+                            <div className="relative w-24 h-24">
+                                <Image src="/logo/zawadi-logo.webp" alt="Zewadi Logo" fill className="object-contain" />
                             </div>
-                            <span className="font-display font-bold text-[#0A4834] tracking-widest text-lg uppercase">
+                            <span className="font-display font-bold text-[#0A4834] tracking-widest text-xl uppercase">
                                 ZEWADI
                             </span>
                         </div>
@@ -44,36 +44,37 @@ export default function Footer() {
                     {/* Links Columns */}
                     <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-2 md:grid-cols-3 gap-8 pt-4">
 
-                        {/* Product */}
+                        {/* Quick Links */}
                         <div className="flex flex-col gap-4">
-                            <h3 className="font-sans font-semibold text-[#0A4834]">Product</h3>
+                            <h3 className="font-sans font-semibold text-[#0A4834] uppercase tracking-wider text-sm">Quick Links</h3>
                             <div className="flex flex-col gap-3">
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Features</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Pricing</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Documentation</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">API</Link>
+                                <Link href="/" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Home</Link>
+                                <Link href="/about" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">About Us</Link>
+                                <Link href="/community" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Community</Link>
+                                <Link href="/product" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Product</Link>
+                                <Link href="/gallery" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Events</Link>
+                                <Link href="/contact" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Contact Us</Link>
                             </div>
                         </div>
 
                         {/* Company */}
                         <div className="flex flex-col gap-4">
-                            <h3 className="font-sans font-semibold text-[#0A4834]">Company</h3>
+                            <h3 className="font-sans font-semibold text-[#0A4834] uppercase tracking-wider text-sm">Company</h3>
                             <div className="flex flex-col gap-3">
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">About</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Careers</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Blog</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Contact</Link>
+                                <Link href="/about" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Our Vision</Link>
+                                <Link href="/community" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Partners</Link>
+                                <Link href="/blog" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Insights & Blog</Link>
+                                <Link href="/faq" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">FAQ</Link>
                             </div>
                         </div>
 
                         {/* Support */}
                         <div className="flex flex-col gap-4">
-                            <h3 className="font-sans font-semibold text-[#0A4834]">Support</h3>
+                            <h3 className="font-sans font-semibold text-[#0A4834] uppercase tracking-wider text-sm">Legal</h3>
                             <div className="flex flex-col gap-3">
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Help Center</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Community</Link>
-                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Status</Link>
+                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Terms of Service</Link>
                                 <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Privacy Policy</Link>
+                                <Link href="#" className="text-sm text-[#555] hover:text-[#0A4834] transition-colors">Cookie Policy</Link>
                             </div>
                         </div>
 

@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 
@@ -8,7 +10,11 @@ import Image from "next/image";
 // Ideally I'd copy the generated image to public/ folder but I can't do that easily yet.
 // I'll use a text representation for now.
 
+import { useState } from "react";
+
 export default function Navbar() {
+    const [isOpen, setIsOpen] = useState(false);
+
     const navLinksLeft = [
         { name: "Home", href: "/" },
         { name: "About Us", href: "/about" },
@@ -27,9 +33,9 @@ export default function Navbar() {
                 {/* Glassmorphism Bar */}
                 <div className="absolute inset-0 h-16 bg-white/5 backdrop-blur-md border border-white/10 shadow-lg rounded-2xl"></div>
 
-                <div className="relative flex items-center justify-between h-16 px-8">
-                    {/* Left Links */}
-                    <div className="flex gap-8">
+                <div className="relative flex items-center justify-between h-16 px-4 md:px-8">
+                    {/* Left Links (Desktop) */}
+                    <div className="hidden md:flex gap-4 lg:gap-8">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
@@ -41,26 +47,41 @@ export default function Navbar() {
                         ))}
                     </div>
 
-                    {/* Center Logo Area - Hanging down */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
-                        <div className="w-32 h-28 bg-[#F5E6CA] rounded-b-3xl shadow-xl flex flex-col items-center justify-center pt-2 pb-4">
-                            <div className="relative w-16 h-16 rounded-full border-2 border-[#2F4848] overflow-hidden mb-1">
-                                {/* Replace '/logo.png' with your actual logo file in the public folder */}
-                                <Image
-                                    src="/logo.png"
-                                    alt="ZEWADI Logo"
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
-                            <span className="text-[#2F4848] font-bold tracking-widest text-xs font-display">
-                                ZEWADI
-                            </span>
-                        </div>
+                    {/* Mobile Menu Button (Left) */}
+                    <div className="md:hidden">
+                        <button 
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="text-white p-2 focus:outline-none"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                {isOpen ? (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                ) : (
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16m-7 6h7" />
+                                )}
+                            </svg>
+                        </button>
                     </div>
 
-                    {/* Right Links */}
-                    <div className="flex gap-8">
+                    {/* Center Logo Area - Hanging down */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
+                        <Link href="/" className="w-28 md:w-32 h-24 md:h-28 bg-[#F5E6CA] rounded-b-3xl shadow-xl flex flex-col items-center justify-center pt-2 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group">
+                            <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+                                <Image
+                                    src="/logo/zawadi-logo.webp"
+                                    alt="ZEWADI Logo"
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform"
+                                />
+                            </div>
+                            <span className="text-[#0A4834] font-bold tracking-widest text-[10px] md:text-xs font-display uppercase">
+                                ZEWADI
+                            </span>
+                        </Link>
+                    </div>
+
+                    {/* Right Links (Desktop) */}
+                    <div className="hidden md:flex gap-4 lg:gap-8">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
@@ -71,7 +92,26 @@ export default function Navbar() {
                             </Link>
                         ))}
                     </div>
+
+                    {/* Mobile Placeholder for Balance */}
+                    <div className="md:hidden w-10"></div>
                 </div>
+
+                {/* Mobile Dropdown Menu */}
+                {isOpen && (
+                    <div className="md:hidden absolute top-20 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
+                        {[...navLinksLeft, ...navLinksRight].map((link) => (
+                            <Link
+                                key={link.name}
+                                href={link.href}
+                                onClick={() => setIsOpen(false)}
+                                className="text-white/90 font-medium py-3 border-b border-white/10 last:border-0 text-center uppercase tracking-widest font-sans"
+                            >
+                                {link.name}
+                            </Link>
+                        ))}
+                    </div>
+                )}
             </div>
         </nav>
     );

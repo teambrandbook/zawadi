@@ -8,10 +8,10 @@ export default function Events() {
                 {/* Left Column: Title and Toggle */}
                 <div className="lg:col-span-5 flex flex-col justify-start pt-4 gap-10">
                     <div>
-                        <h2 className="font-display text-5xl md:text-7xl font-black text-white mb-6 uppercase tracking-tighter leading-[0.9]">
+                        <h2 className="font-display text-5xl md:text-7xl font-black text-[#0A4834] mb-6 uppercase tracking-tighter leading-[0.9]">
                             Where Every Meal <br /> Becomes a Memory
                         </h2>
-                        <p className="font-sans text-gray-300 text-lg leading-relaxed max-w-md">
+                        <p className="font-sans text-[#555] text-lg leading-relaxed max-w-md">
                             Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.
                         </p>
                     </div>
@@ -26,8 +26,7 @@ export default function Events() {
                 <div className="lg:col-span-7 relative pl-4 md:pl-8">
 
                     {/* Vertical Timeline Line */}
-                    {/* Centered on the 14px/3.5rem node. 3.5rem/2 = 1.75rem. 1.75*16 = 28px. Line is 2px, so 27px start. */}
-                    <div className="absolute left-[57px] top-6 bottom-6 w-[2px] bg-[#D4D4D4] h-[95%] hidden md:block" />
+                    <div className="absolute left-[44px] md:left-[60px] top-10 bottom-10 w-[2.5px] bg-[#D4D4D4] z-0" />
 
                     <div className="flex flex-col gap-16 relative">
 
