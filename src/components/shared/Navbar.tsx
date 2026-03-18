@@ -41,16 +41,16 @@ export default function Navbar() {
         <nav className="absolute -top-1 left-0 z-50 w-full flex justify-center">
             <div className="relative w-full max-w-7xl mx-4">
                 {/* True Glassmorphism Bar */}
-                <div className="absolute inset-0 h-14 bg-white/10 backdrop-blur-3xl border border-white/20 shadow-2xl rounded-2xl"></div>
+                <div className="absolute inset-0 h-20 bg-white/10 backdrop-blur-3xl border border-white/20 shadow-2xl rounded-2xl"></div>
 
-                <div className="relative flex items-center justify-between h-14 px-4 md:px-10">
+                <div className="relative flex items-center justify-between h-20 px-4 md:px-10">
                     {/* Left Links (Desktop) */}
                     <div className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
@@ -58,29 +58,29 @@ export default function Navbar() {
 
                         {/* Pages Dropdown */}
                         <div className="relative group">
-                            <button 
+                            <button
                                 onMouseEnter={() => setIsPagesOpen(true)}
                                 onMouseLeave={() => setIsPagesOpen(false)}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm flex items-center gap-1"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm flex items-center gap-1"
                             >
                                 Pages
                                 <svg className={`w-3 h-3 transition-transform ${isPagesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                                 </svg>
                             </button>
-                            
+
                             {/* Dropdown Menu */}
-                            <div 
+                            <div
                                 onMouseEnter={() => setIsPagesOpen(true)}
                                 onMouseLeave={() => setIsPagesOpen(false)}
                                 className={`absolute left-0 top-full pt-4 transition-all duration-300 ${isPagesOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}
                             >
                                 <div className="w-44 bg-white border border-[#0A4834]/10 rounded-xl shadow-2xl py-2 overflow-hidden">
                                     {innerPages.map((page) => (
-                                        <Link 
+                                        <Link
                                             key={page.name}
-                                            href={page.href} 
-                                            className="block px-6 py-3 text-[#0A4834] hover:bg-[#0A4834]/5 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                                            href={page.href}
+                                            className="block px-6 py-3 text-[#0A4834] hover:bg-[#0A4834]/5 text-xs uppercase font-bold tracking-widest transition-colors"
                                         >
                                             {page.name}
                                         </Link>
@@ -103,7 +103,7 @@ export default function Navbar() {
                                     className="object-cover group-hover:scale-110 transition-transform"
                                 />
                             </div>
-                            <span className="text-[#0A4834] font-bold tracking-widest text-[9px] md:text-[10px] font-display uppercase">
+                            <span className="text-[#0A4834] font-bold tracking-widest text-[11px] md:text-sm font-display uppercase">
                                 ZEWADI
                             </span>
                         </Link>
@@ -115,14 +115,14 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
                         ))}
 
                         <div className="relative ml-2 pl-4 border-l border-[#0A4834]/20 h-6 flex items-center">
-                            <button 
+                            <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                 className="w-8 h-8 rounded-full bg-[#0A4834]/5 flex items-center justify-center hover:bg-[#0A4834]/10 transition-all border border-[#0A4834]/10 group overflow-hidden"
                             >
@@ -134,20 +134,20 @@ export default function Navbar() {
                             {/* Dropdown Menu */}
                             {isUserMenuOpen && (
                                 <>
-                                    <div 
-                                        className="fixed inset-0 z-40" 
+                                    <div
+                                        className="fixed inset-0 z-40"
                                         onClick={() => setIsUserMenuOpen(false)}
                                     />
                                     <div className="absolute right-0 top-12 w-40 bg-[#0A4834] border border-white/10 rounded-xl shadow-2xl py-2 z-50 overflow-hidden transform transition-all">
-                                        <Link 
-                                            href="/login" 
+                                        <Link
+                                            href="/login"
                                             className="block px-6 py-3 text-white/90 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors"
                                             onClick={() => setIsUserMenuOpen(false)}
                                         >
                                             Login
                                         </Link>
-                                        <Link 
-                                            href="/profile" 
+                                        <Link
+                                            href="/profile"
                                             className="block px-6 py-3 text-white/90 hover:bg-white/10 text-[10px] uppercase font-bold tracking-widest transition-colors border-t border-white/5"
                                             onClick={() => setIsUserMenuOpen(false)}
                                         >
@@ -160,7 +160,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="md:hidden">
-                        <button 
+                        <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="text-[#0A4834] p-2 focus:outline-none"
                         >
@@ -190,15 +190,15 @@ export default function Navbar() {
                         ))}
                         {/* Mobile Auth */}
                         <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
-                            <Link 
-                                href="/login" 
+                            <Link
+                                href="/login"
                                 onClick={() => setIsOpen(false)}
                                 className="w-full py-4 bg-white text-[#0A4834] font-bold rounded-xl text-center uppercase tracking-widest font-sans"
                             >
                                 Login
                             </Link>
-                            <Link 
-                                href="/profile" 
+                            <Link
+                                href="/profile"
                                 onClick={() => setIsOpen(false)}
                                 className="flex items-center justify-center gap-3 text-white py-3 font-medium uppercase tracking-widest font-sans"
                             >
