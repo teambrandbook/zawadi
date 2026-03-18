@@ -24,38 +24,78 @@ export default function Navbar() {
     const navLinksRight = [
         { name: "Product", href: "/product" },
         { name: "Events", href: "/events" },
-        { name: "Contact", href: "/contact" },
+        { name: "Contact Us", href: "/contact" },
     ];
 
+    const innerPages = [
+        { name: "FAQ", href: "/faq" },
+        { name: "Recipe", href: "/recipe" },
+        { name: "Gallery", href: "/gallery" },
+        { name: "Blog", href: "/blog" },
+    ];
+
+    const [isPagesOpen, setIsPagesOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     return (
-        <nav className="absolute top-0 left-0 z-50 w-full flex justify-center">
+        <nav className="absolute -top-1 left-0 z-50 w-full flex justify-center">
             <div className="relative w-full max-w-7xl mx-4">
-                {/* Glassmorphism Bar */}
-                <div className="absolute inset-0 h-16 bg-white/5 backdrop-blur-md border border-white/10 shadow-lg rounded-2xl"></div>
+                {/* True Glassmorphism Bar */}
+                <div className="absolute inset-0 h-14 bg-white/10 backdrop-blur-3xl border border-white/20 shadow-2xl rounded-2xl"></div>
 
-                <div className="relative flex items-center justify-between h-16 px-4 md:px-8">
+                <div className="relative flex items-center justify-between h-14 px-4 md:px-10">
                     {/* Left Links (Desktop) */}
                     <div className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
                         ))}
+
+                        {/* Pages Dropdown */}
+                        <div className="relative group">
+                            <button 
+                                onMouseEnter={() => setIsPagesOpen(true)}
+                                onMouseLeave={() => setIsPagesOpen(false)}
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm flex items-center gap-1"
+                            >
+                                Pages
+                                <svg className={`w-3 h-3 transition-transform ${isPagesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            
+                            {/* Dropdown Menu */}
+                            <div 
+                                onMouseEnter={() => setIsPagesOpen(true)}
+                                onMouseLeave={() => setIsPagesOpen(false)}
+                                className={`absolute left-0 top-full pt-4 transition-all duration-300 ${isPagesOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible -translate-y-2'}`}
+                            >
+                                <div className="w-44 bg-white border border-[#0A4834]/10 rounded-xl shadow-2xl py-2 overflow-hidden">
+                                    {innerPages.map((page) => (
+                                        <Link 
+                                            key={page.name}
+                                            href={page.href} 
+                                            className="block px-6 py-3 text-[#0A4834] hover:bg-[#0A4834]/5 text-[10px] uppercase font-bold tracking-widest transition-colors"
+                                        >
+                                            {page.name}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {/* Mobile Menu Placeholder (Left) */}
                     <div className="md:hidden w-10"></div>
 
-                    {/* Center Logo Area - Hanging down */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
-                        <Link href="/" className="w-28 md:w-32 h-24 md:h-28 bg-[#F5E6CA] rounded-b-3xl shadow-xl flex flex-col items-center justify-center pt-2 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group">
-                            <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+                        <Link href="/" className="w-24 md:w-28 h-20 md:h-24 bg-[#F5E6CA] rounded-b-[2rem] shadow-2xl flex flex-col items-center justify-center pt-1 pb-3 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group">
+                            <div className="relative w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
                                 <Image
                                     src="/logo/zawadi-logo.webp"
                                     alt="ZEWADI Logo"
@@ -63,7 +103,7 @@ export default function Navbar() {
                                     className="object-cover group-hover:scale-110 transition-transform"
                                 />
                             </div>
-                            <span className="text-[#0A4834] font-bold tracking-widest text-[10px] md:text-xs font-display uppercase">
+                            <span className="text-[#0A4834] font-bold tracking-widest text-[9px] md:text-[10px] font-display uppercase">
                                 ZEWADI
                             </span>
                         </Link>
@@ -75,19 +115,18 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
                         ))}
 
-                        {/* User Icon Menu */}
-                        <div className="relative ml-2 pl-4 border-l border-white/20 h-6 flex items-center">
+                        <div className="relative ml-2 pl-4 border-l border-[#0A4834]/20 h-6 flex items-center">
                             <button 
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-all border border-white/10 group overflow-hidden"
+                                className="w-8 h-8 rounded-full bg-[#0A4834]/5 flex items-center justify-center hover:bg-[#0A4834]/10 transition-all border border-[#0A4834]/10 group overflow-hidden"
                             >
-                                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg className="w-4 h-4 text-[#0A4834]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                 </svg>
                             </button>
@@ -120,11 +159,10 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    {/* Mobile Menu Button (Right) */}
                     <div className="md:hidden">
                         <button 
                             onClick={() => setIsOpen(!isOpen)}
-                            className="text-white p-2 focus:outline-none"
+                            className="text-[#0A4834] p-2 focus:outline-none"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 {isOpen ? (

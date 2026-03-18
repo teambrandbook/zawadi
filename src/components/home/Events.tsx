@@ -16,9 +16,22 @@ export default function Events() {
                         </p>
                     </div>
 
-                    {/* Custom Toggle Button */}
-                    <div className="w-48 h-16 bg-[#0A4834] rounded-full flex items-center justify-end px-2 shadow-xl cursor-pointer hover:bg-[#3A5A5A] transition-colors">
-                        <div className="w-12 h-12 bg-white rounded-full shadow-sm" />
+                    {/* Explore More Button */}
+                    <div className="w-56 h-16 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-2 shadow-xl cursor-pointer hover:bg-[#083a2a] transition-all hover:scale-105 active:scale-95 group">
+                        <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest">
+                            Explore More
+                        </span>
+                        <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0A4834]">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6 transform group-hover:translate-x-1 transition-transform"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
                     </div>
                 </div>
 

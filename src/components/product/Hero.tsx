@@ -52,34 +52,64 @@ export default function Hero() {
                             <li>Healthy, chemical-free components for every dish.</li>
                             <li>Supporting local farmers and sustainable produce.</li>
                             <li>Each ingredient carefully selected for peak flavor.</li>
-                            <li>Ingredients that celebrate each season's best flavors.</li>
+                            <li>Ingredients that celebrate each season&apos;s best flavors.</li>
                             <li>Top-quality meats, seafood, and plant-based options.</li>
                             <li>Freshly baked, handmade, or house-prepared items.</li>
                         </ul>
                     </div>
 
-                    {/* Swatches */}
+                    {/* Action Buttons: Heart + Buy Now */}
                     <div className="flex gap-4 mb-16">
-                        <div className="w-12 h-8 bg-[#0A4834] cursor-pointer hover:ring-2 ring-black ring-offset-2 transition-all"></div>
-                        <div className="w-24 h-8 bg-[#0A4834] cursor-pointer hover:ring-2 ring-black ring-offset-2 transition-all"></div>
+                        {/* Heart Icon Button */}
+                        <button
+                            className="w-14 h-14 bg-[#0A4834] rounded-[4px] flex items-center justify-center text-white hover:bg-[#1A5A44] transition-all transform active:scale-90 shadow-sm"
+                            aria-label="Add to favorites"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+
+                        {/* Buy Now Button */}
+                        <button className="h-14 px-12 bg-[#0A4834] text-white font-sans font-bold text-lg rounded-[4px] hover:bg-[#1A5A44] transition-all shadow-md transform active:scale-95">
+                            Buy now
+                        </button>
                     </div>
 
-                    {/* Bottom Split Section: Zewadi Stories */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-auto">
+                    {/* Bottom Split Section: Image + Zewadi Stories */}
+                    <div className="grid grid-cols-[auto_1fr_1fr] md:grid-cols-[140px_1fr_1fr] gap-6 md:gap-8 mt-auto pt-8 items-start">
 
-                        {/* Story Col 1 */}
-                        <div className="flex flex-col items-start gap-4">
-                            <h4 className="font-display text-2xl font-bold text-black">Zewadi story</h4>
-                            <p className="font-sans text-[#555] text-xs leading-relaxed">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                            </p>
-                            <button className="w-44 h-10 bg-[#0A4834] hover:bg-[#1A5A44] transition-colors rounded-sm mt-2"></button>
+                        {/* Circular Food Image */}
+                        <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden shadow-lg border-2 border-white self-center md:self-start">
+                            <Image
+                                src="/product/product-5.webp"
+                                alt="Recipe suggestion"
+                                fill
+                                className="object-cover"
+                            />
                         </div>
 
-                        {/* Story Col 2 */}
+                        {/* Story Col 1 (with Recipes button) */}
                         <div className="flex flex-col items-start gap-4">
-                            <h4 className="font-display text-2xl font-bold text-black">Zewadi story</h4>
-                            <p className="font-sans text-[#555] text-xs leading-relaxed">
+                            <h4 className="font-display text-xl md:text-2xl font-bold text-black uppercase tracking-tight">Zewadi story</h4>
+                            <p className="font-sans text-[#555] text-[10px] md:text-xs leading-relaxed">
+                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                            </p>
+                            <button className="w-full h-10 md:h-12 bg-[#0A4834] text-white font-sans font-bold text-sm md:text-base hover:bg-[#1A5A44] transition-all rounded-[4px] shadow-sm mt-2">
+                                Recipes
+                            </button>
+                        </div>
+
+                        {/* Story Col 2 (Text only) */}
+                        <div className="flex flex-col items-start gap-4">
+                            <h4 className="font-display text-xl md:text-2xl font-bold text-black uppercase tracking-tight">Zewadi story</h4>
+                            <p className="font-sans text-[#555] text-[10px] md:text-xs leading-relaxed">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
                         </div>

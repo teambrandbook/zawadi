@@ -27,25 +27,27 @@ export default function Hero() {
             <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full pt-32">
 
                 {/* Main Heading */}
-                <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tight mb-2 text-white drop-shadow-lg uppercase">
+                <h1 className="font-display text-5xl md:text-[5.5rem] font-bold tracking-tight text-white mb-4 leading-none uppercase drop-shadow-lg">
                     The Zewadi Way of Living
                 </h1>
 
                 {/* Subheading */}
-                <h2 className="text-[#D4A5A5] text-lg md:text-2xl font-sans font-medium mb-6 tracking-wide drop-shadow-md">
+                <h2 className="text-white text-xl md:text-3xl font-display font-normal mb-8 tracking-wide drop-shadow-md">
                     Building a Healthier Society, Together
                 </h2>
 
                 {/* Description Text */}
-                <p className="max-w-xl text-gray-200 text-base md:text-lg leading-relaxed mb-10 drop-shadow-sm font-light">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                <p className="max-w-3xl text-white text-base md:text-lg leading-relaxed mb-12 font-sans font-light drop-shadow-sm">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod <br className="hidden md:block" />
+                    tempor incididunt ut labore et dolore magna aliqua.
                 </p>
 
-                {/* CSS Button */}
+                {/* Explore More Button */}
                 <button
-                    className="w-48 h-12 bg-[#D9D9D9] hover:bg-white transition-all rounded-full shadow-lg cursor-pointer"
-                    aria-label="Learn More"
-                />
+                    className="px-12 py-4 bg-[#D9D9D9] hover:bg-white text-[#0A4834] font-sans font-medium rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 text-lg"
+                >
+                    Explore More
+                </button>
             </div>
         </section>
     );

@@ -27,7 +27,7 @@ export default function VegSalad() {
                             <li>Healthy, chemical-free components for every dish.</li>
                             <li>Supporting local farmers and sustainable produce.</li>
                             <li>Each ingredient carefully selected for peak flavor.</li>
-                            <li>Ingredients that celebrate each season's best flavors.</li>
+                            <li>Ingredients that celebrate each season&apos;s best flavors.</li>
                             <li>Top-quality meats, seafood, and plant-based options.</li>
                             <li>Freshly baked, handmade, or house-prepared items.</li>
                         </ul>

@@ -34,12 +34,12 @@ export default function Product() {
 
     const getPositionClass = (index: number) => {
         if (index === activeIndex) return "z-30 scale-100 opacity-100 translate-x-0";
-        
+
         // Product to the left of active
         if (index === (activeIndex === 0 ? products.length - 1 : activeIndex - 1)) {
             return "z-20 scale-90 opacity-0 md:opacity-40 translate-x-0 md:-translate-x-24 lg:-translate-x-32 rotate-y-12 cursor-pointer hover:opacity-100";
         }
-        
+
         // Product to the right of active
         return "z-20 scale-90 opacity-0 md:opacity-40 translate-x-0 md:translate-x-24 lg:translate-x-32 -rotate-y-12 cursor-pointer hover:opacity-100";
     };
@@ -55,9 +55,9 @@ export default function Product() {
 
                 {/* Carousel Container */}
                 <div className="relative w-full h-[30rem] md:h-[42rem] flex items-center justify-center perspective-[1200px]">
-                    
+
                     {/* Navigation Arrows */}
-                    <button 
+                    <button
                         onClick={rotateLeft}
                         className="absolute left-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
                         aria-label="Previous Product"
@@ -67,7 +67,7 @@ export default function Product() {
                         </svg>
                     </button>
 
-                    <button 
+                    <button
                         onClick={rotateRight}
                         className="absolute right-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
                         aria-label="Next Product"
@@ -99,7 +99,7 @@ export default function Product() {
                 {/* Description Text */}
                 <div className="relative z-30 mt-8 md:mt-12 max-w-2xl mx-auto text-center px-4">
                     <p className="font-sans text-[#EAE3D2] text-sm md:text-base leading-relaxed font-light">
-                        Bridging the gap between technology and agriculture to redefine your food experience.<br className="hidden md:block"/> Explore our premium selection of organic and sustainable products.
+                        Bridging the gap between technology and agriculture to redefine your food experience.<br className="hidden md:block" /> Explore our premium selection of organic and sustainable products.
                     </p>
                 </div>
 

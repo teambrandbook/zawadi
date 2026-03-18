@@ -33,14 +33,14 @@ export default function Hero() {
 
                     {/* Media Card */}
                     <div className="w-full aspect-[4/5] md:aspect-[16/10] rounded-2xl overflow-hidden relative shadow-sm flex flex-col">
-                        {/* Image Placeholder Area (Main) - 50% Height */}
-                        <div className="flex-1 relative w-full h-1/2">
+                        {/* Image Placeholder Area (Main) - 65% Height */}
+                        <div className="relative w-full h-[65%]">
                             <Image src="/events/event-1.webp" alt="Main Event" fill className="object-cover" />
                         </div>
 
-                        {/* Bottom Dark Bar - 50% Height */}
-                        <div className="flex-1 bg-[#0A4834] flex items-center justify-center p-6 md:p-12 text-center">
-                            <p className="font-sans text-[#EAE3D2]/80 text-[10px] md:text-sm leading-relaxed max-w-2xl">
+                        {/* Bottom Dark Bar - 35% Height */}
+                        <div className="flex-none h-[35%] bg-[#0A4834] flex items-center justify-center p-6 md:px-12 text-center">
+                            <p className="font-sans text-[#EAE3D2]/80 text-[10px] md:text-sm leading-relaxed max-w-2xl px-4">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                                 <br className="hidden md:block" />
                                 Incididunt ut labore et dolore magna aliqua.

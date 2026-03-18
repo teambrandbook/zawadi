@@ -112,11 +112,11 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     {[1, 2].map((i) => (
                         <div key={i} className="bg-white p-12 flex relative shadow-2xl items-center border-x-[12px] border-[#9F8151]">
                             <div className="flex flex-col gap-8">
-                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8">"</span>
+                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8">&quot;</span>
                                 <p className="font-sans text-gray-600 leading-relaxed italic pr-4">
                                     Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet.
                                 </p>
-                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8 self-end -mt-6">"</span>
+                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8 self-end -mt-6">&quot;</span>
                                 
                                 <div className="flex items-center gap-4 mt-4">
                                     <div className="w-16 h-16 bg-[#9F8151] shrink-0" />

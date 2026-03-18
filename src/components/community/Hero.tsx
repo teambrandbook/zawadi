@@ -27,12 +27,25 @@ export default function Hero() {
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                     </p>
 
-                    {/* Toggle Button */}
+                    {/* Join Now Button */}
                     <button
-                        className="group w-48 h-12 bg-[#0A4834] rounded-full flex items-center justify-end px-1.5 shadow-lg cursor-pointer hover:bg-[#1A5A44] transition-all"
-                        aria-label="Toggle"
+                        className="group w-52 h-14 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-1.5 shadow-xl transition-all hover:scale-105 hover:bg-[#083a2a] active:scale-95"
+                        aria-label="Join Zewadi Community Now"
                     >
-                        <div className="w-9 h-9 bg-white rounded-full shadow-sm group-hover:scale-105 transition-transform" />
+                        <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest transition-all group-hover:tracking-[0.15em]">
+                            Join Now
+                        </span>
+                        <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center text-[#0A4834] shadow-sm transform transition-all group-hover:translate-x-0.5">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5 md:h-6 md:w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
                     </button>
                 </div>
 

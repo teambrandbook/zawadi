@@ -89,15 +89,7 @@ export default function Story() {
 
                 </div>
 
-                {/* Read More Button */}
-                <div className="mt-20">
-                    <Link 
-                        href="/blog" 
-                        className="w-56 h-14 bg-[#0A4834] hover:bg-[#1A5A44] transition-colors rounded-full shadow-md flex items-center justify-center text-white font-sans font-bold text-sm uppercase tracking-widest"
-                    >
-                        Read More
-                    </Link>
-                </div>
+
 
             </div>
         </section>

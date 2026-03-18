@@ -2,9 +2,8 @@ import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
 import Hero from "@/components/community/Hero";
 import GridGallery from "@/components/community/GridGallery";
-import FeatureStory from "@/components/community/FeatureStory";
-import CommunityFeature from "@/components/community/CommunityFeature";
 import CommunityListing from "@/components/community/CommunityListing";
+import CommunityFeature from "@/components/community/CommunityFeature";
 
 export default function CommunityPage() {
     return (
