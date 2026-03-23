@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Developing() {
     return (
@@ -30,23 +31,21 @@ export default function Developing() {
                         </div>
 
                         {/* Pill Learn More Button */}
-                        <div className="w-52 h-14 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-1.5 shadow-xl cursor-pointer group hover:bg-[#083a2a] transition-all hover:scale-105 active:scale-95">
+                        <Link href="/community" className="w-52 h-14 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-1.5 shadow-xl cursor-pointer group hover:bg-[#083a2a] transition-all">
                             <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest">
                                 Learn More
                             </span>
-                            <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center">
-                                {/* Chevron Icon from before */}
+                            <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center text-[#0A4834]">
                                 <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    className="h-5 w-5 text-[#0A4834]"
-                                    fill="none"
+                                    className="h-5 w-5 transform group-hover:translate-x-0.5 transition-transform"
                                     viewBox="0 0 24 24"
-                                    stroke="currentColor"
+                                    fill="currentColor"
                                 >
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                    <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
+                                    <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
                                 </svg>
                             </div>
-                        </div>
+                        </Link>
                     </div>
 
                     {/* Right Column: Wide Image + Descriptive Text */}

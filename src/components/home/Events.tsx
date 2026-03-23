@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Events() {
     return (
@@ -17,22 +18,21 @@ export default function Events() {
                     </div>
 
                     {/* Explore More Button */}
-                    <div className="w-56 h-16 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-2 shadow-xl cursor-pointer hover:bg-[#083a2a] transition-all hover:scale-105 active:scale-95 group">
+                    <Link href="/events" className="w-56 h-16 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-2 shadow-xl cursor-pointer hover:bg-[#083a2a] transition-all group">
                         <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest">
                             Explore More
                         </span>
                         <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0A4834]">
                             <svg
-                                xmlns="http://www.w3.org/2000/svg"
                                 className="h-6 w-6 transform group-hover:translate-x-1 transition-transform"
-                                fill="none"
                                 viewBox="0 0 24 24"
-                                stroke="currentColor"
+                                fill="currentColor"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                                <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
+                                <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
                             </svg>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* Right Column: Timeline Events */}

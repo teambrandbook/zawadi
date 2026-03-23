@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Hero() {
     return (
@@ -77,33 +78,23 @@ export default function Hero() {
                         </button>
 
                         {/* Buy Now Button */}
-                        <button className="h-14 px-12 bg-[#0A4834] text-white font-sans font-bold text-lg rounded-[4px] hover:bg-[#1A5A44] transition-all shadow-md transform active:scale-95">
+                        <Link href="/contact" className="h-14 px-12 bg-[#0A4834] text-white font-sans font-bold text-lg rounded-[4px] hover:bg-[#1A5A44] transition-all shadow-md flex items-center justify-center">
                             Buy now
-                        </button>
+                        </Link>
                     </div>
 
-                    {/* Bottom Split Section: Image + Zewadi Stories */}
-                    <div className="grid grid-cols-[auto_1fr_1fr] md:grid-cols-[140px_1fr_1fr] gap-6 md:gap-8 mt-auto pt-8 items-start">
-
-                        {/* Circular Food Image */}
-                        <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden shadow-lg border-2 border-white self-center md:self-start">
-                            <Image
-                                src="/product/product-5.webp"
-                                alt="Recipe suggestion"
-                                fill
-                                className="object-cover"
-                            />
-                        </div>
+                    {/* Bottom Split Section: Zewadi Stories */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-auto pt-8 items-start border-t border-gray-100">
 
                         {/* Story Col 1 (with Recipes button) */}
                         <div className="flex flex-col items-start gap-4">
                             <h4 className="font-display text-xl md:text-2xl font-bold text-black uppercase tracking-tight">Zewadi story</h4>
-                            <p className="font-sans text-[#555] text-[10px] md:text-xs leading-relaxed">
+                            <p className="font-sans text-[#555] text-xs leading-relaxed max-w-sm">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
-                            <button className="w-full h-10 md:h-12 bg-[#0A4834] text-white font-sans font-bold text-sm md:text-base hover:bg-[#1A5A44] transition-all rounded-[4px] shadow-sm mt-2">
-                                Recipes
-                            </button>
+                            <Link href="/recipe" className="w-44 h-10 bg-[#0A4834] hover:bg-[#1A5A44] transition-colors rounded-sm mt-2 text-white font-sans font-bold text-sm uppercase tracking-widest cursor-pointer shadow-sm flex items-center justify-center">
+                                RECIPES
+                            </Link>
                         </div>
 
                         {/* Story Col 2 (Text only) */}
