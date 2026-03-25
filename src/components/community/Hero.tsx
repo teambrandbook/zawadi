@@ -20,7 +20,7 @@ export default function Hero() {
   }, [])
 
     return (
-        <section className="w-full bg-white py-20 px-6 md:px-12 lg:px-24">
+        <section className="w-full pt-40 bg-white py-20 px-6 md:px-12 lg:px-24">
             <div className="max-w-[85rem] mx-auto flex flex-col gap-16">
 
                 {/* Left Column */}

@@ -60,7 +60,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                         </div>
 
                         {/* Nutrition Facts Box */}
-                        <div className="bg-[#0A4834] rounded-2xl p-8 flex flex-col gap-6 shadow-xl">
+                        <div className="bg-[#0A4834] sm:w-100 rounded-2xl p-8 flex flex-col gap-6 shadow-xl">
                             <h3 className="font-display text-2xl font-bold text-white uppercase tracking-wider">Nutrition Facts</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 {recipe.nutrition.map((fact) => (

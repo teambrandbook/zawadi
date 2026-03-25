@@ -2,10 +2,7 @@
 
 import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
-import Hero from "@/components/recipe/Hero";
-import VegSalad from "@/components/recipe/VegSalad";
-import Blueberry from "@/components/recipe/Blueberry";
-import Upma from "@/components/recipe/Upma";
+import Recipys from "@/components/recipe/Recipys"
 import Testimonials from "@/components/recipe/Testimonials";
 import RecipeFilter from "@/components/recipe/RecipeFilter";
 import { useEffect } from "react";
@@ -20,7 +17,7 @@ export default function RecipePage() {
       <Navbar />
       <RecipeFilter />
 
-      <div className="relative lg:h-[400vh]">
+      {/* <div className="relative lg:h-[400vh]">
         <div className="bg-white lg:sticky lg:top-0 lg:min-h-screen lg:z-10">
           <Hero />
         </div>
@@ -36,6 +33,9 @@ export default function RecipePage() {
         <div className="fadeupComponent bg-white lg:sticky lg:top-0 lg:min-h-screen lg:z-40">
           <Upma />
         </div>
+      </div> */}
+      <div>
+        <Recipys/>
       </div>
 
       <Testimonials />
