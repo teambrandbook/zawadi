@@ -1,25 +1,29 @@
-import Image from "next/image";
+"use client";
+import WipeButton from "../shared/WipeButton";
 
 export default function Hero() {
     return (
-        <section className="relative w-full h-screen overflow-hidden bg-white">
+        <section className="relative w-full h-[110vh] min-h-[100px] overflow-hidden bg-white">
             {/* Background Shape with Drop Shadow */}
             <div className="absolute inset-0 w-full h-full filter drop-shadow-2xl z-0 pointer-events-none">
                 <div
                     className="w-full h-full relative"
                     style={{
-                        clipPath: "polygon(0 0, 100% 0, 100% 75%, 50% 100%, 0 75%)"
+                        clipPath: "ellipse(65% 100% at 50% 0%)"
                     }}
                 >
-                    <Image
-                        src="/home/hero-section.webp"
-                        alt="Zewadi Hero"
-                        fill
-                        className="object-cover"
-                        priority
+                    <video
+                        src="/home/homepage-herosection.webm"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        className="absolute inset-0 w-full h-full object-cover"
                     />
                     {/* Dark Overlay */}
                     <div className="absolute inset-0 bg-black/35 z-10" />
+
+
                 </div>
             </div>
 
@@ -42,12 +46,13 @@ export default function Hero() {
                     tempor incididunt ut labore et dolore magna aliqua.
                 </p>
 
-                {/* Explore More Button */}
-                <button
-                    className="px-12 py-4 bg-[#D9D9D9] hover:bg-white text-[#0A4834] font-sans font-medium rounded-full shadow-xl transition-all hover:scale-105 active:scale-95 text-lg"
-                >
-                    Explore More
-                </button>
+                {/* Explore More Button - Minimal Beige Variant */}
+                <WipeButton
+                    href="/about"
+                    label="Explore More"
+                    variant="beige"
+                    showIcon={false}
+                />
             </div>
         </section>
     );

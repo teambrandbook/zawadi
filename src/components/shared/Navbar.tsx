@@ -2,14 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-
-
-// Placeholder for the logo image I generated earlier or just a text placeholder
-// Since I can't directly load the generated image without knowing its absolute path in the build, 
-// I'll assume I can use a public asset or just a div for now. 
-// Ideally I'd copy the generated image to public/ folder but I can't do that easily yet.
-// I'll use a text representation for now.
-
 import { useState } from "react";
 
 export default function Navbar() {
@@ -40,12 +32,12 @@ export default function Navbar() {
     return (
         <nav className="absolute -top-1 left-0 z-50 w-full flex justify-center">
             <div className="relative w-full max-w-7xl mx-4">
-                {/* True Glassmorphism Bar */}
-                <div className="absolute inset-0 h-20 bg-white/10 backdrop-blur-3xl border border-white/20 shadow-2xl rounded-2xl"></div>
+                {/* True Glassmorphism Bar - Enhanced Discovery Overlay */}
+                <div className="absolute inset-0 h-20 bg-white/25 backdrop-blur-3xl border border-white/30 shadow-2xl rounded-2xl"></div>
 
                 <div className="relative flex items-center justify-between h-20 px-4 md:px-10">
                     {/* Left Links (Desktop) */}
-                    <div className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20">
+                    <div className="hidden 2xl:flex gap-3 lg:gap-6 items-center lg:pr-10 xl:pr-20">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
@@ -91,26 +83,23 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Placeholder (Left) */}
-                    <div className="md:hidden w-10"></div>
+                    <div className="2xl:hidden w-10"></div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
-                        <Link href="/" className="w-24 md:w-28 h-20 md:h-24 bg-[#F5E6CA] rounded-b-[2rem] shadow-2xl flex flex-col items-center justify-center pt-1 pb-3 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group">
-                            <div className="relative w-10 h-10 md:w-14 md:h-14 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+                        <Link href="/" className="w-24 md:w-32 h-20 md:h-28 bg-[#F5E6CA] rounded-b-[1.5rem] shadow-2xl flex items-center justify-center pt-1 pb-3 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group px-1">
+                            <div className="relative w-24 h-24 md:w-32 md:h-32">
                                 <Image
                                     src="/logo/zawadi-logo.webp"
                                     alt="ZEWADI Logo"
                                     fill
-                                    className="object-cover group-hover:scale-110 transition-transform"
+                                    className="object-contain group-hover:scale-105 transition-transform"
                                 />
                             </div>
-                            <span className="text-[#0A4834] font-bold tracking-widest text-[11px] md:text-sm font-display uppercase">
-                                ZEWADI
-                            </span>
                         </Link>
                     </div>
 
                     {/* Right Links & User Menu (Desktop) */}
-                    <div className="hidden md:flex items-center gap-3 lg:gap-6 md:pl-12 lg:pl-20">
+                    <div className="hidden 2xl:flex items-center gap-3 lg:gap-6 lg:pl-10 xl:pl-20">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
@@ -122,12 +111,13 @@ export default function Navbar() {
                         ))}
 
                         <div className="relative ml-2 pl-4 border-l border-[#0A4834]/20 h-6 flex items-center">
+                            {/* User Menu Trigger (Minimalist Icon Style) */}
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="w-8 h-8 rounded-full bg-[#0A4834]/5 flex items-center justify-center hover:bg-[#0A4834]/10 transition-all border border-[#0A4834]/10 group overflow-hidden"
+                                className="text-[#0A4834] hover:opacity-70 transition-all p-1"
                             >
-                                <svg className="w-4 h-4 text-[#0A4834]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                                 </svg>
                             </button>
 
@@ -159,7 +149,7 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    <div className="md:hidden">
+                    <div className="2xl:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="text-[#0A4834] p-2 focus:outline-none"
@@ -177,7 +167,7 @@ export default function Navbar() {
 
                 {/* Mobile Dropdown Menu */}
                 {isOpen && (
-                    <div className="md:hidden absolute top-20 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
+                    <div className="2xl:hidden absolute top-20 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
                         {[...navLinksLeft, ...navLinksRight].map((link) => (
                             <Link
                                 key={link.name}

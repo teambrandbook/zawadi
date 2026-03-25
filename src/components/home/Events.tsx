@@ -1,102 +1,230 @@
+"use client";
+import { useRef } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import WipeButton from "../shared/WipeButton";
+
+const eventItems = [
+    {
+        id: 1,
+        title: "Where Every Meal Becomes a Memory",
+        desc: "Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.",
+        image: "/home/section7-1.webp"
+    },
+    {
+        id: 2,
+        title: "Where Every Meal Becomes a Memory",
+        desc: "Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.",
+        image: "/home/section7-2.webp"
+    },
+    {
+        id: 3,
+        title: "Where Every Meal Becomes a Memory",
+        desc: "Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.",
+        image: "/home/section5-1.webp"
+    },
+    {
+        id: 4,
+        title: "Where Every Meal Becomes a Memory",
+        desc: "Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.",
+        image: "/home/section5-2.webp"
+    }
+];
 
 export default function Events() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ["start start", "end end"]
+    });
+
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 45, // Smoother, professional pacing
+        damping: 30,
+        mass: 0.8
+    });
+
+    const containerHeight = "70vh"; // Slightly shorter container
+    const p0 = "28px";
+    const p3 = `calc(${containerHeight} - 28px)`;
+    const totalGapVal = `calc(${p3} - ${p0})`;
+
+    const p1 = `calc(${p0} + (${totalGapVal} * 1 / 3))`;
+    const p2 = `calc(${p0} + (${totalGapVal} * 2 / 3))`;
+    const nodeCenters = [p0, p1, p2, p3];
+
+    // Professional 'Pro-Stop' Mapping: [Dwell, Move, Dwell, Move, Dwell, Move, Dwell]
+    const PROGRESS_STOPS = [0, 0.15, 0.25, 0.4, 0.5, 0.65, 0.75, 1.0];
+
+    // Indicator position - perfectly synced to stops
+    const indicatorY = useTransform(smoothProgress, PROGRESS_STOPS, [p0, p0, p1, p1, p2, p2, p3, p3], { clamp: true });
+
+    // Discrete Progress Segments: one stop after the other
+    const segments = [
+        { start: 0.15, end: 0.25 }, // Move 1->2
+        { start: 0.4, end: 0.5 },   // Move 2->3
+        { start: 0.65, end: 0.75 }  // Move 3->4
+    ];
+
+    const cardH = 420;
+    const cardTranslation = useTransform(
+        smoothProgress,
+        PROGRESS_STOPS,
+        ["0px", "0px", `-${cardH}px`, `-${cardH}px`, `-${cardH * 2}px`, `-${cardH * 2}px`, `-${cardH * 3}px`, `-${cardH * 3}px`],
+        { clamp: true }
+    );
+
     return (
-        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
-            <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+        <section ref={containerRef} className="relative h-[600vh] bg-white">
+            <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
+                <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-auto lg:h-[75vh] items-start lg:items-center pt-12 lg:pt-0">
 
-                {/* Left Column: Title and Toggle */}
-                <div className="lg:col-span-5 flex flex-col justify-start pt-4 gap-10">
-                    <div>
-                        <h2 className="font-display text-5xl md:text-7xl font-black text-[#0A4834] mb-6 uppercase tracking-tighter leading-[0.9]">
-                            Where Every Meal <br /> Becomes a Memory
-                        </h2>
-                        <p className="font-sans text-[#555] text-lg leading-relaxed max-w-md">
-                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit.
-                        </p>
+                    {/* Left Column */}
+                    <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-10 z-20 max-w-[440px] md:max-w-none mx-auto w-full">
+                        <motion.div
+                            initial={{ opacity: 0, x: -30 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
+                        >
+                            <h2 className="font-display text-5xl md:text-6xl font-black text-[#0A4834] mb-6 uppercase tracking-tighter leading-[0.85]">
+                                Where Every Meal <br /> Becomes a Memory
+                            </h2>
+                            <p className="font-sans text-[#555] text-base md:text-lg leading-relaxed max-w-sm mb-8">
+                                Redefine your food experience with technology and sustainable agriculture.
+                            </p>
+                            <WipeButton href="/events" label="Explore More" />
+                        </motion.div>
                     </div>
 
-                    {/* Explore More Button */}
-                    <Link href="/events" className="w-56 h-16 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-2 shadow-xl cursor-pointer hover:bg-[#083a2a] transition-all group">
-                        <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest">
-                            Explore More
-                        </span>
-                        <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0A4834]">
-                            <svg
-                                className="h-6 w-6 transform group-hover:translate-x-1 transition-transform"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                            >
-                                <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
-                                <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
-                            </svg>
+                    {/* Middle Column */}
+                    <div className="hidden lg:flex lg:col-span-1 relative h-[70vh] flex-col items-center justify-center">
+                        <div className="h-full w-full relative overflow-hidden">
+                            {/* Segmented Background */}
+                            {[0, 1, 2].map((i) => (
+                                <div
+                                    key={`bg-seg-${i}`}
+                                    className="absolute left-1/2 -translate-x-1/2 bg-[#F0F0F0] z-0"
+                                    style={{
+                                        top: nodeCenters[i],
+                                        height: `calc(${totalGapVal} / 3)`,
+                                        width: "3px"
+                                    }}
+                                />
+                            ))}
+
+                            {/* Segmented Filling Progress */}
+                            {[0, 1, 2].map((i) => (
+                                <motion.div
+                                    key={`active-seg-${i}`}
+                                    className="absolute left-1/2 -translate-x-1/2 bg-[#0A4834] z-10 origin-top"
+                                    style={{
+                                        top: nodeCenters[i],
+                                        width: "3px",
+                                        height: useTransform(
+                                            smoothProgress,
+                                            [segments[i].start, segments[i].end],
+                                            ["0%", "100%"],
+                                            { clamp: true }
+                                        )
+                                    } as any}
+                                />
+                            ))}
+
+                            {nodeCenters.map((centerPos, i) => (
+                                <motion.div key={i} className="absolute left-1/2 w-10 h-10 z-20" style={{ top: centerPos, x: "-50%", y: "-50%" } as any}>
+                                    <motion.div
+                                        className="w-full h-full rounded-full bg-white border border-[#E0E0E0] flex items-center justify-center shadow-md"
+                                        style={{
+                                            borderColor: useTransform(
+                                                smoothProgress,
+                                                [PROGRESS_STOPS[i * 2] - 0.05, PROGRESS_STOPS[i * 2], PROGRESS_STOPS[i * 2] + 0.05],
+                                                ["#E0E0E0", "#0A4834", "#E0E0E0"],
+                                                { clamp: true }
+                                            )
+                                        } as any}
+                                    >
+                                        <div className="w-2 h-2 rounded-full bg-[#E0E0E0]" />
+                                    </motion.div>
+                                </motion.div>
+                            ))}
+                            <motion.div className="absolute left-1/2 z-40 w-10 h-10 rounded-full bg-[#0A4834] border-[2px] border-white shadow-lg flex items-center justify-center pointer-events-none" style={{ top: indicatorY, x: "-50%", y: "-50%" } as any}>
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                            </motion.div>
                         </div>
-                    </Link>
-                </div>
-
-                {/* Right Column: Timeline Events */}
-                <div className="lg:col-span-7 relative pl-4 md:pl-8">
-
-                    {/* Vertical Timeline Line */}
-                    <div className="absolute left-[44px] md:left-[60px] top-10 bottom-10 w-[2.5px] bg-[#D4D4D4] z-0" />
-
-                    <div className="flex flex-col gap-16 relative">
-
-                        {/* Event Item 1 (Active) */}
-                        <div className="flex gap-8 md:gap-12 relative items-start">
-                            {/* Node */}
-                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#0A4834] flex items-center justify-center shadow-md">
-                                <div className="w-4 h-4 bg-white rounded-full" />
-                            </div>
-
-                            {/* Card */}
-                            <div className="flex-1 bg-[#E5E5E5] p-6 md:p-8 rounded-sm shadow-sm transition-transform hover:-translate-y-1 duration-300">
-                                <h3 className="font-display text-2xl font-bold text-black mb-3 tracking-tight">
-                                    Where Every Meal Becomes a Memory
-                                </h3>
-                                <p className="font-sans text-xs text-[#555] mb-6 leading-relaxed max-w-sm">
-                                    Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
-                                </p>
-                                <div className="w-full h-40 relative bg-white rounded-sm shadow-inner overflow-hidden">
-                                    <Image fill src="/home/section7-1.webp" alt="Event Image 1" className="object-cover" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Event Item 2 (Inactive) */}
-                        <div className="flex gap-8 md:gap-12 relative items-start">
-                            {/* Node */}
-                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#E5E5E5] flex items-center justify-center shadow-md">
-                                <div className="w-4 h-4 bg-[#0A4834] rounded-full" />
-                            </div>
-
-                            {/* Card */}
-                            <div className="flex-1 bg-[#E5E5E5] p-6 md:p-8 rounded-sm shadow-sm transition-transform hover:-translate-y-1 duration-300">
-                                <h3 className="font-display text-2xl font-bold text-black mb-3 tracking-tight">
-                                    Where Every Meal Becomes a Memory
-                                </h3>
-                                <p className="font-sans text-xs text-[#555] mb-6 leading-relaxed max-w-sm">
-                                    Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
-                                </p>
-                                <div className="w-full h-40 relative bg-white rounded-sm shadow-inner overflow-hidden">
-                                    <Image fill src="/home/section7-2.webp" alt="Event Image 2" className="object-cover" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bottom Node (Termination) */}
-                        <div className="flex gap-8 md:gap-12 relative items-center">
-                            {/* Node Only */}
-                            <div className="relative z-10 w-14 h-14 flex-shrink-0 rounded-full bg-[#E5E5E5] flex items-center justify-center shadow-md">
-                                <div className="w-4 h-4 bg-[#0A4834] rounded-full" />
-                            </div>
-                        </div>
-
                     </div>
-                </div>
 
+                    {/* Right Column: Sliding Event Cards */}
+                    <div className="col-span-12 lg:col-span-6 flex flex-col relative h-[420px] overflow-hidden items-center max-w-[440px] md:max-w-none mx-auto w-full pt-16 lg:pt-0">
+                        <motion.div
+                            className="w-full flex flex-col items-center"
+                            style={{ y: cardTranslation } as any}
+                        >
+                            {eventItems.map((item, index) => (
+                                <EventCard
+                                    key={item.id}
+                                    item={item}
+                                    index={index}
+                                    progress={smoothProgress}
+                                    height={cardH}
+                                />
+                            ))}
+                        </motion.div>
+                    </div>
+
+                </div>
             </div>
         </section>
+    );
+}
+
+function EventCard({ item, index, progress, height }: { item: any, index: number, progress: any, height: number }) {
+    // Pro-Stop Mapping: [0, 0.15, 0.25, 0.4, 0.5, 0.65, 0.75, 1.0]
+
+    // Stop pairs for each item dwell state
+    const dwells = [[0, 0.15], [0.25, 0.4], [0.5, 0.65], [0.75, 1.0]];
+    const fadeIns = [-0.1, 0.15, 0.4, 0.65];
+    const fadeOuts = [0.25, 0.5, 0.75, 1.1];
+
+    const opacity = useTransform(
+        progress,
+        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
+        [0, 1, 1, 0],
+        { clamp: true }
+    );
+    const scale = useTransform(
+        progress,
+        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
+        [0.9, 1, 1, 0.9],
+        { clamp: true }
+    );
+    const visibility = useTransform(
+        progress,
+        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
+        ["hidden", "visible", "visible", "hidden"],
+        { clamp: true }
+    );
+
+    return (
+        <motion.div
+            style={{ opacity, scale, visibility: visibility as any, height: height } as any}
+            className="w-full flex-shrink-0 flex flex-col justify-center bg-[#f5f5f5] py-8 px-6 md:px-8 rounded-sm shadow-xl border border-black/5"
+        >
+            <div className="w-full max-w-lg mx-auto">
+                <h3 className="font-display text-lg md:text-xl lg:text-2xl font-black text-black mb-3 uppercase tracking-tighter leading-tight">
+                    {item.title}
+                </h3>
+                <p className="font-sans text-[13px] text-[#555] mb-6 leading-relaxed line-clamp-2">
+                    {item.desc}
+                </p>
+                <div className="w-full aspect-video relative rounded-sm overflow-hidden shadow-inner group">
+                    <Image
+                        fill
+                        src={item.image}
+                        alt={item.title}
+                        className="object-cover transition-transform duration-[2s] scale-100 group-hover:scale-105"
+                    />
+                </div>
+            </div>
+        </motion.div>
     );
 }

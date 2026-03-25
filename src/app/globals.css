@@ -24,3 +24,70 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@keyframes swipeDownReveal {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-swipe-down {
+  animation: swipeDownReveal 1.8s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes shuttleSwipe {
+  0% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  30% {
+    transform: translateX(60px);
+    opacity: 0;
+  }
+  31% {
+    transform: translateX(-180px); /* Start from left of the button */
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.group:hover .animate-shuttle {
+  animation: shuttleSwipe 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+@keyframes textShuttleReveal {
+  0% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  25% {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  35% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.group:hover .animate-text-shuttle {
+  animation: textShuttleReveal 1.4s cubic-bezier(0.19, 1, 0.22, 1) forwards;
+}
+
+.opacity-0 {
+  opacity: 0;
+}
+
+.opacity-100 {
+  opacity: 1;
+}

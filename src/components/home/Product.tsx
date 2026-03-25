@@ -1,109 +1,174 @@
 "use client";
 
-import { useState } from "react";
+import { useRef } from "react";
 import Image from "next/image";
+import { motion, useScroll, useTransform, useSpring } from "framer-motion";
 
 const products = [
     {
         id: 1,
         image: "/home/section6-1.webp",
-        title: "Side product 1"
+        title: "Dried Fruits & Nuts",
+        desc: "Bridging the gap between technology and agriculture to redefine your food experience. Our organic selection is grown with care."
     },
     {
         id: 2,
         image: "/home/section6-center.webp",
-        title: "Main Product"
+        title: "Raw Zewadi Honey",
+        desc: "Experience the ultimate in sustainable agriculture. Our premium products bring the freshness of the farm directly to your table."
     },
     {
         id: 3,
         image: "/home/section6-right.webp",
-        title: "Side product 2"
+        title: "Organic Green Tea",
+        desc: "Redefining purity and taste. Explore our specialized range of agricultural wonders, crafted for the health-conscious consumer."
     }
 ];
 
 export default function Product() {
-    const [activeIndex, setActiveIndex] = useState(1); // Default to center image
+    const containerRef = useRef<HTMLDivElement>(null);
+    const { scrollYProgress } = useScroll({
+        target: containerRef,
+        offset: ["start start", "end end"]
+    });
 
-    const rotateLeft = () => {
-        setActiveIndex((prev) => (prev === 0 ? products.length - 1 : prev - 1));
-    };
-
-    const rotateRight = () => {
-        setActiveIndex((prev) => (prev === products.length - 1 ? 0 : prev + 1));
-    };
-
-    const getPositionClass = (index: number) => {
-        if (index === activeIndex) return "z-30 scale-100 opacity-100 translate-x-0";
-
-        // Product to the left of active
-        if (index === (activeIndex === 0 ? products.length - 1 : activeIndex - 1)) {
-            return "z-20 scale-90 opacity-0 md:opacity-40 translate-x-0 md:-translate-x-24 lg:-translate-x-32 rotate-y-12 cursor-pointer hover:opacity-100";
-        }
-
-        // Product to the right of active
-        return "z-20 scale-90 opacity-0 md:opacity-40 translate-x-0 md:translate-x-24 lg:translate-x-32 -rotate-y-12 cursor-pointer hover:opacity-100";
-    };
+    // Buttery smooth physics
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 60,
+        damping: 40,
+        mass: 0.8
+    });
 
     return (
-        <section className="w-full bg-white py-16 md:py-24 flex justify-center overflow-hidden">
-            <div className="w-[95%] lg:w-[90%] max-w-[90rem] bg-[#9F8151] mx-auto relative pt-16 md:pt-24 pb-16 md:pb-24 px-6 md:px-16 lg:px-24 rounded-sm shadow-inner transition-all duration-700">
+        <section ref={containerRef} className="relative h-[650vh] bg-white pt-16 md:pt-24">
+            <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-visible">
+                <div className="w-[95%] lg:w-[90%] max-w-[90rem] bg-[#9F8151] mx-auto relative pt-20 md:pt-24 pb-12 md:pb-24 px-6 md:px-16 lg:px-24 rounded-sm shadow-inner overflow-visible transition-all duration-700">
 
-                {/* Header - Top Left */}
-                <h2 className="font-display text-5xl md:text-7xl font-bold text-[#EAE3D2] mb-12 tracking-tighter text-left z-30 relative pointer-events-none">
-                    Our Product
-                </h2>
+                    {/* Header - Top Left (Optimized for smaller cards) */}
+                    <h2 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold text-[#EAE3D2] mb-12 md:mb-10 pt-4 md:pt-6 tracking-tighter text-left z-40 relative pointer-events-none uppercase">
+                        Our Product
+                    </h2>
 
-                {/* Carousel Container */}
-                <div className="relative w-full h-[30rem] md:h-[42rem] flex items-center justify-center perspective-[1200px]">
-
-                    {/* Navigation Arrows */}
-                    <button
-                        onClick={rotateLeft}
-                        className="absolute left-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
-                        aria-label="Previous Product"
-                    >
-                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <button
-                        onClick={rotateRight}
-                        className="absolute right-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
-                        aria-label="Next Product"
-                    >
-                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-
-                    {/* Images Loop */}
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {products.map((product, index) => (
-                            <div
-                                key={product.id}
-                                onClick={() => setActiveIndex(index)}
-                                className={`absolute transition-all duration-700 ease-in-out w-72 h-[24rem] md:w-[26rem] lg:w-[28rem] md:h-[34rem] lg:h-[38rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden ${getPositionClass(index)}`}
-                            >
-                                <Image
-                                    src={product.image}
-                                    alt={product.title}
-                                    fill
-                                    className="object-cover"
+                    {/* Carousel Container - COMPACT STACK HEIGHT */}
+                    <div className="relative w-full h-[18rem] md:h-[26rem] lg:h-[28rem] flex items-center justify-center z-20">
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            {products.map((product, index) => (
+                                <ProductCard 
+                                    key={product.id} 
+                                    product={product} 
+                                    index={index} 
+                                    progress={smoothProgress} 
                                 />
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                {/* Description Text */}
-                <div className="relative z-30 mt-8 md:mt-12 max-w-2xl mx-auto text-center px-4">
-                    <p className="font-sans text-[#EAE3D2] text-sm md:text-base leading-relaxed font-light">
-                        Bridging the gap between technology and agriculture to redefine your food experience.<br className="hidden md:block" /> Explore our premium selection of organic and sustainable products.
-                    </p>
-                </div>
+                    {/* Description Text - DYNAMICALLY CHANGING */}
+                    <div className="relative z-30 mt-8 md:mt-10 max-w-2xl mx-auto text-center px-4 h-24 flex items-center justify-center">
+                        {products.map((product, index) => {
+                            const pStart = index / 3;
+                            const pEnd = (index + 1) / 3;
+                            
+                            return (
+                                <motion.p 
+                                    key={`desc-${product.id}`}
+                                    className="font-sans text-[#EAE3D2] text-sm md:text-lg leading-relaxed font-light absolute top-0 left-0 right-0 tracking-wide"
+                                    style={{ 
+                                        opacity: useTransform(
+                                            smoothProgress,
+                                            [ pStart - 0.15, pStart, pEnd - 0.15, pEnd ],
+                                            [0, 1, 1, 0]
+                                        ),
+                                        y: useTransform(
+                                            smoothProgress,
+                                            [ pStart - 0.15, pStart, pEnd - 0.15, pEnd ],
+                                            [20, 0, 0, -20]
+                                        ),
+                                        visibility: useTransform(
+                                            smoothProgress,
+                                            [ pStart - 0.15, pStart, pEnd ],
+                                            ["hidden", "visible", "hidden"]
+                                        ) as any
+                                    }}
+                                >
+                                    {product.desc}
+                                </motion.p>
+                            );
+                        })}
+                    </div>
 
+                </div>
             </div>
         </section>
+    );
+}
+
+function ProductCard({ product, index, progress }: { product: any, index: number, progress: any }) {
+    const p = progress;
+    const turn = index / 3;
+    const nextTurn = (index + 1) / 3;
+    
+    // Smooth transition window
+    const transitionWindow = 0.12; 
+
+    // Translation - Card slides out beautifully
+    const xPos = useTransform(
+        p,
+        [ turn, nextTurn - transitionWindow, nextTurn - (transitionWindow/2), nextTurn, 1 ],
+        [ "0px", "0px", "-400px", "0px", "0px" ] // Slightly tighter slide for smaller cards
+    );
+
+    // Scaling
+    const scale = useTransform(
+        p,
+        [ 0, turn - transitionWindow, turn, nextTurn - transitionWindow, nextTurn, 1 ],
+        [ 0.88, 0.88, 1, 1, 0.88, 0.88 ]
+    );
+
+    // Opacity
+    const opacity = useTransform(
+        p,
+        [ turn - (transitionWindow * 2), turn, nextTurn - transitionWindow, nextTurn - (transitionWindow/2), nextTurn, 1 ],
+        [ 0.5, 1, 1, 0, 0.5, 0.5 ]
+    );
+
+    // ZIndex
+    const zIndex = useTransform(
+        p,
+        [ turn - 0.02, turn, nextTurn - 0.02, nextTurn ],
+        [ 10, 50, 50, 10 ]
+    );
+
+    // Rotation
+    const rotate = useTransform(
+        p,
+        [ nextTurn - transitionWindow, nextTurn - (transitionWindow/2), nextTurn ],
+        [ 0, -8, 0 ]
+    );
+
+    return (
+        <motion.div
+            style={{ 
+                x: xPos,
+                rotate,
+                scale,
+                opacity,
+                zIndex,
+                position: "absolute"
+            }}
+            // REDUCED DIMENSIONS:
+            // Mobile: w-52, h-[18rem]
+            // Desktop: w-[18rem], h-[24rem]
+            // Large: w-[20rem], h-[28rem]
+            className="w-52 h-[18rem] md:w-[18rem] lg:w-[20rem] md:h-[24rem] lg:h-[28rem] shadow-[0_45px_90px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
+        >
+            <Image
+                src={product.image}
+                alt={product.title}
+                fill
+                className="object-cover"
+                priority={index === 0}
+            />
+        </motion.div>
     );
 }

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import WipeButton from "../shared/WipeButton";
 
 export default function Community() {
     return (
@@ -33,9 +34,12 @@ export default function Community() {
                         Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
                     </p>
 
-                    <button className="px-14 py-4 bg-[#EAE3D2] hover:bg-white text-[#0A4834] font-sans font-bold rounded-full shadow-2xl transition-all hover:scale-105 active:scale-95 text-lg uppercase tracking-wider">
-                        Explore More
-                    </button>
+                    <WipeButton
+                        href="/about"
+                        label="Explore More"
+                        variant="beige"
+                        showIcon={false}
+                    />
                 </div>
 
                 {/* Bottom Wavy Edge */}

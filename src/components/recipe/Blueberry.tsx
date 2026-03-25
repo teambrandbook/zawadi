@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import WipeButton from "../shared/WipeButton";
 
 export default function Blueberry() {
     return (

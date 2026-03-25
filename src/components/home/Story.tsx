@@ -1,96 +1,170 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+import { motion } from "framer-motion";
+
+const timelineItems = [
+    { id: 1, image: "/home/section4-1.webp", title: "Our Roots", desc: "Starting with a vision to connect everyone to fresh produce." },
+    { id: 2, image: "/home/section4-2.webp", title: "Growing Community", desc: "Expanding our network of local farmers and partners." },
+    { id: 3, image: "/home/section4-3.webp", title: "Sustainable Future", desc: "Implementing tech for zero-waste agriculture." },
+    { id: 4, image: "/home/section5-1.webp", title: "The Road Ahead", desc: "Building a healthier planet, one meal at a time." }
+];
 
 export default function Story() {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [scrollProgress, setScrollProgress] = useState(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!containerRef.current) return;
+
+            const container = containerRef.current;
+            const containerTop = container.offsetTop;
+            const containerHeight = container.offsetHeight;
+            const scrollY = window.scrollY;
+            const viewportHeight = window.innerHeight;
+
+            // Progress through the sticky container
+            const start = containerTop;
+            const end = containerTop + containerHeight - viewportHeight;
+            
+            let progress = (scrollY - start) / (end - start);
+            progress = Math.max(0, Math.min(1, progress));
+            
+            setScrollProgress(progress);
+
+            // Determine active index with some buffer for better pinning feel
+            const itemsCount = timelineItems.length;
+            const step = 1 / itemsCount;
+            const newIndex = Math.min(Math.floor(progress / step), itemsCount - 1);
+            setActiveIndex(newIndex);
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        // Initial call
+        handleScroll();
+
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    // ANIMATION VARIANTS
+    const containerVariants: any = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants: any = {
+        hidden: { opacity: 0, y: 30 },
+        visible: { 
+            opacity: 1, 
+            y: 0,
+            transition: { duration: 0.8, ease: "circOut" }
+        }
+    };
+
     return (
-        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
-            <div className="max-w-[90rem] mx-auto flex flex-col items-center">
+        <section ref={containerRef} className="relative h-[450vh] bg-white">
+            {/* Sticky Content Wrapper */}
+            <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+                
+                <div className="w-full h-full flex flex-col items-center justify-between py-8 px-4 md:px-12">
+                    
+                    {/* Header Section - STAGGERED FADE UP */}
+                    <motion.div 
+                        variants={containerVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, margin: "-100px" }}
+                        className="text-center w-full max-w-4xl z-30"
+                    >
+                        <motion.h2 
+                            variants={itemVariants}
+                            className="font-display text-5xl md:text-7xl font-black text-[#000000] mb-4 uppercase tracking-tighter"
+                        >
+                            Our Story
+                        </motion.h2>
+                        <motion.p 
+                            variants={itemVariants}
+                            className="font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-2xl mx-auto"
+                        >
+                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
+                        </motion.p>
+                    </motion.div>
 
-                {/* Header Section */}
-                <div className="text-center max-w-4xl mb-20">
-                    <h2 className="font-display text-5xl md:text-7xl font-black text-[#000000] mb-8 uppercase tracking-tighter">
-                        Our Story
-                    </h2>
-                    <p className="font-sans text-[#555] text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
-                        Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                    </p>
-                </div>
-
-                {/* Timeline Section */}
-                <div className="relative w-full max-w-7xl mb-24 hidden md:block">
-                    {/* Horizontal Line */}
-                    <div className="absolute top-1/2 left-0 w-full h-[1px] bg-[#999] -translate-y-1/2 z-0" />
-
-                    <div className="relative z-10 flex justify-between items-center w-full">
-
-                        {/* Node 1: Active (Solid Dark) */}
-                        <div className="relative group cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-[#0A4834] flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110 border-4 border-white ring-1 ring-[#0A4834]">
-                                <div className="w-2.5 h-2.5 bg-white rounded-full" />
-                            </div>
-                        </div>
-
-                        {/* Node 2: Inactive (Outline) */}
-                        <div className="relative group cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-white border border-[#555] flex items-center justify-center transform transition-transform group-hover:scale-110 group-hover:border-[#0A4834]">
-                                <div className="w-2.5 h-2.5 bg-[#0A4834] rounded-full" />
-                            </div>
-                        </div>
-
-                        {/* Node 3: Inactive (Outline) */}
-                        <div className="relative group cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-white border border-[#555] flex items-center justify-center transform transition-transform group-hover:scale-110 group-hover:border-[#0A4834]">
-                                <div className="w-2.5 h-2.5 bg-[#0A4834] rounded-full" />
-                            </div>
-                        </div>
-
-                        {/* Node 4: Inactive (Outline) */}
-                        <div className="relative group cursor-pointer">
-                            <div className="w-12 h-12 rounded-full bg-white border border-[#555] flex items-center justify-center transform transition-transform group-hover:scale-110 group-hover:border-[#0A4834]">
-                                <div className="w-2.5 h-2.5 bg-[#0A4834] rounded-full" />
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                {/* Image Grid Section */}
-                <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-8 items-center">
-
-                    {/* Image 1: Vertical */}
-                    <div className="col-span-1 aspect-[3/5] relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm md:mt-30">
-                        <Image
-                            src="/home/section4-1.webp"
-                            alt="Story vertical 1"
-                            fill
-                            className="object-cover"
+                    {/* Timeline Section - Compact & Floating */}
+                    <div className="relative w-full max-w-3xl z-30 mb-8 px-6">
+                        {/* Background Line */}
+                        <div className="absolute top-1/2 left-[8.5%] right-[8.5%] md:left-[4.5%] md:right-[4.5%] h-[1px] bg-black/10 -translate-y-1/2 z-0" />
+                        
+                        {/* Active Progress Line */}
+                        <div 
+                            className="absolute top-1/2 left-[8.5%] md:left-[4.5%] h-[1.5px] bg-[#0A4834] -translate-y-1/2 z-0 transition-all duration-300 ease-out shadow-[0_0_10px_rgba(10,72,52,0.3)]" 
+                            style={{ 
+                                width: typeof window !== 'undefined' && window.innerWidth < 768 
+                                    ? `calc(${scrollProgress * 83}%)` 
+                                    : `calc(${scrollProgress * 91}%)` 
+                            }}
                         />
+
+                        <div className="relative z-10 flex justify-between items-center w-full">
+                            {timelineItems.map((item, index) => (
+                                <div key={item.id} className="relative group p-4 cursor-pointer">
+                                    {/* The Circle */}
+                                    <div 
+                                        className={`w-4 h-4 rounded-full flex items-center justify-center transition-all duration-700 ${
+                                            index <= activeIndex 
+                                            ? "bg-[#0A4834] scale-150 shadow-[0_0_15px_rgba(10,72,52,0.4)]" 
+                                            : "bg-white border border-black/20 scale-100"
+                                        }`}
+                                    >
+                                        <div className={`w-1 h-1 rounded-full transition-colors duration-500 ${
+                                            index <= activeIndex ? "bg-white" : "bg-[#0A4834]/20"
+                                        }`} />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    {/* Image 2: Vertical */}
-                    <div className="col-span-1 aspect-[3/5] relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm md:mt-30">
-                        <Image
-                            src="/home/section4-2.webp"
-                            alt="Story vertical 2"
-                            fill
-                            className="object-cover"
-                        />
-                    </div>
-
-                    {/* Image 3: Large Square (Spans 2 cols) */}
-                    <div className="col-span-1 md:col-span-2 aspect-square relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm md:mt-12">
-                        <Image
-                            src="/home/section4-3.webp"
-                            alt="Story main"
-                            fill
-                            className="object-cover"
-                        />
+                    {/* Image Grid Section - THE HEART */}
+                    <div className="flex-1 w-full flex items-center justify-center gap-2 md:gap-6 [perspective:2000px] z-20 mb-8">
+                        {timelineItems.map((item, index) => (
+                            <div 
+                                key={item.id}
+                                className={`relative transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] ${
+                                    index === activeIndex 
+                                    ? "w-[60%] md:w-[70%] h-[55vh] md:h-[65vh] opacity-100 scale-100 z-20 ring-1 ring-black/5" 
+                                    : "w-[10%] md:w-[8%] h-[40vh] md:h-[50vh] opacity-30 grayscale scale-95 z-10"
+                                }`}
+                            >
+                                <Image
+                                    src={item.image}
+                                    alt={item.title}
+                                    fill
+                                    className={`object-cover transition-all duration-[2000ms] ${
+                                        index === activeIndex ? "scale-105" : "scale-125"
+                                    }`}
+                                />
+                                {/* Label inside the active image */}
+                                {index === activeIndex && (
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-12 animate-in fade-in zoom-in-95 duration-1000">
+                                        <div className="mb-2 w-12 h-1 bg-white/30" />
+                                        <h3 className="text-white font-display text-2xl md:text-4xl font-black uppercase tracking-tight mb-2">{item.title}</h3>
+                                        <p className="text-white/80 font-sans text-sm md:text-lg max-w-md leading-relaxed">{item.desc}</p>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
                     </div>
 
                 </div>
-
-
-
             </div>
         </section>
     );
