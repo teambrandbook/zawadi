@@ -3,6 +3,7 @@ import Footer from "@/components/shared/Footer";
 import BlogDetail from "@/components/blog/BlogDetail";
 import { notFound } from "next/navigation";
 
+
 const blogs = {
     "recipe-4": {
         title: "Every dish tells a story",
@@ -46,6 +47,8 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ slu
     if (!blog) {
         notFound();
     }
+
+    
 
     return (
         <main className="flex flex-col min-h-screen bg-white">

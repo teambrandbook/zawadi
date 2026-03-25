@@ -1,13 +1,22 @@
+"use client"
+
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
+import { fadeUp, imageAnimation } from "../../../lib/animations";
 
 export default function Hero() {
+    useEffect(()=>{
+        imageAnimation(".img")
+        fadeUp(".fadecomponent")
+    },[])
     return (
         <section className="w-full bg-white pt-40 pb-24 px-6 md:px-12 lg:px-24">
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
                 {/* Header */}
-                <div className="text-center max-w-4xl mb-12 flex flex-col gap-6">
+                <div className="fadecomponent text-center max-w-4xl mb-12 flex flex-col gap-6">
                     <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-black text-black tracking-tight leading-tight uppercase">
                         Every dish tells a story
                     </h1>
@@ -17,13 +26,13 @@ export default function Hero() {
                 </div>
 
                 {/* Image Placeholder */}
-                <div className="w-full aspect-[16/10] rounded-sm shadow-sm relative overflow-hidden mb-16">
+                <div className="img w-full aspect-[16/10] rounded-sm shadow-sm relative overflow-hidden mb-16">
                     <Image src="/blog/blog-1.webp" alt="Featured Story" fill className="object-cover" />
                 </div>
 
                 {/* Text Content */}
-                <div className="max-w-5xl text-center flex flex-col items-center gap-8">
-                    <div className="flex flex-col gap-6">
+                <div className="fadecomponent max-w-5xl text-center flex flex-col items-center gap-8">
+                    <div className="fadecomponent flex flex-col gap-6">
                         <p className="font-sans text-[#555] text-sm md:text-base leading-relaxed">
                             Welcome to our culinary world, where every plate tells a story of dedication, creativity, and flavor. Our chefs pour their passion into every step of the process—from sourcing the best local ingredients to creating dishes that delight the senses.
                         </p>
