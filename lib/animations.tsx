@@ -3,6 +3,31 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
+
+
+
+export const stackScroll = (selector: string) => {
+  const sections = gsap.utils.toArray<HTMLElement>(selector);
+
+  sections.forEach((section, i) => {
+    if (i === sections.length - 1) return;
+
+    gsap.to(section, {
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=100%",
+        pin: true,
+        pinSpacing: false,
+        scrub: true,
+      },
+    });
+  });
+  ScrollTrigger.refresh();
+};
+
+
+
 export const fadeUp = (selector: string) => {
   const elements = gsap.utils.toArray<HTMLElement>(selector)
 

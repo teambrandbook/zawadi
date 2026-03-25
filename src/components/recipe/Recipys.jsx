@@ -1,83 +1,35 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
-import { recipyButtonAnimation } from "../../../lib/animations";
-
-const recipes = [
-  {
-    slug: "buckwheat-soup",
-    title: "BUCKWHEAT SOUP",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-    image: "/product/product-5.webp",
-    benefits: [
-      "Only the finest local ingredients",
-      "Healthy & chemical-free",
-      "Supports local farmers",
-      "Peak flavor selection",
-    ],
-  },
-  {
-    slug: "buckwheat-salad",
-    title: "BUCKWHEAT & VEG SALAD",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-    image: "/recipe/recipe-2.webp",
-    benefits: [
-      "Fresh seasonal ingredients",
-      "Healthy & chemical-free",
-      "Supports local farmers",
-      "Peak flavor selection",
-    ],
-  },
-  {
-    slug: "blueberry-dessert",
-    title: "BUCKWHEAT & BLUEBERRY",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-    image: "/recipe/recipe-3.webp",
-    benefits: [
-      "Fresh seasonal ingredients",
-      "Healthy & chemical-free",
-      "Supports local farmers",
-      "Peak flavor selection",
-    ],
-  },
-  {
-    slug: "upma-special",
-    title: "BUCKWHEAT UPMA",
-    description:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
-    image: "/recipe/recipe-4.webp",
-    benefits: [
-      "Fresh seasonal ingredients",
-      "Healthy & chemical-free",
-      "Supports local farmers",
-      "Peak flavor selection",
-    ],
-  },
-];
+import { recipyButtonAnimation, stackScroll } from "../../../lib/animations";
+import { recipes } from "../../../lib/datafile";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 
 export default function Recipys() {
   useEffect(() => {
     recipyButtonAnimation(".recipe-btn-wrap");
+    stackScroll(".recipe-section");
+
+    return () => {
+    ScrollTrigger.getAll().forEach(trigger => trigger.kill());
+  };
   }, []);
 
   return (
     <>
       {recipes.map((recipe, i) => (
-        <section key={recipe.slug} className="relative w-full bg-white py-12 md:py-16">
+        <section key={i} className="recipe-section relative w-full bg-white py-12 md:py-16">
           <div className="mx-auto max-w-7xl px-6 md:px-10">
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
 
               {/* Image */}
-              <div className="relative aspect-square w-full overflow-hidden rounded-md">
+              <div className={` ${i === 0 ? "img" : ""} relative aspect-square w-full overflow-hidden rounded-md`}>
                 <Image
                   src={recipe.image}
                   alt={recipe.title}
                   fill
-                  className="img object-cover"
+                  className=" object-cover"
                 />
               </div>
 

@@ -28,7 +28,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
     }, [])
 
     return (
-        <div className="w-full bg-white">
+        <div className="sm:pt-10 w-full bg-white">
             {/* 1. Hero / Top Section */}
             <section className="pt-32 pb-16 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
