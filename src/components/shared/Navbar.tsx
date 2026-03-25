@@ -37,7 +37,7 @@ export default function Navbar() {
 
                 <div className="relative flex items-center justify-between h-20 px-4 md:px-10">
                     {/* Left Links (Desktop) */}
-                    <div className="hidden 2xl:flex gap-3 lg:gap-6 items-center lg:pr-10 xl:pr-20">
+                    <div className="hidden lg:flex gap-3 lg:gap-6 items-center lg:pr-10 xl:pr-20">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
@@ -83,7 +83,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Placeholder (Left) */}
-                    <div className="2xl:hidden w-10"></div>
+                    <div className="lg:hidden w-10"></div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
                         <Link href="/" className="w-24 md:w-32 h-20 md:h-28 bg-[#F5E6CA] rounded-b-[1.5rem] shadow-2xl flex items-center justify-center pt-1 pb-3 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group px-1">
@@ -99,7 +99,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Right Links & User Menu (Desktop) */}
-                    <div className="hidden 2xl:flex items-center gap-3 lg:gap-6 lg:pl-10 xl:pl-20">
+                    <div className="hidden lg:flex items-center gap-3 lg:gap-6 lg:pl-10 xl:pl-20">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
@@ -149,7 +149,7 @@ export default function Navbar() {
                         </div>
                     </div>
 
-                    <div className="2xl:hidden">
+                    <div className="lg:hidden">
                         <button
                             onClick={() => setIsOpen(!isOpen)}
                             className="text-[#0A4834] p-2 focus:outline-none"
@@ -167,7 +167,7 @@ export default function Navbar() {
 
                 {/* Mobile Dropdown Menu */}
                 {isOpen && (
-                    <div className="2xl:hidden absolute top-20 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
+                    <div className="lg:hidden absolute top-20 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
                         {[...navLinksLeft, ...navLinksRight].map((link) => (
                             <Link
                                 key={link.name}

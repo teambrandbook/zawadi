@@ -29,7 +29,7 @@ export default function Navbar() {
                 <div className="relative h-20 bg-[#0A4834] rounded-b-xl rounded-t-none shadow-xl flex items-center justify-between px-4 md:px-8 lg:px-12">
 
                     {/* Left Links */}
-                    <div className="hidden 2xl:flex gap-3 lg:gap-6 xl:gap-10 items-center md:pr-12 lg:pr-24">
+                    <div className="hidden lg:flex gap-3 lg:gap-6 xl:gap-10 items-center md:pr-12 lg:pr-24">
                         {navLinksLeft.map((link) => (
                             <Link
                                 key={link.name}
@@ -42,7 +42,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button Placeholder (Left) - for balance */}
-                    <div className="2xl:hidden w-10"></div>
+                    <div className="lg:hidden w-10"></div>
 
                     {/* Center Logo Area - Balanced High-Density Branding */}
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform z-10">
@@ -60,7 +60,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Right Links & User Menu (Desktop) */}
-                    <div className="hidden 2xl:flex items-center gap-3 lg:gap-6 xl:gap-10 md:pl-12 lg:pl-24">
+                    <div className="hidden lg:flex items-center gap-3 lg:gap-6 xl:gap-10 md:pl-12 lg:pl-24">
                         {navLinksRight.map((link) => (
                             <Link
                                 key={link.name}
@@ -111,7 +111,7 @@ export default function Navbar() {
                     </div>
 
                     {/* Mobile Menu Button (Right) */}
-                    <div className="2xl:hidden">
+                    <div className="lg:hidden">
                         <button 
                             onClick={() => setIsOpen(!isOpen)}
                             className="text-white p-2 focus:outline-none"
@@ -130,7 +130,7 @@ export default function Navbar() {
 
                 {/* Mobile Dropdown Menu */}
                 {isOpen && (
-                    <div className="2xl:hidden absolute top-24 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
+                    <div className="lg:hidden absolute top-24 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4 transition-all duration-300">
                         {[...navLinksLeft, ...navLinksRight].map((link) => (
                             <Link
                                 key={link.name}

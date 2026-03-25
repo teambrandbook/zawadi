@@ -49,8 +49,8 @@ export default function Product() {
                         Our Product
                     </h2>
 
-                    {/* Carousel Container - COMPACT STACK HEIGHT */}
-                    <div className="relative w-full h-[18rem] md:h-[26rem] lg:h-[28rem] flex items-center justify-center z-20">
+                    {/* Carousel Container - Recalibrated for solid precision */}
+                    <div className="relative w-full h-[14rem] md:h-[18rem] lg:h-[22rem] flex items-center justify-center z-20">
                         <div className="relative w-full h-full flex items-center justify-center">
                             {products.map((product, index) => (
                                 <ProductCard 
@@ -157,10 +157,10 @@ function ProductCard({ product, index, progress }: { product: any, index: number
                 position: "absolute"
             }}
             // REDUCED DIMENSIONS:
-            // Mobile: w-52, h-[18rem]
-            // Desktop: w-[18rem], h-[24rem]
-            // Large: w-[20rem], h-[28rem]
-            className="w-52 h-[18rem] md:w-[18rem] lg:w-[20rem] md:h-[24rem] lg:h-[28rem] shadow-[0_45px_90px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
+            // Mobile: w-52, h-[14rem]
+            // Tablet: w-[18rem], h-[18rem]
+            // Large: w-[20rem], h-[22rem]
+            className="w-52 h-[14rem] md:w-[18rem] lg:w-[20rem] md:h-[18rem] lg:h-[22rem] shadow-[0_45px_90px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
         >
             <Image
                 src={product.image}

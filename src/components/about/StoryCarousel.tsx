@@ -8,17 +8,17 @@ const slides = [
     {
         id: 1,
         image: "/about/about-3.3.webp",
-        desc: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation."
+        desc: "Rooted in the philosophy of sustainable agriculture, Zewadi bridges the gap between traditional heritage and modern precision, ensuring every harvest carries the solid trust of our community."
     },
     {
         id: 2,
         image: "/about/about-4.4.webp",
-        desc: "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit."
+        desc: "Our global presence is defined by an unwavering commitment to purity, cultivating an elite organic heritage that empowers local farmers while delivering world-class excellence to your table."
     },
     {
         id: 3,
         image: "/about/about-2.2.webp",
-        desc: "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident."
+        desc: "From the soil to the soul, we are crafting a new standard of agricultural discovery—one where transparency and artisan craft converge to define the future of sustainable living."
     },
 ];
 
@@ -52,15 +52,15 @@ export default function StoryCarousel() {
             <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
 
                 {/* 1. Header Area - High-Locked to periphery as requested */}
-                <div className="absolute top-16 md:top-18 lg:top-10 z-[100] text-center w-full max-w-4xl px-6">
-                    <h2 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter leading-[0.85]">
-                        The story behind the <br /> flavors
+                <div className="absolute top-6 md:top-10 lg:top-12 z-[100] text-center w-full max-w-4xl px-6">
+                    <h2 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter leading-tight md:leading-[0.85]">
+                        The story behind the <br className="hidden md:block"/> flavors
                     </h2>
                 </div>
 
                 {/* 2. Interactive Image Gallery Area - Focused Center Stage */}
-                <div className="relative w-full flex items-center justify-center z-20 px-6 top-5">
-                    <div className="relative w-full h-[28rem] md:h-[38rem] lg:h-[32rem] flex items-center justify-center">
+                <div className="relative w-full flex items-center justify-center z-20 px-6 mt-10 md:mt-14">
+                    <div className="relative w-full h-[24rem] md:h-[32rem] lg:h-[28rem] flex items-center justify-center">
                         {slides.map((slide, index) => (
                             <StoryImageStackCard
                                 key={slide.id}
@@ -159,7 +159,7 @@ function StoryImageStackCard({ slide, index, progress }: { slide: any, index: nu
                 zIndex,
                 position: "absolute"
             }}
-            className="w-[20rem] h-[24rem] md:w-[30rem] md:h-[34rem] lg:w-[28rem] lg:h-[26rem] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
+            className="w-[18rem] h-[22rem] md:w-[26rem] md:h-[30rem] lg:w-[24rem] lg:h-[22rem] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
         >
             <Image
                 src={slide.image}
