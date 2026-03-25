@@ -1,57 +1,32 @@
-"use client";
+"use client"
+
+
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect } from "react";
+import gsap from "gsap"
+import { ScrollTrigger } from "gsap/ScrollTrigger"
+import { buttonAnimation, fadeUp,imageAnimation } from "../../../lib/animations";
 
+
+gsap.registerPlugin(ScrollTrigger)
 export default function Hero() {
-    const containerVariants: any = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.15,
-                delayChildren: 0.3
-            }
-        }
-    };
 
-    // SWIPE Reveal for Heading (Left to Right)
-    const headingSwipeVariants: any = {
-        hidden: { 
-            clipPath: "inset(0% 100% 0% 0%)",
-            opacity: 0,
-            x: -20
-        },
-        visible: { 
-            clipPath: "inset(0% 0% 0% 0%)",
-            opacity: 1,
-            x: 0,
-            transition: { 
-                duration: 1.2, 
-                ease: [0.77, 0, 0.175, 1], // Sophisticated ease
-                opacity: { duration: 0.4 }
-            }
-        }
-    };
+    useEffect(() => {
+    fadeUp(".fade-text")
+    imageAnimation(".img-drop")
+    buttonAnimation(".btn")
 
-    // FADE IN FROM LEFT for Content
-    const contentVariants: any = {
-        hidden: { opacity: 0, x: -50 },
-        visible: { 
-            opacity: 1, 
-            x: 0,
-            transition: { duration: 0.8, ease: "circOut" }
-        }
-    };
+  }, [])
 
     return (
-        <section className="w-full bg-white pt-56 pb-12 md:pb-20 px-6 md:px-12 lg:px-24 overflow-hidden">
-            <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+        <section className="w-full bg-white py-20 px-6 md:px-12 lg:px-24">
+            <div className="max-w-[85rem] mx-auto flex flex-col gap-16">
 
                 {/* Left Column */}
-                <div className="flex flex-col gap-10">
-                    <div className="flex flex-col gap-6">
-                        {/* Static Heading */}
+                <div className="flex flex-col gap-6">
+                    {/* Title */}
+                    <div className="fade-text flex flex-col gap-2">
                         <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-black text-black tracking-tight leading-none uppercase">
                             Zewadi Community
                         </h1>

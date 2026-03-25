@@ -2,6 +2,7 @@ import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
 import RecipeDetail from "@/components/recipe/RecipeDetail";
 import { notFound } from "next/navigation";
+import Testimonials from "@/components/recipe/Testimonials";
 
 const recipes = {
     "buckwheat-salad": {
@@ -99,6 +100,7 @@ export default async function RecipePage({ params }: { params: Promise<{ slug: s
         <main className="flex flex-col min-h-screen bg-white">
             <Navbar />
             <RecipeDetail recipe={recipe} />
+            <Testimonials />
             <Footer />
         </main>
     );

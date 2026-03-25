@@ -1,8 +1,16 @@
-"use client";
+"use client"
+
+
+
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { imageAnimation, zoomDeepAnimation } from "../../../lib/animations";
 
 export default function Testimonials() {
+    useEffect(() => {
+        imageAnimation(".img")
+        zoomDeepAnimation(".zoomComponent")
+    }, [])
     return (
         <section className="relative w-full py-24 px-6 md:px-12 lg:px-24 min-h-[600px] flex items-center justify-center overflow-hidden bg-white">
             
@@ -94,7 +102,7 @@ export default function Testimonials() {
                     </motion.div>
 
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
     );
 }
