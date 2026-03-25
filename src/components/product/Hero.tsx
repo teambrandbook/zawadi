@@ -201,7 +201,7 @@ export default function Hero() {
                                 variants={wipeRevealVariants}
                                 className="h-11 w-full max-w-[280px] mt-4"
                             >
-                                <Link href="/recipes" className="w-full h-full bg-[#0A4834] rounded-none flex items-center justify-center text-white font-sans font-bold text-xs uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-md">
+                                <Link href="/recipe" className="w-full h-full bg-[#0A4834] rounded-none flex items-center justify-center text-white font-sans font-bold text-xs uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-md">
                                     Recipes
                                 </Link>
                             </motion.div>

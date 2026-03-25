@@ -117,7 +117,6 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     </div>
                 </section>
             </div>
-
             {/* 4. Testimonials Section - Synced with main Recipe Page Standard */}
             <section className="relative w-full py-24 px-6 md:px-12 lg:px-24 min-h-[600px] flex items-center justify-center overflow-hidden bg-white">
                 
