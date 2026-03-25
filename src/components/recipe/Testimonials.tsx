@@ -1,40 +1,59 @@
+"use client"
+
+
+
 import Image from "next/image";
+import { useEffect } from "react";
+import { imageAnimation, zoomDeepAnimation } from "../../../lib/animations";
 
 export default function Testimonials() {
+    useEffect(() => {
+        imageAnimation(".img")
+        zoomDeepAnimation(".zoomComponent")
+    }, [])
     return (
-        <section className="relative w-full py-24 px-6 md:px-12 lg:px-24">
-            <Image src="/about/about-6.6.webp" alt="Testimonials Background" fill className="object-cover z-0" />
-            <div className="relative z-10 max-w-4xl mx-auto">
-                {/* Single Feedback Card */}
-                <div className="bg-white flex w-full h-auto min-h-[350px] shadow-lg rounded-sm overflow-hidden p-3 md:p-5">
-                    
-                    {/* Left Navigation Arrow */}
-                    <div className="w-10 md:w-12 bg-[#9F8151] flex items-center justify-center cursor-pointer hover:bg-[#b09363] transition-colors shrink-0">
-                        <span className="text-xl text-white font-light">&lt;</span>
-                    </div>
+        <div className=" px-10 ">
+            <section className="relative w-full py-32 rounded-[10px] overflow-hidden">
+                {/* Background Image */}
+                <div className="img absolute inset-0 z-0">
+                    <Image
+                        src="/community/community-6.webp"
+                        alt="Community"
+                        fill
+                        className="object-cover brightness-[0.8]"
+                    />
+                </div>
 
-                    {/* Feedback Content */}
-                    <div className="flex-1 p-8 md:p-16 flex flex-col justify-center gap-8">
-                        <p className="font-sans text-[#333] text-base md:text-lg lg:text-xl leading-relaxed font-medium">
-                            “Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.”
-                        </p>
-                        <div className="flex items-center gap-5 mt-auto">
-                            <div className="w-14 h-14 bg-[#9F8151] rounded-sm shrink-0 overflow-hidden relative">
-                                <Image src="/about/about.webp" alt="Avatar" fill className="object-cover" />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-display font-bold text-black text-base">Abdul Hakkem</span>
-                                <span className="font-sans text-[#555] text-sm">Our Guest</span>
+                {/* Testimonial Cards */}
+                <div className="zoomComponent relative z-10 max-w-[85rem] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
+                    {[1, 2].map((i) => (
+                        <div
+                            key={i}
+                            className={`bg-white p-12 flex relative shadow-2xl items-center border-x-[12px] border-[#9F8151]
+                    ${i === 2 ? "hidden md:flex" : ""}
+                            `}
+                        >
+                            <div className="flex flex-col gap-8">
+                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8">&quot;</span>
+
+                                <p className="font-sans text-gray-600 leading-relaxed italic pr-4">
+                                    Lorem ipsum dolor sit amet...
+                                </p>
+
+                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8 self-end -mt-6">&quot;</span>
+
+                                <div className="flex items-center gap-4 mt-4">
+                                    <div className="w-16 h-16 bg-[#9F8151] shrink-0" />
+                                    <div className="flex flex-col">
+                                        <h4 className="font-bold text-black uppercase">Abdul Hakeem</h4>
+                                        <span className="text-sm text-gray-500 italic">Our Guest</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-
-                    {/* Right Navigation Arrow */}
-                    <div className="w-10 md:w-12 bg-[#9F8151] flex items-center justify-center cursor-pointer hover:bg-[#b09363] transition-colors shrink-0">
-                        <span className="text-xl text-white font-light">&gt;</span>
-                    </div>
+                    ))}
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
     );
 }

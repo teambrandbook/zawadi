@@ -1,5 +1,10 @@
+"use client"
+
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
+import { fadeUp, imageAnimation } from "../../../lib/animations";
 
 interface DishStoryProps {
     image: string;
@@ -7,12 +12,18 @@ interface DishStoryProps {
 }
 
 export default function DishStory({ image, slug }: DishStoryProps) {
+
+    useEffect(()=>{
+            imageAnimation(".img")
+            fadeUp(".fadecomponent")
+        },[])
+
     return (
         <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
                 {/* Header Text */}
-                <div className="text-center max-w-4xl mb-12 flex flex-col gap-6">
+                <div className="fadecomponent text-center max-w-4xl mb-12 flex flex-col gap-6">
                     <h2 className="font-display text-4xl md:text-5xl font-black text-black tracking-tight leading-none">
                         Every dish tells a story
                     </h2>
@@ -22,13 +33,13 @@ export default function DishStory({ image, slug }: DishStoryProps) {
                 </div>
 
                 {/* Image Placeholder */}
-                <div className="w-full aspect-[16/10] rounded-sm shadow-sm relative overflow-hidden mb-16">
+                <div className="img w-full aspect-[16/10] rounded-sm shadow-sm relative overflow-hidden mb-16">
                     <Image src={image} alt="Dish Story" fill className="object-cover" />
                 </div>
 
                 {/* Bottom Long Text */}
                 <div className="text-center max-w-4xl mx-auto flex flex-col items-center gap-8">
-                    <div className="flex flex-col gap-6">
+                    <div className="fadecomponent flex flex-col gap-6">
                         <p className="font-sans text-[#555] text-sm md:text-base leading-relaxed">
                             Welcome to our culinary world, where every plate tells a story of dedication, creativity, and flavor. Our chefs pour their passion into every step of the process—from sourcing the best local ingredients to creating dishes that delight the senses.
                         </p>

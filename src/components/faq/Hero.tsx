@@ -1,9 +1,16 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect } from "react";
+import { fadeUp } from "../../../lib/animations";
 
 export default function Hero() {
+    useEffect(()=>{
+        fadeUp(".fadeComponnent")
+    },[])
     return (
         <section className="w-full bg-white pt-42 px-4 md:px-8 lg:px-12">
-            <div className="w-full max-w-[90rem] mx-auto bg-[#0A4834] rounded-[2rem] relative overflow-hidden h-[750px] md:h-[850px] flex flex-col items-center pt-24 md:pt-36">
+            <div className="fadeComponnent w-full max-w-[90rem] mx-auto bg-[#0A4834] rounded-[2rem] relative overflow-hidden h-[750px] md:h-[850px] flex flex-col items-center pt-24 md:pt-36">
 
                 {/* Centered Text Content */}
                 <div className="w-full max-w-4xl px-6 text-center z-10 mb-12">

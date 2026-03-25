@@ -1,4 +1,9 @@
+"use client"
+
+
 import Image from "next/image";
+import { useEffect } from "react";
+import { borderDraw, imageAnimation, leftReveal } from "../../../lib/animations";
 
 interface RecipeData {
     title: string;
@@ -15,19 +20,26 @@ interface RecipeDetailProps {
 }
 
 export default function RecipeDetail({ recipe }: RecipeDetailProps) {
+
+    useEffect(() => {
+        imageAnimation(".img")
+        leftReveal(".lectRevelComponent")
+        borderDraw(".border-box")
+    }, [])
+
     return (
         <div className="w-full bg-white">
             {/* 1. Hero / Top Section */}
             <section className="pt-32 pb-16 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                    
+
                     {/* Left: Image with Play Button */}
-                    <div className="relative aspect-square rounded-none overflow-hidden group shadow-2xl">
-                        <Image 
-                            src={recipe.image} 
-                            alt={recipe.title} 
-                            fill 
-                            className="object-cover" 
+                    <div className="img relative aspect-square rounded-none overflow-hidden group shadow-2xl">
+                        <Image
+                            src={recipe.image}
+                            alt={recipe.title}
+                            fill
+                            className="object-cover"
                         />
                         {/* Play Button Overlay */}
                         <div className="absolute bottom-6 right-6 w-14 h-14 bg-[#0A4834] rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
@@ -38,7 +50,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     </div>
 
                     {/* Right: Content & Nutrition */}
-                    <div className="flex flex-col gap-8">
+                    <div className="lectRevelComponent flex flex-col gap-8">
                         <div>
                             <h1 className="font-display text-5xl md:text-6xl font-black text-black leading-[1.1] uppercase mb-6" dangerouslySetInnerHTML={{ __html: recipe.title }}>
                             </h1>
@@ -66,11 +78,10 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             {/* 2. Ingredient Section */}
             <section className="py-12 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto">
-                    <div className="border-2 border-dashed border-[#0A4834] p-10 flex flex-col gap-6">
-                        <div className="flex items-center gap-4">
-                            <span className="font-display text-3xl font-black text-black">{recipe.ingredientsCount}</span>
-                            <h2 className="font-display text-3xl font-black text-black uppercase">Ingredient</h2>
-                        </div>
+                    <div className="border-box rounded-[10px] border-2 border-dashed border-[#0A4834] p-10 flex flex-col gap-6">                        <div className="flex items-center gap-4">
+                        <span className="font-display text-3xl font-black text-black">{recipe.ingredientsCount}</span>
+                        <h2 className="font-display text-3xl font-black text-black uppercase">Ingredient</h2>
+                    </div>
                         <p className="font-sans text-gray-600 leading-relaxed max-w-4xl">
                             {recipe.ingredientsText}
                         </p>
@@ -79,57 +90,36 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             </section>
 
             {/* 3. How to Cook Section */}
-            <section className="py-20 px-6 md:px-12 lg:px-24 bg-[#EAE3D2]">
-                <div className="max-w-[85rem] mx-auto flex flex-col gap-10">
-                    <h2 className="font-display text-3xl font-black text-black uppercase">How to Cook :</h2>
-                    <div className="flex flex-col gap-10">
-                        {recipe.steps.map((step, idx) => (
-                            <div key={idx} className="flex flex-col md:flex-row gap-2">
-                                <span className="font-sans font-black text-[#0A4834] whitespace-nowrap">Step {idx + 1} :</span>
-                                <p className="font-sans text-gray-700 leading-relaxed">
-                                    {step}
-                                </p>
-                            </div>
-                        ))}
+            <div className="lectRevelComponent  py-20 px-6 md:px-12 lg:px-24">
+                <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#EAE3D2]">
+                    <div className="max-w-[85rem] mx-auto flex flex-col gap-4">
+
+                        <h2 className="font-display text-3xl font-black text-black uppercase">
+                            How to Cook :
+                        </h2>
+
+                        <div className="flex flex-col gap-3">
+                            {recipe.steps.map((step, idx) => (
+                                <div key={idx}>
+
+                                    <span className="font-sans font-black text-[#0A4834]">
+                                        Step {idx + 1} :
+                                    </span>{" "}
+
+                                    <span className="font-sans text-gray-700 leading-snug">
+                                        {step}
+                                    </span>
+
+                                </div>
+                            ))}
+                        </div>
+
                     </div>
-                </div>
-            </section>
+                </section>
+            </div>
 
             {/* 4. Testimonials Section (Specific Layout for Detail Page) */}
-            <section className="relative w-full py-32 overflow-hidden">
-                {/* Background Image */}
-                <div className="absolute inset-0 z-0">
-                    <Image 
-                        src="/community/community-6.webp" 
-                        alt="Community" 
-                        fill 
-                        className="object-cover brightness-[0.8]" 
-                    />
-                </div>
-                
-                {/* Testimonial Cards */}
-                <div className="relative z-10 max-w-[85rem] mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12">
-                    {[1, 2].map((i) => (
-                        <div key={i} className="bg-white p-12 flex relative shadow-2xl items-center border-x-[12px] border-[#9F8151]">
-                            <div className="flex flex-col gap-8">
-                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8">&quot;</span>
-                                <p className="font-sans text-gray-600 leading-relaxed italic pr-4">
-                                    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet.
-                                </p>
-                                <span className="text-6xl text-[#9F8151] font-serif leading-none h-8 self-end -mt-6">&quot;</span>
-                                
-                                <div className="flex items-center gap-4 mt-4">
-                                    <div className="w-16 h-16 bg-[#9F8151] shrink-0" />
-                                    <div className="flex flex-col">
-                                        <h4 className="font-bold text-black uppercase">Abdul Hakeem</h4>
-                                        <span className="text-sm text-gray-500 italic">Our Guest</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </section>
+
         </div>
     );
 }
