@@ -33,11 +33,11 @@ export default function RecipePage() {
           <Blueberry />
         </div>
 
-        <div className="fadeupComponent bg-white lg:sticky lg:top-0 lg:min-h-screen lg:z-40">
+        <div className="fadeupComponent bg-white relative z-40 min-h-screen">
           <Upma />
         </div>
       </div>
-
+ 
       <Testimonials />
       <Footer />
     </main>

@@ -74,7 +74,7 @@ export default function Story() {
             {/* Sticky Content Wrapper */}
             <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
                 
-                <div className="w-full h-full flex flex-col items-center justify-between py-8 px-4 md:px-12">
+                <div className="w-full h-full flex flex-col items-center justify-between py-4 px-4 md:px-12">
                     
                     {/* Header Section - STAGGERED FADE UP */}
                     <motion.div 
@@ -86,20 +86,20 @@ export default function Story() {
                     >
                         <motion.h2 
                             variants={itemVariants}
-                            className="font-display text-5xl md:text-7xl font-black text-[#000000] mb-4 uppercase tracking-tighter"
+                            className="font-display text-4xl md:text-6xl font-black text-[#000000] mb-2 uppercase tracking-tighter"
                         >
                             Our Story
                         </motion.h2>
                         <motion.p 
                             variants={itemVariants}
-                            className="font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-2xl mx-auto"
+                            className="font-sans text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto"
                         >
                             Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
                         </motion.p>
                     </motion.div>
 
                     {/* Timeline Section - Compact & Floating */}
-                    <div className="relative w-full max-w-3xl z-30 mb-8 px-6">
+                    <div className="relative w-full max-w-3xl z-30 mb-4 px-6">
                         {/* Background Line */}
                         <div className="absolute top-1/2 left-[8.5%] right-[8.5%] md:left-[4.5%] md:right-[4.5%] h-[1px] bg-black/10 -translate-y-1/2 z-0" />
                         
@@ -134,14 +134,14 @@ export default function Story() {
                     </div>
 
                     {/* Image Grid Section - THE HEART */}
-                    <div className="flex-1 w-full flex items-center justify-center gap-2 md:gap-6 [perspective:2000px] z-20 mb-8">
+                    <div className="flex-1 w-full flex items-center justify-center gap-2 md:gap-6 [perspective:2000px] z-20 mb-4">
                         {timelineItems.map((item, index) => (
                             <div 
                                 key={item.id}
                                 className={`relative transition-all duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] rounded-3xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] ${
                                     index === activeIndex 
-                                    ? "w-[60%] md:w-[70%] h-[55vh] md:h-[65vh] opacity-100 scale-100 z-20 ring-1 ring-black/5" 
-                                    : "w-[10%] md:w-[8%] h-[40vh] md:h-[50vh] opacity-30 grayscale scale-95 z-10"
+                                    ? "w-[65%] md:w-[60%] h-[45vh] md:h-[55vh] opacity-100 scale-100 z-20 ring-1 ring-black/5" 
+                                    : "w-[8%] md:w-[7%] h-[35vh] md:h-[45vh] opacity-30 grayscale scale-95 z-10"
                                 }`}
                             >
                                 <Image
