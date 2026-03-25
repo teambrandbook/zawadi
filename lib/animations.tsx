@@ -203,3 +203,48 @@ export const leftReveal = (selector: string) => {
 }
 
 
+export const zoomDeepAnimation = (selector: string) => {
+  const elements = gsap.utils.toArray<HTMLElement>(selector)
+
+  elements.forEach((el) => {
+    gsap.fromTo(
+      el,
+      { scale: 0.5, opacity: 0 },
+      {
+        scale: 1,
+        opacity: 1,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 80%",
+          once: true
+        }
+      }
+    )
+  })
+}
+
+
+export const borderDraw = (selector: string) => {
+  const elements = gsap.utils.toArray<HTMLElement>(selector)
+
+  elements.forEach((el) => {
+    gsap.fromTo(
+      el,
+      {
+        clipPath: "inset(0 100% 0 0)" 
+      },
+      {
+        clipPath: "inset(0 0% 0 0)", 
+        duration: 1.5,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: el,
+          start: "top 80%",
+          once: true
+        }
+      }
+    )
+  })
+}
