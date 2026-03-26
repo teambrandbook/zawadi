@@ -1,19 +1,82 @@
+"use client";
 import Image from "next/image";
-import Link from "next/link";
+import { motion } from "framer-motion";
+import WipeButton from "../shared/WipeButton";
 
 export default function Developing() {
+    const containerVariants: any = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: {
+                staggerChildren: 0.2,
+                delayChildren: 0.1
+            }
+        }
+    };
+
+    const itemVariants: any = {
+        hidden: { opacity: 0, y: 30 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.8, ease: "circOut" }
+        }
+    };
+
+    // SLIDE FROM LEFT VARIANTS
+    const slideLeftVariants: any = {
+        hidden: { opacity: 0, x: -50 },
+        visible: {
+            opacity: 1,
+            x: 0,
+            transition: { duration: 1, ease: "circOut" }
+        }
+    };
+
+    // SWIPE REVEAL VARIANTS (Top to Bottom)
+    const swipeVariants: any = {
+        hidden: {
+            clipPath: "inset(0% 0% 100% 0%)",
+            opacity: 0,
+            scale: 1.05
+        },
+        visible: {
+            clipPath: "inset(0% 0% 0% 0%)",
+            opacity: 1,
+            scale: 1,
+            transition: {
+                duration: 1.2,
+                ease: [0.76, 0, 0.24, 1], // Luxury ease
+                opacity: { duration: 0.4 }
+            }
+        }
+    };
+
     return (
-        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
-            <div className="max-w-[85rem] mx-auto flex flex-col items-center">
+        <section className="w-full bg-white py-12 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+            <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-100px" }}
+                className="max-w-[85rem] mx-auto flex flex-col items-center"
+            >
 
                 {/* Header Section */}
                 <div className="text-center max-w-4xl mb-20 flex flex-col items-center gap-6">
-                    <h2 className="font-display text-5xl md:text-7xl font-bold text-[#000000] tracking-tight leading-tight">
+                    <motion.h2
+                        variants={itemVariants}
+                        className="font-display text-5xl md:text-7xl font-bold text-[#000000] tracking-tight leading-tight"
+                    >
                         Where Every Meal Becomes a Memory
-                    </h2>
-                    <p className="font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-3xl">
+                    </motion.h2>
+                    <motion.p
+                        variants={itemVariants}
+                        className="font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-3xl"
+                    >
                         Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                    </p>
+                    </motion.p>
                 </div>
 
                 {/* Content Grid */}
@@ -21,51 +84,47 @@ export default function Developing() {
 
                     {/* Left Column: Tall Image + Pill Toggle */}
                     <div className="flex flex-col gap-10">
-                        <div className="w-full aspect-[3/4] relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm">
+                        <motion.div
+                            variants={swipeVariants}
+                            className="w-full aspect-[3/4] relative bg-[#f5f5f5] rounded-sm overflow-hidden shadow-sm group"
+                        >
                             <Image
                                 src="/home/section5-1.webp"
                                 alt="Meal memory vertical"
                                 fill
-                                className="object-cover"
+                                className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                             />
-                        </div>
+                        </motion.div>
 
-                        {/* Pill Learn More Button */}
-                        <Link href="/community" className="w-52 h-14 bg-[#0A4834] rounded-full flex items-center justify-between pl-8 pr-1.5 shadow-xl cursor-pointer group hover:bg-[#083a2a] transition-all">
-                            <span className="font-sans text-white text-[13px] font-black uppercase tracking-widest">
-                                Learn More
-                            </span>
-                            <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center text-[#0A4834]">
-                                <svg
-                                    className="h-5 w-5 transform group-hover:translate-x-0.5 transition-transform"
-                                    viewBox="0 0 24 24"
-                                    fill="currentColor"
-                                >
-                                    <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
-                                    <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
-                                </svg>
-                            </div>
-                        </Link>
+                        <motion.div variants={itemVariants}>
+                            <WipeButton href="/community" label="Explore More" />
+                        </motion.div>
                     </div>
 
                     {/* Right Column: Wide Image + Descriptive Text */}
                     <div className="flex flex-col gap-10">
-                        <div className="w-full aspect-[4/3] relative bg-[#D9D9D9] rounded-sm overflow-hidden shadow-sm">
+                        <motion.div
+                            variants={swipeVariants}
+                            className="w-full aspect-[4/3] relative bg-[#f5f5f5] rounded-sm overflow-hidden shadow-sm group"
+                        >
                             <Image
                                 src="/home/section5-2.webp"
                                 alt="Meal memory horizontal"
                                 fill
-                                className="object-cover"
+                                className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                             />
-                        </div>
-                        <p className="font-sans text-[#555] text-sm md:text-[15px] leading-relaxed max-w-xl">
+                        </motion.div>
+                        <motion.p
+                            variants={slideLeftVariants}
+                            className="font-sans text-[#555] text-sm md:text-[15px] leading-relaxed max-w-xl"
+                        >
                             Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                        </p>
+                        </motion.p>
                     </div>
 
                 </div>
 
-            </div>
+            </motion.div>
         </section>
     );
 }

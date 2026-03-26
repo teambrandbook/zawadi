@@ -1,97 +1,173 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 
 const slides = [
-    { id: 1, image: "/about/about-3.3.webp" },
-    { id: 2, image: "/about/about-4.4.webp" },
-    { id: 3, image: "/about/about-2.2.webp" },
+    {
+        id: 1,
+        image: "/about/about-3.3.webp",
+        desc: "Rooted in the philosophy of sustainable agriculture, Zewadi bridges the gap between traditional heritage and modern precision, ensuring every harvest carries the solid trust of our community."
+    },
+    {
+        id: 2,
+        image: "/about/about-4.4.webp",
+        desc: "Our global presence is defined by an unwavering commitment to purity, cultivating an elite organic heritage that empowers local farmers while delivering world-class excellence to your table."
+    },
+    {
+        id: 3,
+        image: "/about/about-2.2.webp",
+        desc: "From the soil to the soul, we are crafting a new standard of agricultural discovery—one where transparency and artisan craft converge to define the future of sustainable living."
+    },
 ];
 
 export default function StoryCarousel() {
-    const [activeIndex, setActiveIndex] = useState(1); // Default to middle slide
+    const sectionRef = useRef<HTMLDivElement>(null);
+    const [activeIndex, setActiveIndex] = useState(0);
 
-    const nextSlide = () => {
-        setActiveIndex((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
-    };
+    const { scrollYProgress } = useScroll({
+        target: sectionRef,
+        offset: ["start start", "end end"]
+    });
 
-    const prevSlide = () => {
-        setActiveIndex((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
-    };
+    const smoothProgress = useSpring(scrollYProgress, {
+        stiffness: 80,
+        damping: 40,
+        mass: 0.5
+    });
 
-    const getPositionClass = (index: number) => {
-        if (index === activeIndex) return "z-30 scale-100 opacity-100 translate-x-0";
-        
-        // Previous Slide
-        if (index === (activeIndex === 0 ? slides.length - 1 : activeIndex - 1)) {
-            return "z-20 md:scale-95 opacity-0 md:opacity-40 translate-x-0 md:-translate-x-24 lg:-translate-x-32 rotate-y-12 cursor-pointer hover:opacity-100";
-        }
-        
-        // Next Slide
-        return "z-20 md:scale-95 opacity-0 md:opacity-40 translate-x-0 md:translate-x-24 lg:translate-x-32 -rotate-y-12 cursor-pointer hover:opacity-100";
-    };
+    // Sync active index for content 
+    useEffect(() => {
+        const unsubscribe = smoothProgress.on("change", (v) => {
+            const index = Math.min(Math.floor(v * (slides.length + 0.1)), slides.length - 1);
+            setActiveIndex(index);
+        });
+        return () => unsubscribe();
+    }, [smoothProgress]);
 
     return (
-        <section className="w-full bg-[#0A4834] py-16 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden relative">
-            <div className="max-w-[90rem] mx-auto flex flex-col items-center">
+        <section ref={sectionRef} className="relative h-[500vh] bg-[#0A4834]">
+            {/* Sticky 100vh Hub */}
+            <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
 
-                {/* Header - Centered for better flow on full background */}
-                <h2 className="font-display text-4xl md:text-6xl font-bold text-[#EAE3D2] mb-12 md:mb-16 tracking-tighter text-center z-30 relative pointer-events-none uppercase">
-                    The Story Behind <br /> The Flavors
-                </h2>
+                {/* 1. Header Area - High-Locked to periphery as requested */}
+                <div className="absolute top-6 md:top-10 lg:top-12 z-[100] text-center w-full max-w-4xl px-6">
+                    <h2 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter leading-tight md:leading-[0.85]">
+                        The story behind the <br className="hidden md:block"/> flavors
+                    </h2>
+                </div>
 
-                {/* Carousel Container */}
-                <div className="relative w-full h-[30rem] md:h-[42rem] flex items-center justify-center perspective-[1200px]">
-                    
-                    {/* Navigation Arrows */}
-                    <button 
-                        onClick={prevSlide}
-                        className="absolute left-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
-                        aria-label="Previous Slide"
-                    >
-                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-
-                    <button 
-                        onClick={nextSlide}
-                        className="absolute right-0 z-40 p-4 text-[#EAE3D2] hover:scale-125 transition-transform"
-                        aria-label="Next Slide"
-                    >
-                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </button>
-
-                    {/* Slides Loop */}
-                    <div className="relative w-full h-full flex items-center justify-center">
+                {/* 2. Interactive Image Gallery Area - Focused Center Stage */}
+                <div className="relative w-full flex items-center justify-center z-20 px-6 mt-10 md:mt-14">
+                    <div className="relative w-full h-[24rem] md:h-[32rem] lg:h-[28rem] flex items-center justify-center">
                         {slides.map((slide, index) => (
-                            <div
+                            <StoryImageStackCard
                                 key={slide.id}
-                                onClick={() => setActiveIndex(index)}
-                                className={`absolute transition-all duration-700 ease-in-out w-72 h-[24rem] md:w-[26rem] lg:w-[28rem] md:h-[34rem] lg:h-[38rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] rounded-sm overflow-hidden ${getPositionClass(index)}`}
-                            >
-                                <Image
-                                    src={slide.image}
-                                    alt={`Story Slide ${slide.id}`}
-                                    fill
-                                    className="object-cover"
-                                />
-                            </div>
+                                slide={slide}
+                                index={index}
+                                progress={smoothProgress}
+                            />
                         ))}
                     </div>
                 </div>
 
-                {/* Bottom Text */}
-                <div className="relative z-30 mt-8 md:mt-12 max-w-2xl mx-auto text-center px-4">
-                    <p className="font-sans text-[#EAE3D2] text-sm md:text-base leading-relaxed font-light">
-                        Bridging the gap between technology and agriculture to redefine your food experience.<br className="hidden md:block"/> Our journey is rooted in sustainability and the passion for authentic taste.
-                    </p>
+                {/* 3. Narrative Text Sync Area - Grounded at Absolute Bottom */}
+                <div className="absolute bottom-10 md:bottom-16 lg:bottom-5 z-[100] w-full max-w-5xl px-6 text-center min-h-[5rem] flex items-center justify-center">
+                    <div className="relative w-full h-full flex items-center justify-center">
+                        {slides.map((slide, index) => {
+                            const pStart = index / slides.length;
+                            const pEnd = (index + 1) / slides.length;
+
+                            return (
+                                <motion.p
+                                    key={`desc-${slide.id}`}
+                                    className="absolute inset-x-0 font-sans text-[#EAE3D2] text-sm md:text-lg lg:text-xl leading-relaxed font-light opacity-80"
+                                    style={{
+                                        opacity: useTransform(
+                                            smoothProgress,
+                                            [pStart - 0.15, pStart, pEnd - 0.15, pEnd],
+                                            [0, 1, 1, 0]
+                                        ),
+                                        y: useTransform(
+                                            smoothProgress,
+                                            [pStart - 0.15, pStart, pEnd - 0.15, pEnd],
+                                            [10, 0, 0, -10]
+                                        ),
+                                        visibility: useTransform(
+                                            smoothProgress,
+                                            [pStart - 0.15, pStart, pEnd],
+                                            ["hidden", "visible", "hidden"]
+                                        ) as any
+                                    }}
+                                >
+                                    {slide.desc}
+                                </motion.p>
+                            );
+                        })}
+                    </div>
                 </div>
 
             </div>
         </section>
+    );
+}
+
+function StoryImageStackCard({ slide, index, progress }: { slide: any, index: number, progress: any }) {
+    const total = slides.length;
+    const turn = index / total;
+    const nextTurn = (index + 1) / total;
+    const transitionWindow = 0.15;
+
+    const xPos = useTransform(
+        progress,
+        [turn, nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn, 1],
+        ["0px", "0px", "-500px", "0px", "0px"]
+    );
+
+    const scale = useTransform(
+        progress,
+        [0, turn - transitionWindow, turn, nextTurn - transitionWindow, nextTurn, 1],
+        [0.88, 0.88, 1, 1, 0.88, 0.88]
+    );
+
+    const opacity = useTransform(
+        progress,
+        [turn - (transitionWindow * 2), turn, nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn, 1],
+        [0.4, 1, 1, 0, 0.4, 0.4]
+    );
+
+    const zIndex = useTransform(
+        progress,
+        [turn - 0.02, turn, nextTurn - 0.02, nextTurn],
+        [10, 50, 50, 10]
+    );
+
+    const rotate = useTransform(
+        progress,
+        [nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn],
+        [0, -10, 0]
+    );
+
+    return (
+        <motion.div
+            style={{
+                x: xPos,
+                rotate,
+                scale,
+                opacity,
+                zIndex,
+                position: "absolute"
+            }}
+            className="w-[18rem] h-[22rem] md:w-[26rem] md:h-[30rem] lg:w-[24rem] lg:h-[22rem] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
+        >
+            <Image
+                src={slide.image}
+                alt={`Story card ${index}`}
+                fill
+                className="object-cover"
+                priority={index === 0}
+            />
+        </motion.div>
     );
 }

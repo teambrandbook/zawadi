@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
-import gsap from "gsap"
+import gsap from "gsap";
 import { fadeUp, zoomInItems } from "../../../lib/animations";
 
 

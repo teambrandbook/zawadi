@@ -16,31 +16,42 @@ export default function Hero() {
                 </div>
 
                 {/* Main Card Container */}
-                <div className="w-full max-w-5xl bg-[#EAE3D2] rounded-xl p-8 md:p-12">
+                <div className="w-full max-w-5xl bg-[#EAE3D2] rounded-xl p-8 md:p-12 shadow-sm">
 
                     {/* Top Controls Row */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6 w-full px-2">
-                        <span className="font-sans text-[#0A4834] text-base md:text-xl font-medium text-center md:text-left">
+                        <span className="font-sans text-[#0A4834] text-base md:text-xl font-bold tracking-tight text-center md:text-left">
                             Lorem ipsum doloa.
                         </span>
 
-                        {/* Buttons Placeholder */}
+                        {/* Control Buttons - Now Brand Green */}
                         <div className="flex gap-4">
-                            <div className="w-24 md:w-32 h-10 md:h-12 bg-[#D9D9D9] rounded-2xl"></div>
-                            <div className="w-24 md:w-32 h-10 md:h-12 bg-[#D9D9D9] rounded-2xl"></div>
+                            <button 
+                                className="w-24 md:w-32 h-10 md:h-12 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-sm active:scale-95"
+                                aria-label="Event Filter 1"
+                            ></button>
+                            <button 
+                                className="w-24 md:w-32 h-10 md:h-12 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-sm active:scale-95"
+                                aria-label="Event Filter 2"
+                            ></button>
                         </div>
                     </div>
 
                     {/* Media Card */}
-                    <div className="w-full aspect-[4/5] md:aspect-[16/10] rounded-2xl overflow-hidden relative shadow-sm flex flex-col">
+                    <div className="w-full aspect-[4/5] md:aspect-[16/10] rounded-2xl overflow-hidden relative shadow-md flex flex-col group">
                         {/* Image Placeholder Area (Main) - 65% Height */}
-                        <div className="relative w-full h-[65%]">
-                            <Image src="/events/event-1.webp" alt="Main Event" fill className="object-cover" />
+                        <div className="relative w-full h-[65%] overflow-hidden">
+                            <Image 
+                                src="/events/event-1.webp" 
+                                alt="Main Event" 
+                                fill 
+                                className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" 
+                            />
                         </div>
 
                         {/* Bottom Dark Bar - 35% Height */}
                         <div className="flex-none h-[35%] bg-[#0A4834] flex items-center justify-center p-6 md:px-12 text-center">
-                            <p className="font-sans text-[#EAE3D2]/80 text-[10px] md:text-sm leading-relaxed max-w-2xl px-4">
+                            <p className="font-sans text-[#EAE3D2]/80 text-[10px] md:text-sm leading-relaxed max-w-2xl px-4 font-medium italic">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                                 <br className="hidden md:block" />
                                 Incididunt ut labore et dolore magna aliqua.
