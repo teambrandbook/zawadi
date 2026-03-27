@@ -1,4 +1,5 @@
-import Navbar from "@/components/shared/Navbar";
+// import Navbar from "@/components/shared/Navbar";
+import Navbar from "@/components/community/Navbar";
 import Hero from "@/components/home/Hero";
 import About from "@/components/home/About";
 import Community from "@/components/home/Community";
@@ -13,7 +14,8 @@ import Footer from "@/components/shared/Footer";
 export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-white">
-      <Navbar />
+      {/* <Navbar /> */}
+      <Navbar bgColor="bg-white/10 border-white/20"/>
       <Hero />
       <About />
       <Community />

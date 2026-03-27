@@ -3,7 +3,7 @@ import Footer from "@/components/shared/Footer";
 import Hero from "@/components/events/Hero";
 import StoryCheckerboard from "@/components/events/StoryCheckerboard";
 import UpcomingEvents from "@/components/events/UpcomingEvents";
-import Testimonials from "@/components/events/Testimonials";
+import Testimonials from "@/components/shared/Testimonials";
 
 export default function EventsPage() {
     return (

@@ -33,19 +33,21 @@ export default function Hero() {
             ease: "power3.inOut"
         }, 0);
 
-        // Thumbnails 'High-Intensity' Swirl Reveal - One-Time Discovery
+        // Thumbnails 'High-Intensity' Swirl Reveal - Cinematic Discovery
         gsap.fromTo(".thumb-swirl", {
             opacity: 0,
             scale: 0,
-            rotate: -720
+            y: 50,
+            rotate: -1080
         }, {
             opacity: 1,
             scale: 1,
+            y: 0,
             rotate: 0,
-            duration: 2.2,
-            stagger: 0.2,
-            delay: 0.2,
-            ease: "back.out(1.4)",
+            duration: 2.5,
+            stagger: 0.3,
+            delay: 0.4,
+            ease: "back.out(1.7)",
             scrollTrigger: {
                 trigger: ".thumbnails-container",
                 start: "top 90%",

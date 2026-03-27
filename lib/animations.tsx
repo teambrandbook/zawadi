@@ -3,6 +3,31 @@ import { ScrollTrigger } from "gsap/ScrollTrigger"
 
 gsap.registerPlugin(ScrollTrigger)
 
+
+
+
+export const stackScroll = (selector: string) => {
+  const sections = gsap.utils.toArray<HTMLElement>(selector);
+
+  sections.forEach((section, i) => {
+    if (i === sections.length - 1) return;
+
+    gsap.to(section, {
+      scrollTrigger: {
+        trigger: section,
+        start: "top top",
+        end: "+=100%",
+        pin: true,
+        pinSpacing: false,
+        scrub: true,
+      },
+    });
+  });
+  ScrollTrigger.refresh();
+};
+
+
+
 export const fadeUp = (selector: string) => {
   const elements = gsap.utils.toArray<HTMLElement>(selector)
 
@@ -45,7 +70,7 @@ export const imageAnimation=(selector: string)=>{
                 {
                     clipPath: "inset(0 0 0% 0)",
                     autoAlpha: 1,
-                    duration: 1.2,
+                    duration: 2,
                     ease: "expo.inOut",
                 }
             )
@@ -248,3 +273,59 @@ export const borderDraw = (selector: string) => {
     )
   })
 }
+
+
+// ---------------------
+
+
+
+export const dashBorderAnimation = (container: HTMLElement) => {
+  const top = container.querySelector(".border-top");
+  const right = container.querySelector(".border-right");
+  const bottom = container.querySelector(".border-bottom");
+  const left = container.querySelector(".border-left");
+
+  const tl = gsap.timeline();
+
+  tl.fromTo(
+    top,
+    { scaleX: 0 },
+    {
+      scaleX: 1,
+      duration: 0.6,
+      ease: "power2.out",
+      transformOrigin: "left",
+    }
+  )
+    .fromTo(
+      right,
+      { scaleY: 0 },
+      {
+        scaleY: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        transformOrigin: "top",
+      }
+    )
+    .fromTo(
+      bottom,
+      { scaleX: 0 },
+      {
+        scaleX: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        transformOrigin: "right",
+      }
+    )
+    .fromTo(
+      left,
+      { scaleY: 0 },
+      {
+        scaleY: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        transformOrigin: "bottom",
+      }
+    );
+};
+
