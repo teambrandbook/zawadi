@@ -3,7 +3,7 @@
 import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
 import Recipys from "@/components/recipe/Recipys"
-import Testimonials from "@/components/recipe/Testimonials";
+import Testimonials from "@/components/shared/Testimonials";
 import RecipeFilter from "@/components/recipe/RecipeFilter";
 import { useEffect } from "react";
 import { fadeUp } from "../../../lib/animations";

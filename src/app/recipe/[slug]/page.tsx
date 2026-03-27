@@ -2,7 +2,7 @@ import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
 import RecipeDetail from "@/components/recipe/RecipeDetail";
 import { notFound } from "next/navigation";
-import Testimonials from "@/components/recipe/Testimonials";
+import Testimonials from "@/components/shared/Testimonials";
 import { recipeDetaila } from "../../../../lib/datafile";
 
 

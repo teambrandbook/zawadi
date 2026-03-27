@@ -8,6 +8,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
   const [isOpen, setIsOpen] = useState(false);
   const [isPagesOpen, setIsPagesOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isMobilePagesOpen, setIsMobilePagesOpen] = useState(false);
 
   const navLinksLeft = [
     { name: "Home", href: "/" },
@@ -38,7 +39,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           {/* Left Links */}
           <div
             className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20"
-            onMouseEnter={() => setIsPagesOpen(true)}
             onMouseLeave={() => setIsPagesOpen(false)}
           >
             {navLinksLeft.map((link) => (
@@ -53,7 +53,10 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
 
             {/* Pages Dropdown */}
             <div className="relative">
-              <button className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1">
+              <button className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1"
+                onMouseEnter={() => setIsPagesOpen(true)}
+
+              >
                 Pages
                 <svg
                   className={`w-3 h-3 transition-transform ${isPagesOpen ? "rotate-180" : ""}`}
@@ -67,11 +70,10 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
 
               {/* Dropdown */}
               <div
-                className={`absolute left-0 top-full pt-4 transition-all duration-200 ease-out ${
-                  isPagesOpen
-                    ? "opacity-100 visible translate-y-0"
-                    : "opacity-0 invisible -translate-y-2"
-                }`}
+                className={`absolute left-0 top-full pt-4 transition-all duration-200 ease-out ${isPagesOpen
+                  ? "opacity-100 visible translate-y-0"
+                  : "opacity-0 invisible -translate-y-2"
+                  }`}
               >
                 <div className="w-44 bg-white border border-[#0A4834]/10 rounded-xl shadow-2xl py-2 overflow-hidden">
                   {innerPages.map((page) => (
@@ -144,9 +146,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                     <Link href="/login" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold">
                       Login
                     </Link>
-                    <Link href="/profile" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold border-t border-white/5">
-                      Profile
-                    </Link>
                   </div>
                 </>
               )}
@@ -170,6 +169,8 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden absolute top-full mt-4 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4">
+
+            {/* Normal Links */}
             {[...navLinksLeft, ...navLinksRight].map((link) => (
               <Link
                 key={link.name}
@@ -180,6 +181,31 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                 {link.name}
               </Link>
             ))}
+
+            {/* Pages Dropdown (Mobile) */}
+            <button
+              onClick={() => setIsMobilePagesOpen(!isMobilePagesOpen)}
+              className="text-white py-3 border-b border-white/10 text-center uppercase tracking-widest flex justify-center items-center gap-2"
+            >
+              Pages
+              <span>{isMobilePagesOpen ? "▲" : "▼"}</span>
+            </button>
+
+            {/* Inner Pages */}
+            {isMobilePagesOpen && (
+              <div className="flex flex-col bg-white/5 rounded-lg overflow-hidden">
+                {innerPages.map((page) => (
+                  <Link
+                    key={page.name}
+                    href={page.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-white py-2 border-b border-white/10 text-center text-sm"
+                  >
+                    {page.name}
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

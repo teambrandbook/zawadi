@@ -23,18 +23,6 @@ export default function Hero() {
                         <span className="font-sans text-[#0A4834] text-base md:text-xl font-bold tracking-tight text-center md:text-left">
                             Lorem ipsum doloa.
                         </span>
-
-                        {/* Control Buttons - Now Brand Green */}
-                        <div className="flex gap-4">
-                            <button 
-                                className="w-24 md:w-32 h-10 md:h-12 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-sm active:scale-95"
-                                aria-label="Event Filter 1"
-                            ></button>
-                            <button 
-                                className="w-24 md:w-32 h-10 md:h-12 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-sm active:scale-95"
-                                aria-label="Event Filter 2"
-                            ></button>
-                        </div>
                     </div>
 
                     {/* Media Card */}

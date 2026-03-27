@@ -6,7 +6,7 @@ import Image from "next/image";
 export default function Footer() {
     return (
         <footer className="w-full bg-white pt-6 pb-12 px-4 md:px-6 lg:px-8 overflow-hidden">
-            <div className="max-w-[115rem] mx-auto bg-[#EAE3D2] rounded-[1.2rem] pt-16 pb-10 px-8 md:px-16 lg:px-24 text-[#0A4834] shadow-md transform transition-all">
+            <div className="max-w-[115rem] mx-auto bg-[#EAE3D2] rounded-[10px] pt-16 pb-10 px-8 md:px-16 lg:px-24 text-[#0A4834] shadow-md transform transition-all">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
 
                     {/* Brand Column */}
@@ -41,41 +41,49 @@ export default function Footer() {
                     </div>
 
                     {/* Columns */}
-                    <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-8">
+                    <div className="col-span-1 md:col-span-2 lg:col-span-3 grid grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-8">
+
                         {/* Quick Links */}
                         <div className="flex flex-col gap-6">
-                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">Quick Links</h3>
+                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">
+                                Quick Links
+                            </h3>
                             <div className="flex flex-col gap-3">
-                                <Link href="/" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Home</Link>
-                                <Link href="/about" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">About</Link>
-                                <Link href="/community" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Community</Link>
-                                <Link href="/events" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Events</Link>
-                                <Link href="/contact" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Contact Us</Link>
+                                <Link href="/">Home</Link>
+                                <Link href="/about">About</Link>
+                                <Link href="/community">Community</Link>
+                                <Link href="/events">Events</Link>
+                                <Link href="/contact">Contact Us</Link>
                             </div>
                         </div>
 
                         {/* Inner Pages */}
                         <div className="flex flex-col gap-6">
-                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">Inner Pages</h3>
+                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">
+                                Inner Pages
+                            </h3>
                             <div className="flex flex-col gap-3">
-                                <Link href="/recipe" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Recipes</Link>
-                                <Link href="/product" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Product</Link>
-                                <Link href="/gallery" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Gallery</Link>
-                                <Link href="/blog" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Blogs</Link>
-                                <Link href="/faq" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">FAQ</Link>
+                                <Link href="/recipe">Recipes</Link>
+                                <Link href="/product">Product</Link>
+                                <Link href="/gallery">Gallery</Link>
+                                <Link href="/blog">Blogs</Link>
+                                <Link href="/faq">FAQ</Link>
                             </div>
                         </div>
 
-                        {/* Support */}
-                        <div className="flex flex-col gap-6">
-                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">Support</h3>
-                            <div className="flex flex-col gap-3">
-                                <Link href="#" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Terms and conditions</Link>
-                                <Link href="#" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Privacy policy</Link>
-                                <Link href="#" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Refund and cancellation</Link>
-                                <Link href="#" className="text-[14px] md:text-[15px] font-semibold text-[#0A4834] opacity-70 hover:opacity-100 transition-all hover:translate-x-1 inline-block">Shipping Policy</Link>
+                        {/* Support (🔥 important part) */}
+                        <div className="flex flex-col gap-6 col-span-2 lg:col-span-1 items-center text-center lg:items-start lg:text-left">
+                            <h3 className="font-sans font-bold text-[#0A4834] text-lg opacity-80 uppercase tracking-widest">
+                                Support
+                            </h3>
+                            <div className="grid grid-cols-1 max-sm:grid-cols-2 gap-y-3  max-sm:gap-x-18">
+                                <Link href="#" className="whitespace-nowrap">Terms and conditions</Link>
+                                <Link href="#" >Privacy policy</Link>
+                                <Link href="#" className="whitespace-nowrap ">Refund and cancellation</Link>
+                                <Link href="#">Shipping Policy</Link>
                             </div>
                         </div>
+
                     </div>
 
                 </div>
