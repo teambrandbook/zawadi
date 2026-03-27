@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 import { borderDraw, imageAnimation, leftReveal } from "../../../lib/animations";
 
 interface RecipeData {
@@ -20,15 +21,45 @@ interface RecipeDetailProps {
 }
 
 export default function RecipeDetail({ recipe }: RecipeDetailProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        imageAnimation(".img")
-        leftReveal(".lectRevelComponent")
-        borderDraw(".border-box")
-    }, [])
+    useGSAP(() => {
+        // Initial reveals from lib/animations
+        imageAnimation(".img");
+        leftReveal(".lectRevelComponent");
+        borderDraw(".border-box");
+
+        // 1. BACKGROUND SWIPE ENTRANCE
+        gsap.from(".bg-swipe-layer", {
+            clipPath: "inset(0% 0% 100% 0%)",
+            duration: 1.2,
+            ease: "power3.inOut",
+            scrollTrigger: {
+                trigger: ".testimonial-section",
+                start: "top 85%",
+                once: true
+            }
+        });
+
+        // Testimonial Cards Zoom In Entrance
+        gsap.from(".testimonial-card", {
+            opacity: 0,
+            scale: 0.9,
+            duration: 0.8,
+            stagger: 0.2,
+            delay: 0.6,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".testimonial-section",
+                start: "top 85%",
+                once: true
+            }
+        });
+
+    }, { scope: containerRef });
 
     return (
-        <div className="w-full bg-white">
+        <div ref={containerRef} className="w-full bg-white">
             {/* 1. Hero / Top Section */}
             <section className="pt-32 pb-16 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
@@ -90,7 +121,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             </section>
 
             {/* 3. How to Cook Section */}
-            <div className="lectRevelComponent  py-20 px-6 md:px-12 lg:px-24">
+            <div className="lectRevelComponent py-20 px-6 md:px-12 lg:px-24">
                 <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#EAE3D2]">
                     <div className="max-w-[85rem] mx-auto flex flex-col gap-4">
 
@@ -117,25 +148,20 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     </div>
                 </section>
             </div>
+
             {/* 4. Testimonials Section - Synced with main Recipe Page Standard */}
-            <section className="relative w-full py-24 px-6 md:px-12 lg:px-24 min-h-[600px] flex items-center justify-center overflow-hidden bg-white">
+            <section className="testimonial-section relative w-full py-24 px-6 md:px-12 lg:px-24 min-h-[600px] flex items-center justify-center overflow-hidden bg-white">
                 
                 {/* 1. BACKGROUND SWIPE ENTRANCE (Direct Reveal over white) */}
                 <div className="absolute inset-0 z-0 overflow-hidden">
-                    <motion.div 
-                        initial={{ clipPath: "inset(0% 0% 100% 0%)" }}
-                        whileInView={{ clipPath: "inset(0% 0% 0% 0%)" }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-                        className="relative w-full h-full"
-                    >
+                    <div className="bg-swipe-layer relative w-full h-full">
                         <Image 
                             src="/about/about-6.6.webp" 
                             alt="Testimonials Background" 
                             fill 
                             className="object-cover brightness-[0.85] transform scale-105" 
                         />
-                    </motion.div>
+                    </div>
                 </div>
                 
                 <div className="relative z-10 w-full max-w-[90rem]">
@@ -143,13 +169,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 w-full">
                         
                         {/* Testimonial Card 1 - Zoom In Entrance */}
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.6, ease: "easeOut" }}
-                            className="bg-white flex w-full h-auto min-h-[320px] shadow-2xl rounded-sm overflow-hidden"
-                        >
+                        <div className="testimonial-card bg-white flex w-full h-auto min-h-[320px] shadow-2xl rounded-sm overflow-hidden">
                             {/* Left Integrated Nav */}
                             <div className="w-12 md:w-16 bg-[#9F8151] flex items-center justify-center cursor-pointer hover:bg-[#8A6E42] transition-colors shrink-0">
                                 <span className="text-2xl text-white font-light">&lt;</span>
@@ -175,16 +195,10 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                             <div className="lg:hidden w-12 md:w-16 bg-[#9F8151] flex items-center justify-center cursor-pointer hover:bg-[#8A6E42] transition-colors shrink-0">
                                 <span className="text-2xl text-white font-light">&gt;</span>
                             </div>
-                        </motion.div>
+                        </div>
 
                         {/* Testimonial Card 2 - Zoom In Entrance (Staggered) */}
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.8, ease: "easeOut" }}
-                            className="bg-white hidden lg:flex w-full h-auto min-h-[320px] shadow-2xl rounded-sm overflow-hidden"
-                        >
+                        <div className="testimonial-card bg-white hidden lg:flex w-full h-auto min-h-[320px] shadow-2xl rounded-sm overflow-hidden">
                             {/* Content */}
                             <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
                                 <p className="font-sans text-[#333] text-base md:text-lg leading-relaxed font-medium mb-8">
@@ -205,7 +219,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                             <div className="w-12 md:w-16 bg-[#9F8151] flex items-center justify-center cursor-pointer hover:bg-[#8A6E42] transition-colors shrink-0">
                                 <span className="text-2xl text-white font-light">&gt;</span>
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             </section>

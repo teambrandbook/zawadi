@@ -1,22 +1,30 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useSpring, useTransform } from "framer-motion";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 const slides = [
     {
         id: 1,
+        title: "Purity & Heritage",
         image: "/about/about-3.3.webp",
         desc: "Rooted in the philosophy of sustainable agriculture, Zewadi bridges the gap between traditional heritage and modern precision, ensuring every harvest carries the solid trust of our community."
     },
     {
         id: 2,
+        title: "Elite Organic",
         image: "/about/about-4.4.webp",
         desc: "Our global presence is defined by an unwavering commitment to purity, cultivating an elite organic heritage that empowers local farmers while delivering world-class excellence to your table."
     },
     {
         id: 3,
+        title: "Soil to Soul",
         image: "/about/about-2.2.webp",
         desc: "From the soil to the soul, we are crafting a new standard of agricultural discovery—one where transparency and artisan craft converge to define the future of sustainable living."
     },
@@ -24,150 +32,175 @@ const slides = [
 
 export default function StoryCarousel() {
     const sectionRef = useRef<HTMLDivElement>(null);
-    const [activeIndex, setActiveIndex] = useState(0);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const textRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
-    const { scrollYProgress } = useScroll({
-        target: sectionRef,
-        offset: ["start start", "end end"]
-    });
-
-    const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 80,
-        damping: 40,
-        mass: 0.5
-    });
-
-    // Sync active index for content 
     useEffect(() => {
-        const unsubscribe = smoothProgress.on("change", (v) => {
-            const index = Math.min(Math.floor(v * (slides.length + 0.1)), slides.length - 1);
-            setActiveIndex(index);
-        });
-        return () => unsubscribe();
-    }, [smoothProgress]);
+        const ctx = gsap.context(() => {
+            const mm = gsap.matchMedia();
+
+            mm.add({
+                isMobile: "(max-width: 767px)",
+                isTablet: "(min-width: 768px) and (max-width: 1023px)",
+                isDesktop: "(min-width: 1024px)"
+            }, (context) => {
+                const { isMobile, isTablet } = context.conditions as any;
+
+                // Responsive Orbital Configs - Narrower Spread for Stacked Look
+                const spreadX = isMobile ? 65 : (isTablet ? 55 : 45); // xPercent spread for 'half-hidden'
+                const rotationY = isMobile ? 75 : 60; // rotateY degrees
+                const depthZ = isMobile ? -600 : -500; // deeper z translation
+
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: sectionRef.current,
+                        start: "top top",
+                        end: "bottom bottom",
+                        scrub: 1,
+                    }
+                });
+
+                const numSlides = slides.length;
+                const stepDuration = 1 / numSlides;
+
+                // Set balanced initial states for a 'Before-Current-Next' physical stack
+                slides.forEach((_, i) => {
+                    const card = cardRefs.current[i];
+                    const currentText = textRefs.current[i];
+                    if (!card || !currentText) return;
+
+                    // Orbital Distribution for 3 cards
+                    // Card 0: Center (Front), Card 1: Right (Behind), Card 2: Left (Behind)
+                    const xPercent = i === 0 ? 0 : (i === 1 ? spreadX : -spreadX);
+                    const z = i === 0 ? 0 : depthZ;
+                    const rotateY = i === 0 ? 0 : (i === 1 ? -rotationY : rotationY);
+                    const autoAlpha = i === 0 ? 1 : 0.35;
+                    const scale = i === 0 ? 1 : 0.75;
+                    const zIndex = i === 0 ? 50 : 10;
+
+                    gsap.set(card, { xPercent, z, rotateY, autoAlpha, scale, zIndex });
+                    gsap.set(currentText, { autoAlpha: i === 0 ? 1 : 0, y: i === 0 ? 0 : 20 });
+                });
+
+                // Transitions - High-Fidelity Orbital 'Ring' with Stack-Layering
+                slides.forEach((_, i) => {
+                    const currentCard = cardRefs.current[i];
+                    const nextCard = cardRefs.current[(i + 1) % numSlides];
+                    const currentText = textRefs.current[i];
+                    const nextText = textRefs.current[(i + 1) % numSlides];
+
+                    if (!currentCard || !currentText) return;
+
+                    const startTime = i * stepDuration;
+
+                    if (i < numSlides - 1) {
+                        // Current card moves to LEFT and drops behind
+                        tl.to(currentCard, {
+                            xPercent: -spreadX,
+                            z: depthZ,
+                            rotateY: rotationY,
+                            autoAlpha: 0.35,
+                            scale: 0.75,
+                            zIndex: 10,
+                            duration: stepDuration,
+                            ease: "power2.inOut"
+                        }, startTime);
+
+                        // Next card SHUFFLES to CENTER and brings to front
+                        if (nextCard) {
+                            tl.to(nextCard, {
+                                xPercent: 0,
+                                z: 0,
+                                rotateY: 0,
+                                autoAlpha: 1,
+                                scale: 1,
+                                zIndex: 50,
+                                duration: stepDuration,
+                                ease: "power2.inOut"
+                            }, startTime);
+                        }
+
+                        // Ensure the third card is correctly placed to loop from the RIGHT
+                        const thirdCardIndex = (i + 2) % numSlides;
+                        const thirdCard = cardRefs.current[thirdCardIndex];
+                        if (thirdCard) {
+                            tl.to(thirdCard, {
+                                xPercent: spreadX,
+                                rotateY: -rotationY,
+                                zIndex: 10,
+                                duration: stepDuration,
+                                ease: "power2.inOut"
+                            }, startTime);
+                        }
+
+                        // Narrative discovery transitions
+                        tl.to(currentText, { autoAlpha: 0, y: -20, duration: stepDuration * 0.5, ease: "power1.out" }, startTime);
+                        if (nextText) {
+                            tl.to(nextText, { autoAlpha: 1, y: 0, duration: stepDuration * 0.5, ease: "power1.in" }, startTime + (stepDuration * 0.5));
+                        }
+                    }
+                });
+            });
+        }, sectionRef);
+
+        return () => ctx.revert();
+    }, []);
 
     return (
-        <section ref={sectionRef} className="relative h-[500vh] bg-[#0A4834]">
-            {/* Sticky 100vh Hub */}
-            <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
+        <section ref={sectionRef} className="relative h-[400vh] bg-[#0A4834]">
+            {/* STICKY STAGE */}
+            <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-start overflow-hidden">
 
-                {/* 1. Header Area - High-Locked to periphery as requested */}
-                <div className="absolute top-6 md:top-10 lg:top-12 z-[100] text-center w-full max-w-4xl px-6">
-                    <h2 className="font-display text-4xl md:text-5xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter leading-tight md:leading-[0.85]">
-                        The story behind the <br className="hidden md:block"/> flavors
-                    </h2>
-                </div>
-
-                {/* 2. Interactive Image Gallery Area - Focused Center Stage */}
-                <div className="relative w-full flex items-center justify-center z-20 px-6 mt-10 md:mt-14">
-                    <div className="relative w-full h-[24rem] md:h-[32rem] lg:h-[28rem] flex items-center justify-center">
-                        {slides.map((slide, index) => (
-                            <StoryImageStackCard
-                                key={slide.id}
-                                slide={slide}
-                                index={index}
-                                progress={smoothProgress}
-                            />
-                        ))}
+                {/* Visual Container - Premium Story Surface */}
+                <div ref={containerRef} className="w-[96%] lg:w-[94%] max-w-[130rem] h-[95vh] lg:h-[98vh] mx-auto relative flex flex-col items-center justify-start rounded-sm overflow-hidden p-8 pt-10 lg:p-14 lg:pt-12">                    {/* Header Zone */}
+                    <div className="w-full flex justify-center absolute top-12 md:top-24 lg:top-6 px-6">
+                        <h2 className="section-header font-display text-4xl md:text-6xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter uppercase leading-none text-center">
+                            The story behind the <br className="hidden md:block" /> flavors
+                        </h2>
                     </div>
-                </div>
 
-                {/* 3. Narrative Text Sync Area - Grounded at Absolute Bottom */}
-                <div className="absolute bottom-10 md:bottom-16 lg:bottom-5 z-[100] w-full max-w-5xl px-6 text-center min-h-[5rem] flex items-center justify-center">
-                    <div className="relative w-full h-full flex items-center justify-center">
-                        {slides.map((slide, index) => {
-                            const pStart = index / slides.length;
-                            const pEnd = (index + 1) / slides.length;
+                    {/* Image Orbit Zone - Refined Vertical Positioning */}
+                    <div className="relative w-full flex items-center justify-center z-20 mt-52 md:mt-72 lg:mt-32" style={{ perspective: "2000px" }}>
+                        <div className="relative w-full h-[26rem] md:h-[32rem] lg:h-[22rem] flex items-center justify-center overflow-visible">
+                            {slides.map((slide, index) => (
+                                <div
+                                    key={slide.id}
+                                    ref={el => { cardRefs.current[index] = el; }}
+                                    className="absolute w-64 h-[26rem] md:w-[26rem] md:h-[32rem] lg:w-[20rem] lg:h-[22rem] rounded-sm overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] border border-white/10 bg-black will-change-transform"
+                                >
+                                    <div className="relative w-full h-full">
+                                        <Image
+                                            src={slide.image}
+                                            alt={slide.title}
+                                            fill
+                                            className="object-cover"
+                                            priority={index === 0}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
 
-                            return (
-                                <motion.p
+                    {/* Narrative Hub */}
+                    <div className="w-full relative mt-20 md:mt-32 lg:mt-4 flex flex-col items-center justify-center z-50">
+                        <div className="relative w-full max-w-5xl min-h-[4rem] flex flex-col items-center justify-center px-6">
+                            {slides.map((slide, index) => (
+                                <p
                                     key={`desc-${slide.id}`}
-                                    className="absolute inset-x-0 font-sans text-[#EAE3D2] text-sm md:text-lg lg:text-xl leading-relaxed font-light opacity-80"
-                                    style={{
-                                        opacity: useTransform(
-                                            smoothProgress,
-                                            [pStart - 0.15, pStart, pEnd - 0.15, pEnd],
-                                            [0, 1, 1, 0]
-                                        ),
-                                        y: useTransform(
-                                            smoothProgress,
-                                            [pStart - 0.15, pStart, pEnd - 0.15, pEnd],
-                                            [10, 0, 0, -10]
-                                        ),
-                                        visibility: useTransform(
-                                            smoothProgress,
-                                            [pStart - 0.15, pStart, pEnd],
-                                            ["hidden", "visible", "hidden"]
-                                        ) as any
-                                    }}
+                                    ref={el => { textRefs.current[index] = el; }}
+                                    className="absolute font-sans text-[#EAE3D2] text-sm md:text-base lg:text-lg text-center leading-snug tracking-wide opacity-80 font-light max-w-2xl px-4"
                                 >
                                     {slide.desc}
-                                </motion.p>
-                            );
-                        })}
+                                </p>
+                            ))}
+                        </div>
                     </div>
+
                 </div>
 
             </div>
         </section>
-    );
-}
-
-function StoryImageStackCard({ slide, index, progress }: { slide: any, index: number, progress: any }) {
-    const total = slides.length;
-    const turn = index / total;
-    const nextTurn = (index + 1) / total;
-    const transitionWindow = 0.15;
-
-    const xPos = useTransform(
-        progress,
-        [turn, nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn, 1],
-        ["0px", "0px", "-500px", "0px", "0px"]
-    );
-
-    const scale = useTransform(
-        progress,
-        [0, turn - transitionWindow, turn, nextTurn - transitionWindow, nextTurn, 1],
-        [0.88, 0.88, 1, 1, 0.88, 0.88]
-    );
-
-    const opacity = useTransform(
-        progress,
-        [turn - (transitionWindow * 2), turn, nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn, 1],
-        [0.4, 1, 1, 0, 0.4, 0.4]
-    );
-
-    const zIndex = useTransform(
-        progress,
-        [turn - 0.02, turn, nextTurn - 0.02, nextTurn],
-        [10, 50, 50, 10]
-    );
-
-    const rotate = useTransform(
-        progress,
-        [nextTurn - transitionWindow, nextTurn - (transitionWindow / 2), nextTurn],
-        [0, -10, 0]
-    );
-
-    return (
-        <motion.div
-            style={{
-                x: xPos,
-                rotate,
-                scale,
-                opacity,
-                zIndex,
-                position: "absolute"
-            }}
-            className="w-[18rem] h-[22rem] md:w-[26rem] md:h-[30rem] lg:w-[24rem] lg:h-[22rem] shadow-[0_45px_100px_-25px_rgba(0,0,0,0.6)] rounded-sm overflow-hidden bg-black ring-1 ring-white/10"
-        >
-            <Image
-                src={slide.image}
-                alt={`Story card ${index}`}
-                fill
-                className="object-cover"
-                priority={index === 0}
-            />
-        </motion.div>
     );
 }
