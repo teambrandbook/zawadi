@@ -132,7 +132,7 @@ export default function Testimonials() {
                                 <div
 
                                     onClick={() => setActiveIndex(i)}
-                                    className={` h-3 w-3 rounded-full cursor-pointer ${i === activeIndex ? "bg-white" : "bg-white/40"
+                                    className={` h-3 w-3 rounded-full cursor-pointer  ${i === activeIndex ? "bg-white" : "bg-white/40"
                                         }`}
                                 />
                             </div>

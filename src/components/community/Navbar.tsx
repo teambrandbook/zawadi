@@ -40,6 +40,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           <div
             className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20"
             onMouseLeave={() => setIsPagesOpen(false)}
+            onClick={() => setIsPagesOpen(false)}
           >
             {navLinksLeft.map((link) => (
               <Link
@@ -55,6 +56,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
             <div className="relative">
               <button className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1"
                 onMouseEnter={() => setIsPagesOpen(true)}
+                onClick={() => setIsPagesOpen(true)}
 
               >
                 Pages

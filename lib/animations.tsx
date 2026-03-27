@@ -329,3 +329,68 @@ export const dashBorderAnimation = (container: HTMLElement) => {
     );
 };
 
+// -------------------------------------------------------------
+
+
+
+export const productScrollAnimation = (container: HTMLElement) => {
+  const cards = container.querySelectorAll(".card");
+  const descs = container.querySelectorAll(".card .desc"); // ✅ get desc
+
+  if (!cards.length || !descs.length) return;
+
+  const total = cards.length;
+
+  // initial positions
+  cards.forEach((card, i) => {
+    if (i === 0) {
+      gsap.set(card, { x: "0%", scale: 1, opacity: 1, zIndex: 20 });
+      gsap.set(descs[i], { opacity: 1 }); // ✅ show first desc
+    } else if (i === 1) {
+      gsap.set(card, { x: "50%", scale: 0.7, opacity: 0.4, zIndex: 10 });
+    } else {
+      gsap.set(card, { x: "-50%", scale: 0.7, opacity: 0.4, zIndex: 10 });
+    }
+  });
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: container,
+      start: "top 10%",
+      end: "+=1000",
+      scrub: true,
+      pin: true,
+    },
+  });
+
+  // loop animation
+  for (let i = 0; i < cards.length - 1; i++) {
+    tl.to(cards, {
+      x: (index: number) => {
+        const pos = (index - i - 1 + total) % total;
+
+        if (pos === 0) return "0%";     
+        if (pos === 1) return "50%";    
+        return "-50%";                  
+      },
+      scale: (index: number) => {
+        const pos = (index - i - 1 + total) % total;
+        return pos === 0 ? 1 : 0.7;
+      },
+      opacity: (index: number) => {
+        const pos = (index - i - 1 + total) % total;
+        return pos === 0 ? 1 : 0.4;
+      },
+      zIndex: (index: number) => {
+        const pos = (index - i - 1 + total) % total;
+        return pos === 0 ? 20 : 10;
+      },
+      duration: 1,
+      ease: "power2.inOut",
+    });
+
+    // ✅ TEXT FADE (this is the only addition)
+    tl.to(descs[i], { opacity: 0, duration: 0.3 }, "<");
+    tl.to(descs[i + 1], { opacity: 1, duration: 0.3 }, "<");
+  }
+};

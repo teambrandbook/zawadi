@@ -54,7 +54,7 @@ export default function Developing() {
     };
 
     return (
-        <section className="w-full bg-white py-12 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+        <section className="w-full bg-white  py-12 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
             <motion.div
                 variants={containerVariants}
                 initial="hidden"

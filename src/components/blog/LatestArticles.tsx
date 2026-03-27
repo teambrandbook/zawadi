@@ -30,15 +30,15 @@ export default function LatestArticles() {
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
                     {articles.map((article) => (
-                        <div key={article.id} className="latestBlogComponent">
-                            <Link  href={`/blog/${article.slug}`} className=" bg-[#0A4834] p-4 flex flex-col gap-4 shadow-lg border border-[#0A4834] group hover:scale-[1.02] transition-transform">
+                        <div key={article.id} className="latestBlogComponent rounded-[10px]">
+                            <Link  href={`/blog/${article.slug}`} className=" bg-[#0A4834] p-4 flex flex-col gap-4 shadow-lg border border-[#0A4834] group hover:scale-[1.02] transition-transform rounded-[10px]">
                                 {/* Image Placeholder Frame */}
-                                <div className=" relative aspect-[4/5] w-full overflow-hidden">
+                                <div className=" relative aspect-[4/5] w-full overflow-hidden ">
                                     <Image
                                         src={article.image}
                                         alt="Latest Article"
                                         fill
-                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                        className="object-cover group-hover:scale-110 transition-transform duration-500 rounded-[10px]"
                                     />
                                 </div>
 

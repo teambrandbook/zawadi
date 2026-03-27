@@ -5,7 +5,7 @@ import { useState } from "react";
 export default function LoginComponent() {
   return (
     /* h-screen + overflow-hidden ensures no scrolling and perfect centering */
-    <section className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-gray-100 px-4">
+    <section className="relative flex h-[900px] w-full items-center justify-center overflow-hidden bg-gray-100 px-4 pt-10 ">
 
       {/* Background Image Layer */}
       <div

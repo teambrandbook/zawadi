@@ -44,12 +44,12 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                 <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
                     {/* Left: Image with Play Button */}
-                    <div className="img relative aspect-square rounded-none overflow-hidden group shadow-2xl">
+                    <div className="img relative aspect-square rounded-none overflow-hidden group shadow-2xl ">
                         <Image
                             src={recipe.image}
                             alt={recipe.title}
                             fill
-                            className="object-cover"
+                            className="object-cover rounded-[10px]"
                         />
                         {/* Play Button Overlay */}
                         <div className="absolute bottom-6 right-6 w-14 h-14 bg-[#0A4834] rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
