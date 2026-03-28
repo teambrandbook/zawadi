@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 interface WipeButtonProps {
     href: string;
@@ -12,6 +14,8 @@ interface WipeButtonProps {
 }
 
 export default function WipeButton({ href, label, className = "", variant = "primary", showIcon = true }: WipeButtonProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+
     // Exact colors from the original design
     const isBeige = variant === "beige";
     const bgClass = isBeige ? "bg-[#EAE3D2]" : "bg-[#0A4834]";
@@ -19,85 +23,70 @@ export default function WipeButton({ href, label, className = "", variant = "pri
     const circleBgClass = isBeige ? "bg-[#0A4834]" : "bg-white";
     const iconColor = isBeige ? "#EAE3D2" : "#0A4834";
 
+    const handleMouseEnter = () => {
+        const scope = gsap.utils.selector(containerRef);
+        
+        // Kill existing animations on these elements
+        gsap.killTweensOf([scope(".icon-circle"), scope(".label-reveal"), scope(".label-fade-1")]);
+
+        // Wipe In
+        gsap.fromTo(scope(".icon-circle"), 
+            { x: -180, opacity: 0 }, 
+            { x: 0, opacity: 1, duration: 0.6, ease: "power3.inOut" }
+        );
+
+        gsap.fromTo(scope(".label-reveal"), 
+            { clipPath: "inset(0 100% 0 0)" }, 
+            { clipPath: "inset(0 0% 0 0)", duration: 0.6, ease: "power3.inOut" }
+        );
+
+        gsap.to(scope(".label-fade-1"), { opacity: 0, duration: 0.2 });
+    };
+
+    const handleMouseLeave = () => {
+        const scope = gsap.utils.selector(containerRef);
+        
+        // Return to natural 'on right' state
+        gsap.to(scope(".icon-circle"), { x: 0, opacity: 1, duration: 0.4, ease: "power2.inOut" });
+        gsap.to(scope(".label-reveal"), { clipPath: "inset(0 100% 0 0)", duration: 0.4 });
+        gsap.to(scope(".label-fade-1"), { opacity: 1, duration: 0.3 });
+    };
+
     return (
         <Link href={href} className={`${className} block w-fit`}>
-            <motion.div 
-                className={`group relative flex items-center justify-center ${bgClass} rounded-full shadow-xl w-fit overflow-hidden cursor-pointer h-14 md:h-16 ${showIcon ? "pl-8 pr-1.5" : "px-16 text-center"}`}
-                initial="initial"
-                whileHover="hover"
+            <div 
+                ref={containerRef}
+                className={`group relative flex items-center ${showIcon ? "justify-between pl-10 pr-1.5 min-w-[14rem]" : "justify-center px-16 text-center"} ${bgClass} rounded-full shadow-xl w-fit overflow-hidden cursor-pointer h-14 md:h-16`}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
             >
-                {/* Button Text Container */}
-                <div className={`relative ${showIcon ? "mr-10" : ""} z-10`}>
-                    {/* Layer 1: Static Text (Hidden during wipe) */}
-                    <motion.span 
-                        className={`font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block`}
-                        variants={{
-                            initial: { opacity: 1 },
-                            hover: { opacity: 0, transition: { duration: 0.1 } }
-                        }}
-                    >
-                        {label}
-                    </motion.span>
+                {/* Button Text Hub */}
+                <div className={`relative z-10 flex-1 h-full flex items-center ${!showIcon ? "justify-center" : ""}`}>
+                    <div className="relative w-full">
+                        {/* Layer 1: Initially Visible Text */}
+                        <span className={`label-fade-1 font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block opacity-100 ${!showIcon ? "text-center" : ""}`}>
+                            {label}
+                        </span>
 
-                    {/* Layer 2: reveal Text (Revealed by wiping circle) */}
-                    <motion.span 
-                        className={`absolute inset-0 font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block z-10`}
-                        variants={{
-                            initial: { 
-                                clipPath: "inset(0 100% 0 0)" 
-                            },
-                            hover: { 
-                                clipPath: "inset(0 0% 0 0)",
-                                transition: {
-                                    duration: 0.6,
-                                    ease: [0.76, 0, 0.24, 1],
-                                    delay: 0.05
-                                }
-                            }
-                        }}
-                    >
-                        {label}
-                    </motion.span>
+                        {/* Layer 2: Revealed Text (High intensity discovery) */}
+                        <span className={`label-reveal absolute inset-0 font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block z-10 ${!showIcon ? "text-center" : ""}`} style={{ clipPath: "inset(0 100% 0 0)" }}>
+                            {label}
+                        </span>
+                    </div>
                 </div>
 
-                {/* The White Circle - Swipes from Left to Right on Hover (Optional) */}
+                {/* The White Circle - Physically on the right */}
                 {showIcon && (
-                    <motion.div 
-                        className={`w-10 h-10 md:w-12 md:h-12 ${circleBgClass} rounded-full flex items-center justify-center relative z-20 shadow-md ml-auto`}
-                        variants={{
-                            initial: { 
-                                x: 0 
-                            },
-                            hover: { 
-                                // Swipe from Left edge to Right edge
-                                x: [-180, 0], 
-                                transition: {
-                                    duration: 0.6,
-                                    ease: [0.76, 0, 0.24, 1]
-                                }
-                            }
-                        }}
-                    >
-                        <svg
-                            className="h-5 w-5 md:h-6 md:w-6"
-                            viewBox="0 0 24 24"
-                            fill={iconColor}
-                        >
-                            <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
-                            <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
-                        </svg>
-                    </motion.div>
+                    <div className="flex items-center justify-end shrink-0 ml-4 pointer-events-none">
+                        <div className={`icon-circle w-11 h-11 md:w-13 md:h-13 ${circleBgClass} rounded-full flex items-center justify-center relative z-20 shadow-md`}>
+                            <svg className="h-5 w-5 md:h-6 md:w-6" viewBox="0 0 24 24" fill={iconColor}>
+                                <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
+                                <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
+                            </svg>
+                        </div>
+                    </div>
                 )}
-                
-                {/* Subtle Hover Overlay */}
-                <motion.div 
-                    className={`absolute inset-0 z-0 pointer-events-none ${isBeige ? "bg-white/5" : "bg-black/10"}`}
-                    variants={{
-                        initial: { opacity: 0 },
-                        hover: { opacity: 1 }
-                    }}
-                />
-            </motion.div>
+            </div>
         </Link>
     );
 }

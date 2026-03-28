@@ -1,3 +1,5 @@
+import Questions from "../faq/Questions";
+
 export default function FAQ() {
     const faqs = [
         { id: 1, question: "Bridging the gap between technology and agriculture", answer: "Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint." },
@@ -22,24 +24,7 @@ export default function FAQ() {
                     </p>
                 </div>
 
-                {/* FAQ Grid */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                    {faqs.map((faq) => (
-                        <div 
-                            key={faq.id} 
-                            className="bg-[#A6895A] rounded-sm p-6 md:p-8 flex justify-between items-center group cursor-pointer hover:bg-[#b09363] transition-all shadow-sm"
-                        >
-                            <span className="font-sans text-white text-xs md:text-sm lg:text-[15px] font-medium leading-normal pr-4">
-                                {faq.question}
-                            </span>
-                            <div className="shrink-0 text-white/80 group-hover:text-white transition-colors">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                                </svg>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                <Questions/>
 
             </div>
         </section>

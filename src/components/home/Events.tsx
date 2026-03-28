@@ -1,8 +1,14 @@
 "use client";
 import { useRef } from "react";
 import Image from "next/image";
-import { motion, useScroll, useTransform, useSpring } from "framer-motion";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import WipeButton from "../shared/WipeButton";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 const eventItems = [
     {
@@ -33,142 +39,166 @@ const eventItems = [
 
 export default function Events() {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start start", "end end"]
-    });
+    const indicatorRef = useRef<HTMLDivElement>(null);
+    const lineRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const nodeRefs = useRef<(HTMLDivElement | null)[]>([]);
+    const cardContainerRef = useRef<HTMLDivElement>(null);
 
-    const smoothProgress = useSpring(scrollYProgress, {
-        stiffness: 45, // Smoother, professional pacing
-        damping: 30,
-        mass: 0.8
-    });
+    useGSAP(() => {
+        if (!containerRef.current || !indicatorRef.current || !cardContainerRef.current) return;
 
-    const containerHeight = "70vh"; // Slightly shorter container
-    const p0 = "28px";
-    const p3 = `calc(${containerHeight} - 28px)`;
-    const totalGapVal = `calc(${p3} - ${p0})`;
+        const mm = gsap.matchMedia();
 
-    const p1 = `calc(${p0} + (${totalGapVal} * 1 / 3))`;
-    const p2 = `calc(${p0} + (${totalGapVal} * 2 / 3))`;
-    const nodeCenters = [p0, p1, p2, p3];
+        mm.add({
+            isDesktop: "(min-width: 1024px)",
+            isTablet: "(min-width: 768px) and (max-width: 1023px)",
+            isMobile: "(max-width: 767px)"
+        }, (context) => {
+            const { isDesktop, isTablet } = context.conditions as any;
 
-    // Professional 'Pro-Stop' Mapping: [Dwell, Move, Dwell, Move, Dwell, Move, Dwell]
-    const PROGRESS_STOPS = [0, 0.15, 0.25, 0.4, 0.5, 0.65, 0.75, 1.0];
+            // Align precisely with the CSS heights
+            const cardH = isDesktop ? 420 : (isTablet ? 400 : 360);
 
-    // Indicator position - perfectly synced to stops
-    const indicatorY = useTransform(smoothProgress, PROGRESS_STOPS, [p0, p0, p1, p1, p2, p2, p3, p3], { clamp: true });
+            // Left Column Reveal
+            gsap.from(".events-left-content", {
+                opacity: 0,
+                x: -30,
+                duration: 1,
+                ease: "power3.inOut",
+                scrollTrigger: {
+                    trigger: ".events-left-content",
+                    start: "top 85%",
+                    once: true
+                }
+            });
 
-    // Discrete Progress Segments: one stop after the other
-    const segments = [
-        { start: 0.15, end: 0.25 }, // Move 1->2
-        { start: 0.4, end: 0.5 },   // Move 2->3
-        { start: 0.65, end: 0.75 }  // Move 3->4
-    ];
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: containerRef.current,
+                    start: "top top",
+                    end: "bottom bottom",
+                    scrub: 1,
+                }
+            });
 
-    const cardH = 420;
-    const cardTranslation = useTransform(
-        smoothProgress,
-        PROGRESS_STOPS,
-        ["0px", "0px", `-${cardH}px`, `-${cardH}px`, `-${cardH * 2}px`, `-${cardH * 2}px`, `-${cardH * 3}px`, `-${cardH * 3}px`],
-        { clamp: true }
-    );
+            const scrollPoints = {
+                dwell1: 0,
+                move1: 0.15,
+                stop1: 0.25,
+                dwell2: 0.25,
+                move2: 0.4,
+                stop2: 0.5,
+                dwell3: 0.5,
+                move3: 0.65,
+                stop3: 0.75,
+                last: 1.0
+            };
+
+            // Stage 0: Initialization
+            tl.set(indicatorRef.current, { top: "0%" });
+            tl.set(cardContainerRef.current, { y: 0 });
+
+            // Transition 1: Target Node 1 (33.33%)
+            tl.to(lineRefs.current[0], { scaleY: 1, duration: 0.1, ease: "none" }, scrollPoints.move1);
+            tl.to(indicatorRef.current, { top: "33.33%", duration: 0.1, ease: "none" }, scrollPoints.move1);
+            tl.to(cardContainerRef.current, { y: -cardH, duration: 0.1, ease: "none" }, scrollPoints.move1);
+            tl.to(nodeRefs.current[1], { borderColor: "#0A4834", duration: 0.02 }, scrollPoints.stop1);
+
+            // Transition 2: Target Node 2 (66.66%)
+            tl.to(lineRefs.current[1], { scaleY: 1, duration: 0.1, ease: "none" }, scrollPoints.move2);
+            tl.to(indicatorRef.current, { top: "66.66%", duration: 0.1, ease: "none" }, scrollPoints.move2);
+            tl.to(cardContainerRef.current, { y: -cardH * 2, duration: 0.1, ease: "none" }, scrollPoints.move2);
+            tl.to(nodeRefs.current[2], { borderColor: "#0A4834", duration: 0.02 }, scrollPoints.stop2);
+
+            // Transition 3: Target Node 3 (100%)
+            tl.to(lineRefs.current[2], { scaleY: 1, duration: 0.1, ease: "none" }, scrollPoints.move3);
+            tl.to(indicatorRef.current, { top: "100%", duration: 0.1, ease: "none" }, scrollPoints.move3);
+            tl.to(cardContainerRef.current, { y: -cardH * 3, duration: 0.1, ease: "none" }, scrollPoints.move3);
+            tl.to(nodeRefs.current[3], { borderColor: "#0A4834", duration: 0.02 }, scrollPoints.stop3);
+
+            // Maintain final state during the last 25% of scroll
+            tl.to(indicatorRef.current, { top: "100%", duration: 0.25 }, scrollPoints.stop3);
+        });
+    }, { scope: containerRef });
 
     return (
         <section ref={containerRef} className="relative h-[600vh] bg-white">
             <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-                <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-auto lg:h-[75vh] items-start lg:items-center pt-12 lg:pt-0">
+                <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-full md:h-auto lg:h-[75vh] items-center lg:items-center py-10 lg:py-0">
 
-                    {/* Left Column */}
-                    <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-10 z-20 max-w-[440px] md:max-w-none mx-auto w-full">
-                        <motion.div
-                            initial={{ opacity: 0, x: -30 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
-                        >
-                            <h2 className="font-display text-5xl md:text-6xl font-black text-[#0A4834] mb-6 uppercase tracking-tighter leading-[0.85]">
+                    {/* Left Column - LEFT ALIGNED FOR ALL VIEWPORTS */}
+                    <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] md:max-w-none w-full text-left">
+                        <div className="events-left-content">
+                            <h2 className="font-display text-4xl md:text-6xl lg:text-6xl font-black text-[#0A4834] mb-4 md:mb-6 uppercase tracking-tighter leading-[0.9]">
                                 Where Every Meal <br /> Becomes a Memory
                             </h2>
-                            <p className="font-sans text-[#555] text-base md:text-lg leading-relaxed max-w-sm mb-8">
+                            <p className="font-sans text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm md:max-w-2xl mb-6 md:mb-8 ">
                                 Redefine your food experience with technology and sustainable agriculture.
                             </p>
-                            <WipeButton href="/events" label="Explore More" />
-                        </motion.div>
-                    </div>
-
-                    {/* Middle Column */}
-                    <div className="hidden lg:flex lg:col-span-1 relative h-[70vh] flex-col items-center justify-center">
-                        <div className="h-full w-full relative overflow-hidden">
-                            {/* Segmented Background */}
-                            {[0, 1, 2].map((i) => (
-                                <div
-                                    key={`bg-seg-${i}`}
-                                    className="absolute left-1/2 -translate-x-1/2 bg-[#F0F0F0] z-0"
-                                    style={{
-                                        top: nodeCenters[i],
-                                        height: `calc(${totalGapVal} / 3)`,
-                                        width: "3px"
-                                    }}
-                                />
-                            ))}
-
-                            {/* Segmented Filling Progress */}
-                            {[0, 1, 2].map((i) => (
-                                <motion.div
-                                    key={`active-seg-${i}`}
-                                    className="absolute left-1/2 -translate-x-1/2 bg-[#0A4834] z-10 origin-top"
-                                    style={{
-                                        top: nodeCenters[i],
-                                        width: "3px",
-                                        height: useTransform(
-                                            smoothProgress,
-                                            [segments[i].start, segments[i].end],
-                                            ["0%", "100%"],
-                                            { clamp: true }
-                                        )
-                                    } as any}
-                                />
-                            ))}
-
-                            {nodeCenters.map((centerPos, i) => (
-                                <motion.div key={i} className="absolute left-1/2 w-10 h-10 z-20" style={{ top: centerPos, x: "-50%", y: "-50%" } as any}>
-                                    <motion.div
-                                        className="w-full h-full rounded-full bg-white border border-[#E0E0E0] flex items-center justify-center shadow-md"
-                                        style={{
-                                            borderColor: useTransform(
-                                                smoothProgress,
-                                                [PROGRESS_STOPS[i * 2] - 0.05, PROGRESS_STOPS[i * 2], PROGRESS_STOPS[i * 2] + 0.05],
-                                                ["#E0E0E0", "#0A4834", "#E0E0E0"],
-                                                { clamp: true }
-                                            )
-                                        } as any}
-                                    >
-                                        <div className="w-2 h-2 rounded-full bg-[#E0E0E0]" />
-                                    </motion.div>
-                                </motion.div>
-                            ))}
-                            <motion.div className="absolute left-1/2 z-40 w-10 h-10 rounded-full bg-[#0A4834] border-[2px] border-white shadow-lg flex items-center justify-center pointer-events-none" style={{ top: indicatorY, x: "-50%", y: "-50%" } as any}>
-                                <div className="w-2 h-2 rounded-full bg-white" />
-                            </motion.div>
+                            <div className="flex justify-start">
+                                <WipeButton href="/events" label="Explore More" />
+                            </div>
                         </div>
                     </div>
 
-                    {/* Right Column: Sliding Event Cards */}
-                    <div className="col-span-12 lg:col-span-6 flex flex-col relative h-[420px] overflow-hidden items-center max-w-[440px] md:max-w-none mx-auto w-full pt-16 lg:pt-0">
-                        <motion.div
+                    {/* Middle Column - Hidden on Mobile/Tab for clean story flow */}
+                    <div className="hidden lg:flex lg:col-span-1 relative h-[70vh] flex-col items-center justify-start py-[28px]">
+                        <div className="h-full w-[40px] relative">
+                            {/* Segmented Track */}
+                            {[0, 1, 2].map((i) => {
+                                const top = `${33.33 * i}%`;
+                                return (
+                                    <div key={`track-${i}`} className="absolute left-[18.5px] w-[3px] bg-[#F0F0F0]" style={{ top, height: "33.33%" }}>
+                                        {/* Filling Segment Driven by GSAP */}
+                                        <div
+                                            ref={el => { lineRefs.current[i] = el; }}
+                                            className="w-full h-full bg-[#0A4834] origin-top scale-y-0"
+                                        />
+                                    </div>
+                                );
+                            })}
+
+                            {/* Nodes Stage */}
+                            {[0, 1, 2, 3].map((i) => (
+                                <div
+                                    key={`node-${i}`}
+                                    ref={el => { nodeRefs.current[i] = el; }}
+                                    className={`absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border flex items-center justify-center shadow-md z-20 transition-colors duration-500`}
+                                    style={{
+                                        top: `${33.33 * i}%`,
+                                        transform: "translateY(-50%)",
+                                        borderColor: i === 0 ? "#0A4834" : "#E0E0E0" // 0 is always active
+                                    }}
+                                >
+                                    <div className="w-2 h-2 rounded-full bg-[#E0E0E0]" />
+                                </div>
+                            ))}
+
+                            {/* Floating Indicator Point - THE GREEN BUTTON */}
+                            <div
+                                ref={indicatorRef}
+                                className="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-[#0A4834] border-[2px] border-white shadow-lg flex items-center justify-center z-40 pointer-events-none"
+                                style={{ top: "0%", transform: "translateY(-50%)" }}
+                            >
+                                <div className="w-2 h-2 rounded-full bg-white" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Sliding Event Cards - Responsive Translation stage */}
+                    <div className="col-span-12 lg:col-span-6 flex flex-col relative h-[360px] md:h-[400px] lg:h-[420px] overflow-hidden items-center max-w-[440px] md:max-w-none mx-auto w-full mt-12 md:mt-20 lg:mt-0">
+                        <div
+                            ref={cardContainerRef}
                             className="w-full flex flex-col items-center"
-                            style={{ y: cardTranslation } as any}
                         >
                             {eventItems.map((item, index) => (
                                 <EventCard
                                     key={item.id}
                                     item={item}
                                     index={index}
-                                    progress={smoothProgress}
-                                    height={cardH}
                                 />
                             ))}
-                        </motion.div>
+                        </div>
                     </div>
 
                 </div>
@@ -177,46 +207,20 @@ export default function Events() {
     );
 }
 
-function EventCard({ item, index, progress, height }: { item: any, index: number, progress: any, height: number }) {
-    // Pro-Stop Mapping: [0, 0.15, 0.25, 0.4, 0.5, 0.65, 0.75, 1.0]
-
-    // Stop pairs for each item dwell state
-    const dwells = [[0, 0.15], [0.25, 0.4], [0.5, 0.65], [0.75, 1.0]];
-    const fadeIns = [-0.1, 0.15, 0.4, 0.65];
-    const fadeOuts = [0.25, 0.5, 0.75, 1.1];
-
-    const opacity = useTransform(
-        progress,
-        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
-        [0, 1, 1, 0],
-        { clamp: true }
-    );
-    const scale = useTransform(
-        progress,
-        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
-        [0.9, 1, 1, 0.9],
-        { clamp: true }
-    );
-    const visibility = useTransform(
-        progress,
-        [fadeIns[index], dwells[index][0], dwells[index][1], fadeOuts[index]],
-        ["hidden", "visible", "visible", "hidden"],
-        { clamp: true }
-    );
-
+function EventCard({ item, index }: { item: any, index: number }) {
+    // Responsive Dimensions for Card Discovery
     return (
-        <motion.div
-            style={{ opacity, scale, visibility: visibility as any, height: height } as any}
-            className="w-full flex-shrink-0 flex flex-col justify-center bg-[#f5f5f5] py-8 px-6 md:px-8 rounded-sm shadow-xl border border-black/5"
+        <div
+            className="w-full h-[360px] md:h-[400px] lg:h-[420px] flex-shrink-0 flex flex-col justify-center bg-[#f5f5f5] py-6 md:py-8 px-5 md:px-8 rounded-sm shadow-xl border border-black/5"
         >
             <div className="w-full max-w-lg mx-auto">
-                <h3 className="font-display text-lg md:text-xl lg:text-2xl font-black text-black mb-3 uppercase tracking-tighter leading-tight">
+                <h3 className="font-display text-base md:text-lg lg:text-2xl font-black text-black mb-2 md:mb-3 uppercase tracking-tighter leading-tight">
                     {item.title}
                 </h3>
-                <p className="font-sans text-[13px] text-[#555] mb-6 leading-relaxed line-clamp-2">
+                <p className="font-sans text-[12px] md:text-[13px] text-[#555] mb-4 md:mb-6 leading-relaxed line-clamp-2">
                     {item.desc}
                 </p>
-                <div className="w-full aspect-video relative rounded-sm overflow-hidden shadow-inner group">
+                <div className="w-full aspect-[16/8] relative rounded-sm overflow-hidden shadow-inner group">
                     <Image
                         fill
                         src={item.image}
@@ -225,6 +229,6 @@ function EventCard({ item, index, progress, height }: { item: any, index: number
                     />
                 </div>
             </div>
-        </motion.div>
+        </div>
     );
 }

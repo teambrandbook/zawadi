@@ -1,8 +1,12 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 export default function StoryGrid() {
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const stories = [
         { id: "01", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
         { id: "02", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
@@ -10,43 +14,65 @@ export default function StoryGrid() {
         { id: "04", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
     ];
 
+    useGSAP(() => {
+        // Title Reveal
+        gsap.from(".story-grid-title", {
+            opacity: 0,
+            y: 30,
+            duration: 1,
+            ease: "power3.inOut",
+            scrollTrigger: {
+                trigger: ".story-grid-title",
+                start: "top 85%",
+                once: true
+            }
+        });
+
+        // Cards Staggered Reveal
+        gsap.from(".story-card", {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: ".cards-grid",
+                start: "top 85%",
+                once: true
+            }
+        });
+    }, { scope: containerRef });
+
+    const handleHover = (el: HTMLElement) => {
+        const shine = el.querySelector(".shine-effect");
+        if (shine) {
+            gsap.fromTo(shine, 
+                { x: "-170%" },
+                { x: "170%", duration: 1.2, ease: "power3.inOut" }
+            );
+        }
+    };
+
     return (
-        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
+        <section ref={containerRef} className="w-full bg-white py-24 px-6 md:px-12 lg:px-24">
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
-                {/* 1. Fading Title - Mixed Case to match luxury branding */}
-                <motion.h2
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
-                    className="font-display text-5xl md:text-7xl lg:text-8xl font-black text-black text-center mb-16 md:mb-24 tracking-tighter leading-[0.85]"
-                >
+                {/* 1. Fading Title */}
+                <h2 className="story-grid-title font-display text-5xl md:text-7xl lg:text-8xl font-black text-black text-center mb-16 md:mb-24 tracking-tighter leading-[0.85]">
                     The story behind the <br /> flavors
-                </motion.h2>
+                </h2>
 
                 {/* Grid Container */}
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                    {stories.map((story, index) => (
-                        <motion.div
+                <div className="cards-grid w-full grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+                    {stories.map((story) => (
+                        <div
                             key={story.id}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
-                            whileHover="hover"
-                            whileTap="hover"
-                            className="group relative bg-[#0A4834] p-8 md:p-12 flex gap-8 md:gap-10 items-start rounded-sm overflow-hidden"
+                            onMouseEnter={(e) => handleHover(e.currentTarget)}
+                            className="story-card group relative bg-[#0A4834] p-8 md:p-12 flex gap-8 md:gap-10 items-start rounded-sm overflow-hidden cursor-pointer"
                         >
                             {/* MODERN DIAGONAL SHINING EFFECT LAYER */}
-                            <motion.div 
-                                variants={{
-                                    hover: { 
-                                        x: ["-170%", "170%"],
-                                        transition: { duration: 1.2, ease: [0.76, 0, 0.24, 1] }
-                                    }
-                                }}
-                                className="absolute inset-x-0 -top-full h-[300%] w-[350%] z-10 pointer-events-none -skew-x-12"
+                            <div 
+                                className="shine-effect absolute inset-x-0 -top-full h-[300%] w-[350%] z-10 pointer-events-none -skew-x-12 translate-x-[-170%]"
                                 style={{ 
                                     background: "linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.02) 60%, transparent 100%)",
                                     left: "-120%"
@@ -70,7 +96,7 @@ export default function StoryGrid() {
                                     {story.description}
                                 </p>
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
 

@@ -1,4 +1,3 @@
-import Image from "next/image";
 import WipeButton from "../shared/WipeButton";
 
 export default function Community() {
@@ -7,12 +6,15 @@ export default function Community() {
 
             {/* The Irregular Section */}
             <div className="relative w-full py-32 md:py-48">
-                <Image
-                    src="/home/section-3.webp"
-                    alt="Learn More about Zewadi"
-                    fill
-                    className="object-cover"
-                />
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="absolute inset-0 w-full h-full object-cover z-0"
+                >
+                    <source src="/home/home-section3.webm" type="video/webm" />
+                </video>
                 {/* Dark Overlay */}
                 <div className="absolute inset-0 bg-black/40 z-0" />
 
