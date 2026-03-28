@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
 const timelineItems = [
     { id: 1, image: "/home/section4-1.webp", title: "Our Roots", desc: "Starting with a vision to connect everyone to fresh produce." },
@@ -11,15 +12,16 @@ const timelineItems = [
 ];
 
 export default function Story() {
+    const sectionRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const [scrollProgress, setScrollProgress] = useState(0);
 
     useEffect(() => {
         const handleScroll = () => {
-            if (!containerRef.current) return;
+            if (!sectionRef.current) return;
 
-            const container = containerRef.current;
+            const container = sectionRef.current;
             const containerTop = container.offsetTop;
             const containerHeight = container.offsetHeight;
             const scrollY = window.scrollY;
@@ -48,58 +50,44 @@ export default function Story() {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // ANIMATION VARIANTS
-    const containerVariants: any = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: {
-                staggerChildren: 0.2,
-                delayChildren: 0.1
+    useGSAP(() => {
+        // Header Reveal
+        const tl = gsap.timeline({
+            scrollTrigger: {
+                trigger: ".story-header",
+                start: "top 85%",
+                once: true
             }
-        }
-    };
+        });
 
-    const itemVariants: any = {
-        hidden: { opacity: 0, y: 30 },
-        visible: { 
-            opacity: 1, 
-            y: 0,
-            transition: { duration: 0.8, ease: "circOut" }
-        }
-    };
+        tl.from(".header-item", {
+            opacity: 0,
+            y: 30,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "power2.out"
+        });
+    }, { scope: sectionRef });
 
     return (
-        <section ref={containerRef} className="relative h-[450vh] bg-white">
+        <section ref={sectionRef} className="relative h-[450vh] bg-white">
             {/* Sticky Content Wrapper */}
             <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-center overflow-hidden">
                 
-                <div className="w-full h-full flex flex-col items-center justify-between py-4 px-4 md:px-12">
+                <div ref={containerRef} className="w-full h-full flex flex-col items-center justify-between py-4 px-4 md:px-12">
                     
-                    {/* Header Section - STAGGERED FADE UP */}
-                    <motion.div 
-                        variants={containerVariants}
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, margin: "-100px" }}
-                        className="text-center w-full max-w-4xl z-30"
-                    >
-                        <motion.h2 
-                            variants={itemVariants}
-                            className="font-display text-4xl md:text-6xl font-black text-[#000000] mb-2 uppercase tracking-tighter"
-                        >
+                    {/* Header Section */}
+                    <div className="story-header text-center w-full max-w-4xl z-30">
+                        <h2 className="header-item font-display text-4xl md:text-6xl font-black text-[#000000] mb-2 uppercase tracking-tighter">
                             Our Story
-                        </motion.h2>
-                        <motion.p 
-                            variants={itemVariants}
-                            className="font-sans text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto"
-                        >
+                        </h2>
+                        <p className="header-item font-sans text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto">
                             Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                        </motion.p>
-                    </motion.div>
+                        </p>
+                    </div>
 
                     {/* Timeline Section - Compact & Floating */}
-                    <div className="relative w-full max-w-3xl z-30 mb-4 px-6">
+                    <div className="inner-timeline relative w-full max-w-3xl z-30 mb-4 px-6">
                         {/* Background Line */}
                         <div className="absolute top-1/2 left-[8.5%] right-[8.5%] md:left-[4.5%] md:right-[4.5%] h-[1px] bg-black/10 -translate-y-1/2 z-0" />
                         

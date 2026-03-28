@@ -3,9 +3,16 @@
 import Navbar from "@/components/community/Navbar";
 import Footer from "@/components/shared/Footer";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function GalleryPage() {
+    const mainRef = useRef<HTMLElement>(null);
+
     const images = [
         { src: "/events/event-1.webp", alt: "Gallery 1", cols: "md:col-span-4", aspect: "aspect-[4/5]" },
         { src: "/events/event-5.webp", alt: "Gallery 2", cols: "md:col-span-8", aspect: "aspect-[16/9]" },
@@ -18,66 +25,71 @@ export default function GalleryPage() {
         { src: "/events/event-4.webp", alt: "Gallery 9", cols: "md:col-span-6", aspect: "aspect-[4/5]" },
     ];
 
-    // Cinematic Wipe Reveal Logic
-    const entranceWipeVariants: any = {
-        hidden: { 
-            clipPath: "inset(0 100% 0 0)",
-            opacity: 0
-        },
-        visible: { 
-            clipPath: "inset(0 0 0 0)",
-            opacity: 1,
-            transition: { 
-                duration: 0.9, 
-                ease: [0.76, 0, 0.24, 1] 
+    useGSAP(() => {
+        // Header Reveal
+        gsap.from(".gallery-title", {
+            opacity: 0,
+            y: 30,
+            duration: 1.2,
+            ease: "expo.out", // Corresponds to a fast start, slow end
+            scrollTrigger: {
+                trigger: ".gallery-title",
+                start: "top 90%", // Equivalent to viewport={{ once: true, margin: "-100px" }}
+                once: true
             }
-        }
-    };
+        });
 
-    const wiperVariants: any = {
-        hidden: { left: "-100%" },
-        visible: { 
-            left: "100%",
-            transition: { 
-                duration: 1.2, 
-                ease: [0.76, 0, 0.24, 1] 
-            }
-        }
-    };
+        // Individual Image Reveals
+        const items = gsap.utils.toArray<HTMLElement>(".gallery-item");
+        items.forEach((item) => {
+            const tl = gsap.timeline({
+                scrollTrigger: {
+                    trigger: item,
+                    start: "top 90%", // Equivalent to viewport={{ once: true, margin: "-100px" }}
+                    once: true
+                }
+            });
+
+            // Wiper Block - THE "ACTIVE" SWEEP
+            tl.fromTo(item.querySelector(".wiper-block"),
+                { left: "-100%" },
+                { left: "100%", duration: 1.2, ease: "power4.inOut" } // Similar to [0.76, 0, 0.24, 1] for a smooth sweep
+            );
+
+            // Image Content Reveal
+            tl.fromTo(item.querySelector(".image-reveal-layer"),
+                { clipPath: "inset(0 100% 0 0)", opacity: 0 },
+                { clipPath: "inset(0 0 0 0)", opacity: 1, duration: 0.9, ease: "power4.inOut" }, // Similar to [0.76, 0, 0.24, 1]
+                "-=1.0" // Overlap with wiper, starting 1.0 seconds before the wiper finishes
+            );
+        });
+    }, { scope: mainRef });
 
     return (
-        <main className="flex flex-col min-h-screen bg-white">
+        <main ref={mainRef} className="flex flex-col min-h-screen bg-white">
             <Navbar />
             
             <section className="pt-44 pb-24 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto">
                     {/* Header */}
                     <div className="text-center mb-16 md:mb-24">
-                        <motion.h1 
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 1.2, ease: [0.76, 0, 0.24, 1] }}
-                            className="font-display text-5xl md:text-7xl lg:text-8xl font-black text-black tracking-tighter leading-[0.85] uppercase"
+                        <h1 
+                            className="gallery-title font-display text-5xl md:text-7xl lg:text-8xl font-black text-black tracking-tighter leading-[0.85] uppercase"
                         >
                             Gallery
-                        </motion.h1>
+                        </h1>
                     </div>
 
                     {/* Perfectly preserved original asymmetrical grid layout */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
                         {images.map((img, index) => (
-                            <motion.div 
+                            <div 
                                 key={index}
-                                initial="hidden"
-                                whileInView="visible"
-                                viewport={{ once: true, margin: "-100px" }}
-                                className={`${img.cols} ${img.aspect} relative rounded-none overflow-hidden group cursor-pointer bg-[#F5F5F5] shadow-xl`}
+                                className={`gallery-item ${img.cols} ${img.aspect} relative rounded-none overflow-hidden group cursor-pointer bg-[#F5F5F5] shadow-xl`}
                             >
                                 {/* THE REVEALED IMAGE */}
-                                <motion.div 
-                                    variants={entranceWipeVariants}
-                                    className="absolute inset-0 z-10 w-full h-full"
+                                <div 
+                                    className="image-reveal-layer absolute inset-0 z-10 w-full h-full"
                                 >
                                     <Image 
                                         src={img.src} 
@@ -85,17 +97,16 @@ export default function GalleryPage() {
                                         fill 
                                         className="object-cover transition-transform duration-1000 group-hover:scale-105" 
                                     />
-                                </motion.div>
+                                </div>
 
                                 {/* THE WIPER BLOCK - THE "ACTIVE" SWEEP AS SEEN IN WIPEBUTTON */}
-                                <motion.div 
-                                    variants={wiperVariants}
-                                    className="absolute inset-y-0 w-full bg-[#EAE3D2] z-30 pointer-events-none"
+                                <div 
+                                    className="wiper-block absolute inset-y-0 w-full bg-[#EAE3D2] z-30 pointer-events-none"
                                 />
 
                                 {/* Subtle Overlay Border */}
                                 <div className="absolute inset-0 border border-black/0 group-hover:border-black/5 transition-colors duration-500 z-40" />
-                            </motion.div>
+                            </div>
                         ))}
                     </div>
 

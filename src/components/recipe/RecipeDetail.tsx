@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
-import { motion } from "framer-motion";
 import { borderDraw, dashBorderAnimation, imageAnimation, leftReveal } from "../../../lib/animations";
 import IncreditionsTable from "./IncreditionsTable";
 
@@ -21,7 +20,6 @@ interface RecipeDetailProps {
 }
 
 export default function RecipeDetail({ recipe }: RecipeDetailProps) {
-
     useEffect(() => {
         imageAnimation(".img")
         leftReveal(".lectRevelComponent")
@@ -89,7 +87,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             <IncreditionsTable count={recipe.ingredientsCount}  text={recipe.ingredientsText}/>;
 
             {/* 3. How to Cook Section */}
-            <div className="lectRevelComponent  py-20 px-6 md:px-12 lg:px-24">
+            <div className="lectRevelComponent py-20 px-6 md:px-12 lg:px-24">
                 <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#EAE3D2]">
                     <div className="max-w-[85rem] mx-auto flex flex-col gap-4">
 
@@ -116,8 +114,6 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     </div>
                 </section>
             </div>
-
-
         </div>
     );
 }

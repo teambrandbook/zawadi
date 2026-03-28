@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { imageAnimation, zoomDeepAnimation } from "../../../lib/animations";
-import { div } from "framer-motion/client";
 
 const testimonialsData = [
     {
