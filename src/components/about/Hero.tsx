@@ -62,7 +62,7 @@ export default function Hero() {
                 <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 items-start">
 
                     {/* Left Column: Large Vertical Image */}
-                    <div className="hero-image-wipe w-full aspect-[3/4] md:aspect-[4/5] relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
+                    <div className="hero-image-wipe w-full md:h-[600px] max-sm:h-[400px] aspect-[3/4]  relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
                         <Image 
                             src="/about/about-1.1.webp" 
                             alt="About Hero Vertical" 
@@ -74,7 +74,7 @@ export default function Hero() {
                     {/* Right Column: Smaller Image + Text */}
                     <div className="flex flex-col gap-8 md:gap-12">
                         {/* Top Image */}
-                        <div className="hero-image-wipe w-full aspect-[5/4] relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
+                        <div className="hero-image-wipe w-full  aspect-[5/4] relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
                             <Image 
                                 src="/about/about-2.2.webp" 
                                 alt="About Hero Square" 

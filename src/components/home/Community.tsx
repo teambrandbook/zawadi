@@ -1,57 +1,85 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import WipeButton from "../shared/WipeButton";
+import { waveFillAnimation } from "../../../lib/animations";
 
 export default function Community() {
-    return (
-        <section className="relative w-full">
+  const topWaveRef = useRef<SVGPathElement>(null);
+  const bottomWaveRef = useRef<SVGPathElement>(null);
 
-            {/* The Irregular Section */}
-            <div className="relative w-full py-32 md:py-48">
-                <video
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    className="absolute inset-0 w-full h-full object-cover z-0"
-                >
-                    <source src="/home/home-section3.webm" type="video/webm" />
-                </video>
-                {/* Dark Overlay */}
-                <div className="absolute inset-0 bg-black/40 z-0" />
+  useEffect(() => {
+    const cleanups: (() => void)[] = [];
 
-                {/* Top Wavy Edge */}
-                <div className="absolute top-0 left-0 w-full overflow-hidden leading-none z-10 -translate-y-[2px]">
-                    <svg className="relative block w-full h-[60px] md:h-[120px] scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 100" preserveAspectRatio="none">
-                        <path d="M0,0 L0,60 C150,55 200,90 260,85 C310,80 330,40 370,55 C410,70 440,75 500,55 C580,30 680,60 700,50 C920,40 700,20 1200,35 L1200,0 Z" fill="#FFFFFF"></path>
-                    </svg>
-                </div>
+    if (topWaveRef.current) {
+      cleanups.push(waveFillAnimation(topWaveRef.current, "top"));
+    }
 
+    if (bottomWaveRef.current) {
+      cleanups.push(waveFillAnimation(bottomWaveRef.current, "bottom"));
+    }
 
-                {/* Content */}
-                <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center">
-                    <h2 className="font-display text-4xl md:text-7xl font-black text-[#EAE3D2] mb-8 uppercase tracking-tight leading-tight max-w-4xl">
-                        LEARN MORE ABOUT ZEWADI
-                    </h2>
+    return () => cleanups.forEach((c) => c());
+  }, []);
 
-                    <p className="font-sans text-white text-base md:text-xl leading-relaxed max-w-3xl mb-12 drop-shadow-md">
-                        Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
-                    </p>
+  return (
+    <section className="relative w-full overflow-hidden">
+      <div className="relative w-full py-32 md:py-48 bg-black">
 
-                    <WipeButton
-                        href="/about"
-                        label="Explore More"
-                        variant="beige"
-                        showIcon={false}
-                    />
-                </div>
+        {/* VIDEO */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        >
+          <source src="/home/home-section3.webm" type="video/webm" />
+        </video>
 
-                {/* Bottom Wavy Edge */}
-                <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10 translate-y-[2px]">
-                    <svg className="relative block w-full h-[60px] md:h-[120px] scale-110" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 100" preserveAspectRatio="none">
-                        <path d="M0,100 L0,60 C150,60 250,20 350,20 C450,20 500,80 600,80 C700,80 900,50 1200,50 L1200,100 Z" fill="#FFFFFF"></path>
-                    </svg>
-                </div>
+        <div className="absolute inset-0 bg-black/40 z-0" />
 
-            </div>
-        </section>
-    );
+        {/* 🔥 TOP WAVE (FILLED) */}
+        <div className="absolute top-0 left-0 w-full z-10">
+          <svg
+            className="w-full h-[60px] md:h-[120px]"
+            viewBox="0 0 1200 100"
+            preserveAspectRatio="none"
+          >
+            <path ref={topWaveRef} fill="#ffffff" />
+          </svg>
+        </div>
+
+        {/* CONTENT */}
+        <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center">
+          <h2 className="font-display text-4xl md:text-7xl font-black text-[#EAE3D2] mb-8 uppercase tracking-tight leading-tight max-w-4xl">
+            LEARN MORE ABOUT ZEWADI
+          </h2>
+
+          <p className="font-sans text-white text-base md:text-xl leading-relaxed max-w-3xl mb-12 drop-shadow-md">
+            Bridging the gap between technology and agriculture to redefine your food experience.
+          </p>
+
+          <WipeButton
+            href="/about"
+            label="Explore More"
+            variant="beige"
+            showIcon={false}
+          />
+        </div>
+
+        {/* 🔥 BOTTOM WAVE (FILLED) */}
+        <div className="absolute bottom-0 left-0 w-full z-10">
+          <svg
+            className="w-full h-[60px] md:h-[120px]"
+            viewBox="0 0 1200 100"
+            preserveAspectRatio="none"
+          >
+            <path ref={bottomWaveRef} fill="#ffffff" />
+          </svg>
+        </div>
+
+      </div>
+    </section>
+  );
 }

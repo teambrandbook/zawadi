@@ -10,7 +10,7 @@ function RecipeFilter() {
       {categories.map((category) => (
         <button
           key={category}
-          className="h-12 md:h-15  bg-[#0A4834] rounded-full w-full text-white font-sans font-extrabold text-sm md:text-xl uppercase tracking-widest hover:bg-[#1A5A44] transition-all hover:scale-105 active:scale-95 shadow-lg"
+          className="h-13 md:h-15  bg-[#0A4834] rounded-full w-full text-white font-sans font-extrabold text-sm  uppercase tracking-widest hover:bg-[#1A5A44] transition-all hover:scale-105 active:scale-95 shadow-lg"
         >
           {category}
         </button>

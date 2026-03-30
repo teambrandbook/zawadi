@@ -46,7 +46,7 @@ export default function StoryGrid() {
     const handleHover = (el: HTMLElement) => {
         const shine = el.querySelector(".shine-effect");
         if (shine) {
-            gsap.fromTo(shine, 
+            gsap.fromTo(shine,
                 { x: "-170%" },
                 { x: "170%", duration: 1.2, ease: "power3.inOut" }
             );
@@ -68,31 +68,42 @@ export default function StoryGrid() {
                         <div
                             key={story.id}
                             onMouseEnter={(e) => handleHover(e.currentTarget)}
-                            className="story-card group relative bg-[#0A4834] p-8 md:p-12 flex gap-8 md:gap-10 items-start rounded-sm overflow-hidden cursor-pointer"
+                            className="story-card group relative bg-[#0A4834] p-8 md:p-12 gap-8 md:gap-10 items-start rounded-sm overflow-hidden cursor-pointer"
                         >
                             {/* MODERN DIAGONAL SHINING EFFECT LAYER */}
-                            <div 
-                                className="shine-effect absolute inset-x-0 -top-full h-[300%] w-[350%] z-10 pointer-events-none -skew-x-12 translate-x-[-170%]"
-                                style={{ 
-                                    background: "linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.02) 60%, transparent 100%)",
-                                    left: "-120%"
-                                }}
-                            />
+                            <div className="flex gap-10">
+                                <div
+                                    className="shine-effect absolute inset-x-0 -top-full h-[300%] w-[350%] z-10 pointer-events-none -skew-x-12 translate-x-[-170%]"
+                                    style={{
+                                        background: "linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.02) 40%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.02) 60%, transparent 100%)",
+                                        left: "-120%"
+                                    }}
+                                />
 
-                            {/* Background Overlay for slight depth on hover */}
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
+                                {/* Background Overlay for slight depth on hover */}
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
 
-                            {/* Number - In Beige */}
-                            <span className="relative z-20 font-display text-6xl md:text-8xl font-bold text-[#EAE3D2] tracking-tighter leading-none">
-                                {story.id}
-                            </span>
+                                {/* Number */}
+                                <span className="relative z-20 font-display text-6xl md:text-8xl font-bold text-[#EAE3D2] tracking-tighter leading-none">
+                                    {story.id}
+                                </span>
 
-                            {/* Text Content - In Beige */}
-                            <div className="relative z-20 flex flex-col gap-3 pt-3">
-                                <h3 className="font-display text-2xl md:text-3xl font-bold text-[#EAE3D2] tracking-tight">
-                                    {story.title}
-                                </h3>
-                                <p className="font-sans text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                {/* Text Content */}
+                                <div className="relative z-20 flex flex-col gap-3 pt-3">
+                                    <h3 className="font-display text-2xl md:text-3xl font-bold text-[#EAE3D2] tracking-tight">
+                                        {story.title}
+                                    </h3>
+
+                                    {/* ✅ Only visible in lg */}
+                                    <p className="hidden lg:block font-sans text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                        {story.description}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* ✅ Only visible in sm & md */}
+                            <div>
+                                <p className="block lg:hidden font-sans text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
                                     {story.description}
                                 </p>
                             </div>

@@ -42,14 +42,14 @@ export default function Testimonials() {
     useEffect(() => {
         imageAnimation(".img")
         zoomDeepAnimation(".zoomComponent")
-
     }, [])
 
     return (
-        <section className="relative mx-4 md:mx-10 lg:mx-10 px-6 md:px-10 lg:px-16 py-24 md:py-36 flex items-center justify-center overflow-hidden  ">
+        <section className="relative mx-4 md:mx-10 lg:mx-10 px-6 md:px-10 lg:px-16 py-24 md:py-36 flex items-center justify-center overflow-hidden">
+
             {/* Background */}
-            <div className="img  rounded-[10px]   absolute inset-0 z-0 overflow-hidden">
-                <div className=" relative w-full h-full">
+            <div className="img rounded-[10px] absolute inset-0 z-0 overflow-hidden">
+                <div className="relative w-full h-full">
                     <Image
                         src="/about/about-6.6.webp"
                         alt="Testimonials Background"
@@ -71,7 +71,7 @@ export default function Testimonials() {
                                 <div
                                     key={index}
                                     className={`zoomComponent bg-white flex w-full h-auto min-h-[320px] shadow-2xl rounded-sm overflow-hidden 
-                                            ${i === 1 ? "hidden lg:flex opacity-90" : ""}`}
+                                    ${i === 1 ? "hidden lg:flex opacity-90" : ""}`}
                                 >
                                     {/* LEFT BUTTON */}
                                     {i === 0 && (
@@ -119,6 +119,16 @@ export default function Testimonials() {
                                             <span className="text-2xl text-white">&gt;</span>
                                         </button>
                                     )}
+
+                                    {/* ✅ NEW: RIGHT BUTTON FOR MOBILE */}
+                                    {i === 0 && (
+                                        <button
+                                            onClick={nextSlide}
+                                            className="flex lg:hidden w-12 bg-[#9F8151] items-center justify-center cursor-pointer hover:bg-[#8A6E42] transition-colors shrink-0"
+                                        >
+                                            <span className="text-2xl text-white">&gt;</span>
+                                        </button>
+                                    )}
                                 </div>
                             )
                         })}
@@ -129,10 +139,8 @@ export default function Testimonials() {
                         {testimonialsData.map((_, i) => (
                             <div className="zoomComponent" key={i}>
                                 <div
-
                                     onClick={() => setActiveIndex(i)}
-                                    className={` h-3 w-3 rounded-full cursor-pointer  ${i === activeIndex ? "bg-white" : "bg-white/40"
-                                        }`}
+                                    className={`h-3 w-3 rounded-full cursor-pointer ${i === activeIndex ? "bg-white" : "bg-white/40"}`}
                                 />
                             </div>
                         ))}

@@ -8,13 +8,20 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export default function Recipys() {
   useEffect(() => {
-    recipyButtonAnimation(".recipe-btn-wrap");
-    stackScroll(".recipe-section");
 
-    return () => {
+  // ✅ Always run button animation
+  recipyButtonAnimation(".recipe-btn-wrap");
+
+  // ✅ Run stackScroll only on md and above
+  if (window.innerWidth >= 640) {
+    stackScroll(".recipe-section");
+  }
+
+  return () => {
     ScrollTrigger.getAll().forEach(trigger => trigger.kill());
   };
-  }, []);
+
+}, []);
 
   return (
     <>
@@ -24,7 +31,7 @@ export default function Recipys() {
             <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
 
               {/* Image */}
-              <div className={` ${i === 0 ? "img" : ""} relative aspect-square w-full overflow-hidden rounded-md`}>
+              <div className={` ${i === 0 ? "img" : ""} relative aspect-square w-full md:h-150 overflow-hidden rounded-md`}>
                 <Image
                   src={recipe.image}
                   alt={recipe.title}
