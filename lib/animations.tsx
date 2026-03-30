@@ -169,7 +169,7 @@ export const zoomInItems = (selector: string) => {
       stagger: 0.2,
       scrollTrigger: {
         trigger: items[0],
-        start: "top 50%",
+        start: "top 60%",
       }
     }
   )
@@ -506,24 +506,23 @@ export const waveFillAnimation = (
   let frame = 0;
 
   const generatePath = () => {
-    let d = `M0 ${type === "top" ? 0 : height}`;
+  const baseY = type === "top" ? 85 : 15; // pushed harder to edges
 
-    for (let i = 0; i <= segments; i++) {
-      const x = (i / segments) * width;
+  let d = `M-10 ${type === "top" ? -20 : height + 20}`; // deeper corner
 
-      const baseY = type === "top" ? 60 : 40;
+  d += ` L -10 ${baseY}`;
 
-      const y =
-        baseY +
-        Math.sin(i * 0.5 + frame) * amplitude;
+  for (let i = 0; i <= segments; i++) {
+    const x = (i / segments) * width;
+    const y = baseY + Math.sin(i * 0.5 + frame) * amplitude;
+    d += ` L ${x} ${y}`;
+  }
 
-      d += ` L ${x} ${y}`;
-    }
+  d += ` L ${width + 10} ${baseY}`;
+  d += ` L ${width + 10} ${type === "top" ? -20 : height + 20} Z`; // deeper corner
 
-    d += ` L ${width} ${type === "top" ? 0 : height} Z`;
-
-    return d;
-  };
+  return d;
+};
 
   const update = () => {
     frame += 0.02;
@@ -531,8 +530,5 @@ export const waveFillAnimation = (
   };
 
   gsap.ticker.add(update);
-
-  return () => {
-    gsap.ticker.remove(update);
-  };
+  return () => gsap.ticker.remove(update);
 };

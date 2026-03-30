@@ -11,7 +11,7 @@ export default function StoryCheckerboard() {
     }, [])
 
     return (
-        <section className="w-full bg-white py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+        <section className="w-full bg-white py-0 px-6 md:px-12 lg:px-24 overflow-hidden">
             <div className="max-w-[85rem] mx-auto grid grid-cols-1 ">
 
                 {/* LEFT SIDE (Block 1 + 2) */}
