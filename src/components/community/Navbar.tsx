@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 
@@ -29,6 +29,12 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
     { name: "Blog", href: "/blog" },
   ];
 
+  useEffect(() => {
+    const close = () => setIsPagesOpen(false);
+    window.addEventListener("click", close);
+    return () => window.removeEventListener("click", close);
+  }, []);
+
   return (
     <nav className="absolute top-0 left-0 z-50 w-full flex justify-center pt-0">
       <div className="relative w-full max-w-[90rem] mx-6">
@@ -53,11 +59,14 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
             ))}
 
             {/* Pages Dropdown */}
-            <div className="relative">
-              <button className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1"
+            <div className="relative z-50">
+              <button
+                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1"
                 onMouseEnter={() => setIsPagesOpen(true)}
-                onClick={() => setIsPagesOpen(true)}
-
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsPagesOpen(prev => !prev);
+                }}
               >
                 Pages
                 <svg
@@ -72,10 +81,11 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
 
               {/* Dropdown */}
               <div
-                className={`absolute left-0 top-full pt-4 transition-all duration-200 ease-out ${isPagesOpen
-                  ? "opacity-100 visible translate-y-0"
-                  : "opacity-0 invisible -translate-y-2"
-                  }`}
+                className={`absolute left-0 top-full pt-4 z-50 transition-all duration-200 ease-out ${
+                  isPagesOpen
+                    ? "opacity-100 visible translate-y-0"
+                    : "opacity-0 invisible -translate-y-2"
+                }`}
               >
                 <div className="w-44 bg-white border border-[#0A4834]/10 rounded-xl shadow-2xl py-2 overflow-hidden">
                   {innerPages.map((page) => (
@@ -172,7 +182,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
         {isOpen && (
           <div className="md:hidden absolute top-full mt-4 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4">
 
-            {/* Normal Links */}
             {[...navLinksLeft, ...navLinksRight].map((link) => (
               <Link
                 key={link.name}
@@ -184,7 +193,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               </Link>
             ))}
 
-            {/* Pages Dropdown (Mobile) */}
             <button
               onClick={() => setIsMobilePagesOpen(!isMobilePagesOpen)}
               className="text-white py-3 border-b border-white/10 text-center uppercase tracking-widest flex justify-center items-center gap-2"
@@ -193,9 +201,8 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               <span>{isMobilePagesOpen ? "▲" : "▼"}</span>
             </button>
 
-            {/* Inner Pages */}
             {isMobilePagesOpen && (
-              <div className="flex flex-col bg-white/5 rounded-lg overflow-hidden">
+              <div className="flex flex-col bg-white/5 rounded-lg overflow-hidden ">
                 {innerPages.map((page) => (
                   <Link
                     key={page.name}

@@ -7,10 +7,12 @@ export default function Hero() {
             {/* Background Shape with Drop Shadow */}
             <div className="absolute inset-0 w-full h-full filter drop-shadow-2xl z-0 pointer-events-none">
                 <div
-                    className="w-full h-full relative"
-                    style={{
-                        clipPath: "ellipse(65% 100% at 50% 0%)"
-                    }}
+                    className="
+    w-full h-full relative
+    [clip-path:ellipse(80%_80%_at_50%_0%)]
+    md:[clip-path:ellipse(75%_80%_at_50%_0%)]
+    lg:[clip-path:ellipse(70%_90%_at_50%_0%)]
+  "
                 >
                     <video
                         src="/home/homepage-herosection.webm"
@@ -28,7 +30,7 @@ export default function Hero() {
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full pt-32">
+            <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full md:pt-32">
 
                 {/* Main Heading */}
                 <h1 className="font-display text-5xl md:text-[5.5rem] font-bold tracking-tight text-white mb-4 leading-none uppercase drop-shadow-lg">

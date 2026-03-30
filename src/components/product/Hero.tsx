@@ -93,8 +93,8 @@ export default function Hero() {
 
                 {/* Left Column: Image with Wipe Reveal */}
                 <div className="flex flex-col gap-14">
-                    <div className="hero-main-image w-full aspect-square relative rounded-none overflow-hidden shadow-sm bg-[#f5f5f5]">
-                        <Image src="/product/product-1.webp" alt="Buckwheat" fill className="object-cover" />
+                    <div className="hero-main-image w-full aspect-square relative rounded-[10px] overflow-hidden shadow-sm bg-[#f5f5f5]">
+                        <Image src="/product/product-1.webp" alt="Buckwheat" fill className="object-cover w-full" />
                         
                         {/* Sandal Shimmer Edge for entrance wipe */}
                         <div className="shimmer-edge absolute inset-y-0 w-[4px] bg-[#EAE3D2] z-30 shadow-[0_0_30px_rgba(234,227,210,0.8)] pointer-events-none" />

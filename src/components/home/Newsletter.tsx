@@ -24,7 +24,7 @@ export default function Newsletter() {
                 {/* Right Column: Placeholder Box */}
                 <div className="flex-1 relative min-h-[300px] md:min-h-auto flex justify-end items-end px-8 md:px-12 pt-8 md:pt-12">
                     {/* The image box */}
-                    <div className="w-full md:w-[88%] aspect-square md:aspect-[4/4] bg-[#D9D9D9] rounded-sm shadow-lg relative">
+                    <div className="w-full lg:w-[88%] aspect-square md:aspect-[4/4] bg-[#D9D9D9] rounded-sm shadow-lg relative">
                         <Image
                             src="/home/section9.webp"
                             alt="Newsletter"
