@@ -23,30 +23,42 @@ export default function Community() {
   }, []);
 
   return (
-    <section className="relative w-full overflow-hidden">
+<section className="relative w-full overflow-x-hidden overflow-y-visible">
       <div className="relative w-full py-32 md:py-48 bg-black">
 
-        {/* VIDEO */}
+        {/* ✅ VIDEO (FINAL FIX APPLIED) */}
         <video
           autoPlay
           loop
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover z-0"
+          style={{
+            transform: "translateZ(0)",
+            top: "-1px",
+            bottom: "-1px",
+            left: "-1px",
+            right: "-1px"
+          }}
         >
           <source src="/home/home-section3.webm" type="video/webm" />
         </video>
 
         <div className="absolute inset-0 bg-black/40 z-0" />
 
-        {/* 🔥 TOP WAVE (FILLED) */}
-        <div className="absolute top-0 left-0 w-full z-10">
+        {/* 🔥 TOP WAVE */}
+<div className="absolute top-0 left-0 w-full z-10 overflow-visible">
           <svg
             className="w-full h-[60px] md:h-[120px]"
             viewBox="0 0 1200 100"
             preserveAspectRatio="none"
+            style={{ display: "block", overflow: "visible" }}  // 👈
           >
-            <path ref={topWaveRef} fill="#ffffff" />
+            <path
+              ref={topWaveRef}
+              fill="#ffffff"
+              style={{ shapeRendering: "geometricPrecision" }}
+            />
           </svg>
         </div>
 
@@ -68,14 +80,19 @@ export default function Community() {
           />
         </div>
 
-        {/* 🔥 BOTTOM WAVE (FILLED) */}
-        <div className="absolute bottom-0 left-0 w-full z-10">
+        {/* 🔥 BOTTOM WAVE */}
+<div className="absolute bottom-0 left-0 w-full z-10 overflow-visible">
           <svg
             className="w-full h-[60px] md:h-[120px]"
             viewBox="0 0 1200 100"
             preserveAspectRatio="none"
+            style={{ display: "block", overflow: "visible" }}  // 👈
           >
-            <path ref={bottomWaveRef} fill="#ffffff" />
+            <path
+              ref={bottomWaveRef}
+              fill="#ffffff"
+              style={{ shapeRendering: "geometricPrecision" }}
+            />
           </svg>
         </div>
 

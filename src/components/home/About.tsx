@@ -68,7 +68,7 @@ export default function About() {
     }, { scope: containerRef });
 
     return (
-        <section ref={containerRef} className="w-full bg-white py-12 md:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+        <section ref={containerRef} className="w-full bg-white lg:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
             <div className="max-w-7xl mx-auto flex flex-col gap-24 md:gap-32">
 
                 {/* Row 1: Text Left, Large Image Right */}
