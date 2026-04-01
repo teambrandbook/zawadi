@@ -1,15 +1,15 @@
 import Navbar from "@/components/community/Navbar";
+import CommenLogin from "@/components/shared/CommenLogin";
 import Footer from "@/components/shared/Footer";
-import LoginComponent from "@/components/shared/LoginComponent";
 
-export default function Login(){
-    return(
-        <div className="flex flex-col min-h-screen bg-white">
-            <Navbar/>
-            <div className=" pb-6">
-                <LoginComponent />
-            </div>
-            <Footer/>
-        </div>
-    )
+export default function Login() {
+  return (
+    <div className="flex min-h-screen flex-col bg-white">
+      <Navbar />
+      <div className="pb-6 ">
+        <CommenLogin />
+      </div>
+      <Footer />
+    </div>
+  );
 }

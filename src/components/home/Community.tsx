@@ -52,7 +52,7 @@ export default function Community() {
             className="w-full h-[60px] md:h-[120px]"
             viewBox="0 0 1200 100"
             preserveAspectRatio="none"
-            style={{ display: "block", overflow: "visible" }}  // 👈
+            style={{ display: "block", overflow: "visible" }}  
           >
             <path
               ref={topWaveRef}

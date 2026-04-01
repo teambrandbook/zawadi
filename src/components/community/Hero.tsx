@@ -54,7 +54,7 @@ export default function Hero() {
 
                         <div>
                             <WipeButton
-                                href="/contact"
+                                href="/communitLogin"
                                 label="Join Now"
                                 className="w-52 h-14"
                                 showIcon={true}
