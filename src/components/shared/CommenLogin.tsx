@@ -21,7 +21,7 @@ export default function CommenLogin() {
 
       {/* ✅ HEIGHT REDUCED ONLY HERE */}
       <div className="mx-auto flex min-h-[450px] max-w-[1400px] items-center justify-center pt-20">
-        <div className="w-full max-w-[00px] rounded-[25px] bg-white px-6 py-8 shadow-[0_24px_70px_rgba(20,20,20,0.18)] sm:px-10 sm:py-12">
+        <div className="w-full max-w-[600px] rounded-[25px] bg-white px-6 py-8 shadow-[0_24px_70px_rgba(20,20,20,0.18)] sm:px-10 sm:py-12">
           <div className="text-center">
             <h1 className="text-[30px] font-bold tracking-[-0.03em] text-[#111827]">
               Create your account

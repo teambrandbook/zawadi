@@ -6,9 +6,9 @@ import { div } from "framer-motion/client";
 export default function communitLogin(){
     return(
         <div>
-            <Navbar/>
+            {/* <Navbar/> */}
             <LoginComponent/>
-            <Footer/>
+            {/* <Footer/> */}
         </div>
     )
 }
