@@ -23,12 +23,11 @@ export default function AddressSection({ values, onChange }: Props) {
         <label className="text-sm text-[#0A4833] md:col-span-2">
           Address Line *
           <input
+            type="text"
             className={inputClass}
             placeholder="Street address"
             value={values.address_line}
-            onChange={(e) =>
-              onChange("address_line", e.target.value)
-            }
+            onChange={(e) => onChange("address_line", e.target.value)}
           />
         </label>
 
@@ -36,12 +35,11 @@ export default function AddressSection({ values, onChange }: Props) {
         <label className="text-sm text-[#0A4833]">
           City
           <input
+            type="text"
             className={inputClass}
             placeholder="City"
             value={values.city}
-            onChange={(e) =>
-              onChange("city", e.target.value)
-            }
+            onChange={(e) => onChange("city", e.target.value)}
           />
         </label>
 
@@ -49,12 +47,11 @@ export default function AddressSection({ values, onChange }: Props) {
         <label className="text-sm text-[#0A4833]">
           State
           <input
+            type="text"
             className={inputClass}
             placeholder="State"
             value={values.state}
-            onChange={(e) =>
-              onChange("state", e.target.value)
-            }
+            onChange={(e) => onChange("state", e.target.value)}
           />
         </label>
 
@@ -64,9 +61,7 @@ export default function AddressSection({ values, onChange }: Props) {
           <select
             className={inputClass}
             value={values.country}
-            onChange={(e) =>
-              onChange("country", e.target.value)
-            }
+            onChange={(e) => onChange("country", e.target.value)}
           >
             <option value="">Select country</option>
             <option value="India">India</option>
@@ -79,12 +74,11 @@ export default function AddressSection({ values, onChange }: Props) {
         <label className="text-sm text-[#0A4833]">
           Postal Code
           <input
+            type="text"
             className={inputClass}
             placeholder="ZIP/Postal Code"
             value={values.postal_code}
-            onChange={(e) =>
-              onChange("postal_code", e.target.value)
-            }
+            onChange={(e) => onChange("postal_code", e.target.value)}
           />
         </label>
 

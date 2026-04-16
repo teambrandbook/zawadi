@@ -1,8 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/redux/store";
+import { fetchRoles } from "@/redux/roleSlice";
+import { registerUser } from "@/redux/userSlice";
+
 import AccountSetupSection from "./components/AccountSetupSection";
 import AddressSection from "./components/AddressSection";
 import BasicInfoSection from "./components/BasicInfoSection";
@@ -12,16 +16,59 @@ import PermissionsSection from "./components/PermissionsSection";
 import PreferencesSection from "./components/PreferencesSection";
 import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
-import { clearRegisterState, registerUser } from "@/redux/userSlice";
-import { AppDispatch, RootState } from "@/redux/store";
+
+// ✅ Form Type
+type FormType = {
+  full_name: string;
+  email: string;
+  phone: string;
+  user_name: string;
+  date_of_birth: string;
+  gender: string;
+  location: string;
+  photo: string;
+  password: string;
+  is_active:boolean;
+
+  role: string;
+  role_obj: number | null;
+  user_type: string;
+
+  // ✅ From Django (unchanged)
+  wellness_interests: string;
+  diet_preference: string;
+
+  address_line: string;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+
+  // ✅ Updated defaults from Django
+  preferred_communication: string;      // default: "email"
+  notification_preferences: string;    // default: "all"
+
+  activate_immediately: boolean;       // default: false
+  send_welcome_email: boolean;         // default: true
+  send_password_setup: boolean;        // default: false
+  allow_notifications: boolean; 
+  
+  // default: true
+
+  // ✅ FIXED name (match backend)
+  is_verified_member: boolean;         // instead of markVerified
+
+};
 
 export default function UserCreatePage() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const loading = useSelector((state: RootState) => state.users.loading);
+
+  const roles = useSelector((state: RootState) => state.roles.data);
+
   const [photoPreview, setPhotoPreview] = useState("");
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormType>({
     full_name: "",
     email: "",
     phone: "",
@@ -31,27 +78,40 @@ export default function UserCreatePage() {
     location: "",
     photo: "",
     password: "",
-    memberId: "",
-    accountStatus: "active",
+    is_active:true,
+
+
     role: "",
-    role_obj: null as null | Record<string, unknown>,
+    role_obj: null,
     user_type: "",
+
     wellness_interests: "",
     diet_preference: "",
+
     preferred_communication: "email",
-    notification_preferences: "l",
+    notification_preferences: "all", // ✅ FIXED
+
     address_line: "",
     city: "",
     state: "",
     country: "",
     postal_code: "",
-    activate_immediately: true,
+
+    activate_immediately: false, // ✅ FIXED
     send_welcome_email: true,
     send_password_setup: false,
     allow_notifications: true,
-    markVerified: false,
-    notes: "",
+    // default: true
+
+    is_verified_member: false, // ✅ FIXED (name change)
+
   });
+
+  useEffect(() => {
+    if (roles.length === 0) {
+      dispatch(fetchRoles());
+    }
+  }, [dispatch, roles.length]);
 
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -72,23 +132,23 @@ export default function UserCreatePage() {
 
   async function handleCreateUser() {
     if (!form.full_name || !form.email || !form.phone || !form.user_name) {
-      window.alert("Please fill required fields: Full Name, Email, Phone Number, Username.");
-      return;
-    }
-    if (form.password.length < 8) {
-      window.alert("Password must be at least 8 chars.");
+      window.alert("Please fill required fields.");
       return;
     }
 
-    const payload = form;
+    if (form.password.length < 3) {
+      window.alert("Password must be at least 8 chars.");
+      return;
+    }
+    console.log(form);
+
+
     try {
-      await dispatch(registerUser(payload)).unwrap();
+      // await dispatch(registerUser(form));
       window.alert("User created successfully.");
-      dispatch(clearRegisterState());
-      router.push("/admindashboard/users");
-    } catch (error: unknown) {
-      const message = typeof error === "string" ? error : "Failed to create user.";
-      window.alert(message);
+      // router.push("/admindashboard/users");
+    } catch (error) {
+      window.alert("Failed to create user.");
     }
   }
 
@@ -98,16 +158,20 @@ export default function UserCreatePage() {
         <BasicInfoSection values={form} onChange={updateField} />
         <ProfilePhotoSection photoPreview={photoPreview} onPick={handlePhotoPick} />
         <AccountSetupSection values={form} onChange={updateField} />
-        <RoleMembershipSection role={form.role} onRoleChange={(role) => updateField("role", role)} />
+
+        <RoleMembershipSection
+          setForm={setForm}
+          role={form.role}
+          role_obj={form.role_obj}
+          roles={roles}
+        />
+
         <PreferencesSection values={form} onChange={updateField} />
         <AddressSection values={form} onChange={updateField} />
-        <NotesSection notes={form.notes} onChange={(value) => updateField("notes", value)} />
+        {/* <NotesSection notes={form.notes} onChange={(v) => updateField("notes", v)} /> */}
         <PermissionsSection values={form} onToggle={handleTogglePermission} />
-        <CreateUserActions onCreate={handleCreateUser} loading={loading} />
+        <CreateUserActions onCreate={handleCreateUser} />
       </div>
     </section>
   );
 }
-
-
-

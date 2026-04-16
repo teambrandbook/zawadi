@@ -1,11 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
 import roleReducer from "./roleSlice";
-import userReducer from "./userSlice"
 
 export const store = configureStore({
   reducer: {
-    users: userReducer,
-    roles: roleReducer,
+    roles: roleReducer, // ✅ only roles
   },
 });
 

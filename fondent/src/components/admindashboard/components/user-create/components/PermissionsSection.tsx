@@ -5,12 +5,12 @@ type Permissions = {
   send_welcome_email: boolean;
   send_password_setup: boolean;
   allow_notifications: boolean;
-  markVerified: boolean;
+  is_verified_member: boolean; // ✅ FIXED
 };
 
 type Props = {
   values: Permissions;
-  onToggle: (field: string, value: boolean) => void; // ✅ matches handleChange
+  onToggle: (field: string, value: boolean) => void;
 };
 
 function Toggle({
@@ -103,9 +103,9 @@ export default function PermissionsSection({ values, onToggle }: Props) {
         <PermissionRow
           title="Mark as verified member"
           desc="Show verification badge on profile"
-          checked={values.markVerified}
+          checked={values.is_verified_member} // ✅ FIXED
           onToggle={() =>
-            onToggle("markVerified", !values.markVerified)
+            onToggle("is_verified_member", !values.is_verified_member) // ✅ FIXED
           }
         />
 

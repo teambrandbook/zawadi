@@ -4,17 +4,16 @@ import CreateUserSection from "./CreateUserSection";
 type Props = {
   values: {
     password: string;
-    accountStatus: string;
+    is_active: boolean;
   };
-  onChange: (field: string, value: string) => void;
+  onChange: (field: string, value: string | boolean) => void; // ✅ FIXED
 };
 
 const inputClass =
   "h-12 w-full rounded-lg border border-[#DFDFDF] bg-[#F7F7F7] px-3 text-sm outline-none ring-[#0A4833]/20 focus:ring-2";
 
 export default function AccountSetupSection({ values, onChange }: Props) {
-  
-  // ✅ Local state for confirm password
+
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const passwordMismatch =
@@ -32,11 +31,11 @@ export default function AccountSetupSection({ values, onChange }: Props) {
             className={inputClass}
             placeholder="Enter password"
             value={values.password}
-            onChange={(e) => onChange("password", e.target.value)} // ✅ send only password
+            onChange={(e) => onChange("password", e.target.value)}
           />
         </label>
 
-        {/* Confirm Password (local only) */}
+        {/* Confirm Password */}
         <label className="text-sm text-[#0A4833]">
           Confirm Password *
           <input
@@ -57,15 +56,25 @@ export default function AccountSetupSection({ values, onChange }: Props) {
         {/* Account Status */}
         <label className="text-sm text-[#0A4833]">
           Account Status
-          <select
-            className={inputClass}
-            value={values.accountStatus}
-            onChange={(e) => onChange("accountStatus", e.target.value)}
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="suspended">Suspended</option>
-          </select>
+          <div className="flex gap-4 mt-2">
+            <label>
+              <input
+                type="radio"
+                checked={values.is_active === true}
+                onChange={() => onChange("is_active", true)}
+              />
+              Active
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                checked={values.is_active === false}
+                onChange={() => onChange("is_active", false)}
+              />
+              Inactive
+            </label>
+          </div>
         </label>
 
       </div>
