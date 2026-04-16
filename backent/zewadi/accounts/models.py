@@ -64,11 +64,12 @@ class User(AbstractUser):
 
     # ✅ fixed default
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="COMMUNITY_USER")
-    role_obj = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    role_obj = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True,related_name='members')
 
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+    is_member = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name", "user_name"]

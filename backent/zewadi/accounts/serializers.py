@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from communityuser.models import CommunityUser,CommunityUserAddress
 from consultant.models import Consultant
+from supperadmin.models import Role
 
 
 
@@ -19,7 +20,7 @@ class RegisterSerializer(serializers.Serializer):
     gender = serializers.CharField(max_length=10)
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
     photo = serializers.ImageField(required=False, allow_null=True)
-    role = serializers.ChoiceField(choices=["COMMUNITY_USER", "CONSULTANT"])
+    role = serializers.ChoiceField(choices=["COMMUNITY_USER", "CONSULTANT","ADMIN","INTERNAL_STAFF"])
 
     # 🔹 Community fields
     user_type = serializers.ChoiceField(choices=["GUEST", "MEMBER"], required=False)
@@ -32,6 +33,8 @@ class RegisterSerializer(serializers.Serializer):
     send_welcome_email = serializers.BooleanField(default=True, required=False)
     send_password_setup = serializers.BooleanField(default=False, required=False)
     allow_notifications = serializers.BooleanField(default=True, required=False)
+    
+    is_active=serializers.BooleanField(default=True)
 
     # 🔹 Address
     address_line = serializers.CharField(required=False)
@@ -50,12 +53,16 @@ class RegisterSerializer(serializers.Serializer):
     session_type = serializers.CharField(required=False)
     consultation_fee = serializers.IntegerField(required=False)
     session_duration = serializers.IntegerField(required=False)
+    
+    # Intarnal Saff
+    
+    role_obj = serializers.PrimaryKeyRelatedField(queryset=Role.objects.all(),required=False,allow_null=True)
 
     def create(self, validated_data):
 
         # 🔹 Extract password
         password = validated_data.get("password")
-
+        role_obj = validated_data.get("role_obj", None)
         # 🔹 Create User (ONLY pass required fields)
         user = User.objects.create_user(
             email=validated_data.get("email"),
@@ -68,7 +75,12 @@ class RegisterSerializer(serializers.Serializer):
             location=validated_data.get("location"),
             photo=validated_data.get("photo"),
             role=validated_data.get("role"),
+            is_active=validated_data.get('is_active')
         )
+        
+        if user.role == "INTERNAL_STAFF":
+            user.role_obj = role_obj
+            user.save()
 
         # 🔹 COMMUNITY USER
         if user.role == "COMMUNITY_USER":
@@ -110,6 +122,7 @@ class RegisterSerializer(serializers.Serializer):
                 consultation_fee=validated_data.get("consultation_fee"),
                 session_duration=validated_data.get("session_duration"),
             )
+            
 
         return user    
     

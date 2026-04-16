@@ -1,3 +1,6 @@
+from rest_framework.permissions import BasePermission
+
+
 def has_permission(user, module, action):
     if user.is_superuser or user.role == "admin":
         return True
@@ -20,3 +23,8 @@ def has_permission(user, module, action):
     if not hasattr(perm, permission_field):
         return False
     return getattr(perm, permission_field, False)
+
+
+class IsAdminRole(BasePermission):
+    def has_permission(self, request, view):
+        return request.user and request.user.role == "admin"
