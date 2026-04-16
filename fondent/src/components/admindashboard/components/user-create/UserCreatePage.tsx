@@ -113,7 +113,7 @@ export default function UserCreatePage() {
     }
   }, [dispatch, roles.length]);
 
-  function updateField(field: string, value: string) {
+  function updateField(field: string, value: string|boolean) {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
