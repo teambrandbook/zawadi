@@ -1,0 +1,7 @@
+zewadi/.env
+zewadi/db.sqlite3
+zewadi/__pycache__/
+zewadi/**/__pycache__/
+zewadi/**/*.pyc
+zewadi/media/
+zewadi/staticfiles/
