@@ -5,7 +5,7 @@ import { LucideIcon } from 'lucide-react';
 type StatCardProps = {
   Icon: LucideIcon;
   value: string | number;
-  label: string;
+  label?: string ;
   trend?: string;
   trendColor?: string;
   iconBgColor?: string;
@@ -21,7 +21,7 @@ function StatCard({ Icon, value, label, trend, trendColor, iconBgColor, iconColo
       <div className="flex items-center justify-between mb-4">
         <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBgColor || 'bg-gray-100'}`}>
           {/* 3. Use the iconColor prop here with a default fallback */}
-          <Icon className={`w-5 h-5 ${iconColor || 'text-[#0A4834]'}`} strokeWidth={2.5} />
+          <Icon className={`w-10 h-10 ${iconColor || 'text-[#0A4834]'}`} strokeWidth={2.5} />
         </div>
 
         {trend && (

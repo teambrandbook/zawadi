@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Oswald } from "next/font/google";
 import "./globals.css";
-import StoreProvider from "@/lib/StoreProvider";
+
+import Providers from "./providers"; // 👈 ADD THIS
 
 const inter = Inter({
   variable: "--font-inter",
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${oswald.variable} antialiased`}>
-        <StoreProvider>{children}</StoreProvider>
+        <Providers> {/* 👈 ADD THIS */}
+          {children}
+        </Providers>
       </body>
     </html>
   );
