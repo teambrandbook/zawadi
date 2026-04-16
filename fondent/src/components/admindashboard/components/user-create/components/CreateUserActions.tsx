@@ -2,9 +2,10 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   onCreate: () => void;
+  loading?: boolean;
 };
 
-export default function CreateUserActions({ onCreate }: Props) {
+export default function CreateUserActions({ onCreate, loading = false }: Props) {
   const router = useRouter();
 
   return (
@@ -12,8 +13,13 @@ export default function CreateUserActions({ onCreate }: Props) {
       <button type="button" onClick={() => router.back()} className="rounded-md bg-[#A88751] px-6 py-2 text-sm text-white hover:bg-[#8F7348]">
         Cancel
       </button>
-      <button type="button" onClick={onCreate} className="rounded-md bg-[#0A4833] px-6 py-2 text-sm text-white hover:bg-[#083927]">
-        Create User
+      <button
+        type="button"
+        onClick={onCreate}
+        disabled={loading}
+        className="rounded-md bg-[#0A4833] px-6 py-2 text-sm text-white hover:bg-[#083927] disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {loading ? "Creating..." : "Create User"}
       </button>
     </div>
   );

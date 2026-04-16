@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch, useSelector } from "react-redux";
 import AccountSetupSection from "./components/AccountSetupSection";
 import AddressSection from "./components/AddressSection";
 import BasicInfoSection from "./components/BasicInfoSection";
@@ -11,42 +12,45 @@ import PermissionsSection from "./components/PermissionsSection";
 import PreferencesSection from "./components/PreferencesSection";
 import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
+import { clearRegisterState, registerUser } from "@/redux/userSlice";
+import { AppDispatch, RootState } from "@/redux/store";
 
 export default function UserCreatePage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const loading = useSelector((state: RootState) => state.users.loading);
   const [photoPreview, setPhotoPreview] = useState("");
 
   const [form, setForm] = useState({
-    fullName: "",
+    full_name: "",
     email: "",
     phone: "",
-    username: "",
-    dateOfBirth: "",
+    user_name: "",
+    date_of_birth: "",
     gender: "",
     location: "",
-    tempPassword: "",
-    confirmPassword: "",
+    photo: "",
+    password: "",
     memberId: "",
-    accountStatus: "Active",
+    accountStatus: "active",
     role: "",
-    wellnessInterests: "Select interests",
-    dietPreference: "Select diet type",
-    preferredCommunication: "Email",
-    notificationPreferences: "All Notifications",
-    addressLine: "",
+    role_obj: null as null | Record<string, unknown>,
+    user_type: "",
+    wellness_interests: "",
+    diet_preference: "",
+    preferred_communication: "email",
+    notification_preferences: "l",
+    address_line: "",
     city: "",
     state: "",
-    country: "Select country",
-    postalCode: "",
-    notes: "",
-  });
-
-  const [permissions, setPermissions] = useState({
-    activateImmediately: true,
-    sendWelcomeEmail: true,
-    sendPasswordSetup: false,
-    allowPlatformNotifications: true,
+    country: "",
+    postal_code: "",
+    activate_immediately: true,
+    send_welcome_email: true,
+    send_password_setup: false,
+    allow_notifications: true,
     markVerified: false,
+    notes: "",
   });
 
   function updateField(field: string, value: string) {
@@ -62,22 +66,30 @@ export default function UserCreatePage() {
     setPhotoPreview(URL.createObjectURL(file));
   }
 
-  function handleTogglePermission(field: keyof typeof permissions) {
-    setPermissions((prev) => ({ ...prev, [field]: !prev[field] }));
+  function handleTogglePermission(field: string, value: boolean) {
+    setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handleCreateUser() {
-    if (!form.fullName || !form.email || !form.phone || !form.username) {
+  async function handleCreateUser() {
+    if (!form.full_name || !form.email || !form.phone || !form.user_name) {
       window.alert("Please fill required fields: Full Name, Email, Phone Number, Username.");
       return;
     }
-    if (form.tempPassword.length < 8 || form.tempPassword !== form.confirmPassword) {
-      window.alert("Password must be at least 8 chars and match confirm password.");
+    if (form.password.length < 8) {
+      window.alert("Password must be at least 8 chars.");
       return;
     }
 
-    window.alert("User created successfully.");
-    router.push("/admindashboard/users");
+    const payload = form;
+    try {
+      await dispatch(registerUser(payload)).unwrap();
+      window.alert("User created successfully.");
+      dispatch(clearRegisterState());
+      router.push("/admindashboard/users");
+    } catch (error: unknown) {
+      const message = typeof error === "string" ? error : "Failed to create user.";
+      window.alert(message);
+    }
   }
 
   return (
@@ -90,9 +102,12 @@ export default function UserCreatePage() {
         <PreferencesSection values={form} onChange={updateField} />
         <AddressSection values={form} onChange={updateField} />
         <NotesSection notes={form.notes} onChange={(value) => updateField("notes", value)} />
-        <PermissionsSection values={permissions} onToggle={handleTogglePermission} />
-        <CreateUserActions onCreate={handleCreateUser} />
+        <PermissionsSection values={form} onToggle={handleTogglePermission} />
+        <CreateUserActions onCreate={handleCreateUser} loading={loading} />
       </div>
     </section>
   );
 }
+
+
+
