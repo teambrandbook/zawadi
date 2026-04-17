@@ -28,11 +28,11 @@ export default function GridGallery() {
 
                     {/* Item 2: Text (Top Center) */}
                     <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-2 lg:order-none">
-                        <h3 className="font-display text-2xl font-bold text-white mb-4">
-                            Zewadi
+                        <h3 className="font-display text-xl font-light text-white mb-6">
+                            More Than Just Food
                         </h3>
-                        <p className="font-sans text-white/90 text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                           From everyday meals to mindful routines, Zewadi becomes a part of your life in ways that go beyond the plate.
                         </p>
                     </div>
 
@@ -43,11 +43,11 @@ export default function GridGallery() {
 
                     {/* Item 4: Text */}
                     <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-3 lg:order-none">
-                        <h3 className="font-display text-2xl font-bold text-white mb-4">
-                            Zewadi
+                        <h3 className="font-display text-xl font-light text-white mb-6">
+                            Growing, Inspiring, Evolving
                         </h3>
-                        <p className="font-sans text-white/90 text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                           Together, we are building a space that inspires healthier living - one choice, one habit, one person at a time.
                         </p>
                     </div>
 
@@ -58,11 +58,11 @@ export default function GridGallery() {
 
                     {/* Item 6: Text */}
                     <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-6 lg:order-none">
-                        <h3 className="font-display text-2xl font-bold text-white mb-4">
-                            Zewadi
+                        <h3 className="font-display text-xl font-light text-white mb-6">
+                            Built on Shared Values
                         </h3>
-                        <p className="font-sans text-white/90 text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                            The Zewadi community is rooted in simple, meaningful choices - choosing better ingredients, better habits, and a better way of living.
                         </p>
                     </div>
 
@@ -70,8 +70,8 @@ export default function GridGallery() {
 
                 {/* Bottom Description Text */}
                 <div className="w-full">
-                    <p className="fade-text font-sans text-[#555] text-base leading-relaxed max-w-4xl">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    <p className="fade-text font-mulish text-[#555] text-base leading-relaxed max-w-4xl">
+                        Zewadi goes beyond what we make. It’s about everyone who shows up and wants to be part of it—a growing community figuring out how to live a little better, in their own way.
                     </p>
                 </div>
 

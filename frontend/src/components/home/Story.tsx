@@ -78,11 +78,14 @@ export default function Story() {
                     
                     {/* Header Section */}
                     <div className="story-header text-center w-full max-w-4xl z-30">
-                        <h2 className="header-item font-display text-4xl md:text-6xl font-black text-[#000000] mb-2 uppercase tracking-tighter">
+                        <h2 className="header-item font-display text-2xl md:text-4xl font-light text-[#000000] mb-4 tracking-tighter">
                             Our Story
                         </h2>
-                        <p className="header-item font-sans text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto">
-                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
+                        <p className="header-item font-mulish text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto">
+                            Zewadi began with a simple thought - that food should do more than just nourish.
+ It should connect people, create moments,  become a meaningful part of everyday life.
+ What started as an idea soon grew into a vision of building something deeper than just a food brand.
+
                         </p>
                     </div>
 
@@ -144,8 +147,8 @@ export default function Story() {
                                 {index === activeIndex && (
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-12 animate-in fade-in zoom-in-95 duration-1000">
                                         <div className="mb-2 w-12 h-1 bg-white/30" />
-                                        <h3 className="text-white font-display text-2xl md:text-4xl font-black uppercase tracking-tight mb-2">{item.title}</h3>
-                                        <p className="text-white/80 font-sans text-sm md:text-lg max-w-md leading-relaxed">{item.desc}</p>
+                                        <h3 className="text-white font-boldonse text-lg md:text-2xl font-light tracking-tight mb-4">{item.title}</h3>
+                                        <p className="text-white/80 font-mulish text-sm md:text-lg max-w-md leading-relaxed">{item.desc}</p>
                                     </div>
                                 )}
                             </div>

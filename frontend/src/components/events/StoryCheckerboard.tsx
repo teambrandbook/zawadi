@@ -30,11 +30,11 @@ export default function StoryCheckerboard() {
 
                     {/* Block 2: Text */}
                     <div className=" aspect-square bg-[#0A4834] w-1/2 min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center">
-                        <h3 className="font-display text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black text-[#EAE3D2] mb-6 lg:mb-8 uppercase tracking-tighter leading-[0.85]">
-                            Zewadi <br /> story
+                        <h3 className="font-poppins text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-[#EAE3D2] mb-6 lg:mb-8 tracking-tighter leading-[1.1]">
+                            What Awaits You
                         </h3>
-                        <p className="font-sans text-[#EAE3D2]/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-lg font-medium">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+                        <p className="font-mulish text-[#EAE3D2]/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-lg font-medium">
+                            New experiences, new faces, and a closer look at what Zewadi stands for.
                         </p>
                     </div>
 
@@ -45,11 +45,11 @@ export default function StoryCheckerboard() {
 
                     {/* Block 3: Text */}
                     <div className=" aspect-square w-1/2 bg-[#0A4834]  min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center">
-                        <h3 className="font-display text-4xl md:text-5xl lg:text-5xl xl:text-6xl font-black text-[#EAE3D2] mb-6 lg:mb-8 uppercase tracking-tighter leading-[0.85]">
-                            Zewadi <br /> story
+                        <h3 className="font-poppins text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-[#EAE3D2] mb-6 lg:mb-8 tracking-tighter leading-[1.1]">
+                            Celebrating Our<br/>Community
                         </h3>
-                        <p className="font-sans text-[#EAE3D2]/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-lg font-medium">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit...
+                        <p className="font-mulish text-[#EAE3D2]/90 text-sm md:text-base lg:text-lg leading-relaxed max-w-lg font-medium">
+                           Our community means the world to us. That’s why we create moments, offers, and experiences with you in mind.
                         </p>
                     </div>
 

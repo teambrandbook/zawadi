@@ -64,12 +64,12 @@ export default function WipeButton({ href, label, className = "", variant = "pri
                 <div className={`relative z-10 flex-1 h-full flex items-center ${!showIcon ? "justify-center" : ""}`}>
                     <div className="relative w-full">
                         {/* Layer 1: Initially Visible Text */}
-                        <span className={`label-fade-1 font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block opacity-100 ${!showIcon ? "text-center" : ""}`}>
+                        <span className={`label-fade-1 font-mulish font-bold text-[15px] uppercase tracking-widest ${textClass} block opacity-100 ${!showIcon ? "text-center" : ""}`}>
                             {label}
                         </span>
 
                         {/* Layer 2: Revealed Text (High intensity discovery) */}
-                        <span className={`label-reveal absolute inset-0 font-sans font-bold text-[15px] uppercase tracking-widest ${textClass} block z-10 ${!showIcon ? "text-center" : ""}`} style={{ clipPath: "inset(0 100% 0 0)" }}>
+                        <span className={`label-reveal absolute inset-0 font-mulish font-bold text-[15px] uppercase tracking-widest ${textClass} block z-10 ${!showIcon ? "text-center" : ""}`} style={{ clipPath: "inset(0 100% 0 0)" }}>
                             {label}
                         </span>
                     </div>

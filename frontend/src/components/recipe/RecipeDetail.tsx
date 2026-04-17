@@ -60,16 +60,16 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     {/* Right: Content & Nutrition */}
                     <div className="lectRevelComponent flex flex-col gap-8">
                         <div>
-                            <h1 className="font-display text-5xl md:text-6xl font-black text-black leading-[1.1] uppercase mb-6" dangerouslySetInnerHTML={{ __html: recipe.title }}>
+                            <h1 className="font-boldonse text-xl md:text-[2rem] font-light text-black leading-[1.3] mb-8" dangerouslySetInnerHTML={{ __html: recipe.title }}>
                             </h1>
-                            <p className="font-sans text-gray-600 text-lg leading-relaxed">
+                            <p className="font-mulish text-gray-600 text-lg leading-relaxed">
                                 {recipe.description}
                             </p>
                         </div>
 
                         {/* Nutrition Facts Box */}
                         <div className="bg-[#0A4834] sm:w-100 rounded-2xl p-8 flex flex-col gap-6 shadow-xl">
-                            <h3 className="font-display text-2xl font-bold text-white uppercase tracking-wider">Nutrition Facts</h3>
+                            <h3 className="font-display text-xl font-light text-white tracking-wider">Nutrition Facts</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 {recipe.nutrition.map((fact) => (
                                     <div key={fact.label} className="bg-[#D9D9D9] p-4 flex flex-col items-center justify-center rounded-sm">
@@ -82,16 +82,16 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                     </div>
                 </div>
             </section>
-            
+
             {/* 2. Ingredient Section */}
-            <IncreditionsTable count={recipe.ingredientsCount}  text={recipe.ingredientsText}/>;
+            <IncreditionsTable count={recipe.ingredientsCount} text={recipe.ingredientsText} />;
 
             {/* 3. How to Cook Section */}
             <div className="lectRevelComponent py-20 px-6 md:px-12 lg:px-24">
                 <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#EAE3D2]">
                     <div className="max-w-[85rem] mx-auto flex flex-col gap-4">
 
-                        <h2 className="font-display text-3xl font-black text-black uppercase">
+                        <h2 className="font-display text-2xl font-light text-black">
                             How to Cook :
                         </h2>
 
@@ -99,11 +99,11 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                             {recipe.steps.map((step, idx) => (
                                 <div key={idx}>
 
-                                    <span className="font-sans font-black text-[#0A4834]">
+                                    <span className="font-mulish font-black text-[#0A4834]">
                                         Step {idx + 1} :
                                     </span>{" "}
 
-                                    <span className="font-sans text-gray-700 leading-snug">
+                                    <span className="font-mulish text-gray-700 leading-snug">
                                         {step}
                                     </span>
 

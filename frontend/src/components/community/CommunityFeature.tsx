@@ -23,8 +23,8 @@ export default function CommunityFeature() {
                 {/* Column 2: Title and Middle Image */}
                 <div className=" lg:col-span-4 flex flex-col gap-12">
                     <div className="img flex flex-col">
-                        <h2 className="font-display text-4xl md:text-5xl lg:text-5xl font-black text-black uppercase leading-[0.9] tracking-tighter">
-                            Zewadi <br /> Community
+                        <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-black leading-[1.3] tracking-tighter text-right">
+                            Growing <br />Better, <br /> Together.
                         </h2>
                     </div>
                     
@@ -35,13 +35,17 @@ export default function CommunityFeature() {
 
                 {/* Column 3: Text Features (Right) */}
                 <div className=" lg:col-span-4 flex flex-col justify-end gap-10 pb-8">
-                    {[1, 2, 3].map((i) => (
+                    {[
+                        { title: "Shared Values", desc: "No one’s perfect—we’re all just finding what works." },
+                        { title: "Stronger Together", desc: "Everything feels lighter when we’re doing it together." },
+                        { title: "Everyday Inspiration", desc: "Small, everyday changes build up over time." }
+                    ].map((feature, i) => (
                         <div key={i} className="img flex flex-col gap-2">
-                            <h3 className="font-sans text-xl font-bold text-black uppercase">
-                                Zewadi
+                            <h3 className="font-mulish text-xl font-bold text-black uppercase">
+                                {feature.title}
                             </h3>
-                            <p className="font-sans text-[#555] text-sm md:text-base leading-relaxed">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                            <p className="font-mulish text-[#555] text-sm md:text-base leading-relaxed">
+                                {feature.desc}
                             </p>
                         </div>
                     ))}

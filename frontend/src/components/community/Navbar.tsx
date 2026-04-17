@@ -58,7 +58,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans"
+                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-mulish"
               >
                 {link.name}
               </Link>
@@ -67,7 +67,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
             {/* Pages Dropdown */}
             <div className="relative z-50">
               <button
-                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans flex items-center gap-1"
+                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-mulish flex items-center gap-1"
                 onMouseEnter={() => setIsPagesOpen(true)}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -96,7 +96,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                     <Link
                       key={page.name}
                       href={page.href}
-                      className="block px-6 py-3 text-[#0A4834] hover:bg-[#0A4834]/5 text-xs uppercase font-bold tracking-widest transition-colors"
+                      className="block px-6 py-3 text-[#0A4834] hover:bg-[#0A4834]/5 text-xs uppercase font-bold tracking-widest font-mulish transition-colors"
                     >
                       {page.name}
                     </Link>
@@ -124,7 +124,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                   <Link
                     href="/login"
                     onClick={() => setIsOpen(false)}
-                    className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold text-center"
+                    className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish text-center"
                   >
                     Login
                   </Link>
@@ -150,8 +150,8 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                   className="object-cover group-hover:scale-110 transition-transform"
                 />
               </div>
-              <span className="text-[#0A4834] font-bold tracking-[0.2em] text-[8px] md:text-[10px] font-display uppercase mt-1">
-                ZEWADI
+              <span className="text-[#0A4834] font-light tracking-[0.2em] text-[8px] md:text-[10px] font-boldonse mt-1">
+                Zewadi
               </span>
             </Link>
           </div>
@@ -162,7 +162,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-sans"
+                className="text-white/90 font-medium hover:text-white transition-colors text-[10px] lg:text-xs uppercase tracking-widest font-mulish"
               >
                 {link.name}
               </Link>
@@ -190,7 +190,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
                   <div className={`absolute right-0 top-12 w-40 ${bgColor} border border-white/10 rounded-xl shadow-2xl py-2 z-50`}>
-                    <Link href="/communitLogin" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold">
+                    <Link href="/communitLogin" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish">
                       Login
                     </Link>
                   </div>

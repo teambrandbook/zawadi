@@ -14,7 +14,7 @@ const slides = [
         id: 1,
         title: "Purity & Heritage",
         image: "/about/about-3.3.webp",
-        desc: "Rooted in the philosophy of sustainable agriculture, Zewadi bridges the gap between traditional heritage and modern precision, ensuring every harvest carries the solid trust of our community."
+        desc: "Zewadi was created with a vision to bring meaning back into the way we experience food. Every flavor is thoughtfully developed to reflect a balance of health, quality, and everyday enjoyment. It’s about turning simple choices into more intentional, fulfilling ones."
     },
     {
         id: 2,
@@ -155,7 +155,7 @@ export default function StoryCarousel() {
                 {/* Visual Container - Premium Story Surface */}
                 <div ref={containerRef} className="w-[96%] lg:w-[94%] max-w-[130rem] h-[95vh] lg:h-[98vh] mx-auto relative flex flex-col items-center justify-start rounded-sm overflow-hidden p-8 pt-10 lg:p-14 lg:pt-12">                    {/* Header Zone */}
                     <div className="w-full flex justify-center absolute top-12 md:top-24 lg:top-6 px-6">
-                        <h2 className="section-header font-display text-4xl md:text-6xl lg:text-7xl font-bold text-[#EAE3D2] tracking-tighter uppercase leading-none text-center">
+                        <h2 className="section-header font-display text-2xl md:text-4xl lg:text-5xl font-light text-[#EAE3D2] tracking-tighter leading-[1.5] text-center">
                             The story behind the <br className="hidden md:block" /> flavors
                         </h2>
                     </div>
@@ -190,7 +190,7 @@ export default function StoryCarousel() {
                                 <p
                                     key={`desc-${slide.id}`}
                                     ref={el => { textRefs.current[index] = el; }}
-                                    className="absolute font-sans text-[#EAE3D2] text-sm md:text-base lg:text-lg text-center leading-snug tracking-wide opacity-80 font-light max-w-2xl px-4"
+                                    className="absolute font-mulish text-[#EAE3D2] text-sm md:text-base lg:text-lg text-center leading-snug tracking-wide opacity-80 font-light max-w-2xl px-4"
                                 >
                                     {slide.desc}
                                 </p>

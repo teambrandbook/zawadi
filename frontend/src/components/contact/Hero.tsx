@@ -8,10 +8,10 @@ export default function Hero() {
 
                 {/* Header */}
                 <div className="flex flex-col gap-2 mb-10">
-                    <h1 className="font-display text-3xl md:text-4xl font-bold text-white tracking-tight">
+                    <h1 className="font-display text-2xl md:text-3xl font-light text-white tracking-tight leading-tight mb-4">
                         Send Us a Message
                     </h1>
-                    <p className="font-sans text-white/70 text-sm md:text-base font-light">
+                    <p className="font-mulish text-white/70 text-sm md:text-base font-light">
                         Fill out the form below and well get back to you within 24 hours
                     </p>
                 </div>

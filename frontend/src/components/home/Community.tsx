@@ -64,12 +64,12 @@ export default function Community() {
 
         {/* CONTENT */}
         <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center">
-          <h2 className="font-display text-4xl md:text-7xl font-black text-[#EAE3D2] mb-8 uppercase tracking-tight leading-tight max-w-4xl">
-            LEARN MORE ABOUT ZEWADI
+          <h2 className="font-display text-2xl md:text-5xl font-light text-[#EAE3D2] mb-10 tracking-tight leading-tight max-w-4xl">
+            Learn more about Zewadi
           </h2>
 
-          <p className="font-sans text-white text-base md:text-xl leading-relaxed max-w-3xl mb-12 drop-shadow-md">
-            Bridging the gap between technology and agriculture to redefine your food experience.
+          <p className="font-mulish text-white text-base md:text-xl leading-relaxed max-w-3xl mb-12 drop-shadow-md">
+            Zewadi is deeper than what you see on the surface. Get to know the thinking, the purpose, and the story behind it all.
           </p>
 
           <WipeButton

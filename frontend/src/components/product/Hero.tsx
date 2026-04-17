@@ -127,22 +127,22 @@ export default function Hero() {
                 <div className="hero-content flex flex-col">
                     {/* Title & Price */}
                     <div className="mb-8 content-item">
-                        <h1 className="font-display text-5xl md:text-6xl font-black text-black uppercase tracking-tight leading-none mb-4">
-                            BUCKWHEAT
+                        <h1 className="font-boldonse text-3xl md:text-[3rem] font-light text-black tracking-tight leading-none mb-8">
+                            Buckwheat
                         </h1>
-                        <p className="font-sans text-xl font-extrabold text-black">
+                        <p className="font-mulish text-xl font-extrabold text-black">
                             $ 120.00 USD
                         </p>
                     </div>
 
                     {/* Description */}
-                    <p className="content-item font-sans text-[#444] text-[15px] leading-relaxed mb-10 max-w-2xl">
+                    <p className="content-item font-mulish text-[#444] text-[15px] leading-relaxed mb-10 max-w-2xl">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore.
                     </p>
 
                     {/* Benefits List Staggered */}
                     <div className="content-item mb-12">
-                        <ul className="list-disc list-outside ml-5 space-y-1 font-sans text-black text-[15px] leading-relaxed font-medium">
+                        <ul className="list-disc list-outside ml-5 space-y-1 font-mulish text-black text-[15px] leading-relaxed font-medium">
                             <li>Only the finest local and seasonal ingredients.</li>
                             <li>Healthy, chemical-free components for every dish.</li>
                             <li>Supporting local farmers and sustainable produce.</li>
@@ -170,7 +170,7 @@ export default function Hero() {
                         </div>
 
                         <div className="content-wipe h-12 w-48 shadow-md">
-                            <Link href="/contact" className="w-full h-full bg-[#0A4834] rounded-full flex items-center justify-center text-white font-sans font-bold text-sm uppercase tracking-widest hover:brightness-110 transition-all">
+                            <Link href="/contact" className="w-full h-full bg-[#0A4834] rounded-full flex items-center justify-center text-white font-mulish font-bold text-sm uppercase tracking-widest hover:brightness-110 transition-all">
                                 Buy now
                             </Link>
                         </div>
@@ -179,20 +179,20 @@ export default function Hero() {
                     {/* Zewadi Story Row 2 Staggered */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20 pt-12 items-start border-t border-gray-100">
                         <div className="content-item flex flex-col items-start gap-4">
-                            <h4 className="font-sans text-xl font-extrabold text-black uppercase tracking-tight">Zewadi story</h4>
-                            <p className="font-sans text-[#555] text-[13px] leading-relaxed max-w-sm">
+                            <h4 className="font-boldonse text-base font-light text-black tracking-tight">Zewadi Story</h4>
+                            <p className="font-mulish text-[#555] text-[13px] leading-relaxed max-w-sm">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
                             <div className="content-wipe h-11 w-full max-w-[280px] mt-4">
-                                <Link href="/recipe" className="w-full h-full bg-[#0A4834] rounded-none flex items-center justify-center text-white font-sans font-bold text-xs uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-md">
+                                <Link href="/recipe" className="w-full h-full bg-[#0A4834] rounded-none flex items-center justify-center text-white font-mulish font-bold text-xs uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-md">
                                     Recipes
                                 </Link>
                             </div>
                         </div>
 
                         <div className="content-item flex flex-col items-start gap-4">
-                            <h4 className="font-sans text-xl font-extrabold text-black uppercase tracking-tight">Zewadi story</h4>
-                            <p className="font-sans text-[#555] text-[13px] leading-relaxed">
+                            <h4 className="font-boldonse text-base font-light text-black tracking-tight">Zewadi Story</h4>
+                            <p className="font-mulish text-[#555] text-[13px] leading-relaxed">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                             </p>
                         </div>

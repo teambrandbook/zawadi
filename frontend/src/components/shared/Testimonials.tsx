@@ -85,7 +85,7 @@ export default function Testimonials() {
 
                                     {/* CONTENT */}
                                     <div className="flex-1 p-8 md:p-12 flex flex-col justify-center">
-                                        <p className="font-sans text-[#333] text-base md:text-lg leading-relaxed font-medium mb-8 italic">
+                                        <p className="font-mulish text-[#333] text-base md:text-lg leading-relaxed font-medium mb-8 italic">
                                             {item.content}
                                         </p>
 
@@ -100,10 +100,10 @@ export default function Testimonials() {
                                             </div>
 
                                             <div className="flex flex-col">
-                                                <span className="font-display font-bold text-black text-base md:text-lg uppercase">
+                                                <span className="font-display font-light text-black text-sm md:text-base mb-1">
                                                     {item.name}
                                                 </span>
-                                                <span className="font-sans text-[#555] text-xs md:text-sm uppercase opacity-80 font-semibold">
+                                                <span className="font-mulish text-[#555] text-xs md:text-sm uppercase opacity-80 font-semibold">
                                                     {item.role}
                                                 </span>
                                             </div>

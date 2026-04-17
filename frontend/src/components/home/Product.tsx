@@ -9,17 +9,17 @@ const products = [
   {
     id: 1,
     image: "/home/section6-1.webp",
-    desc: "Bridging the gap between technology and agriculture.",
+    desc: "Connecting traditions with modern precision.",
   },
   {
     id: 2,
     image: "/home/section6-center.webp",
-    desc: "Experience the ultimate in sustainable agriculture.",
+    desc: "Crafted for shared moments and memories.",
   },
   {
     id: 3,
     image: "/home/section6-right.webp",
-    desc: "Redefining purity and taste.",
+    desc: "Pure, honest food for intentional living.",
   },
 ];
 
@@ -42,7 +42,7 @@ export default function Product() {
         ref={containerRef}
         className="bg-[#9F8151] py-10 px-4 md:px-10 lg:px-20 "
       >
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-[#EAE3D2] mb-10 lg:mb-12">
+        <h2 className="text-4xl md:text-4xl lg:text-5xl font-boldonse font-light text-[#EAE3D2] mb-10 lg:mb-12">
           Our Product
         </h2>
 
@@ -62,14 +62,14 @@ export default function Product() {
                 />
               </div>
 
-              <p className="story-text text-white text-xs md:text-sm opacity-0 text-center mt-4 px-3 leading-relaxed">
+              <p className="story-text text-white font-mulish text-xs md:text-sm opacity-0 text-center mt-4 px-3 leading-relaxed">
                 {product.desc}
               </p>
             </div>
           ))}
 
           <div className="pt-80 md:pt-110 lg:pt-120">
-            <WipeButton href="/events" label="Shope Now" />
+            <WipeButton href="/events" label="Shop Now" />
           </div>
 
         </div>

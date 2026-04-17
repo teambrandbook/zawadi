@@ -42,7 +42,7 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
@@ -53,7 +53,7 @@ export default function Navbar() {
                             <button
                                 onMouseEnter={() => setIsPagesOpen(true)}
                                 onMouseLeave={() => setIsPagesOpen(false)}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm flex items-center gap-1"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm flex items-center gap-1"
                             >
                                 Pages
                                 <svg className={`w-3 h-3 transition-transform ${isPagesOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +104,7 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-sans drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm"
                             >
                                 {link.name}
                             </Link>
@@ -173,7 +173,7 @@ export default function Navbar() {
                                 key={link.name}
                                 href={link.href}
                                 onClick={() => setIsOpen(false)}
-                                className="text-white/90 font-medium py-3 border-b border-white/10 last:border-0 text-center uppercase tracking-widest font-sans"
+                                className="text-white/90 font-medium py-3 border-b border-white/10 last:border-0 text-center uppercase tracking-widest font-mulish"
                             >
                                 {link.name}
                             </Link>
@@ -183,14 +183,14 @@ export default function Navbar() {
                             <Link
                                 href="/login"
                                 onClick={() => setIsOpen(false)}
-                                className="w-full py-4 bg-white text-[#0A4834] font-bold rounded-xl text-center uppercase tracking-widest font-sans"
+                                className="w-full py-4 bg-white text-[#0A4834] font-bold rounded-xl text-center uppercase tracking-widest font-mulish"
                             >
                                 Login
                             </Link>
                             <Link
                                 href="/profile"
                                 onClick={() => setIsOpen(false)}
-                                className="flex items-center justify-center gap-3 text-white py-3 font-medium uppercase tracking-widest font-sans"
+                                className="flex items-center justify-center gap-3 text-white py-3 font-medium uppercase tracking-widest font-mulish"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />

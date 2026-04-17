@@ -55,11 +55,11 @@ export default function UpcomingEvents() {
 
                 {/* Header - STAGGERED LATERAL FADE */}
                 <div className="flex flex-col gap-4 max-w-3xl">
-                    <h2 className="event-heading font-display text-4xl md:text-5xl lg:text-7xl font-black text-black tracking-tight leading-none uppercase">
+                    <h2 className="event-heading font-display text-3xl md:text-4xl lg:text-6xl font-light text-black tracking-tight leading-none mb-4">
                         Upcoming Events
                     </h2>
-                    <p className="event-desc font-sans text-[#555] text-sm md:text-lg leading-relaxed max-w-2xl opacity-80">
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                    <p className="event-desc font-mulish text-[#555] text-sm md:text-lg leading-relaxed max-w-2xl opacity-80">
+                        There’s always something happening at Zewadi. From small, thoughtful gatherings to special experiences, each event is a chance to connect, explore, and be part of something more.<br/>Take a look at what’s coming up and join us whenever it feels right.
                     </p>
                 </div>
 
@@ -73,15 +73,15 @@ export default function UpcomingEvents() {
                         
                         <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6">
                             <div className="flex flex-col gap-3">
-                                <h3 className="font-display text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[0.9] uppercase tracking-tighter">
+                                <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
-                                <p className="font-sans text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
+                                <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
                                     Lorem ipsum dolor
                                 </p>
                             </div>
 
-                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-sans text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
+                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
                                 Read More
                             </button>
                         </div>
@@ -94,15 +94,15 @@ export default function UpcomingEvents() {
                         
                         <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6">
                             <div className="flex flex-col gap-3">
-                                <h3 className="font-display text-3xl md:text-4xl lg:text-5xl font-black text-white leading-[0.9] uppercase tracking-tighter">
+                                <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
-                                <p className="font-sans text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
+                                <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
                                     Lorem ipsum dolor
                                 </p>
                             </div>
 
-                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-sans text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
+                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
                                 Read More
                             </button>
                         </div>

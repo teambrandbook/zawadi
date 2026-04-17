@@ -26,15 +26,15 @@ export default function IncreditionsTable({ count, text }: Props) {
         >
           {/* CONTENT */}
           <div className="flex items-center gap-4">
-            <span className="font-display text-3xl font-black text-black">
+            <span className="font-display text-2xl font-light text-black">
               {count}
             </span>
-            <h2 className="font-display text-3xl font-black text-black uppercase">
-              Ingredient
+            <h2 className="font-display text-2xl font-light text-black">
+              Ingredients
             </h2>
           </div>
 
-          <p className="font-sans text-gray-600 leading-relaxed max-w-4xl">
+          <p className="font-mulish text-gray-600 leading-relaxed max-w-4xl">
             {text}
           </p>
 

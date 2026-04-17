@@ -68,17 +68,17 @@ export default function About() {
     }, { scope: containerRef });
 
     return (
-        <section ref={containerRef} className="w-full bg-white lg:py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
+        <section ref={containerRef} className="w-full bg-white lg:pt-12 lg:pb-24 px-6 md:px-12 lg:px-24 overflow-hidden">
             <div className="max-w-7xl mx-auto flex flex-col gap-24 md:gap-32">
 
                 {/* Row 1: Text Left, Large Image Right */}
-                <div className="about-row-1 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-x-24 items-center">
-                    <div className="flex flex-col gap-6 order-1">
-                        <h2 className="row-1-text font-display text-5xl md:text-7xl font-black text-black leading-tight uppercase tracking-tighter">
+                <div className="about-row-1 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-x-24 items-start">
+                    <div className="flex flex-col gap-6 order-1 md:pt-4">
+                        <h2 className="row-1-text font-display text-4xl md:text-5xl font-light text-black leading-tight tracking-tighter">
                             Zewadi Community
                         </h2>
-                        <p className="row-1-text font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-md">
-                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+                        <p className="row-1-text font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-md">
+                            This isn’t just about food. It’s about how we live, how we connect, how we grow—one day at a time. The Zewadi community is made of people, just like you, trying to make better choices every day in their own way.
                         </p>
                     </div>
 
@@ -115,11 +115,11 @@ export default function About() {
 
                     <div className="flex flex-col gap-10 order-1 md:order-2 items-start">
                         <div className="flex flex-col gap-6">
-                            <h3 className="row-2-text font-display text-4xl md:text-6xl font-black text-black leading-[1.1] tracking-tighter">
+                            <h3 className="row-2-text font-display text-3xl md:text-5xl font-light text-black leading-[1.1] tracking-tighter">
                                 Eat Fresh. <br className="md:hidden" /> Live Well.
                             </h3>
-                            <p className="row-2-text font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-[400px]">
-                                Redefining your food experience with technology and sustainable agriculture. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                            <p className="row-2-text font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-[400px]">
+                                The moment you start making better choices, you feel it—in your energy, balance, and how each day goes. Zewadi helps you stay in that zone, so you can keep feeling your best, day after day.
                             </p>
                         </div>
 
