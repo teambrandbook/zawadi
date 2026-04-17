@@ -14,11 +14,11 @@ export default function StoryCheckerboard() {
         <section className="w-full bg-white py-0 px-6 md:px-12 lg:px-24 overflow-hidden">
             <div className="max-w-[85rem] mx-auto grid grid-cols-1 ">
 
-                {/* LEFT SIDE (Block 1 + 2) */}
-                <div className="imgl flex flex-row ">
+                {/* Block Group 1 */}
+                <div className="imgl flex flex-col md:flex-row ">
 
                     {/* Block 1: Image */}
-                    <div className=" aspect-square relative w-1/2 min-h-[400px] overflow-hidden bg-[#f0f0f0] ">
+                    <div className="aspect-square relative w-full md:w-1/2 min-h-[300px] md:min-h-[400px] overflow-hidden bg-[#f0f0f0]">
                         <Image
                             src="/events/event-2.webp"
                             alt="Event Story 1"
@@ -29,7 +29,7 @@ export default function StoryCheckerboard() {
                     </div>
 
                     {/* Block 2: Text */}
-                    <div className=" aspect-square bg-[#0A4834] w-1/2 min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center">
+                    <div className="aspect-square bg-[#0A4834] w-full md:w-1/2 min-h-[300px] md:min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center">
                         <h3 className="font-poppins text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-[#EAE3D2] mb-6 lg:mb-8 tracking-tighter leading-[1.1]">
                             What Awaits You
                         </h3>
@@ -40,11 +40,11 @@ export default function StoryCheckerboard() {
 
                 </div>
 
-                {/* RIGHT SIDE (Block 3 + 4) */}
-                <div className="imgl flex flex-row">
+                {/* Block Group 2 */}
+                <div className="imgl flex flex-col md:flex-row">
 
                     {/* Block 3: Text */}
-                    <div className=" aspect-square w-1/2 bg-[#0A4834]  min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center">
+                    <div className="aspect-square w-full md:w-1/2 bg-[#0A4834] min-h-[300px] md:min-h-[400px] p-8 md:p-12 lg:p-16 xl:p-24 flex flex-col justify-center order-2 md:order-1">
                         <h3 className="font-poppins text-3xl md:text-4xl lg:text-4xl xl:text-5xl font-light text-[#EAE3D2] mb-6 lg:mb-8 tracking-tighter leading-[1.1]">
                             Celebrating Our<br/>Community
                         </h3>
@@ -54,7 +54,7 @@ export default function StoryCheckerboard() {
                     </div>
 
                     {/* Block 4: Image */}
-                    <div className=" aspect-square relative w-1/2 min-h-[400px] overflow-hidden bg-[#f0f0f0]">
+                    <div className="aspect-square relative w-full md:w-1/2 min-h-[300px] md:min-h-[400px] overflow-hidden bg-[#f0f0f0] order-1 md:order-2">
                         <Image
                             src="/events/event-3.webp"
                             alt="Event Story 2"

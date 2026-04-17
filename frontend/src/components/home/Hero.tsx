@@ -33,7 +33,7 @@ export default function Hero() {
             <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full md:pt-32">
 
                 {/* Main Heading */}
-                <h1 className="font-display text-5xl md:text-[4rem] font-light tracking-tight text-white mb-8 leading-[1.1] drop-shadow-lg">
+                <h1 className="font-display text-[2.5rem] md:text-[4rem] font-light tracking-tight text-white mb-6 leading-[1.2] md:leading-[1.1] drop-shadow-lg">
                     The Zewadi Way of Living
                 </h1>
 
@@ -43,7 +43,7 @@ export default function Hero() {
                 </h2>
 
                 {/* Description Text */}
-                <p className="max-w-3xl text-white text-base md:text-lg leading-relaxed mb-12 font-mulish font-light drop-shadow-sm">
+                <p className="max-w-3xl text-white text-sm md:text-lg leading-relaxed mb-10 font-mulish font-light drop-shadow-sm px-4">
                     Wellness doesn’t start with big leaps. It’s all those small choices you make every day that add up and slowly shape how you live. That’s the heart of Zewadi—making that shift feel natural, easy, and honestly, something you want to keep doing. <br className="hidden md:block" />
                 </p>
 

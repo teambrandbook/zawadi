@@ -9,14 +9,10 @@ export default function Footer() {
             <div className="max-w-[115rem] mx-auto bg-[#EAE3D2] rounded-[10px] pt-16 pb-10 px-6 md:px-12 lg:px-24 text-[#0A4834] shadow-md">
 
                 {/* Main Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-12">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 lg:gap-8 mb-12">
 
-                    {/* Inner Grid */}
-                    <div className="col-span-2 lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-1 lg:gap-8">
-
-                        {/* Brand */}
-                        <div className="flex flex-col gap-6 lg:pr-8">
-                            <div className="relative w-32 h-32 md:w-40 md:h-40 -ml-4 -mt-4 -mb-6">
+                        <div className="col-span-2 lg:col-span-1 flex flex-col gap-4 lg:pr-8">
+                            <div className="relative w-32 h-32 md:w-36 md:h-36 -ml-4">
                                 <Image
                                     src="/logo/zawadi-logo.webp"
                                     alt="Zewadi Logo"
@@ -50,7 +46,7 @@ export default function Footer() {
                         </div>
 
                         {/* Quick Links */}
-                        <div className="flex flex-col gap-4 pl-8">
+                        <div className="col-span-1 flex flex-col gap-4">
                             <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
                                 Quick Links
                             </h3>
@@ -64,7 +60,7 @@ export default function Footer() {
                         </div>
 
                         {/* Inner Pages */}
-                        <div className="flex flex-col gap-4">
+                        <div className="col-span-1 flex flex-col gap-4">
                             <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
                                 Inner Pages
                             </h3>
@@ -77,8 +73,8 @@ export default function Footer() {
                             </div>
                         </div>
 
-                        {/* Support (✅ fixed responsive grid) */}
-                        <div className="flex flex-col gap-4 md:pl-8 lg:pl-0">
+                        {/* Support */}
+                        <div className="col-span-2 lg:col-span-1 flex flex-col gap-4">
                             <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
                                 Support
                             </h3>
@@ -101,7 +97,6 @@ export default function Footer() {
                         </div>
 
                     </div>
-                </div>
 
                 {/* Bottom Bar */}
                 <div className="pt-6 border-t border-[#0A4834]/10 flex flex-col md:flex-row items-center justify-center gap-4">

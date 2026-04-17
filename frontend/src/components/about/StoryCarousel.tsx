@@ -154,20 +154,20 @@ export default function StoryCarousel() {
 
                 {/* Visual Container - Premium Story Surface */}
                 <div ref={containerRef} className="w-[96%] lg:w-[94%] max-w-[130rem] h-[95vh] lg:h-[98vh] mx-auto relative flex flex-col items-center justify-start rounded-sm overflow-hidden p-8 pt-10 lg:p-14 lg:pt-12">                    {/* Header Zone */}
-                    <div className="w-full flex justify-center absolute top-12 md:top-24 lg:top-6 px-6">
-                        <h2 className="section-header font-display text-2xl md:text-4xl lg:text-5xl font-light text-[#EAE3D2] tracking-tighter leading-[1.5] text-center">
+                    <div className="w-full flex justify-center absolute top-10 md:top-24 lg:top-6 px-6">
+                        <h2 className="section-header font-display text-2xl md:text-4xl lg:text-5xl font-light text-[#EAE3D2] tracking-tighter leading-tight text-center">
                             The story behind the <br className="hidden md:block" /> flavors
                         </h2>
                     </div>
 
                     {/* Image Orbit Zone - Refined Vertical Positioning */}
-                    <div className="relative w-full flex items-center justify-center z-20 mt-52 md:mt-72 lg:mt-32" style={{ perspective: "2000px" }}>
-                        <div className="relative w-full h-[26rem] md:h-[32rem] lg:h-[22rem] flex items-center justify-center overflow-visible">
+                    <div className="relative w-full flex items-center justify-center z-20 mt-44 md:mt-72 lg:mt-32" style={{ perspective: "2000px" }}>
+                        <div className="relative w-full h-[22rem] md:h-[32rem] lg:h-[22rem] flex items-center justify-center overflow-visible">
                             {slides.map((slide, index) => (
                                 <div
                                     key={slide.id}
                                     ref={el => { cardRefs.current[index] = el; }}
-                                    className="absolute w-64 h-[26rem] md:w-[26rem] md:h-[32rem] lg:w-[20rem] lg:h-[22rem] rounded-sm overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] border border-white/10 bg-black will-change-transform"
+                                    className="absolute w-60 h-[22rem] md:w-[26rem] md:h-[32rem] lg:w-[20rem] lg:h-[22rem] rounded-sm overflow-hidden shadow-[0_40px_80px_-20px_rgba(0,0,0,0.7)] border border-white/10 bg-black will-change-transform"
                                 >
                                     <div className="relative w-full h-full">
                                         <Image
@@ -184,8 +184,8 @@ export default function StoryCarousel() {
                     </div>
 
                     {/* Narrative Hub */}
-                    <div className="w-full relative mt-20 md:mt-32 lg:mt-4 flex flex-col items-center justify-center z-50">
-                        <div className="relative w-full max-w-5xl min-h-[4rem] flex flex-col items-center justify-center px-6">
+                    <div className="w-full relative mt-12 md:mt-32 lg:mt-4 flex flex-col items-center justify-center z-50">
+                        <div className="relative w-full max-w-5xl min-h-[6rem] flex flex-col items-center justify-center px-6">
                             {slides.map((slide, index) => (
                                 <p
                                     key={`desc-${slide.id}`}
