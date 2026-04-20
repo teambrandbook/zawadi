@@ -250,13 +250,7 @@ export default function AddNewRecipy() {
   return (
     <section className="w-full bg-[#F3F4F6] px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-[1280px] space-y-6">
-        <button
-          onClick={() => router.push("/communityDashBorde/myrecipy")}
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#0A4833] hover:text-[#083B2A]"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to My Recipes
-        </button>
+        
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">

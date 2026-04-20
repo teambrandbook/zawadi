@@ -27,4 +27,4 @@ def has_permission(user, module, action):
 
 class IsAdminRole(BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.role == "admin"
+        return request.user and request.user.role == "ADMIN"
