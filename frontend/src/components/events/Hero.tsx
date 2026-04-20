@@ -8,7 +8,7 @@ export default function Hero() {
                 {/* Header */}
                 <div className="text-center max-w-3xl mb-12 md:mb-16">
                     <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-light text-black mb-8 tracking-tight leading-none">
-                        Zewadi Events
+                        ZEWADI Events
                     </h1>
                     <p className="font-mulish text-[#555] text-sm md:text-lg leading-relaxed max-w-2xl mx-auto">
                         At Zewadi, every event is more than just an occasion - it’s an experience. A space where community, wellness, and meaningful moments come together.
@@ -20,7 +20,7 @@ export default function Hero() {
 
                     {/* Top Controls Row */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6 w-full px-2">
-                        <span className="font-mulish text-[#0A4834] text-base md:text-xl font-bold tracking-tight text-center md:text-left">
+                        <span className="font-mulish text-[#0A4834] text-base md:text-xl font-light tracking-tight text-center md:text-left">
                             The moments that connect us
                         </span>
                         <div className="flex items-center gap-3">

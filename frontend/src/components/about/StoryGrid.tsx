@@ -90,7 +90,7 @@ export default function StoryGrid() {
 
                                 {/* Text Content */}
                                 <div className="relative z-20 flex flex-col gap-3 pt-3">
-                                    <h3 className="font-display text-lg md:text-xl font-light text-[#EAE3D2] tracking-tight mb-5 ">
+                                    <h3 className="font-Poppins text-lg md:text-4xl font-900 text-[#EAE3D2] tracking-tight mb-5 ">
                                         {story.title}
                                     </h3>
 

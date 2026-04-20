@@ -137,7 +137,7 @@ export default function Events() {
                     {/* LEFT */}
                     <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] w-full text-left py-4 md:py-6 lg:py-8">
                         <div className="events-left-content lg:-mt-24">
-                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#0A4834] mb-8 tracking-tighter leading-tight">
+                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#000000] mb-8 tracking-tighter leading-[1.8]">
                                 The Experience of Zewadi
                             </h2>
                             <p className="font-mulish text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">

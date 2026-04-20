@@ -77,50 +77,36 @@ export default function Product() {
         if (pos > 1) pos -= numProducts;
         if (pos < -1) pos += numProducts;
 
-        let xPercent = -50;
-        let opacity = 0;
         let scale = 1;
+        let opacity = 0;
         let zIndex = 10;
         let rotationY = 0;
         let z = 0;
+        let x = 0;
+
+        const spread = sm ? 160 : md ? 220 : 260; // Absolute pixel offsets for stability
+        const baseScale = sm ? 0.75 : 0.8;
 
         if (pos === 0) {
-          xPercent = -50; 
-          opacity = 1; 
-          scale = 1; 
-          zIndex = 50; 
-          rotationY = 0; 
-          z = 0;
+          x = 0; opacity = 1; scale = 1; zIndex = 50; rotationY = 0; z = 0;
         } else if (pos === 1) {
-          xPercent = spreadX - 50; 
-          opacity = 0.5; 
-          scale = baseScale; 
-          zIndex = 20; 
-          rotationY = -35; 
-          z = -200;
+          x = spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = -25; z = -180;
         } else if (pos === -1) {
-          xPercent = -spreadX - 50; 
-          opacity = 0.5; 
-          scale = baseScale; 
-          zIndex = 20; 
-          rotationY = 35; 
-          z = -200;
+          x = -spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = 25; z = -180;
         } else {
-          opacity = 0;
-          zIndex = 10;
-          rotationY = pos > 0 ? -45 : 45;
-          z = -400;
+          x = pos > 0 ? spread * 1.5 : -spread * 1.5; opacity = 0; zIndex = 10; rotationY = pos > 0 ? -35 : 35; z = -350;
         }
 
         gsap.to(card, {
-          xPercent,
+          x,
+          xPercent: -50, // This ensures the card is centered on its absolute anchor (50% left)
           y: 0,
           scale,
           opacity,
           zIndex,
           rotationY,
           z,
-          duration: 1.2,
+          duration: 1.4,
           ease: "expo.out",
           onComplete: () => setIsAnimating(false),
           overwrite: "auto"
@@ -173,15 +159,19 @@ export default function Product() {
           </h2>
         </div>
 
-        {/* Carousel Zone - Refined spacing */}
-        <div className="relative w-full flex justify-center items-center h-[280px] md:h-[380px] lg:h-[480px] z-20 mt-12 md:mt-16 lg:mt-24">
+        {/* Carousel Zone - Fixed positioning for perspective */}
+        <div 
+          className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] z-20 mt-12 md:mt-16 lg:mt-24"
+          style={{ perspective: "1500px" }}
+        >
           {products.map((product, idx) => {
             const isCenter = idx === activeIndex;
             return (
               <div
                 key={product.id}
                 onClick={() => !isCenter && setActiveIndex(idx)}
-                className={`story-card absolute left-1/2 w-44 md:w-60 lg:w-[24rem] aspect-[4/5] rounded-sm will-change-transform flex flex-col items-center ${!isCenter ? "cursor-pointer" : ""}`}
+                className={`story-card absolute top-1/2 left-1/2 w-44 md:w-60 lg:w-[24rem] aspect-[4/5] rounded-sm will-change-transform flex flex-col items-center -translate-y-1/2 ${!isCenter ? "cursor-pointer" : ""}`}
+                style={{ transformStyle: "preserve-3d" }}
               >
                 <div className="relative w-full h-full overflow-hidden rounded-sm shadow-2xl">
                   <Image

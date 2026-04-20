@@ -58,7 +58,7 @@ export default function UpcomingEvents() {
                     <h2 className="event-heading font-display text-3xl md:text-4xl lg:text-6xl font-light text-black tracking-tight leading-none mb-4">
                         Upcoming Events
                     </h2>
-                    <p className="event-desc font-mulish text-[#555] text-sm md:text-lg leading-relaxed max-w-2xl opacity-80">
+                    <p className="event-desc font-mulish text-[#0A4834] text-sm md:text-lg leading-relaxed max-w-2xl opacity-80">
                         There’s always something happening at Zewadi. From small, thoughtful gatherings to special experiences, each event is a chance to connect, explore, and be part of something more.<br/>Take a look at what’s coming up and join us whenever it feels right.
                     </p>
                 </div>
@@ -73,7 +73,7 @@ export default function UpcomingEvents() {
                         
                         <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6 pr-2 md:pr-4">
                             <div className="flex flex-col gap-3 text-left">
-                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.1] tracking-tighter mb-4">
+                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
                                 <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
@@ -94,7 +94,7 @@ export default function UpcomingEvents() {
                         
                         <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6 pr-2 md:pr-4">
                             <div className="flex flex-col gap-3 text-left">
-                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.1] tracking-tighter mb-4">
+                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
                                 <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">

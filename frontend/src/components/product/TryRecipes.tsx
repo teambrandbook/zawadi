@@ -73,7 +73,7 @@ export default function TryRecipes() {
                                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-500" />
                             </div>
 
-                            <p className="font-display text-white text-lg lg:text-xl font-light leading-tight px-2 pb-2">
+                            <p className="font-display text-[#EBE1CF] text-lg lg:text-xl font-light leading-tight px-2 pb-2">
                                 Discover the rich flavors<br />that inspire our kitchen
                             </p>
                         </div>

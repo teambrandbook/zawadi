@@ -73,40 +73,41 @@ export default function StoryCarousel() {
 
             cards.forEach((card, i) => {
                 const text = texts[i];
-                
+
                 let pos = i - activeIndex;
                 if (pos > 1) pos -= numSlides;
                 if (pos < -1) pos += numSlides;
 
-                let xPercent = -50;
-                let opacity = 0;
                 let scale = 1;
+                let opacity = 0;
                 let zIndex = 10;
                 let rotationY = 0;
                 let z = 0;
+                let x = 0;
 
-                const spreadX = sm ? 32 : 42; 
+                const spread = sm ? 160 : 260; 
                 const baseScale = sm ? 0.75 : 0.8;
 
                 if (pos === 0) {
-                    xPercent = -50; opacity = 1; scale = 1; zIndex = 50; rotationY = 0; z = 0;
+                    x = 0; opacity = 1; scale = 1; zIndex = 50; rotationY = 0; z = 0;
                 } else if (pos === 1) {
-                    xPercent = spreadX - 50; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = -35; z = -200;
+                    x = spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = -25; z = -180;
                 } else if (pos === -1) {
-                    xPercent = -spreadX - 50; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = 35; z = -200;
+                    x = -spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = 25; z = -180;
                 } else {
-                    opacity = 0; zIndex = 10; rotationY = pos > 0 ? -45 : 45; z = -400;
+                    x = pos > 0 ? spread * 1.5 : -spread * 1.5; opacity = 0; zIndex = 10; rotationY = pos > 0 ? -35 : 35; z = -350;
                 }
 
                 gsap.to(card, {
-                    xPercent,
+                    x,
+                    xPercent: -50,
                     y: 0,
                     scale,
                     opacity,
                     zIndex,
                     rotationY,
                     z,
-                    duration: 1.2,
+                    duration: 1.4,
                     ease: "expo.out",
                     onComplete: () => setIsAnimating(false),
                     overwrite: "auto"
