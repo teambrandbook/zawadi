@@ -10,8 +10,8 @@ export default function FeatureStory() {
 
                     {/* Top Controls Row */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6 w-full px-2">
-                        <h2 className="font-display text-[#0A4834] text-3xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight text-center md:text-left line-clamp-1">
-                            Lorem ipsum doloa.
+                        <h2 className="font-display text-[#0A4834] text-2xl md:text-3xl lg:text-4xl font-light tracking-tight text-center md:text-left line-clamp-1 mb-4">
+                            Lorem Ipsum Dolor
                         </h2>
 
                         {/* Buttons Placeholder */}
@@ -35,7 +35,7 @@ export default function FeatureStory() {
 
                         {/* Bottom: Dark Green Text Box (50%) */}
                         <div className="flex-1 bg-[#0A4834] flex items-center justify-center p-8 md:p-16 lg:p-24 text-center">
-                            <p className="font-sans text-[#EAE3D2] text-sm md:text-lg lg:text-xl leading-relaxed max-w-3xl opacity-90">
+                            <p className="font-mulish text-[#EAE3D2] text-sm md:text-lg lg:text-xl leading-relaxed max-w-3xl opacity-90">
                                 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                                 <br className="hidden md:block" />
                                 Incididunt ut labore et dolore magna aliqua.

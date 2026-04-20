@@ -20,10 +20,10 @@ export default function CommunityListing() {
                 <div className="img lg:col-span-5 flex flex-col gap-8">
                     {/* Title & Text */}
                     <div className="flex flex-col gap-4">
-                        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-black text-black uppercase leading-[0.9] tracking-tight">
+                        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light text-black leading-[1.5] tracking-tight mb-4">
                             Zewadi <br /> Community
                         </h2>
-                        <p className="font-sans text-[#555] text-sm md:text-base leading-relaxed max-w-sm">
+                        <p className="font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-sm">
                             Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                         </p>
                     </div>
@@ -39,41 +39,41 @@ export default function CommunityListing() {
 
                     {/* Item 1 */}
                     <div className="img flex flex-col gap-2">
-                        <h3 className="font-display text-2xl font-bold text-black">
-                            Zewadi
+                        <h3 className="font-poppins text-xl md:text-2xl lg:text-3xl font-semibold text-black">
+                            Wellness First
                         </h3>
-                        <p className="font-sans text-[#555] text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-[#555] text-sm leading-relaxed max-w-xs">
+                            Not a passing trend—this is all about a better way to live.
                         </p>
                     </div>
 
                     {/* Item 2 */}
                     <div className="img flex flex-col gap-2">
-                        <h3 className="font-display text-2xl font-bold text-black">
-                            Zewadi
+                        <h3 className="font-poppins text-xl md:text-2xl lg:text-3xl font-semibold text-black">
+                            Moments That Matter
                         </h3>
-                        <p className="font-sans text-[#555] text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-[#555] text-sm leading-relaxed max-w-xs">
+                            The little things tend to stick with us.
                         </p>
                     </div>
 
                     {/* Item 3 */}
                     <div className="img flex flex-col gap-2">
-                        <h3 className="font-display text-2xl font-bold text-black">
-                            Zewadi
+                        <h3 className="font-poppins text-xl md:text-2xl lg:text-3xl font-semibold text-black">
+                            Inclusive & Evolving
                         </h3>
-                        <p className="font-sans text-[#555] text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-[#555] text-sm leading-relaxed max-w-xs">
+                            We learn as we go, and that’s part of the journey.
                         </p>
                     </div>
 
                     {/* Item 4 */}
                     <div className="img flex flex-col gap-2">
-                        <h3 className="font-display text-2xl font-bold text-black">
-                            Zewadi
+                        <h3 className="font-poppins text-xl md:text-2xl lg:text-3xl font-semibold text-black">
+                            Beyond the Product
                         </h3>
-                        <p className="font-sans text-[#555] text-sm leading-relaxed max-w-xs">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-[#555] text-sm leading-relaxed max-w-xs">
+                            It’s truly about how you live, not just what’s in your cart.
                         </p>
                     </div>
 

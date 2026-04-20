@@ -79,7 +79,7 @@ export default function LoginComponent() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center mb-6 font-sans">
+                <div className="flex flex-col items-center mb-6 font-mulish">
                   <h2 className="text-[#0a4833] text-xs font-bold uppercase tracking-widest mb-2">
                     Login as
                   </h2>

@@ -1,57 +1,49 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Health() {
     const containerRef = useRef<HTMLDivElement>(null);
     const leftRef = useRef<HTMLDivElement>(null);
     const rightRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    useGSAP(() => {
         if (!containerRef.current || !leftRef.current || !rightRef.current) return;
 
-        // ✅ Register plugin here (safe)
-        gsap.registerPlugin(ScrollTrigger);
+        // Left animation
+        gsap.from(leftRef.current, {
+            opacity: 0,
+            x: -50,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: leftRef.current,
+                start: "top 85%",
+                once: true,
+            }
+        });
 
-        // ✅ GSAP context (important)
-        const ctx = gsap.context(() => {
+        // Right animation
+        gsap.from(rightRef.current, {
+            opacity: 0,
+            x: 200,
+            duration: 1.2,
+            ease: "power3.out",
+            delay: 0.2,
+            scrollTrigger: {
+                trigger: rightRef.current,
+                start: "top 85%",
+                once: true,
+            }
+        });
 
-            // Left animation
-            gsap.from(leftRef.current, {
-                opacity: 0,
-                x: -50,
-                duration: 0.8,
-                ease: "power2.out",
-                scrollTrigger: {
-                    trigger: leftRef.current,
-                    start: "top 85%",
-                    once: true,
-                }
-            });
-
-            // Right animation
-            gsap.from(rightRef.current, {
-                opacity: 0,
-                x: 200,
-                duration: 1.2,
-                ease: "power3.out",
-                delay: 0.2,
-                scrollTrigger: {
-                    trigger: rightRef.current,
-                    start: "top 85%",
-                    once: true,
-                }
-            });
-
-        }, containerRef);
-
-        // ✅ Cleanup (very important)
-        return () => ctx.revert();
-
-    }, []);
+    }, { scope: containerRef });
 
     return (
         <section
@@ -65,12 +57,20 @@ export default function Health() {
                     ref={leftRef}
                     className="lg:col-span-3 flex flex-col gap-8 z-10 relative"
                 >
-                    <h2 className="font-display text-5xl md:text-7xl lg:text-8xl font-black text-white mb-2 uppercase tracking-tighter leading-[0.9] drop-shadow-sm">
-                        Where Every Meal <br className="hidden md:block" /> Becomes a Memory
+                    <h2 className="font-display text-3xl md:text-4xl lg:text-6xl font-light text-white mb-5 tracking-tighter leading-[1.5] drop-shadow-sm">
+                        Moments Worth <br className="hidden md:block" /> Sharing
                     </h2>
-                    <p className="font-sans text-gray-300 text-lg md:text-xl leading-relaxed max-w-lg lg:max-w-xl opacity-90 font-light">
-                        Bridging the gap between technology and agriculture to redefine your food experience.
-                    </p>
+                    <div className="font-mulish text-gray-300 text-base md:text-lg leading-relaxed max-w-lg lg:max-w-xl opacity-90 font-light space-y-4">
+                        <p>
+                            Every Zewadi experience is designed to bring people closer - through shared meals, thoughtful gestures, and meaningful moments.
+                        </p>
+                        <p>
+                            It’s about creating a sense of warmth in everyday life, where food becomes a part of your story.
+                        </p>
+                        <p>
+                            Because the moments we share today are the memories we carry tomorrow.
+                        </p>
+                    </div>
                 </div>
 
                 {/* Right Column */}

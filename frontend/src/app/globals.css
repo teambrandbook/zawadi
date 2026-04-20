@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Boldonse&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -9,7 +11,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-oswald);
+  --font-display: "Boldonse", "Bodoni Moda", serif;
+  --font-boldonse: "Boldonse", "Bodoni Moda", serif;
+  --font-voltaire: var(--font-voltaire);
+  --font-mulish: var(--font-mulish);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,6 +34,7 @@ body {
   from {
     clip-path: inset(0 0 100% 0);
   }
+
   to {
     clip-path: inset(0 0 0 0);
   }
@@ -43,14 +49,17 @@ body {
     transform: translateX(0);
     opacity: 1;
   }
+
   30% {
     transform: translateX(60px);
     opacity: 0;
   }
+
   31% {
-    transform: translateX(-180px); /* Start from left of the button */
+    transform: translateX(-180px);
     opacity: 0;
   }
+
   100% {
     transform: translateX(0);
     opacity: 1;
@@ -66,17 +75,20 @@ body {
     opacity: 1;
     transform: translateX(0);
   }
+
   25% {
     opacity: 0;
     transform: translateX(10px);
   }
+
   35% {
     opacity: 0;
     transform: translateX(-10px);
   }
+
   100% {
-    opacity: 1;
     transform: translateX(0);
+    opacity: 1;
   }
 }
 
@@ -86,6 +98,12 @@ body {
 
 .opacity-0 {
   opacity: 0;
+}
+
+.boldonse-regular {
+  font-family: "Boldonse", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .opacity-100 {

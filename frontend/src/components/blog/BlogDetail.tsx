@@ -29,7 +29,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
                     
                     {/* Title */}
                     <div className="img text-center max-w-4xl mb-24">
-                        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-black text-black tracking-tight leading-none uppercase">
+                        <h1 className="font-display text-3xl md:text-5xl lg:text-6xl font-light text-black tracking-tight leading-none mb-24">
                             {blog.title}
                         </h1>
                     </div>
@@ -47,7 +47,7 @@ export default function BlogDetail({ blog }: BlogDetailProps) {
                     {/* Blog Content */}
                     <div className="fadecomponent max-w-4xl mx-auto flex flex-col gap-10">
                         {blog.content.map((paragraph, idx) => (
-                            <p key={idx} className="font-sans text-gray-700 text-lg md:text-xl leading-relaxed text-justify">
+                            <p key={idx} className="font-mulish text-gray-700 text-lg md:text-xl leading-relaxed text-justify">
                                 {paragraph}
                             </p>
                         ))}

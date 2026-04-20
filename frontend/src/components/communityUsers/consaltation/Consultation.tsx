@@ -165,7 +165,7 @@ export default function Consultation() {
             onJoin={(id) => setMessage(`Joining session: ${id}`)}
             onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
           />
-          <ActiveDietPlan progress={65} onViewPlan={() => setMessage("Opening full diet plan...")} />
+          <ActiveDietPlan progress={65} onViewPlan={() => router.push("/communityDashBorde/diet-plan")} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">

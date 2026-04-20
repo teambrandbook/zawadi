@@ -8,10 +8,10 @@ export default function StoryGrid() {
     const containerRef = useRef<HTMLDivElement>(null);
 
     const stories = [
-        { id: "01", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-        { id: "02", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-        { id: "03", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
-        { id: "04", title: "Zewadi story", description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." },
+        { id: "01", title: "Thoughtfully Crafted", description: "We sweat the details, so you can just enjoy." },
+        { id: "02", title: "Inspired by Living Well", description: "Made for real, everyday life." },
+        { id: "03", title: "Made to Share", description: "Always better when it’s shared." },
+        { id: "04", title: "Driven by Purpose", description: "There’s a reason behind every decision we make." },
     ];
 
     useGSAP(() => {
@@ -58,7 +58,7 @@ export default function StoryGrid() {
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
                 {/* 1. Fading Title */}
-                <h2 className="story-grid-title font-display text-5xl md:text-7xl lg:text-8xl font-black text-black text-center mb-16 md:mb-24 tracking-tighter leading-[0.85]">
+                <h2 className="story-grid-title font-display text-3xl md:text-5xl lg:text-6xl font-light text-black text-center mb-24 md:mb-32 tracking-tighter leading-[1.5]">
                     The story behind the <br /> flavors
                 </h2>
 
@@ -84,18 +84,18 @@ export default function StoryGrid() {
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
 
                                 {/* Number */}
-                                <span className="relative z-20 font-display text-6xl md:text-8xl font-bold text-[#EAE3D2] tracking-tighter leading-none">
+                                <span className="relative z-20 font-display text-4xl md:text-6xl font-light text-[#EAE3D2] tracking-tighter leading-none">
                                     {story.id}
                                 </span>
 
                                 {/* Text Content */}
                                 <div className="relative z-20 flex flex-col gap-3 pt-3">
-                                    <h3 className="font-display text-2xl md:text-3xl font-bold text-[#EAE3D2] tracking-tight">
+                                    <h3 className="font-display text-lg md:text-xl font-light text-[#EAE3D2] tracking-tight">
                                         {story.title}
                                     </h3>
 
                                     {/* ✅ Only visible in lg */}
-                                    <p className="hidden lg:block font-sans text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                    <p className="hidden lg:block font-mulish text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
                                         {story.description}
                                     </p>
                                 </div>
@@ -103,7 +103,7 @@ export default function StoryGrid() {
 
                             {/* ✅ Only visible in sm & md */}
                             <div>
-                                <p className="block lg:hidden font-sans text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                <p className="block lg:hidden font-mulish text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
                                     {story.description}
                                 </p>
                             </div>

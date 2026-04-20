@@ -13,26 +13,26 @@ if (typeof window !== "undefined") {
 const eventItems = [
     {
         id: 1,
-        title: "Where Every Meal Becomes a Memory",
-        desc: "Bridging the gap between technology and agriculture to redefine your food experience.",
+        title: "Thoughtful Choices",
+        desc: "We handle what goes in, so you don't have to overthink it.",
         image: "/home/section7-1.webp"
     },
     {
         id: 2,
-        title: "Where Every Meal Becomes a Memory",
-        desc: "Bridging the gap between technology and agriculture to redefine your food experience.",
+        title: "Made for Sharing",
+        desc: "Zewadi is best enjoyed together.",
         image: "/home/section7-2.webp"
     },
     {
         id: 3,
-        title: "Where Every Meal Becomes a Memory",
-        desc: "Bridging the gap between technology and agriculture to redefine your food experience.",
+        title: "Meaningful Moments",
+        desc: "It's often the smallest moments that matter most.",
         image: "/home/section5-1.webp"
     },
     {
         id: 4,
-        title: "Where Every Meal Becomes a Memory",
-        desc: "Bridging the gap between technology and agriculture to redefine your food experience.",
+        title: "A Better Way of Living",
+        desc: "It settles into your life naturally, without any fuss.",
         image: "/home/section5-2.webp"
     }
 ];
@@ -137,11 +137,13 @@ export default function Events() {
                     {/* LEFT */}
                     <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] w-full text-left">
                         <div className="events-left-content">
-                            <h2 className="font-display text-4xl md:text-6xl lg:text-6xl font-black text-[#0A4834] mb-4 uppercase tracking-tighter leading-[0.9]">
-                                Where Every Meal <br /> Becomes a Memory
+                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#0A4834] mb-8 tracking-tighter leading-[1.7]">
+                                The Experience of Zewadi
                             </h2>
-                            <p className="font-sans text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
-                                Redefine your food experience with technology and sustainable agriculture.
+                            <p className="font-mulish text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
+                               Every meal is more than just food - it’s a moment to share, connect, and remember.
+With Zewadi, even the simplest choices become experiences worth holding on to.
+
                             </p>
                             <div className="flex justify-start">
                                 <WipeButton href="/events" label="Explore More" />
@@ -209,12 +211,12 @@ export default function Events() {
 
 function EventCard({ item, index }: { item: any; index: number }) {
     return (
-        <div className="w-full h-[360px] md:h-[400px] lg:h-[420px] flex-shrink-0 flex flex-col justify-center bg-[#f5f5f5] py-6 px-5 rounded-sm shadow-xl border border-black/5">
+        <div className="w-full h-[360px] md:h-[400px] lg:h-[420px] flex-shrink-0 flex flex-col justify-center py-6 px-5 rounded-sm shadow-xl border border-black/5 bg-[#f5f5f5]">
             <div className="w-full max-w-lg mx-auto">
-                <h3 className="font-display text-base md:text-lg lg:text-2xl font-black text-black mb-2 uppercase tracking-tighter">
+                <h3 className="font-boldonse text-xs md:text-sm lg:text-lg font-light mb-4 tracking-tighter text-black">
                     {item.title}
                 </h3>
-                <p className="font-sans text-[12px] md:text-[13px] text-[#555] mb-4 leading-relaxed line-clamp-2">
+                <p className="font-mulish text-[12px] md:text-[13px] mb-4 leading-relaxed line-clamp-2 text-[#555]">
                     {item.desc}
                 </p>
                 <div className="w-full aspect-[16/8] relative rounded-sm overflow-hidden">

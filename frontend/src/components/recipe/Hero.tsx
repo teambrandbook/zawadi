@@ -12,9 +12,9 @@ export default function Hero() {
     }, [])
 
     return (
-        <section className="relative w-full bg-white py-12 md:py-16">
+        <section className="relative w-full bg-white py-8 md:py-10">
             <div className="mx-auto max-w-7xl px-6 md:px-10">
-                <div className="grid grid-cols-1 items-center gap-10 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-center gap-6 lg:grid-cols-2">
 
                     {/* Left: Image */}
                     <div className="relative aspect-square w-full overflow-hidden rounded-md ">
@@ -30,25 +30,28 @@ export default function Hero() {
                     <div className="flex flex-col">
 
                         {/* Title */}
-                        <h1 className="font-display text-5xl md:text-6xl font-black text-black uppercase tracking-tight leading-none mb-6">
-                            BUCKWHEAT <br /> SOUP
+                        <h1 className="font-boldonse text-xl md:text-[2rem] font-light text-black tracking-tight leading-[1.3] mb-3">
+                            SAVOURY BUCKWHEAT<br />PORRIDGE
                         </h1>
 
                         {/* Description */}
-                        <p className="font-sans text-[#555] text-base leading-relaxed mb-8">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-[#555] text-base leading-relaxed mb-3">
+                            Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.
                         </p>
 
                         {/* Benefits */}
-                        <div className="mb-10">
-                            <h3 className="font-display text-lg font-bold text-black mb-4">
+                        <div className="mb-2">
+                            <h3 className="font-mulish text-sm font-bold text-black mb-2 uppercase">
                                 Benefits
                             </h3>
-                            <ul className="list-disc list-outside ml-5 space-y-2 font-sans text-[#555] text-sm md:text-base leading-relaxed">
-                                <li>Only the finest local ingredients</li>
-                                <li>Healthy & chemical-free</li>
-                                <li>Supports local farmers</li>
-                                <li>Peak flavor selection</li>
+                            <ul className="list-disc list-outside ml-5 space-y-1 font-mulish text-[#555] text-sm md:text-base leading-[1.3]">
+                                <li>Rich in nutrients and naturally gluten-free</li>
+                                <li>Supports digestion and gut health</li>
+                                <li>Helps maintain steady energy levels</li>
+                                <li>High in plant-based protein and fiber</li>
+                                <li>Heart-friendly and supports cholesterol control</li>
+                                <li>Made with simple, clean, and wholesome ingredients</li>
+                                <li>Easily customizable with vegetables and proteins</li>
                             </ul>
                         </div>
 
@@ -56,10 +59,10 @@ export default function Hero() {
                         <div className="recipe-btn-wrap mt-4 flex items-center gap-6">
                             <Link
                                 href="/recipe/buckwheat-soup"
-                                className="detail-btn flex h-14 w-0 overflow-hidden rounded-full bg-[#0A4834] text-white shadow-sm transition-colors hover:bg-[#1A5A44] md:h-16"
+                                className="detail-btn flex h-14 w-48 overflow-hidden rounded-full bg-[#0A4834] text-white shadow-sm transition-colors hover:bg-[#1A5A44] md:h-16"
                             >
-                                <span className="whitespace-nowrap px-6 font-sans text-sm font-bold uppercase tracking-widest flex items-center">
-                                    View Detail
+                                <span className="whitespace-nowrap px-6 font-mulish text-sm font-bold uppercase tracking-widest flex items-center">
+                                    View More
                                 </span>
                             </Link>
 

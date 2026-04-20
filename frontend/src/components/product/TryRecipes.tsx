@@ -49,7 +49,7 @@ export default function TryRecipes() {
             <div className="max-w-6xl mx-auto">
                 {/* Section Header */}
                 <div className="try-recipes-header">
-                    <h2 className="font-display text-4xl md:text-5xl lg:text-6xl font-black text-black text-center mb-16 uppercase tracking-tighter">
+                    <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light text-black text-center mb-20 tracking-tighter">
                         Try Recipes
                     </h2>
                 </div>
@@ -73,7 +73,7 @@ export default function TryRecipes() {
                                 <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-colors duration-500" />
                             </div>
 
-                            <p className="font-display text-white text-lg lg:text-xl font-bold leading-tight px-2 pb-2">
+                            <p className="font-display text-white text-lg lg:text-xl font-light leading-tight px-2 pb-2">
                                 Discover the rich flavors<br />that inspire our kitchen
                             </p>
                         </div>

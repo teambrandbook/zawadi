@@ -13,8 +13,8 @@ export default function ContactInfo() {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-display text-lg font-bold text-[#0A4834] group-hover:text-white mb-2 transition-colors">Visit Our Bakery</h3>
-                        <p className="font-sans text-[#555] group-hover:text-white/90 text-sm leading-relaxed transition-colors">
+                        <h3 className="font-display text-base font-light text-[#0A4834] group-hover:text-white mb-4 transition-colors">Visit Our Bakery</h3>
+                        <p className="font-mulish text-[#555] group-hover:text-white/90 text-sm leading-relaxed transition-colors">
                             123 Sweet Street Cookie<br />
                             Valley, CA 90210 United<br />
                             States
@@ -30,8 +30,8 @@ export default function ContactInfo() {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-display text-lg font-bold text-[#0A4834] group-hover:text-white mb-2 transition-colors">Call Us</h3>
-                        <p className="font-sans text-[#555] group-hover:text-white/90 text-sm leading-relaxed transition-colors">
+                        <h3 className="font-display text-base font-light text-[#0A4834] group-hover:text-white mb-4 transition-colors">Call Us</h3>
+                        <p className="font-mulish text-[#555] group-hover:text-white/90 text-sm leading-relaxed transition-colors">
                             +1 (555) 123-COOKIE<br />
                             Mon-Fri: 8am-6pm PST<br />
                             Sat-Sun: 9am-5pm PST
@@ -48,8 +48,8 @@ export default function ContactInfo() {
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-display text-lg font-bold text-[#0A4834] group-hover:text-white mb-2 transition-colors">Email Us</h3>
-                        <div className="font-sans text-[#555] group-hover:text-white/90 text-sm leading-relaxed flex flex-col transition-colors">
+                        <h3 className="font-display text-base font-light text-[#0A4834] group-hover:text-white mb-4 transition-colors">Email Us</h3>
+                        <div className="font-mulish text-[#555] group-hover:text-white/90 text-sm leading-relaxed flex flex-col transition-colors">
                             <a href="mailto:hello@crunchyco.com" className="hover:text-white font-medium transiton-all underline underline-offset-4 decoration-white/0 hover:decoration-white/50">hello@crunchyco.com</a>
                             <a href="mailto:orders@crunchyco.com" className="hover:text-white font-medium transiton-all underline underline-offset-4 decoration-white/0 hover:decoration-white/50">orders@crunchyco.com</a>
                             <a href="mailto:support@crunchyco.com" className="hover:text-white font-medium transiton-all underline underline-offset-4 decoration-white/0 hover:decoration-white/50">support@crunchyco.com</a>
@@ -59,7 +59,7 @@ export default function ContactInfo() {
 
                 {/* Card 4: Social */}
                 <div className="bg-[#0A4834] rounded-xl p-8 md:p-10 flex flex-col justify-center gap-4 text-white transition-all duration-300 hover:shadow-xl hover:bg-[#1A5A44] border border-white/10 group">
-                    <h3 className="font-display text-lg font-bold">Follow Our Cookie Journey</h3>
+                    <h3 className="font-display text-base font-light mb-4">Follow Our Cookie Journey</h3>
 
                     <div className="flex gap-4">
                         {/* Instagram */}
@@ -92,7 +92,7 @@ export default function ContactInfo() {
                         </a>
                     </div>
 
-                    <p className="font-sans text-white/70 text-xs leading-relaxed mt-2">
+                    <p className="font-mulish text-white/70 text-xs leading-relaxed mt-2">
                         Get the latest updates on new flavors, special offers, and behind-the-scenes content from our bakery!
                     </p>
                 </div>

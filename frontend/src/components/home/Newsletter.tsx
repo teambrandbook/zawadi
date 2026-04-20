@@ -9,14 +9,14 @@ export default function Newsletter() {
                 {/* Left Column: Text */}
                 <div className="flex-1 p-12 md:p-16 flex flex-col justify-center gap-6">
                     <div className="flex flex-col gap-2">
-                        <h2 className="font-display text-5xl md:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-none">
+                        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light text-white tracking-tighter leading-[1.1] mb-8">
                             NEWS LETTER
                         </h2>
-                        <p className="font-sans text-gray-300 text-sm tracking-wide font-light">
-                            Sign In for remainders
+                        <p className="font-mulish text-gray-300 text-sm tracking-wide font-light">
+                            Sign In for reminders
                         </p>
                     </div>
-                    <p className="font-sans text-white text-lg leading-relaxed max-w-md opacity-90">
+                    <p className="font-mulish text-white text-lg leading-relaxed max-w-md opacity-90">
                         Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
                     </p>
                 </div>

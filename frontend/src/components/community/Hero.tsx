@@ -26,13 +26,13 @@ export default function Hero() {
                 <div className="flex flex-col gap-6">
                     {/* Title */}
                     <div className="fade-text flex flex-col gap-2">
-                        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-black text-black tracking-tight leading-none uppercase">
+                        <h1 className="font-boldonse text-3xl md:text-4xl lg:text-5xl font-light text-black tracking-tight leading-none mb-8">
                             Zewadi Community
                         </h1>
                         
                         {/* Static Paragraph */}
-                        <p className="font-sans text-gray-600 text-sm md:text-base leading-relaxed max-w-sm">
-                            Bridging the gap between technology and agriculture to redefine your food experience. Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint.
+                        <p className="font-mulish text-gray-600 text-sm md:text-base leading-relaxed max-w-sm">
+                            The Zewadi community is rooted in simple, meaningful choices - choosing better ingredients, better habits, and a better way of living.
                         </p>
                     </div>
 
@@ -48,8 +48,8 @@ export default function Hero() {
 
                     {/* Secondary Text and Button */}
                     <div className="flex flex-col gap-8">
-                        <p className="font-sans text-gray-600 text-sm md:text-base leading-relaxed max-w-md">
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                        <p className="font-mulish text-gray-600 text-sm md:text-base leading-relaxed max-w-md">
+                            It’s about people who care - about their health, their routines, and the impact of what they consume.  
                         </p>
 
                         <div>

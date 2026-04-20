@@ -74,9 +74,9 @@ export default function GalleryPage() {
                     {/* Header */}
                     <div className="text-center mb-16 md:mb-24">
                         <h1 
-                            className="gallery-title font-display text-5xl md:text-7xl lg:text-8xl font-black text-black tracking-tighter leading-[0.85] uppercase"
+                            className="gallery-title font-display text-5xl md:text-5xl lg:text-7xl font-bold text-black tracking-tighter leading-tight"
                         >
-                            Gallery
+                            Zewadi Events Gallery
                         </h1>
                     </div>
 
