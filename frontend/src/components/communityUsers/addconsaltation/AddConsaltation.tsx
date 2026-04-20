@@ -1,12 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import ChooseExpertSection, { type SessionType } from "./components/ChooseExpertSection";
 import SelectDateTimeSection from "./components/SelectDateTimeSection";
 import HealthDetailsSection, { type HealthDetails } from "./components/HealthDetailsSection";
-import ConfirmBookingSection from "./components/ConfirmBookingSection";
+import ConfirmBookingSection, { type ConsultationFormData } from "./components/ConfirmBookingSection";
 
 type Expert = {
   id: string;
@@ -24,34 +23,82 @@ const experts: Expert[] = [
 ];
 
 const initialHealthDetails: HealthDetails = {
-  healthGoal: "",
-  conditions: "",
-  notes: "",
+  primaryWellnessGoal: "fitness",
+  mainConcern: "belly",
+  dietPreferences: ["vegetarian"],
+  allergies: "peanuts",
+  lifestyle: "moderate",
+  buckwheatGoals: "lose 5kg",
+  additionalMessage: "Need help",
+};
+
+const initialFormData: ConsultationFormData = {
+  choose_section: "weight_loss",
+  primary_goal: "lose fat",
+  language: "english",
+  date: "2026-04-20",
+  time: "10:30:00",
+  primary_wellness_goal: "fitness",
+  focus_area: "belly",
+  allergies: "peanuts",
+  diet_restriction: "vegetarian",
+  lifestyle_activity: "moderate",
+  journey_goal: "lose 5kg",
+  additional_message: "Need help",
 };
 
 export default function AddConsaltation() {
-  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedExpertId] = useState<string | null>(experts[0].id);
-  const [selectedSessionType, setSelectedSessionType] = useState<SessionType | "">("");
-  const [selectedGoal, setSelectedGoal] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState("English");
+  const [selectedSessionType, setSelectedSessionType] = useState<SessionType | "">("Video Call");
+  const [selectedGoal, setSelectedGoal] = useState("lose fat");
+  const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [creditUsed, setCreditUsed] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("");
-  const [selectedSlot, setSelectedSlot] = useState("");
+  const [selectedDate, setSelectedDate] = useState("2026-04-20");
+  const [selectedSlot, setSelectedSlot] = useState("10:30:00");
   const [healthDetails, setHealthDetails] = useState<HealthDetails>(initialHealthDetails);
+  const [formData, setFormData] = useState<ConsultationFormData>(initialFormData);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const stepLabels = ["Choose Expert", "Select Date & Time", "Health Details", "Confirm Booking"];
 
-  const selectedExpert = useMemo(
-    () => experts.find((item) => item.id === selectedExpertId) ?? null,
-    [selectedExpertId]
-  );
+  const selectedExpert = experts.find((item) => item.id === selectedExpertId) ?? null;
+
+  function updateFormData(field: keyof ConsultationFormData, value: string) {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function onSelectGoal(goal: string) {
+    setSelectedGoal(goal);
+    updateFormData("primary_goal", goal);
+  }
+
+  function onSelectLanguage(language: string) {
+    setSelectedLanguage(language);
+    updateFormData("language", language.toLowerCase());
+  }
+
+  function onSelectDate(date: string) {
+    setSelectedDate(date);
+    updateFormData("date", date);
+  }
+
+  function onSelectSlot(slot: string) {
+    setSelectedSlot(slot);
+    updateFormData("time", slot);
+  }
 
   function onChangeHealthDetails<K extends keyof HealthDetails>(field: K, value: HealthDetails[K]) {
     setHealthDetails((prev) => ({ ...prev, [field]: value }));
+
+    if (field === "primaryWellnessGoal") updateFormData("primary_wellness_goal", value as string);
+    if (field === "mainConcern") updateFormData("focus_area", value as string);
+    if (field === "allergies") updateFormData("allergies", value as string);
+    if (field === "dietPreferences") updateFormData("diet_restriction", (value as string[]).join(", "));
+    if (field === "lifestyle") updateFormData("lifestyle_activity", value as string);
+    if (field === "buckwheatGoals") updateFormData("journey_goal", value as string);
+    if (field === "additionalMessage") updateFormData("additional_message", value as string);
   }
 
   function goNext() {
@@ -63,8 +110,8 @@ export default function AddConsaltation() {
       setStatusMessage("Please select both date and time.");
       return;
     }
-    if (currentStep === 3 && !healthDetails.healthGoal.trim()) {
-      setStatusMessage("Please enter your primary health goal.");
+    if (currentStep === 3 && !healthDetails.primaryWellnessGoal.trim()) {
+      setStatusMessage("Please select your primary wellness goal.");
       return;
     }
     setStatusMessage("");
@@ -83,6 +130,7 @@ export default function AddConsaltation() {
     }
     setIsSubmitting(true);
     setStatusMessage("Confirming your booking...");
+    console.log("Consultation formData", formData);
     await new Promise((resolve) => setTimeout(resolve, 700));
     setIsSubmitting(false);
     setStatusMessage("Consultation booked successfully.");
@@ -144,8 +192,8 @@ export default function AddConsaltation() {
               selectedGoal={selectedGoal}
               selectedLanguage={selectedLanguage}
               onSelectSessionType={setSelectedSessionType}
-              onSelectGoal={setSelectedGoal}
-              onSelectLanguage={setSelectedLanguage}
+              onSelectGoal={onSelectGoal}
+              onSelectLanguage={onSelectLanguage}
               onUseCredit={() => setCreditUsed((prev) => !prev)}
               onContinue={goNext}
               creditUsed={creditUsed}
@@ -158,25 +206,40 @@ export default function AddConsaltation() {
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
               sessionType={selectedSessionType || "Video Call"}
-              onSelectDate={setSelectedDate}
-              onSelectSlot={setSelectedSlot}
+              onSelectDate={onSelectDate}
+              onSelectSlot={onSelectSlot}
               onContinue={goNext}
               onBack={goBack}
               onSaveForLater={() => setStatusMessage("Booking details saved for later.")}
             />
           )}
           {currentStep === 3 && (
-            <HealthDetailsSection value={healthDetails} onChange={onChangeHealthDetails} />
+            <HealthDetailsSection
+              value={healthDetails}
+              onChange={onChangeHealthDetails}
+              onContinue={goNext}
+              onBack={goBack}
+              onSaveForLater={() => setStatusMessage("Health details saved for later.")}
+              selectedExpertName={selectedExpert?.name ?? "Dr. Emily Chen"}
+              selectedDate={selectedDate || "May 15, 2024"}
+              selectedTime={selectedSlot || "2:00 PM"}
+              sessionType={selectedSessionType || "Video Call"}
+            />
           )}
           {currentStep === 4 && (
             <ConfirmBookingSection
               selectedExpert={selectedExpert}
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
+              sessionType={selectedSessionType || "Video Call"}
+              selectedGoal={selectedGoal}
+              selectedLanguage={selectedLanguage}
               healthDetails={healthDetails}
+              formData={formData}
               isAgreed={isAgreed}
               onToggleAgreement={() => setIsAgreed((prev) => !prev)}
               onConfirm={onConfirmBooking}
+              onBack={goBack}
               isSubmitting={isSubmitting}
             />
           )}

@@ -124,7 +124,7 @@ export default function ChooseExpertSection({
                   type="button"
                   onClick={() => onSelectLanguage(lang)}
                   className={`rounded-lg border px-3 py-2 text-xs ${
-                    selectedLanguage === lang
+                    selectedLanguage.toLowerCase() === lang.toLowerCase()
                       ? "border-[#A88751] bg-[#F9F6EF] text-[#0A4833]"
                       : "border-[#DFDFDF] bg-white text-[#6B7280] hover:bg-[#FAFAFA]"
                   }`}

@@ -19,12 +19,17 @@ import {
   ShieldCheck 
 } from "lucide-react";
 
+/* ✅ ADD THIS */
+type Props = {
+  onClose?: () => void;
+};
+
 const navigation = [
   {
     section: "Main",
     items: [
       { name: "Dashboard", icon: Home, href: "/admindashboard" },
-      { name: "Users", icon: Users, href: "/admindashboard/users" },
+      { name: "Users", icon: Users, href: "/admindashboard/users" }, 
       { name: "Orders", icon: ShoppingBag, href: "/admindashboard/orders" },
       { name: "Products", icon: Package, href: "/admindashboard/products" },
     ],
@@ -50,7 +55,8 @@ const navigation = [
   },
 ];
 
-const AdminDashboardSidebar = () => {
+/* ✅ ACCEPT PROPS HERE */
+const AdminDashboardSidebar = ({ onClose }: Props) => {
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -61,10 +67,10 @@ const AdminDashboardSidebar = () => {
   }
 
   return (
-    <aside className="w-72 h-screen bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
+    <aside className="w-72 h-full bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
       {navigation.map((group, idx) => (
         <div key={idx} className="mb-8">
-          {/* Section Header */}
+          
           <h3 className="text-[#06402B] font-bold text-lg mb-6 px-2 pt-12">
             {group.section}
           </h3>
@@ -73,13 +79,22 @@ const AdminDashboardSidebar = () => {
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
+
               return (
                 <Link 
                   key={item.name} 
                   href={item.href} 
+
+                  /* ✅ CLOSE SIDEBAR ON CLICK */
+                  onClick={() => {
+                    if (window.innerWidth < 768) {
+                      onClose?.();
+                    }
+                  }}
+
                   className="group flex items-center space-x-3 outline-none"
                 >
-                  {/* Icon Circle */}
+                  {/* Icon */}
                   <div className={`
                     flex items-center justify-center w-11 h-11 rounded-full transition-all shrink-0
                     ${active 
@@ -89,7 +104,7 @@ const AdminDashboardSidebar = () => {
                     <Icon size={20} />
                   </div>
 
-                  {/* Label Pill */}
+                  {/* Label */}
                   <div className={`
                     flex-1 py-2.5 px-6 rounded-full font-medium text-sm transition-all flex items-center justify-center
                     ${active 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import ProductBulkActions from "./components/ProductBulkActions";
 import ProductFilters from "./components/ProductFilters";
@@ -42,6 +43,7 @@ function downloadCsv(fileName: string, rows: ProductRow[]) {
 }
 
 export default function ProductsDashboard() {
+  const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>(allProducts);
   const [query, setQuery] = useState("");
   const [productStatus, setProductStatus] = useState("All Status");
@@ -122,7 +124,7 @@ export default function ProductsDashboard() {
   }
 
   return (
-    <section className="w-full bg-[#F3F4F6] p-4 lg:p-6">
+    <section className="w-full bg-white p-4 lg:p-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
         <ProductsHeader
           query={query}
@@ -132,7 +134,7 @@ export default function ProductsDashboard() {
           }}
           onFilter={() => setProductStatus((s) => (s === "All Status" ? "Active" : "All Status"))}
           onExport={() => downloadCsv("products.csv", filtered)}
-          onAdd={() => window.alert("Add Product clicked")}
+          onAdd={() => router.push("/admindashboard/products/add")}
         />
 
         <ProductStatsGrid />

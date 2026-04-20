@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Oswald, Voltaire, Mulish, Bodoni_Moda } from "next/font/google";
 import "./globals.css";
-import StoreProvider from "@/lib/StoreProvider";
+
+import Providers from "./providers"; // 👈 ADD THIS
 
 const inter = Inter({
   variable: "--font-inter",
@@ -49,7 +50,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${oswald.variable} ${bodoniModa.variable} ${voltaire.variable} ${mulish.variable} antialiased`}
       >
-        <StoreProvider>{children}</StoreProvider>
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

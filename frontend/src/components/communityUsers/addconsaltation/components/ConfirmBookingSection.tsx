@@ -1,5 +1,8 @@
 "use client";
 
+import Image from "next/image";
+import { ArrowLeft, CalendarCheck2, Check, CheckCircle2, Edit3, Shield, Star } from "lucide-react";
+
 type Expert = {
   id: string;
   name: string;
@@ -9,70 +12,276 @@ type Expert = {
 };
 
 type HealthDetails = {
-  healthGoal: string;
-  conditions: string;
-  notes: string;
+  primaryWellnessGoal: string;
+  mainConcern: string;
+  dietPreferences: string[];
+  allergies: string;
+  lifestyle: string;
+  buckwheatGoals: string;
+  additionalMessage: string;
+};
+
+type ConsultationFormData = {
+  choose_section: string;
+  primary_goal: string;
+  language: string;
+  date: string;
+  time: string;
+  primary_wellness_goal: string;
+  focus_area: string;
+  allergies: string;
+  diet_restriction: string;
+  lifestyle_activity: string;
+  journey_goal: string;
+  additional_message: string;
 };
 
 type Props = {
   selectedExpert: Expert | null;
   selectedDate: string;
   selectedSlot: string;
+  sessionType: string;
+  selectedGoal: string;
+  selectedLanguage: string;
   healthDetails: HealthDetails;
+  formData: ConsultationFormData;
   isAgreed: boolean;
   onToggleAgreement: () => void;
   onConfirm: () => void;
+  onBack: () => void;
   isSubmitting: boolean;
 };
+
+function formatLabel(value: string) {
+  return value
+    .split(/[_\s]+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function formatTime(value: string) {
+  const match = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return value;
+
+  const hour = Number(match[1]);
+  const minute = match[2];
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minute} ${suffix}`;
+}
+
+function getDuration(sessionType: string) {
+  if (sessionType === "Audio Call") return "30 minutes";
+  if (sessionType === "Chat Session") return "60 minutes";
+  return "45 minutes";
+}
+
+function SummaryTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-[#EBE1CF] p-4">
+      <p className="text-sm text-[#4B5563]">{label}</p>
+      <p className="mt-2 text-sm font-medium text-[#0A4833]">{value}</p>
+    </div>
+  );
+}
+
+function ReviewItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-sm text-[#4B5563]">{label}</p>
+      <p className="mt-1 text-sm font-medium leading-6 text-[#0A4833]">{value}</p>
+    </div>
+  );
+}
+
+function SidebarRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-4 text-sm">
+      <span className="text-[#4B5563]">{label}</span>
+      <span className="max-w-[160px] text-right font-medium text-[#0A4833]">{value}</span>
+    </div>
+  );
+}
 
 export default function ConfirmBookingSection({
   selectedExpert,
   selectedDate,
   selectedSlot,
+  sessionType,
+  selectedGoal,
+  selectedLanguage,
   healthDetails,
+  formData,
   isAgreed,
   onToggleAgreement,
   onConfirm,
+  onBack,
   isSubmitting,
 }: Props) {
-  return (
-    <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
-      <h2 className="text-xl font-semibold text-[#0A4833]">4. Confirm Booking</h2>
-      <p className="mt-1 text-sm text-[#6B7280]">Review your details before final confirmation.</p>
+  const expertName = selectedExpert?.name || "Dr. Emma Thompson";
+  const expertSpecialty = selectedExpert?.specialty || "Certified Nutritionist";
+  const displayDate = selectedDate || formData.date;
+  const displayTime = formatTime(selectedSlot || formData.time);
+  const duration = getDuration(sessionType);
+  const focusArea = formData.focus_area || healthDetails.mainConcern || "belly";
+  const wellnessGoal = formData.primary_wellness_goal || healthDetails.primaryWellnessGoal || "fitness";
 
-      <div className="mt-4 rounded-lg border border-[#EAEAEA] bg-[#F9FAFB] p-4 text-sm">
-        <p className="font-semibold text-[#0A4833]">Consultation Summary</p>
-        <p className="mt-2 text-[#4B5563]">
-          <span className="font-medium text-[#0A4833]">Expert:</span> {selectedExpert?.name || "Not selected"}
-        </p>
-        <p className="text-[#4B5563]">
-          <span className="font-medium text-[#0A4833]">Specialty:</span> {selectedExpert?.specialty || "Not selected"}
-        </p>
-        <p className="text-[#4B5563]">
-          <span className="font-medium text-[#0A4833]">Date:</span> {selectedDate || "Not selected"}
-        </p>
-        <p className="text-[#4B5563]">
-          <span className="font-medium text-[#0A4833]">Time:</span> {selectedSlot || "Not selected"}
-        </p>
-        <p className="text-[#4B5563]">
-          <span className="font-medium text-[#0A4833]">Goal:</span> {healthDetails.healthGoal || "Not provided"}
+  return (
+    <section className="space-y-5">
+      <div>
+        <h1 className="mt-3 text-3xl font-bold tracking-[-0.5px] text-[#0A4833]">Confirm Booking</h1>
+        <p className="mt-3 text-base text-[#4B5563]">
+          Review your consultation details before confirming your session.
         </p>
       </div>
 
-      <label className="mt-4 inline-flex items-center gap-2 text-sm text-[#4B5563]">
-        <input type="checkbox" checked={isAgreed} onChange={onToggleAgreement} />
-        I confirm all details are correct.
-      </label>
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,715px)_341px]">
+        <div className="space-y-6">
+          <section className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Consultation Summary</h2>
 
-      <div className="mt-4">
-        <button
-          onClick={onConfirm}
-          disabled={!isAgreed || isSubmitting}
-          className="inline-flex h-11 items-center justify-center rounded-lg bg-[#0A4833] px-5 text-sm font-medium text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {isSubmitting ? "Booking..." : "Confirm Booking"}
-        </button>
+            <div className="mt-6 flex gap-4">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
+                <Image src="/recipe/recipe-2.webp" alt={expertName} fill className="object-cover" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-[#0A4833]">{expertName}</h3>
+                <p className="mt-1 font-medium text-[#9F8151]">{expertSpecialty}</p>
+                <p className="mt-1 flex items-center gap-1 text-sm text-[#4B5563]">
+                  <Star className="h-4 w-4 fill-[#9F8151] text-[#9F8151]" /> {selectedExpert?.rating || "4.9"} (127 reviews)
+                </p>
+                <p className="mt-1 flex items-center gap-2 text-sm text-[#16A34A]">
+                  <span className="h-2 w-2 rounded-full bg-[#16A34A]" /> Available for consultation
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <SummaryTile label="Session Type" value={sessionType || "Video Call"} />
+              <SummaryTile label="Duration" value={duration} />
+              <SummaryTile label="Date" value={displayDate} />
+              <SummaryTile label="Time" value={`${displayTime} - ${duration}`} />
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Health Details Review</h2>
+              <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-sm font-medium text-[#9F8151]">
+                <Edit3 className="h-3.5 w-3.5" /> Edit Details
+              </button>
+            </div>
+
+            <div className="mt-6 space-y-4">
+              <ReviewItem label="Wellness Goal" value={formatLabel(wellnessGoal)} />
+              <ReviewItem label="Consultation Reason" value={formData.journey_goal || "lose 5kg"} />
+              <ReviewItem label="Diet Preference" value={formatLabel(formData.diet_restriction || "vegetarian")} />
+              <ReviewItem label="Allergies & Restrictions" value={formData.allergies || "peanuts"} />
+              <ReviewItem label="Lifestyle & Activity" value={formatLabel(formData.lifestyle_activity || "moderate")} />
+              <ReviewItem label="Focus Area" value={formatLabel(focusArea)} />
+              <ReviewItem label="Additional Notes" value={formData.additional_message || "Need help"} />
+            </div>
+          </section>
+
+          <section className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
+            <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Session Overview</h2>
+            <div className="mt-6 flex items-center justify-between text-sm">
+              <span className="text-[#4B5563]">Consultation Fee</span>
+              <span className="font-semibold text-[#0A4833]">$75</span>
+            </div>
+            <div className="mt-6 rounded-lg bg-[#EBE1CF] p-4">
+              <h3 className="font-medium text-[#0A4833]">What to Expect</h3>
+              <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-[#4B5563]">
+                <li>Personalized nutrition assessment</li>
+                <li>Buckwheat integration strategies</li>
+                <li>Custom meal planning guidance</li>
+                <li>Follow-up recommendations</li>
+              </ul>
+            </div>
+          </section>
+        </div>
+
+        <aside className="h-max rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
+          <div className="text-center">
+            <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#EBE1CF] text-[#9F8151]">
+              <CalendarCheck2 className="h-7 w-7" />
+            </span>
+            <h3 className="mt-4 text-lg font-semibold leading-7 text-[#0A4833]">
+              Your Expert Session is Almost Booked
+            </h3>
+            <p className="mt-3 text-sm leading-5 text-[#4B5563]">
+              You&apos;ll receive updates and reminders in your dashboard. Get personalized nutrition guidance tailored
+              to your health goals.
+            </p>
+          </div>
+
+          <div className="mt-6 space-y-3">
+            <SidebarRow label="Expert" value={expertName} />
+            <SidebarRow label="Date" value={displayDate} />
+            <SidebarRow label="Time" value={displayTime} />
+            <SidebarRow label="Goal" value={formatLabel(selectedGoal || formData.primary_goal)} />
+            <SidebarRow label="Language" value={formatLabel(selectedLanguage || formData.language)} />
+            <SidebarRow label="Session Type" value={sessionType || "Video Call"} />
+          </div>
+
+          <div className="mt-6">
+            <p className="text-sm font-medium text-[#0A4833]">Verify your OTP</p>
+            <p className="mt-1 text-xs leading-4 text-[#6B7280]">
+              6 Digit otp number sent to your mail . Please verify your OTP.
+            </p>
+            <div className="mt-3 flex gap-1.5">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={index === 0 ? onToggleAgreement : undefined}
+                  className={`h-12 w-[52px] rounded-lg border ${
+                    index === 0 && isAgreed ? "border-[#0A4833] bg-[#EBE1CF]" : "border-transparent bg-[#C9C9C9]"
+                  }`}
+                  aria-label={`OTP digit ${index + 1}`}
+                />
+              ))}
+            </div>
+            <label className="mt-3 flex items-center gap-2 text-xs text-[#4B5563]">
+              <input type="checkbox" checked={isAgreed} onChange={onToggleAgreement} className="h-4 w-4 accent-[#0A4833]" />
+              I confirm all details are correct.
+            </label>
+          </div>
+
+          <div className="mt-5 space-y-3">
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={!isAgreed || isSubmitting}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#0A4833] text-base font-medium text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Check className="h-4 w-4" /> {isSubmitting ? "Booking..." : "Confirm Booking"}
+            </button>
+            <button
+              type="button"
+              onClick={onBack}
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#F3F4F6] text-base font-medium text-[#374151]"
+            >
+              <ArrowLeft className="h-4 w-4" /> Back
+            </button>
+          </div>
+
+          <div className="mt-6 border-t border-[#DFDFDF] pt-5">
+            <p className="flex gap-2 text-xs leading-4 text-[#6B7280]">
+              <Shield className="mt-0.5 h-3 w-3 shrink-0 text-[#9F8151]" />
+              Your consultation is protected by our wellness commitment. Cancel or reschedule up to 24 hours before your
+              session.
+            </p>
+            <p className="mt-3 flex items-center gap-2 text-xs text-[#16A34A]">
+              <CheckCircle2 className="h-3.5 w-3.5" /> Payload ready as formData
+            </p>
+          </div>
+        </aside>
       </div>
     </section>
   );
 }
+
+export type { ConsultationFormData };
