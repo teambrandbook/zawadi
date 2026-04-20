@@ -28,6 +28,14 @@ export default function Product() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [resizeKey, setResizeKey] = useState(0);
+
+  // Force re-calculation on resize to prevent "shattering"
+  useGSAP(() => {
+    const handleResize = () => setResizeKey(prev => prev + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, { scope: containerRef });
 
   const next = () => {
     if (isAnimating) return;
@@ -44,73 +52,64 @@ export default function Product() {
 
     const cards = containerRef.current.querySelectorAll(".story-card");
     const texts = containerRef.current.querySelectorAll(".story-text");
-    
+
     if (!cards.length || !texts.length) return;
 
     const mm = gsap.matchMedia();
-    
+
     mm.add({
       sm: "(max-width: 767px)",
       md: "(min-width: 768px) and (max-width: 1023px)",
       lg: "(min-width: 1024px)",
     }, (context) => {
       const { sm, md } = context.conditions as any;
-      
-      const spreadX = sm ? 45 : md ? 55 : 60; 
-      const baseScale = sm ? 0.75 : 0.7;      
+
+      const spreadX = sm ? 30 : 38;
+      const baseScale = sm ? 0.8 : 0.75;
 
       setIsAnimating(true);
+      const numProducts = products.length;
 
       cards.forEach((card, i) => {
         const text = texts[i];
-        
-        let pos = i - activeIndex;
-        if (pos > 1) pos -= products.length;
-        if (pos < -1) pos += products.length;
 
-        let xPercent = -50; 
-        let opacity = 0;
+        let stackPos = (i - activeIndex + numProducts) % numProducts;
+
         let scale = 1;
+        let y = 0;
+        let opacity = 0;
         let zIndex = 10;
+        let xPercent = -50;
+        let rotate = 0;
+        let filter = "brightness(1)";
 
-        if (pos === 0) {
-          xPercent = -50;
-          opacity = 1;
-          scale = 1;
-          zIndex = 50;
-        } else if (pos === 1) {
-          xPercent = spreadX - 50;
-          opacity = 0.4;
-          scale = baseScale;
-          zIndex = 20;
-        } else if (pos === -1) {
-          xPercent = -spreadX - 50;
-          opacity = 0.4;
-          scale = baseScale;
-          zIndex = 20;
-        } else {
-            opacity = 0;
-            zIndex = 10;
+        if (stackPos === 0) {
+          xPercent = -50; scale = 1; opacity = 1; zIndex = 50; filter = "brightness(1)";
+        } else if (stackPos === 1) {
+          xPercent = -44; scale = 0.96; opacity = 0.8; zIndex = 40; filter = "brightness(0.4)";
+        } else if (stackPos === 2) {
+          xPercent = -38; scale = 0.92; opacity = 0.4; zIndex = 30; filter = "brightness(0.2)";
         }
 
         gsap.to(card, {
           xPercent,
-          opacity,
+          y: 0,
           scale,
+          opacity,
           zIndex,
-          duration: 1.2,
-          ease: "expo.inOut",
-          onComplete: () => {
-              setIsAnimating(false);
-          },
+          rotate: 0,
+          filter,
+          duration: 0.9,
+          ease: "expo.out",
+          onComplete: () => setIsAnimating(false),
           overwrite: "auto"
         });
 
         gsap.to(text, {
-          opacity: pos === 0 ? 1 : 0,
-          y: pos === 0 ? 0 : 20,
-          duration: 0.8,
-          ease: "power2.inOut",
+          opacity: stackPos === 0 ? 1 : 0,
+          y: stackPos === 0 ? 0 : 20,
+          duration: 0.5,
+          ease: "power2.out",
           overwrite: true
         });
       });
@@ -118,7 +117,7 @@ export default function Product() {
 
     return () => mm.revert();
 
-  }, [activeIndex]);
+  }, [activeIndex, resizeKey]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -137,10 +136,10 @@ export default function Product() {
   };
 
   return (
-    <section 
-        className="px-0 py-10 md:py-16 overflow-hidden bg-white"
+    <section
+      className="px-0 py-10 md:py-16 overflow-hidden bg-white"
     >
-      <div 
+      <div
         ref={containerRef}
         className="max-w-[1400px] mx-auto py-20 px-6 md:px-12 lg:px-24 bg-[#B19468] min-h-[600px] md:min-h-[800px] relative flex flex-col justify-between"
         onTouchStart={handleTouchStart}
@@ -148,7 +147,7 @@ export default function Product() {
       >
         {/* Title Top Left */}
         <div className="w-full">
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-boldonse font-light text-[#EAE3D2] mb-0">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-boldonse font-light text-[#EAE3D2] mb-0">
             Our Product
           </h2>
         </div>

@@ -84,13 +84,13 @@ export default function StoryGrid() {
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
 
                                 {/* Number */}
-                                <span className="relative z-20 font-display text-4xl md:text-6xl font-light text-[#EAE3D2] tracking-tighter leading-none">
+                                <span className="relative z-20 font-display text-3xl md:text-[3rem] font-light text-[#EAE3D2] tracking-tighter leading-none md:mt-5">
                                     {story.id}
                                 </span>
 
                                 {/* Text Content */}
                                 <div className="relative z-20 flex flex-col gap-3 pt-3">
-                                    <h3 className="font-display text-lg md:text-xl font-light text-[#EAE3D2] tracking-tight">
+                                    <h3 className="font-display text-lg md:text-xl font-light text-[#EAE3D2] tracking-tight mb-5 ">
                                         {story.title}
                                     </h3>
 

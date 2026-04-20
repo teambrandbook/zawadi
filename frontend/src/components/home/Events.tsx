@@ -70,7 +70,7 @@ export default function Events() {
                         ease: "power3.inOut",
                         scrollTrigger: {
                             trigger: leftEl,
-                            start: "top top",
+                            start: "top 85%",
                             once: true
                         }
                     });
@@ -132,12 +132,12 @@ export default function Events() {
     return (
         <section ref={containerRef} className="relative h-[400vh] bg-white">
             <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
-                <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-full md:h-auto lg:h-[75vh] items-center py-10 lg:py-0">
+                <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-full md:h-auto lg:h-[75vh] items-center py-10 md:pt-32 lg:py-0">
 
                     {/* LEFT */}
-                    <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] w-full text-left">
-                        <div className="events-left-content">
-                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#0A4834] mb-8 tracking-tighter leading-[1.7]">
+                    <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] w-full text-left py-4 md:py-6 lg:py-8">
+                        <div className="events-left-content lg:-mt-24">
+                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#0A4834] mb-8 tracking-tighter leading-tight">
                                 The Experience of Zewadi
                             </h2>
                             <p className="font-mulish text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
@@ -195,8 +195,8 @@ With Zewadi, even the simplest choices become experiences worth holding on to.
                     </div>
 
                     {/* CARDS */}
-                    <div className="col-span-12 lg:col-span-6 flex flex-col relative h-[360px] md:h-[400px] lg:h-[420px] overflow-hidden items-center max-w-[440px] mx-auto w-full mt-12 lg:mt-0">
-                        <div ref={cardContainerRef} className="w-full flex flex-col items-center">
+                    <div className="col-span-12 lg:col-span-6 flex flex-col relative h-[360px] md:h-[400px] lg:h-[420px] overflow-hidden items-center max-w-[440px] mx-auto w-full mt-24 lg:-mt-32">
+                        <div ref={cardContainerRef} className="w-full flex flex-col items-center justify-center">
                             {eventItems.map((item, index) => (
                                 <EventCard key={item.id} item={item} index={index} />
                             ))}

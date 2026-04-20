@@ -45,7 +45,7 @@ export default function UpcomingEvents() {
             y: -100,
             duration: 1.4,
             ease: "power3.inOut"
-        }, "+=0.6"); // Sequential gap of 2 seconds from start - approximately
+        }, "+=0.4"); // Sequential gap of 2 seconds from start - approximately
 
     }, { scope: sectionRef });
 
@@ -71,9 +71,9 @@ export default function UpcomingEvents() {
                         <Image src="/events/event-4.webp" alt="Event 4" fill priority className="object-cover transition-transform duration-1000 group-hover:scale-110 ease-out" />
                         <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/20 transition-colors duration-700"></div>
                         
-                        <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6">
-                            <div className="flex flex-col gap-3">
-                                <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
+                        <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6 pr-2 md:pr-4">
+                            <div className="flex flex-col gap-3 text-left">
+                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.1] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
                                 <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
@@ -81,8 +81,8 @@ export default function UpcomingEvents() {
                                 </p>
                             </div>
 
-                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
-                                Read More
+                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish font-light text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
+                                Join Now
                             </button>
                         </div>
                     </div>
@@ -92,9 +92,9 @@ export default function UpcomingEvents() {
                         <Image src="/events/event-5.webp" alt="Event 5" fill className="object-cover transition-transform duration-1000 group-hover:scale-110 ease-out" />
                         <div className="absolute inset-0 bg-black/40 z-0 group-hover:bg-black/20 transition-colors duration-700"></div>
                         
-                        <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6">
-                            <div className="flex flex-col gap-3">
-                                <h3 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-white leading-[1.5] tracking-tighter mb-4">
+                        <div className="relative z-10 flex flex-col md:flex-row items-end justify-between w-full gap-6 pr-2 md:pr-4">
+                            <div className="flex flex-col gap-3 text-left">
+                                <h3 className="font-display text-2xl md:text-2xl lg:text-4xl font-light text-white leading-[1.1] tracking-tighter mb-4">
                                     Upcoming <br /> Events
                                 </h3>
                                 <p className="font-mulish text-white/90 text-sm md:text-base font-bold tracking-tight opacity-70">
@@ -102,8 +102,8 @@ export default function UpcomingEvents() {
                                 </p>
                             </div>
 
-                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
-                                Read More
+                            <button className="px-6 py-3 bg-[#0A4834] rounded-full hover:brightness-110 transition-all shadow-xl text-white font-mulish font-light text-[11px] md:text-xs font-black uppercase tracking-wider shrink-0 active:scale-95">
+                                Join Now
                             </button>
                         </div>
                     </div>
