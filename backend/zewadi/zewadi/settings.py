@@ -34,6 +34,8 @@ INSTALLED_APPS = [
     "supperadmin",
     "consultant",
     "communityuser",
+    "orders",
+    "events",
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -118,6 +120,18 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,       # Issue new refresh token on each refresh
+    "BLACKLIST_AFTER_ROTATION": True,    # Blacklist old refresh token after rotation
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 AUTH_PASSWORD_VALIDATORS = [

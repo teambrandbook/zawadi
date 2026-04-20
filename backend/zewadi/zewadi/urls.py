@@ -21,8 +21,14 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/account/',include('accounts.urls')),
+    path('api/account/', include('accounts.urls')),
     path('api/supperadmin/', include('supperadmin.urls')),
+    path('api/products/', include('product.urls')),
+    path('api/orders/', include('orders.urls')),
+    path('api/recipes/', include('recipes.urls')),
+    path('api/consultant/', include('consultant.urls')),
+    path('api/blog/', include('blog.urls')),
+    path('api/events/', include('events.urls')),
 ]
 
 if settings.DEBUG:

@@ -4,7 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import api from "@/services/api";
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,16 +17,7 @@ export default function LoginComponent() {
   e.preventDefault();
 
   try {
-    const res = await axios.post(
-      "http://localhost:8000/api/account/login/",
-      {
-        email,
-        password,
-      },
-      {
-        withCredentials: true, // ⭐ MUST
-      }
-    );
+    const res = await api.post("/account/login/", { email, password });
 
     const data = res.data.data;
 
@@ -119,7 +110,7 @@ export default function LoginComponent() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                       type="email"
                       placeholder="name@company.com"
-                      className="h-[44px] w-full rounded-lg border border-gray-300 px-4 text-sm focus:border-[#0a4833] outline-none transition"
+                      className="h-[44px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
                     />
                   </div>
 
@@ -134,7 +125,7 @@ export default function LoginComponent() {
                         required
                         type={showPassword ? "text" : "password"}
                         placeholder="********"
-                        className="h-[44px] w-full rounded-lg border border-gray-300 px-4 pr-10 text-sm focus:border-[#0a4833] outline-none transition"
+                        className="h-[44px] w-full rounded-lg border border-gray-300 px-4 pr-10 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
                       />
                       <button
                         type="button"

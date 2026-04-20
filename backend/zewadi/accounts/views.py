@@ -84,25 +84,33 @@ class RefreshAPIView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
+            new_access = str(refresh.access_token)
+            # ROTATE_REFRESH_TOKENS=True — calling str() on access_token rotates the refresh
+            new_refresh = str(refresh)
 
-            response = Response({
-                "message": "Token refreshed"
-            })
+            response = Response({"message": "Token refreshed"})
 
-            # 🔐 Update access token cookie
             response.set_cookie(
                 key="access_token",
-                value=access_token,
+                value=new_access,
+                httponly=False,   # JS-readable so frontend can attach as Bearer header
+                secure=False,     # Set True in production (HTTPS)
+                samesite="Lax",
+                max_age=30 * 60,  # 30 minutes, matches ACCESS_TOKEN_LIFETIME
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=new_refresh,
                 httponly=True,
-                secure=False,        # ⭐ change this
-                samesite="Lax", 
+                secure=False,     # Set True in production (HTTPS)
+                samesite="Lax",
+                max_age=7 * 24 * 60 * 60,  # 7 days
             )
 
             return response
 
         except Exception:
-            raise AuthenticationFailed("Invalid refresh token")
+            raise AuthenticationFailed("Invalid or expired refresh token")
 
 
 class LogoutAPIView(APIView):
