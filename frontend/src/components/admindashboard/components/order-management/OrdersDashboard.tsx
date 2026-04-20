@@ -99,8 +99,11 @@ export default function OrdersDashboard() {
   const activeOrder = orders.find((o) => o.id === activeOrderId);
 
   return (
-    <section className="w-full bg-[#F3F4F6] p-4 lg:p-6">
-      <div className="mx-auto max-w-[1180px] space-y-4">
+    // Updated: p-4 for mobile, lg:p-6 for desktop. Added overflow-x-hidden.
+    <section className="w-full min-h-screen bg-white p-4 lg:p-6 overflow-x-hidden">
+      {/* Updated: Added w-full and max-w-screen-xl to prevent stretching issues */}
+      <div className="mx-auto max-w-[1180px] w-full space-y-6">
+        
         <OrdersHeader
           search={search}
           onSearchChange={(value) => {
@@ -111,7 +114,11 @@ export default function OrdersDashboard() {
           onExport={handleExport}
         />
 
-        <OrderStats />
+        {/* Stats and Filters usually handle their own grid internally, 
+            but ensure they are wrapped if they don't have built-in spacing */}
+        <div className="w-full overflow-hidden">
+            <OrderStats />
+        </div>
 
         <OrderFilters
           status={status}
@@ -135,14 +142,19 @@ export default function OrdersDashboard() {
           }}
         />
 
-        <RecentOrdersTable
-          rows={paged}
-          page={safePage}
-          perPage={perPage}
-          total={filtered.length}
-          onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
-          onOpenStatus={openStatusModal}
-        />
+        {/* Updated: Wrapper for the table to enable horizontal scroll on small screens */}
+        <div className="w-full overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
+            <div className="min-w-[800px] lg:min-w-full">
+                <RecentOrdersTable
+                    rows={paged}
+                    page={safePage}
+                    perPage={perPage}
+                    total={filtered.length}
+                    onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+                    onOpenStatus={openStatusModal}
+                />
+            </div>
+        </div>
       </div>
 
       <OrderStatusModal

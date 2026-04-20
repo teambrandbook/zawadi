@@ -1,13 +1,12 @@
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator
 from django.db import models
 
 
-class AccessLevel(models.TextChoices):
-    LOW = "low", "Low Access"
-    MEDIUM = "medium", "Medium Access"
-    HIGH = "high", "High Access"
-    FULL = "full", "Full Access"
+ACCESS_LEVEL_CHOICES = (
+    ("low", "Low Access"),
+    ("medium", "Medium Access"),
+    ("high", "High Access"),
+    ("full", "Full Access"),
+)
 
 
 class RoleStatus(models.TextChoices):
@@ -28,13 +27,24 @@ class PermissionModule(models.TextChoices):
     REPORTS = "reports", "Reports"
 
 
+class AccessLevel(models.TextChoices):
+    LOW = "low", "Low Access"
+    MEDIUM = "medium", "Medium Access"
+    HIGH = "high", "High Access"
+    FULL = "full", "Full Access"
+
+
 
 
 
 class Role(models.Model):
     role_name = models.CharField(max_length=60, unique=True)
     role_status = models.CharField(max_length=20, choices=RoleStatus.choices, default=RoleStatus.ACTIVE)
-
+    access_level = models.CharField(
+        max_length=20,
+        choices=AccessLevel.choices,
+        default=AccessLevel.LOW,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
