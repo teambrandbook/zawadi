@@ -64,8 +64,8 @@ export default function Product() {
     }, (context) => {
       const { sm, md } = context.conditions as any;
 
-      const spreadX = sm ? 30 : 38;
-      const baseScale = sm ? 0.8 : 0.75;
+      const spreadX = sm ? 32 : md ? 42 : 48; // Calibrated for responsive fanning
+      const baseScale = sm ? 0.75 : 0.8;
 
       setIsAnimating(true);
       const numProducts = products.length;
@@ -73,22 +73,43 @@ export default function Product() {
       cards.forEach((card, i) => {
         const text = texts[i];
 
-        let stackPos = (i - activeIndex + numProducts) % numProducts;
+        let pos = i - activeIndex;
+        if (pos > 1) pos -= numProducts;
+        if (pos < -1) pos += numProducts;
 
-        let scale = 1;
-        let y = 0;
-        let opacity = 0;
-        let zIndex = 10;
         let xPercent = -50;
-        let rotate = 0;
-        let filter = "brightness(1)";
+        let opacity = 0;
+        let scale = 1;
+        let zIndex = 10;
+        let rotationY = 0;
+        let z = 0;
 
-        if (stackPos === 0) {
-          xPercent = -50; scale = 1; opacity = 1; zIndex = 50; filter = "brightness(1)";
-        } else if (stackPos === 1) {
-          xPercent = -44; scale = 0.96; opacity = 0.8; zIndex = 40; filter = "brightness(0.4)";
-        } else if (stackPos === 2) {
-          xPercent = -38; scale = 0.92; opacity = 0.4; zIndex = 30; filter = "brightness(0.2)";
+        if (pos === 0) {
+          xPercent = -50; 
+          opacity = 1; 
+          scale = 1; 
+          zIndex = 50; 
+          rotationY = 0; 
+          z = 0;
+        } else if (pos === 1) {
+          xPercent = spreadX - 50; 
+          opacity = 0.5; 
+          scale = baseScale; 
+          zIndex = 20; 
+          rotationY = -35; 
+          z = -200;
+        } else if (pos === -1) {
+          xPercent = -spreadX - 50; 
+          opacity = 0.5; 
+          scale = baseScale; 
+          zIndex = 20; 
+          rotationY = 35; 
+          z = -200;
+        } else {
+          opacity = 0;
+          zIndex = 10;
+          rotationY = pos > 0 ? -45 : 45;
+          z = -400;
         }
 
         gsap.to(card, {
@@ -97,18 +118,18 @@ export default function Product() {
           scale,
           opacity,
           zIndex,
-          rotate: 0,
-          filter,
-          duration: 0.9,
+          rotationY,
+          z,
+          duration: 1.2,
           ease: "expo.out",
           onComplete: () => setIsAnimating(false),
           overwrite: "auto"
         });
 
         gsap.to(text, {
-          opacity: stackPos === 0 ? 1 : 0,
-          y: stackPos === 0 ? 0 : 20,
-          duration: 0.5,
+          opacity: pos === 0 ? 1 : 0,
+          y: pos === 0 ? 0 : 20,
+          duration: 0.6,
           ease: "power2.out",
           overwrite: true
         });
