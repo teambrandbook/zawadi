@@ -1,57 +1,49 @@
 "use client";
 
 import Image from "next/image";
-import { useRef, useEffect } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function Health() {
     const containerRef = useRef<HTMLDivElement>(null);
     const leftRef = useRef<HTMLDivElement>(null);
     const rightRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    useGSAP(() => {
         if (!containerRef.current || !leftRef.current || !rightRef.current) return;
 
-        // ✅ Register plugin here (safe)
-        gsap.registerPlugin(ScrollTrigger);
+        // Left animation
+        gsap.from(leftRef.current, {
+            opacity: 0,
+            x: -50,
+            duration: 0.8,
+            ease: "power2.out",
+            scrollTrigger: {
+                trigger: leftRef.current,
+                start: "top 85%",
+                once: true,
+            }
+        });
 
-        // ✅ GSAP context (important)
-        const ctx = gsap.context(() => {
+        // Right animation
+        gsap.from(rightRef.current, {
+            opacity: 0,
+            x: 200,
+            duration: 1.2,
+            ease: "power3.out",
+            delay: 0.2,
+            scrollTrigger: {
+                trigger: rightRef.current,
+                start: "top 85%",
+                once: true,
+            }
+        });
 
-            // Left animation
-            gsap.from(leftRef.current, {
-                opacity: 0,
-                x: -50,
-                duration: 0.8,
-                ease: "power2.out",
-                scrollTrigger: {
-                    trigger: leftRef.current,
-                    start: "top 85%",
-                    once: true,
-                }
-            });
-
-            // Right animation
-            gsap.from(rightRef.current, {
-                opacity: 0,
-                x: 200,
-                duration: 1.2,
-                ease: "power3.out",
-                delay: 0.2,
-                scrollTrigger: {
-                    trigger: rightRef.current,
-                    start: "top 85%",
-                    once: true,
-                }
-            });
-
-        }, containerRef);
-
-        // ✅ Cleanup (very important)
-        return () => ctx.revert();
-
-    }, []);
+    }, { scope: containerRef });
 
     return (
         <section
