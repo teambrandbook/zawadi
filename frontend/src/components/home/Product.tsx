@@ -28,6 +28,14 @@ export default function Product() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [resizeKey, setResizeKey] = useState(0);
+
+  // Force re-calculation on resize to prevent "shattering"
+  useGSAP(() => {
+    const handleResize = () => setResizeKey(prev => prev + 1);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, { scope: containerRef });
 
   const next = () => {
     if (isAnimating) return;
@@ -44,73 +52,71 @@ export default function Product() {
 
     const cards = containerRef.current.querySelectorAll(".story-card");
     const texts = containerRef.current.querySelectorAll(".story-text");
-    
+
     if (!cards.length || !texts.length) return;
 
     const mm = gsap.matchMedia();
-    
+
     mm.add({
       sm: "(max-width: 767px)",
       md: "(min-width: 768px) and (max-width: 1023px)",
       lg: "(min-width: 1024px)",
     }, (context) => {
       const { sm, md } = context.conditions as any;
-      
-      const spreadX = sm ? 45 : md ? 55 : 60; 
-      const baseScale = sm ? 0.75 : 0.7;      
+
+      const spreadX = sm ? 32 : md ? 42 : 48; // Calibrated for responsive fanning
+      const baseScale = sm ? 0.75 : 0.8;
 
       setIsAnimating(true);
+      const numProducts = products.length;
 
       cards.forEach((card, i) => {
         const text = texts[i];
-        
-        let pos = i - activeIndex;
-        if (pos > 1) pos -= products.length;
-        if (pos < -1) pos += products.length;
 
-        let xPercent = -50; 
-        let opacity = 0;
+        let pos = i - activeIndex;
+        if (pos > 1) pos -= numProducts;
+        if (pos < -1) pos += numProducts;
+
         let scale = 1;
+        let opacity = 0;
         let zIndex = 10;
+        let rotationY = 0;
+        let z = 0;
+        let x = 0;
+
+        const spread = sm ? 160 : md ? 220 : 260; // Absolute pixel offsets for stability
+        const baseScale = sm ? 0.75 : 0.8;
 
         if (pos === 0) {
-          xPercent = -50;
-          opacity = 1;
-          scale = 1;
-          zIndex = 50;
+          x = 0; opacity = 1; scale = 1; zIndex = 50; rotationY = 0; z = 0;
         } else if (pos === 1) {
-          xPercent = spreadX - 50;
-          opacity = 0.4;
-          scale = baseScale;
-          zIndex = 20;
+          x = spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = -25; z = -180;
         } else if (pos === -1) {
-          xPercent = -spreadX - 50;
-          opacity = 0.4;
-          scale = baseScale;
-          zIndex = 20;
+          x = -spread; opacity = 0.5; scale = baseScale; zIndex = 20; rotationY = 25; z = -180;
         } else {
-            opacity = 0;
-            zIndex = 10;
+          x = pos > 0 ? spread * 1.5 : -spread * 1.5; opacity = 0; zIndex = 10; rotationY = pos > 0 ? -35 : 35; z = -350;
         }
 
         gsap.to(card, {
-          xPercent,
-          opacity,
+          x,
+          xPercent: -50, // This ensures the card is centered on its absolute anchor (50% left)
+          y: 0,
           scale,
+          opacity,
           zIndex,
-          duration: 1.2,
-          ease: "expo.inOut",
-          onComplete: () => {
-              setIsAnimating(false);
-          },
+          rotationY,
+          z,
+          duration: 1.4,
+          ease: "expo.out",
+          onComplete: () => setIsAnimating(false),
           overwrite: "auto"
         });
 
         gsap.to(text, {
           opacity: pos === 0 ? 1 : 0,
           y: pos === 0 ? 0 : 20,
-          duration: 0.8,
-          ease: "power2.inOut",
+          duration: 0.6,
+          ease: "power2.out",
           overwrite: true
         });
       });
@@ -118,7 +124,7 @@ export default function Product() {
 
     return () => mm.revert();
 
-  }, [activeIndex]);
+  }, [activeIndex, resizeKey]);
 
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStart(e.targetTouches[0].clientX);
@@ -137,10 +143,10 @@ export default function Product() {
   };
 
   return (
-    <section 
-        className="px-0 py-10 md:py-16 overflow-hidden bg-white"
+    <section
+      className="px-0 py-10 md:py-16 overflow-hidden bg-white"
     >
-      <div 
+      <div
         ref={containerRef}
         className="max-w-[1400px] mx-auto py-20 px-6 md:px-12 lg:px-24 bg-[#B19468] min-h-[600px] md:min-h-[800px] relative flex flex-col justify-between"
         onTouchStart={handleTouchStart}
@@ -148,20 +154,24 @@ export default function Product() {
       >
         {/* Title Top Left */}
         <div className="w-full">
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-boldonse font-light text-[#EAE3D2] mb-0">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-boldonse font-light text-[#EAE3D2] mb-0">
             Our Product
           </h2>
         </div>
 
-        {/* Carousel Zone - Refined spacing */}
-        <div className="relative w-full flex justify-center items-center h-[280px] md:h-[380px] lg:h-[480px] z-20 mt-12 md:mt-16 lg:mt-24">
+        {/* Carousel Zone - Fixed positioning for perspective */}
+        <div 
+          className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] z-20 mt-12 md:mt-16 lg:mt-24"
+          style={{ perspective: "1500px" }}
+        >
           {products.map((product, idx) => {
             const isCenter = idx === activeIndex;
             return (
               <div
                 key={product.id}
                 onClick={() => !isCenter && setActiveIndex(idx)}
-                className={`story-card absolute left-1/2 w-44 md:w-60 lg:w-[24rem] aspect-[4/5] rounded-sm will-change-transform flex flex-col items-center ${!isCenter ? "cursor-pointer" : ""}`}
+                className={`story-card absolute top-1/2 left-1/2 w-44 md:w-60 lg:w-[24rem] aspect-[4/5] rounded-sm will-change-transform flex flex-col items-center -translate-y-1/2 ${!isCenter ? "cursor-pointer" : ""}`}
+                style={{ transformStyle: "preserve-3d" }}
               >
                 <div className="relative w-full h-full overflow-hidden rounded-sm shadow-2xl">
                   <Image

@@ -8,7 +8,7 @@ export default function Hero() {
                 {/* Header */}
                 <div className="text-center max-w-3xl mb-12 md:mb-16">
                     <h1 className="font-display text-3xl md:text-4xl lg:text-5xl font-light text-black mb-8 tracking-tight leading-none">
-                        Zewadi Events
+                        ZEWADI Events
                     </h1>
                     <p className="font-mulish text-[#555] text-sm md:text-lg leading-relaxed max-w-2xl mx-auto">
                         At Zewadi, every event is more than just an occasion - it’s an experience. A space where community, wellness, and meaningful moments come together.
@@ -20,9 +20,17 @@ export default function Hero() {
 
                     {/* Top Controls Row */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-6 w-full px-2">
-                        <span className="font-mulish text-[#0A4834] text-base md:text-xl font-bold tracking-tight text-center md:text-left">
+                        <span className="font-mulish text-[#0A4834] text-base md:text-xl font-light tracking-tight text-center md:text-left">
                             The moments that connect us
                         </span>
+                        <div className="flex items-center gap-3">
+                            <button className="px-6 md:px-8 py-2 md:py-3 bg-[#0A4834] text-white rounded-full font-mulish text-xs md:text-sm font-semibold hover:bg-[#155a44] transition-all duration-300 shadow-sm uppercase tracking-wider">
+                                Previous
+                            </button>
+                            <button className="px-6 md:px-8 py-2 md:py-3 bg-[#0A4834] text-white rounded-full font-mulish text-xs md:text-sm font-semibold hover:bg-[#155a44] transition-all duration-300 shadow-sm uppercase tracking-wider">
+                                Next
+                            </button>
+                        </div>
                     </div>
 
                     {/* Media Card */}
@@ -39,7 +47,7 @@ export default function Hero() {
 
                         {/* Bottom Dark Bar - 35% Height */}
                         <div className="flex-none h-[35%] bg-[#0A4834] flex items-center justify-center p-6 md:px-12 text-center">
-                            <p className="font-mulish text-[#EAE3D2]/80 text-[10px] md:text-sm leading-relaxed max-w-2xl px-4 font-medium italic">
+                            <p className="font-mulish text-[#EBE1CF] text-[13px] md:text-xl lg:text-xl leading-relaxed max-w-3xl px-4 font-light">
                                 Zewadi events aren’t just gatherings. They’re spaces where people come together, connect, and try something new. 
                             </p>
                         </div>

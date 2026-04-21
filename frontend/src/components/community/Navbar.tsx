@@ -46,11 +46,11 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
       <div className="relative w-full max-w-[90rem] mx-3 ">
 
         {/* Navbar */}
-        <div className={`relative h-20 ${bgColor} rounded-b-2xl shadow-xl flex items-center justify-between px-4 md:px-8 lg:px-12`}>
+        <div className={`relative h-20 ${bgColor} rounded-b-2xl shadow-xl flex items-center px-4 md:px-8 lg:px-12`}>
 
           {/* Left Links */}
           <div
-            className="hidden md:flex gap-3 lg:gap-6 items-center md:pr-12 lg:pr-20"
+            className="hidden md:flex flex-1 justify-end gap-3 lg:gap-6 items-center pr-4 lg:pr-8"
             onMouseLeave={() => setIsPagesOpen(false)}
             onClick={() => setIsPagesOpen(false)}
           >
@@ -120,21 +120,36 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               </button>
 
               {isUserMenuOpen && (
-                <div className="absolute left-0 top-10 w-40 bg-[#0A4834] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+                <div className="absolute left-0 top-10 w-48 bg-[#0A4834] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
                   <Link
                     href="/login"
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setIsUserMenuOpen(false)}
                     className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish text-center"
                   >
                     Login
                   </Link>
+                  <div className="border-t border-white/10 mt-1 pt-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleLang();
+                      }}
+                      className="w-full flex items-center justify-between px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish transition-colors"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Globe size={14} />
+                        Lang
+                      </span>
+                      <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">{lang}</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Mobile left placeholder */}
-          <div className="md:hidden w-10"></div>
+          {/* Spacer for Centered Logo */}
+          <div className="w-24 md:w-40 flex-shrink-0" />
 
           <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
             <Link
@@ -156,7 +171,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           </div>
 
           {/* Right Links */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-6 xl:gap-8 md:pl-12 lg:pl-20">
+          <div className="hidden md:flex flex-1 justify-start items-center gap-3 lg:gap-6 xl:gap-8 pl-4 lg:pl-8">
             {navLinksRight.map((link) => (
               <Link
                 key={link.name}
@@ -166,14 +181,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
                 {link.name}
               </Link>
             ))}
-
-            <button
-              onClick={toggleLang}
-              className={`flex items-center gap-2 rounded-full  ${bgColor} px-3 py-1.5 text-white shadow-md hover:bg-[#174c3b] transition`}
-            >
-              <Globe size={16} />
-              <span className="text-sm font-medium">{lang}</span>
-            </button>
 
             <div className="relative ml-2 pl-4 border-l border-white/20 h-6 flex items-center">
               <button
@@ -188,10 +195,25 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               {isUserMenuOpen && (
                 <>
                   <div className="fixed inset-0 z-40" onClick={() => setIsUserMenuOpen(false)} />
-                  <div className={`absolute right-0 top-12 w-40 ${bgColor} border border-white/10 rounded-xl shadow-2xl py-2 z-50`}>
-                    <Link href="/communitLogin" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish">
+                  <div className={`absolute right-0 top-12 w-48 ${bgColor} border border-white/10 rounded-xl shadow-2xl py-2 z-50`}>
+                    <Link href="/communitLogin" className="block px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish" onClick={() => setIsUserMenuOpen(false)}>
                       Login
                     </Link>
+                    <div className="border-t border-white/10 mt-1 pt-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleLang();
+                        }}
+                        className="w-full flex items-center justify-between px-6 py-3 text-white hover:bg-white/10 text-xs uppercase font-bold font-mulish transition-colors"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Globe size={14} />
+                          Language
+                        </span>
+                        <span className="bg-white/20 px-2 py-0.5 rounded text-[10px]">{lang}</span>
+                      </button>
+                    </div>
                   </div>
                 </>
               )}
@@ -200,13 +222,6 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
 
           {/* Mobile right controls */}
           <div className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-            <button
-              onClick={toggleLang}
-              className={`flex items-center gap-1.5 rounded-full ${bgColor} px-3 py-1.5 text-white shadow-md hover:bg-[#174c3b] transition border border-white/10`}
-            >
-              <Globe size={14} />
-              <span className="text-xs font-medium">{lang}</span>
-            </button>
  
             <button onClick={() => setIsOpen(!isOpen)} className="text-white p-1 hover:bg-white/10 rounded-lg transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

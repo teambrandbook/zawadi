@@ -4,7 +4,7 @@ export const recipes = [
     title: "SAVOURY BUCKWHEAT PORRIDGE",
     description:
       "Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.",
-    image: "/product/product-5.webp",
+    image: "/product/recipe-1.webp",
     benefits: [
       "Rich in nutrients and naturally gluten-free",
       "Supports digestion and gut health",
@@ -20,7 +20,7 @@ export const recipes = [
     title: "BUCKWHEAT CHILLA",
     description:
       "Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it's a delicious option for breakfast or a healthy snack.",
-    image: "/recipe/recipe-2.webp",
+    image: "/product/recipe-2.webp",
     benefits: [
       "Rich in plant-based protein and fiber",
       "Naturally gluten-free and easy to digest",
@@ -54,7 +54,7 @@ export const recipes = [
     title: "BUCKWHEAT GRANOLA MIX",
     description:
       "Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it's a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.",
-    image: "/recipe/recipe-4.webp",
+    image: "/product/recipe-4.webp",
     benefits: [
       "Rich in fiber for improved digestion",
       "Packed with healthy fats from nuts and seeds",
@@ -74,7 +74,7 @@ export const recipeDetaila = {
   "buckwheat-chilla": {
     title: "BUCKWHEAT <br /> CHILLA",
     description: "Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it's a delicious option for breakfast or a healthy snack.",
-    image: "/recipe/recipe-6.webp",
+    image: "/product/recipe-2.webp",
     nutrition: [
       { label: "Calories", value: "180g" },
       { label: "Fat", value: "4g" },
@@ -115,7 +115,7 @@ export const recipeDetaila = {
   "buckwheat-granola": {
     title: "BUCKWHEAT <br /> GRANOLA MIX",
     description: "Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it's a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.",
-    image: "/recipe/recipe-4.webp",
+    image: "/product/recipe-4.webp",
     nutrition: [
       { label: "Calories", value: "288g" },
       { label: "Fat", value: "5g" },
@@ -136,7 +136,7 @@ export const recipeDetaila = {
   "buckwheat-soup": {
     title: "SAVOURY <br /> BUCKWHEAT PORRIDGE",
     description: "Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.",
-    image: "/product/product-5.webp",
+    image: "/product/recipe-1.webp",
     nutrition: [
       { label: "Calories", value: "210g" },
       { label: "Fat", value: "3g" },
