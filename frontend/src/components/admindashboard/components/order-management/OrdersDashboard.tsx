@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
 import OrdersHeader from "./components/OrdersHeader";
 import OrderStats from "./components/OrderStats";
@@ -20,20 +21,28 @@ type Order = {
   avatar: string;
 };
 
-const allOrders: Order[] = [
-  { id: "ZW-2024-001", customer: "Sarah Johnson", email: "sarah.j@email.com", product: "Organic Buckwheat Flour", pack: "2kg Pack", date: "Dec 28, 2024", amount: "$45.99", status: "Processing", payment: "Pending", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-002", customer: "Michael Chen", email: "m.chen@email.com", product: "Buckwheat Groats", pack: "1kg Pack", date: "Dec 27, 2024", amount: "$29.99", status: "Delivered", payment: "Paid", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-003", customer: "Emma Wilson", email: "emma.w@email.com", product: "Buckwheat Pancake Mix", pack: "500g Pack", date: "Dec 26, 2024", amount: "$19.99", status: "Shipped", payment: "Paid", avatar: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-004", customer: "Noah Patel", email: "noah.p@email.com", product: "Buckwheat Noodles", pack: "1kg Pack", date: "Dec 25, 2024", amount: "$24.49", status: "Packed", payment: "Paid", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-005", customer: "Sophia Lee", email: "sophia.l@email.com", product: "Buckwheat Cookies", pack: "400g Pack", date: "Dec 24, 2024", amount: "$14.99", status: "Out for Delivery", payment: "Paid", avatar: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-006", customer: "David Kim", email: "david.k@email.com", product: "Buckwheat Flour", pack: "5kg Pack", date: "Dec 23, 2024", amount: "$79.90", status: "Processing", payment: "Pending", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-007", customer: "Ava Brown", email: "ava.b@email.com", product: "Buckwheat Pasta", pack: "750g Pack", date: "Dec 22, 2024", amount: "$21.75", status: "Shipped", payment: "Paid", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-008", customer: "Liam Scott", email: "liam.s@email.com", product: "Buckwheat Granola", pack: "600g Pack", date: "Dec 21, 2024", amount: "$17.60", status: "Delivered", payment: "Paid", avatar: "https://images.unsplash.com/photo-1528892952291-009c663ce843?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-009", customer: "Mia Taylor", email: "mia.t@email.com", product: "Buckwheat Energy Bar", pack: "12 pcs", date: "Dec 20, 2024", amount: "$12.80", status: "Packed", payment: "Paid", avatar: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-010", customer: "Ethan Ray", email: "ethan.r@email.com", product: "Buckwheat Mix", pack: "3kg Pack", date: "Dec 19, 2024", amount: "$39.00", status: "Processing", payment: "Refunded", avatar: "https://images.unsplash.com/photo-1542204625-de293a3b0b7b?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-011", customer: "Olivia Stone", email: "olivia.s@email.com", product: "Buckwheat Tea", pack: "20 bags", date: "Dec 18, 2024", amount: "$11.50", status: "Out for Delivery", payment: "Paid", avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&h=100&fit=crop&crop=face" },
-  { id: "ZW-2024-012", customer: "James Cole", email: "james.c@email.com", product: "Buckwheat Crackers", pack: "300g Pack", date: "Dec 17, 2024", amount: "$9.95", status: "Delivered", payment: "Paid", avatar: "https://images.unsplash.com/photo-1552058544-f2b08422138a?w=100&h=100&fit=crop&crop=face" },
-];
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiOrder(item: Record<string, any>, index: number): Order {
+  return {
+    id: String(item.order_id ?? item.id ?? `ORD-${index + 1}`),
+    customer: String(item.full_name ?? item.customer_name ?? item.customer ?? "Unknown"),
+    email: String(item.email ?? ""),
+    product: String(item.product_name ?? item.product ?? "—"),
+    pack: String(item.pack ?? item.variant ?? ""),
+    date: item.created_at
+      ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : String(item.date ?? ""),
+    amount: item.total_amount != null ? `$${parseFloat(item.total_amount).toFixed(2)}` : String(item.amount ?? "$0.00"),
+    status: String(item.status ?? "Pending"),
+    payment:
+      item.payment_method === "Refunded" || item.payment_status === "refunded"
+        ? "Refunded"
+        : item.payment_method === "Pending" || item.payment_status === "pending"
+        ? "Pending"
+        : "Paid",
+    avatar: String(item.avatar ?? item.customer_avatar ?? ""),
+  };
+}
 
 function toCsv(rows: Order[]) {
   const header = ["Order ID", "Customer", "Email", "Product", "Pack", "Date", "Amount", "Status", "Payment"];
@@ -42,7 +51,9 @@ function toCsv(rows: Order[]) {
 }
 
 export default function OrdersDashboard() {
-  const [orders, setOrders] = useState<Order[]>(allOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [payment, setPayment] = useState("Payment Status");
@@ -52,10 +63,36 @@ export default function OrdersDashboard() {
   const [modalOpen, setModalOpen] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState("");
 
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      const res = await api.get("/orders/admin/");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw: Record<string, any>[] = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.results)
+        ? res.data.results
+        : [];
+      setOrders(raw.map(mapApiOrder));
+    } catch {
+      setFetchError("Failed to load orders");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
   const filtered = useMemo(() => {
     return orders.filter((o) => {
       const q = search.toLowerCase();
-      const bySearch = o.id.toLowerCase().includes(q) || o.customer.toLowerCase().includes(q) || o.product.toLowerCase().includes(q);
+      const bySearch =
+        o.id.toLowerCase().includes(q) ||
+        o.customer.toLowerCase().includes(q) ||
+        o.product.toLowerCase().includes(q);
       const byStatus = status === "All Status" || o.status === status;
       const byPayment = payment === "Payment Status" || o.payment === payment;
       const orderTime = new Date(o.date).getTime();
@@ -91,19 +128,22 @@ export default function OrdersDashboard() {
     setModalOpen(true);
   }
 
-  function saveStatus(nextStatus: string) {
-    setOrders((prev) => prev.map((o) => (o.id === activeOrderId ? { ...o, status: nextStatus } : o)));
-    setModalOpen(false);
+  async function saveStatus(nextStatus: string) {
+    try {
+      await api.patch(`/orders/admin/${activeOrderId}/status/`, { status: nextStatus });
+      setOrders((prev) => prev.map((o) => (o.id === activeOrderId ? { ...o, status: nextStatus } : o)));
+    } catch {
+      window.alert("Failed to update order status. Please try again.");
+    } finally {
+      setModalOpen(false);
+    }
   }
 
   const activeOrder = orders.find((o) => o.id === activeOrderId);
 
   return (
-    // Updated: p-4 for mobile, lg:p-6 for desktop. Added overflow-x-hidden.
     <section className="w-full min-h-screen bg-white p-4 lg:p-6 overflow-x-hidden">
-      {/* Updated: Added w-full and max-w-screen-xl to prevent stretching issues */}
       <div className="mx-auto max-w-[1180px] w-full space-y-6">
-        
         <OrdersHeader
           search={search}
           onSearchChange={(value) => {
@@ -114,11 +154,25 @@ export default function OrdersDashboard() {
           onExport={handleExport}
         />
 
-        {/* Stats and Filters usually handle their own grid internally, 
-            but ensure they are wrapped if they don't have built-in spacing */}
         <div className="w-full overflow-hidden">
-            <OrderStats />
+          <OrderStats />
         </div>
+
+        {isLoading && (
+          <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">
+            Loading orders...
+          </div>
+        )}
+        {fetchError && (
+          <div className="rounded-xl border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm text-[#B91C1C]">
+            {fetchError}
+          </div>
+        )}
+        {!isLoading && !fetchError && orders.length === 0 && (
+          <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#6B7280]">
+            No orders found.
+          </div>
+        )}
 
         <OrderFilters
           status={status}
@@ -142,18 +196,17 @@ export default function OrdersDashboard() {
           }}
         />
 
-        {/* Updated: Wrapper for the table to enable horizontal scroll on small screens */}
         <div className="w-full overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
-            <div className="min-w-[800px] lg:min-w-full">
-                <RecentOrdersTable
-                    rows={paged}
-                    page={safePage}
-                    perPage={perPage}
-                    total={filtered.length}
-                    onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
-                    onOpenStatus={openStatusModal}
-                />
-            </div>
+          <div className="min-w-[800px] lg:min-w-full">
+            <RecentOrdersTable
+              rows={paged}
+              page={safePage}
+              perPage={perPage}
+              total={filtered.length}
+              onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
+              onOpenStatus={openStatusModal}
+            />
+          </div>
         </div>
       </div>
 

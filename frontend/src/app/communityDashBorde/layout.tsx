@@ -18,6 +18,7 @@ export default function CommunityLayout({ children }: Props) {
       <div className="fixed top-0 left-0 w-full h-16 z-50 bg-white shadow">
         <Navbar onMenuClick={() => setIsOpen(true)} />
       </div>
+      
 
       {/* ✅ Desktop Sidebar */}
       <div className="hidden lg:block fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white border-r z-40">
