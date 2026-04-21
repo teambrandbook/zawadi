@@ -3,6 +3,8 @@
 import { useState } from "react";
 import AccountSettingsPanel from "./AccountSettingsPanel";
 import NotificationsPanel from "./NotificationsPanel";
+import PreferencesPanel from "./PreferencesPanel";
+import type { PreferencesPanelData } from "./PreferencesPanel";
 import PrivacyPanel from "./PrivacyPanel";
 import ProfileInformationPanel from "./ProfileInformationPanel";
 import SecurityPanel from "./SecurityPanel";
@@ -42,7 +44,7 @@ const initialNotificationCategories: NotificationCategory[] = [
   { id: "events", title: "Event Reminders", description: "Upcoming wellness events and workshops", enabled: true },
   { id: "consultations", title: "Consultation Reminders", description: "Upcoming nutritionist appointments", enabled: true },
   { id: "diet", title: "Diet Plan Updates", description: "New meal plans and dietary recommendations", enabled: false },
-  { id: "recipes", title: "Recipe Approval Notifications", description: "Updates on your submitted recipes", enabled: true, },
+  { id: "recipes", title: "Recipe Approval Notifications", description: "Updates on your submitted recipes", enabled: true },
   { id: "blog", title: "Blog Review Notifications", description: "Status updates on your blog posts", enabled: false },
   { id: "community", title: "Community Announcements", description: "Important updates from ZEWADI team", enabled: true },
   { id: "promos", title: "Promotional Updates", description: "Special offers and discounts", enabled: false },
@@ -114,6 +116,42 @@ const accountPrivacyControls: AccountPrivacyControl[] = [
   { id: "email", title: "Email visibility", description: "Show email on your public profile" },
   { id: "phone", title: "Phone number visibility", description: "Display phone number to community members" },
 ];
+
+const preferencesPanelData: PreferencesPanelData = {
+  wellnessInterests: [
+    { id: "weight-management", label: "Weight Management", icon: "weight", selected: true },
+    { id: "healthy-eating", label: "Healthy Eating", icon: "healthy" },
+    { id: "energy-boost", label: "Energy Boost", icon: "energy" },
+    { id: "digestive-health", label: "Digestive Health", icon: "digestive", selected: true },
+    { id: "lifestyle-wellness", label: "Lifestyle Wellness", icon: "lifestyle" },
+    { id: "fitness-support", label: "Fitness Support", icon: "fitness", selected: true },
+  ],
+  dietPreferences: [
+    { id: "vegetarian", label: "Vegetarian" },
+    { id: "vegan", label: "Vegan", selected: true },
+    { id: "gluten-free", label: "Gluten-Free" },
+    { id: "high-protein", label: "High Protein" },
+  ],
+  dashboardLayout: {
+    defaultView: "Card View",
+    preferredWidgets: [
+      { id: "daily-nutrition", label: "Daily Nutrition", selected: true },
+      { id: "recipe-recommendations", label: "Recipe Recommendations", selected: true },
+      { id: "community-activity", label: "Community Activity" },
+    ],
+  },
+  consultationSettings: {
+    preferredMethod: "video" as const,
+    preferredTime: "Morning (8-12 PM)",
+  },
+  contentPreferences: [
+    { id: "recipes", label: "Recipes", icon: "recipes", selected: true },
+    { id: "nutrition-tips", label: "Nutrition Tips", icon: "tips", selected: true },
+    { id: "community-blogs", label: "Community Blogs", icon: "blogs" },
+    { id: "event-updates", label: "Event Updates", icon: "events", selected: true },
+    { id: "wellness-articles", label: "Wellness Articles", icon: "articles" },
+  ],
+};
 
 export default function CommunitySettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
@@ -239,7 +277,7 @@ export default function CommunitySettingsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#F7F7F7] px-4 py-6 lg:px-8">
+    <main className="min-h-screen bg-white px-4 py-6 lg:px-8">
       <div className="mx-auto max-w-[1200px] space-y-6">
         <SettingsHeader />
 
@@ -281,6 +319,7 @@ export default function CommunitySettingsPage() {
                 onLogoutAllDevices={logoutAllDevices}
               />
             )}
+            {activeSection === "preferences" && <PreferencesPanel data={preferencesPanelData} />}
             {activeSection === "privacy" && (
               <PrivacyPanel
                 profileChoices={profileChoices}
@@ -304,9 +343,10 @@ export default function CommunitySettingsPage() {
               activeSection !== "account" &&
               activeSection !== "notifications" &&
               activeSection !== "security" &&
+              activeSection !== "preferences" &&
               activeSection !== "privacy" && (
-              <SettingsPlaceholderPanel title={activeSectionLabel} />
-            )}
+                <SettingsPlaceholderPanel title={activeSectionLabel} />
+              )}
             {statusMessage && (
               <div className="rounded-lg border border-[#D8C9AE] bg-[#F8F3E9] px-4 py-3 text-sm font-medium text-[#06402B]">
                 {statusMessage}

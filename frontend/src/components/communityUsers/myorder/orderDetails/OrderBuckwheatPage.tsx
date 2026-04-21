@@ -44,11 +44,7 @@ export default function OrderBuckwheatPage() {
     setDeliveryForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function placeOrder() {
-    if (!deliveryForm.fullName.trim() || !deliveryForm.address.trim()) {
-      setStatusMessage("Please enter name and delivery address before placing the order.");
-      return;
-    }
+  function placeOrder() { 
     router.push("/communityDashBorde/myorders/order-placed");
   }
 

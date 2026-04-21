@@ -47,7 +47,7 @@ export default function CommunityLayout({ children }: Props) {
       </div>
 
       {/* ✅ Main Content */}
-      <div className="pt-16 lg:pl-64 bg-gray-50 min-h-screen">
+      <div className="pt-16 lg:pl-64 bg-white min-h-screen">
         {children}
       </div>
     </div>

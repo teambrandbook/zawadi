@@ -45,8 +45,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
         {/* Welcome Greeting (Desktop Only) */}
         <div className="hidden lg:flex flex-col min-w-0 ml-4">
-          <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">Hi, Zara</h1>
-          <p className="text-sm text-gray-500 whitespace-nowrap">Welcome back to your health journey.</p>
+          <h1 className="text-xl font-bold text-[#0A4833] leading-tight truncate">Hai, Dr. Chen!</h1>
+          <p className="text-sm text-gray-500 whitespace-nowrap">Manage appointments, support clients, and guide healthier wellness journeys.</p>
         </div>
       </div>
 
@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
         {/* Notification Icon */}
         <Link
-          href="/communityDashBorde/notifications"
+          href="/consultant/notification"
           className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open notifications"
         >
@@ -77,12 +77,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         {/* Profile Info */}
         <div className="flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
           <div className="text-right mr-3 hidden lg:block">
-            <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">Zara Mehak</p>
-            <p className="text-xs text-gray-400 mt-1">Premium</p>
+            <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">Dr.Chen</p>
+            <p className="text-xs text-gray-400 mt-1">Counsultant</p>
           </div>
           <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs font-medium text-gray-600">ZM</span>
+              <span className="text-xs font-medium text-gray-600">DC</span>
             </div>
           </div>
         </div>

@@ -14,7 +14,7 @@ export type { BlogPost, WritingActivity } from "./blogTypes";
 
 export default function CommunityBlogPage({ posts, recentActivity }: Props) {
   return (
-    <main className="min-h-screen bg-[#F7F7F7] px-4 py-6 lg:px-8">
+    <main className="min-h-screen bg-white px-4 py-6 lg:px-8">
       <div className="mx-auto max-w-[1180px] space-y-5">
         <BlogHeader />
         <BlogStats />

@@ -35,7 +35,7 @@ const giftBoxSizes = [
 
 export default function CustomGiftsPage({ products }: Props) {
   return (
-    <main className="flex-1 p-8 bg-gray-50 min-h-screen">
+    <main className="flex-1 p-8 bg-white min-h-screen">
       <div className="max-w-7xl mx-auto space-y-6">
         <header className="rounded-lg border border-[#E8E8E8] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
