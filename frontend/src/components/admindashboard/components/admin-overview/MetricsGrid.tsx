@@ -11,6 +11,7 @@ import {
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import type { OverviewStats } from "./AdminOverviewDashboard";
 
 type MetricCardItem = {
   label: string;
@@ -23,18 +24,103 @@ type MetricCardItem = {
   iconColor: string;
 };
 
-const metrics: MetricCardItem[] = [
-  { label: "Total Users", value: "12,847", subText: "+12% from last month", Icon: Users, valueColor: "text-[#0A4833]", subTextColor: "text-[#22A34A]", iconBg: "bg-[#EAF1FF]", iconColor: "text-[#3B82F6]" },
-  { label: "Active Members", value: "8,942", subText: "+8% from last month", Icon: UserCheck, valueColor: "text-[#0A4833]", subTextColor: "text-[#22A34A]", iconBg: "bg-[#DCFCE7]", iconColor: "text-[#22C55E]" },
-  { label: "Total Orders", value: "3,256", subText: "+15% from last month", Icon: ShoppingCart, valueColor: "text-[#0A4833]", subTextColor: "text-[#22A34A]", iconBg: "bg-[#F4EFE5]", iconColor: "text-[#B0894F]" },
-  { label: "Revenue", value: "$47,892", subText: "+23% from last month", Icon: DollarSign, valueColor: "text-[#0A4833]", subTextColor: "text-[#22A34A]", iconBg: "bg-[#F3E8FF]", iconColor: "text-[#A855F7]" },
-  { label: "Pending Recipes", value: "12", subText: "Needs Review", Icon: CookingPot, valueColor: "text-[#B45309]", subTextColor: "text-[#EA580C]", iconBg: "bg-[#FFF2E2]", iconColor: "text-[#F97316]" },
-  { label: "Pending Blogs", value: "8", subText: "Awaiting Approval", Icon: RotateCcw, valueColor: "text-[#B45309]", subTextColor: "text-[#F59E0B]", iconBg: "bg-[#FEF9C3]", iconColor: "text-[#EAB308]" },
-  { label: "Today's Consultations", value: "24", subText: "6 Upcoming", Icon: Stethoscope, valueColor: "text-[#1D4ED8]", subTextColor: "text-[#2563EB]", iconBg: "bg-[#DBEAFE]", iconColor: "text-[#3B82F6]" },
-  { label: "Upcoming Events", value: "7", subText: "This Week", Icon: CalendarDays, valueColor: "text-[#0A4833]", subTextColor: "text-[#22A34A]", iconBg: "bg-[#DCFCE7]", iconColor: "text-[#22C55E]" },
-];
+function buildMetrics(stats: OverviewStats | null): MetricCardItem[] {
+  const fmt = (n: number | undefined | null) =>
+    n != null ? n.toLocaleString() : "—";
+  const fmtCurrency = (n: number | undefined | null) =>
+    n != null ? `$${n.toLocaleString()}` : "—";
 
-export default function MetricsGrid() {
+  return [
+    {
+      label: "Total Users",
+      value: fmt(stats?.total_users),
+      subText: "Registered members",
+      Icon: Users,
+      valueColor: "text-[#0A4833]",
+      subTextColor: "text-[#22A34A]",
+      iconBg: "bg-[#EAF1FF]",
+      iconColor: "text-[#3B82F6]",
+    },
+    {
+      label: "Active Members",
+      value: fmt(stats?.total_users),
+      subText: "Total registered",
+      Icon: UserCheck,
+      valueColor: "text-[#0A4833]",
+      subTextColor: "text-[#22A34A]",
+      iconBg: "bg-[#DCFCE7]",
+      iconColor: "text-[#22C55E]",
+    },
+    {
+      label: "Total Orders",
+      value: fmt(stats?.total_orders),
+      subText: "All time",
+      Icon: ShoppingCart,
+      valueColor: "text-[#0A4833]",
+      subTextColor: "text-[#22A34A]",
+      iconBg: "bg-[#F4EFE5]",
+      iconColor: "text-[#B0894F]",
+    },
+    {
+      label: "Revenue",
+      value: fmtCurrency(stats?.total_revenue),
+      subText: "Total revenue",
+      Icon: DollarSign,
+      valueColor: "text-[#0A4833]",
+      subTextColor: "text-[#22A34A]",
+      iconBg: "bg-[#F3E8FF]",
+      iconColor: "text-[#A855F7]",
+    },
+    {
+      label: "Total Products",
+      value: fmt(stats?.total_products),
+      subText: "In catalogue",
+      Icon: CookingPot,
+      valueColor: "text-[#B45309]",
+      subTextColor: "text-[#EA580C]",
+      iconBg: "bg-[#FFF2E2]",
+      iconColor: "text-[#F97316]",
+    },
+    {
+      label: "Consultations",
+      value: fmt(stats?.total_consultations),
+      subText: "Total bookings",
+      Icon: RotateCcw,
+      valueColor: "text-[#B45309]",
+      subTextColor: "text-[#F59E0B]",
+      iconBg: "bg-[#FEF9C3]",
+      iconColor: "text-[#EAB308]",
+    },
+    {
+      label: "Today's Consultations",
+      value: fmt(stats?.total_consultations),
+      subText: "Total",
+      Icon: Stethoscope,
+      valueColor: "text-[#1D4ED8]",
+      subTextColor: "text-[#2563EB]",
+      iconBg: "bg-[#DBEAFE]",
+      iconColor: "text-[#3B82F6]",
+    },
+    {
+      label: "Upcoming Events",
+      value: fmt(stats?.total_events),
+      subText: "Total events",
+      Icon: CalendarDays,
+      valueColor: "text-[#0A4833]",
+      subTextColor: "text-[#22A34A]",
+      iconBg: "bg-[#DCFCE7]",
+      iconColor: "text-[#22C55E]",
+    },
+  ];
+}
+
+type Props = {
+  stats: OverviewStats | null;
+};
+
+export default function MetricsGrid({ stats }: Props) {
+  const metrics = buildMetrics(stats);
+
   return (
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map(({ label, value, subText, Icon, valueColor, subTextColor, iconBg, iconColor }) => (

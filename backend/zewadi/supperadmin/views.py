@@ -7,6 +7,34 @@ from .utils.permissions import has_permission,IsAdminRole
 from .models import Role
 
 
+class AdminStatsAPIView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def get(self, request):
+        from orders.models import Order
+        from product.models import Product
+        from events.models import Event
+        from consultant.models import ConsultationBooking
+
+        total_users = User.objects.count()
+        total_orders = Order.objects.count()
+        total_products = Product.objects.count()
+        total_events = Event.objects.count()
+        total_consultations = ConsultationBooking.objects.count()
+        total_revenue = sum(
+            o.total_amount for o in Order.objects.filter(payment_status="paid")
+        ) or 0
+
+        return Response({
+            "total_users": total_users,
+            "total_orders": total_orders,
+            "total_products": total_products,
+            "total_events": total_events,
+            "total_consultations": total_consultations,
+            "total_revenue": float(total_revenue),
+        }, status=status.HTTP_200_OK)
+
+
 class UserListAPIView(APIView):
 
     def get(self, request):

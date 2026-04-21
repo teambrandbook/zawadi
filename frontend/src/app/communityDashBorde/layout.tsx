@@ -14,7 +14,7 @@ export default function CommunityLayout({ children }:Props) {
     <div className="min-h-screen flex flex-col">
 
       {/* Navbar (Top) */}
-      <Navbar />
+      <Navbar onMenuClick={() => {}} />
 
       {/* Main Section */}
       <div className="flex flex-1">
