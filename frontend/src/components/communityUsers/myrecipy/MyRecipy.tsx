@@ -90,7 +90,7 @@ export default function MyRecipy() {
     const router = useRouter();
 
     return (
-        <section className="w-full bg-[#F3F4F6] px-4 py-8 lg:px-8">
+        <section className="w-full bg-white px-4 py-8 lg:px-8">
             <div className="mx-auto max-w-[1120px] space-y-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>

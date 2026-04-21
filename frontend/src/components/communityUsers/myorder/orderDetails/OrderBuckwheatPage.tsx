@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import ProductDetails from "./ProductDetails";
 import PackSelector from "./PackSelector";
 import QuantitySelector from "./QuantitySelector";
@@ -27,6 +28,7 @@ const initialForm: DeliveryForm = {
 };
 
 export default function OrderBuckwheatPage() {
+  const router = useRouter();
   const [selectedPackId, setSelectedPackId] = useState(packOptions[1].id);
   const [quantity, setQuantity] = useState(1);
   const [deliveryForm, setDeliveryForm] = useState<DeliveryForm>(initialForm);
@@ -47,7 +49,7 @@ export default function OrderBuckwheatPage() {
       setStatusMessage("Please enter name and delivery address before placing the order.");
       return;
     }
-    setStatusMessage(`Order placed with ${paymentMethod === "cod" ? "Cash on Delivery" : "Online Payment"} successfully.`);
+    router.push("/communityDashBorde/myorders/order-placed");
   }
 
   return (
