@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import api from "@/services/api";
 import CreateEventActions from "./components/create-event/CreateEventActions";
 import CreateEventFormSections from "./components/create-event/CreateEventFormSections";
@@ -22,7 +23,7 @@ export default function CreateEventsPage() {
 
   async function handleSubmit() {
     if (!formData.title) {
-      window.alert("Event title is required.");
+      toast.error("Event title is required.");
       return;
     }
     setIsSubmitting(true);
@@ -38,7 +39,7 @@ export default function CreateEventsPage() {
       });
       router.push("/admindashboard/events");
     } catch {
-      window.alert("Failed to create event. Please check your inputs and try again.");
+      toast.error("Failed to create event. Please check your inputs and try again.");
     } finally {
       setIsSubmitting(false);
     }

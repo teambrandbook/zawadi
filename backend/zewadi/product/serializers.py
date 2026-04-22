@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Product, ProductVariant
+from zewadi.validators import validate_image_upload
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -45,6 +46,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     Used for create / update — accepts nested variants as writable input.
     """
     variants = ProductVariantSerializer(many=True, required=False)
+    image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
 
     class Meta:
         model = Product

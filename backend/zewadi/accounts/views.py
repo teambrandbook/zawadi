@@ -7,11 +7,13 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
+from .throttles import LoginRateThrottle, RegisterRateThrottle
 
 
 class RegisterAPIView(APIView):
     """Public endpoint — anyone can register as a community user."""
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -29,6 +31,7 @@ class RegisterAPIView(APIView):
     
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -75,6 +78,7 @@ class LoginAPIView(APIView):
     
 class RefreshAPIView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")

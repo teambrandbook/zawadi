@@ -1,21 +1,42 @@
+"use client";
+
 import Link from "next/link";
 import { CheckCircle2, Clock3, Download, FileText, Plus, Star, ThumbsUp } from "lucide-react";
 
-const primaryStats = [
-  { label: "Total Blogs", value: "1,247", note: "+12%", icon: FileText, noteColor: "text-[#16A34A]", iconWrap: "bg-[#EAF3EF]", iconColor: "text-[#0A4833]" },
-  { label: "Pending Review", value: "47", note: "Review", icon: Clock3, noteColor: "text-[#A1844F]", iconWrap: "bg-[#F7F3EA]", iconColor: "text-[#A1844F]" },
-  { label: "Published Blogs", value: "1,089", note: "Live", icon: CheckCircle2, noteColor: "text-[#16A34A]", iconWrap: "bg-[#EAF3EF]", iconColor: "text-[#16A34A]" },
-  { label: "Featured Blogs", value: "23", note: "Featured", icon: Star, noteColor: "text-[#A1844F]", iconWrap: "bg-[#F7F3EA]", iconColor: "text-[#A1844F]" },
-];
+type BlogRow = {
+  status: string;
+};
 
-const quickStats = [
-  { label: "Approved Blogs", value: "1,156", dot: "bg-[#22C55E]" },
-  { label: "Rejected Blogs", value: "34", dot: "bg-[#EF4444]" },
-  { label: "Draft Blogs", value: "91", dot: "bg-[#6B7280]" },
-  { label: "This Week", value: "28", dot: "bg-[#A1844F]" },
-];
+type Props = {
+  rows?: BlogRow[];
+};
 
-export default function BlogManagementHeaderStats() {
+export default function BlogManagementHeaderStats({ rows = [] }: Props) {
+  const total = rows.length;
+  const published = rows.filter((r) => r.status === "published" || r.status === "Approved").length;
+  const pending = rows.filter((r) => r.status === "pending" || r.status === "Pending").length;
+  const featured = rows.filter((r) => r.status === "featured").length;
+  const approved = published;
+  const rejected = rows.filter((r) => r.status === "rejected").length;
+  const draft = rows.filter((r) => r.status === "draft").length;
+
+  // One week ago rough estimate: we don't have timestamps from props, so show total pending
+  const thisWeek = pending;
+
+  const primaryStats = [
+    { label: "Total Blogs", value: total > 0 ? String(total) : "—", note: "+12%", icon: FileText, noteColor: "text-[#16A34A]", iconWrap: "bg-[#EAF3EF]", iconColor: "text-[#0A4833]" },
+    { label: "Pending Review", value: pending > 0 ? String(pending) : "—", note: "Review", icon: Clock3, noteColor: "text-[#A1844F]", iconWrap: "bg-[#F7F3EA]", iconColor: "text-[#A1844F]" },
+    { label: "Published Blogs", value: published > 0 ? String(published) : "—", note: "Live", icon: CheckCircle2, noteColor: "text-[#16A34A]", iconWrap: "bg-[#EAF3EF]", iconColor: "text-[#16A34A]" },
+    { label: "Featured Blogs", value: featured > 0 ? String(featured) : "—", note: "Featured", icon: Star, noteColor: "text-[#A1844F]", iconWrap: "bg-[#F7F3EA]", iconColor: "text-[#A1844F]" },
+  ];
+
+  const quickStats = [
+    { label: "Approved Blogs", value: approved > 0 ? String(approved) : "—", dot: "bg-[#22C55E]" },
+    { label: "Rejected Blogs", value: rejected > 0 ? String(rejected) : "—", dot: "bg-[#EF4444]" },
+    { label: "Draft Blogs", value: draft > 0 ? String(draft) : "—", dot: "bg-[#6B7280]" },
+    { label: "This Week", value: thisWeek > 0 ? String(thisWeek) : "—", dot: "bg-[#A1844F]" },
+  ];
+
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-start justify-between gap-2">

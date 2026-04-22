@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import api from "@/services/api";
 import AddProductActions from "./components/AddProductActions";
 import AddProductForm from "./components/AddProductForm";
@@ -25,7 +26,7 @@ export default function AddProductPage() {
 
   async function handleSubmit() {
     if (!formData.name || !formData.price) {
-      window.alert("Product name and price are required.");
+      toast.error("Product name and price are required.");
       return;
     }
     setIsSubmitting(true);
@@ -41,7 +42,7 @@ export default function AddProductPage() {
       });
       router.push("/admindashboard/products");
     } catch {
-      window.alert("Failed to create product. Please check your inputs and try again.");
+      toast.error("Failed to create product. Please check your inputs and try again.");
     } finally {
       setIsSubmitting(false);
     }

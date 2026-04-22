@@ -2,20 +2,42 @@
 
 import Image from "next/image";
 import { Check, ChefHat, CircleAlert, Eye, Filter, Globe, Plus, Search, ShieldAlert, Sparkles, Star, Upload, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import api from "@/services/api";
 
-const statCards = [
-  { title: "Total Recipes", value: "—", note: "", icon: ChefHat, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
-  { title: "Pending Review", value: "—", note: "Review", icon: CircleAlert, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
-  { title: "Approved Recipes", value: "—", note: "", icon: Check, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
-  { title: "Featured Recipes", value: "—", note: "Featured", icon: Star, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
-  { title: "Published Recipes", value: "—", note: "Live", icon: Globe, accent: "text-[#2563EB]", iconBg: "bg-[#EAF1FE]" },
-  { title: "Draft Recipes", value: "—", note: "Draft", icon: Upload, accent: "text-[#4B5563]", iconBg: "bg-[#F3F4F6]" },
-  { title: "Rejected Recipes", value: "—", note: "Rejected", icon: X, accent: "text-[#DC2626]", iconBg: "bg-[#FEEAEA]" },
-  { title: "New Submissions", value: "—", note: "This Week", icon: Sparkles, accent: "text-[#7C3AED]", iconBg: "bg-[#F2ECFF]" },
-];
+type StatCardDef = {
+  title: string;
+  value: string;
+  note: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  accent: string;
+  iconBg: string;
+};
+
+function buildStatCards(rows: RecipeRow[]): StatCardDef[] {
+  const total = rows.length;
+  const pending = rows.filter((r) => r.status === "pending" || r.status === "Pending").length;
+  const published = rows.filter((r) => r.status === "published").length;
+  const draft = rows.filter((r) => r.status === "draft").length;
+  const rejected = rows.filter((r) => r.status === "rejected").length;
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  return [
+    { title: "Total Recipes", value: String(total), note: "", icon: ChefHat, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
+    { title: "Pending Review", value: String(pending), note: "Review", icon: CircleAlert, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
+    { title: "Approved Recipes", value: String(published), note: "", icon: Check, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
+    { title: "Featured Recipes", value: "—", note: "Featured", icon: Star, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
+    { title: "Published Recipes", value: String(published), note: "Live", icon: Globe, accent: "text-[#2563EB]", iconBg: "bg-[#EAF1FE]" },
+    { title: "Draft Recipes", value: String(draft), note: "Draft", icon: Upload, accent: "text-[#4B5563]", iconBg: "bg-[#F3F4F6]" },
+    { title: "Rejected Recipes", value: String(rejected), note: "Rejected", icon: X, accent: "text-[#DC2626]", iconBg: "bg-[#FEEAEA]" },
+    { title: "New Submissions", value: String(pending), note: "This Week", icon: Sparkles, accent: "text-[#7C3AED]", iconBg: "bg-[#F2ECFF]" },
+  ];
+}
 
 type RecipeRow = {
   id: string;
@@ -131,12 +153,14 @@ export default function RecipesDashboard() {
     fetchRecipes();
   }, []);
 
+  const statCards = useMemo(() => buildStatCards(rows), [rows]);
+
   async function handleStatusChange(id: string, newStatus: string) {
     try {
       await api.patch(`/recipes/admin/${id}/status/`, { status: newStatus });
       setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
     } catch {
-      window.alert("Failed to update recipe status. Please try again.");
+      toast.error("Failed to update recipe status. Please try again.");
     }
   }
 

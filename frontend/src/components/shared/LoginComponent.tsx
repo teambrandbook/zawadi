@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import api from "@/services/api";
 
 export default function LoginComponent() {
@@ -32,7 +33,7 @@ export default function LoginComponent() {
 
   } catch (error: unknown) {
     console.log("Login error:", error);
-    alert("Login failed");
+    toast.error("Login failed. Please check your credentials.");
   }
 };
 

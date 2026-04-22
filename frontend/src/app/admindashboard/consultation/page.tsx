@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   Activity,
   Apple,
@@ -213,7 +214,7 @@ export default function AdminConsultationPage() {
       await api.patch(`/consultant/admin/bookings/${id}/status/`, { status: newStatus });
       setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: newStatus } : b)));
     } catch {
-      window.alert("Failed to update booking status. Please try again.");
+      toast.error("Failed to update booking status. Please try again.");
     }
   }
 

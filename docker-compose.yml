@@ -42,6 +42,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      - ./backend/zewadi:/app
       - media_files:/app/media
 
   # ── Next.js Frontend ────────────────────────────────────────────────────────

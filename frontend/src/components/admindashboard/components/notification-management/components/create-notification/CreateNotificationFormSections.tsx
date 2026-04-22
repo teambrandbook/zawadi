@@ -17,23 +17,20 @@ import {
 } from "lucide-react";
 
 const notificationTypes = [
-  { id: "announcement", label: "Announcement", Icon: Megaphone },
-  { id: "reminder", label: "Reminder", Icon: Clock3 },
-  { id: "alert", label: "Alert", Icon: TriangleAlert },
-  { id: "approval-update", label: "Approval Update", Icon: BadgeCheck },
-  { id: "promotional", label: "Promotional", Icon: Tag },
-  { id: "system-notice", label: "System Notice", Icon: Cog },
+  { id: "SYSTEM", label: "System Notice", Icon: Cog },
+  { id: "REMINDER", label: "Reminder", Icon: Clock3 },
+  { id: "ALERT", label: "Alert", Icon: TriangleAlert },
+  { id: "announcement", label: "Approval Update", Icon: BadgeCheck },
+  { id: "PROMOTIONAL", label: "Promotional", Icon: Tag },
+  { id: "system-notice", label: "Announcement", Icon: Megaphone },
 ];
 
-const audienceTypes = [
-  "All Users",
-  "Event Participants",
-  "Recipe Contributors",
-  "Blog Contributors",
-  "New Users",
-  "Inactive Users",
-  "Consultation Users",
-  "Custom Segment",
+const audienceOptions = [
+  { id: "ALL", label: "All Users" },
+  { id: "admin", label: "Admins" },
+  { id: "consultant", label: "Consultants" },
+  { id: "community_user", label: "Community Users" },
+  { id: "internal_staff", label: "Internal Staff" },
 ];
 
 const channels = [
@@ -43,11 +40,30 @@ const channels = [
   { id: "push", label: "Push", Icon: Smartphone },
 ];
 
-export default function CreateNotificationFormSections() {
-  // State to manage multiple selected delivery channels
+type Props = {
+  title?: string;
+  onTitleChange?: (v: string) => void;
+  body?: string;
+  onBodyChange?: (v: string) => void;
+  notificationType?: string;
+  onTypeChange?: (v: string) => void;
+  targetRole?: string;
+  onTargetRoleChange?: (v: string) => void;
+};
+
+export default function CreateNotificationFormSections({
+  title = "",
+  onTitleChange,
+  body = "",
+  onBodyChange,
+  notificationType = "SYSTEM",
+  onTypeChange,
+  targetRole = "ALL",
+  onTargetRoleChange,
+}: Props) {
   const [selectedChannels, setSelectedChannels] = useState<string[]>(["in-app"]);
 
-  const handleToggle = (id: string) => {
+  const handleToggleChannel = (id: string) => {
     setSelectedChannels((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
@@ -59,8 +75,24 @@ export default function CreateNotificationFormSections() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Basic Information</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <Field label="Notification Title" placeholder="Enter notification title" />
-          <Field label="Subject Line" placeholder="Short subject for email/push" />
+          <label className="block">
+            <p className="mb-1 text-[11px] text-[#0A4833] font-medium">Notification Title</p>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => onTitleChange?.(e.target.value)}
+              placeholder="Enter notification title"
+              className="h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+            />
+          </label>
+          <label className="block">
+            <p className="mb-1 text-[11px] text-[#0A4833] font-medium">Subject Line</p>
+            <input
+              type="text"
+              placeholder="Short subject for email/push"
+              className="h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+            />
+          </label>
           <SelectField label="Priority Level" value="Medium Priority" options={["Medium Priority", "High Priority", "Low Priority"]} />
           <SelectField label="Status" value="Draft" options={["Draft", "Scheduled", "Sent"]} />
         </div>
@@ -70,14 +102,20 @@ export default function CreateNotificationFormSections() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Notification Type</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-          {notificationTypes.map(({ id, label, Icon }, index) => (
-            <label key={id} className="block cursor-pointer">
-              <input type="radio" name="notification-type" defaultChecked={index === 0} className="peer sr-only" />
-              <span className="flex h-16 items-center gap-2 rounded-md border border-[#DFDFDF] bg-white px-3 text-left text-sm text-[#374151] transition peer-checked:border-[#9F8151] peer-checked:bg-[#F8F4EC] peer-checked:text-[#0A4833]">
-                <Icon size={15} className="text-current" />
-                {label}
-              </span>
-            </label>
+          {notificationTypes.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onTypeChange?.(id)}
+              className={`flex h-16 items-center gap-2 rounded-md border px-3 text-left text-sm transition ${
+                notificationType === id
+                  ? "border-[#9F8151] bg-[#F8F4EC] text-[#0A4833]"
+                  : "border-[#DFDFDF] bg-white text-[#374151]"
+              }`}
+            >
+              <Icon size={15} className="text-current" />
+              {label}
+            </button>
           ))}
         </div>
       </article>
@@ -86,8 +124,16 @@ export default function CreateNotificationFormSections() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Message Content</h2>
         <div className="mt-3 space-y-3">
-          <TextAreaField label="Preview Text (40-characters)" rows={2} placeholder="Short preview for notification cards" />
-          <TextAreaField label="Full Message" rows={5} placeholder="Write your complete notification message here..." />
+          <label className="block">
+            <p className="mb-1 text-[11px] text-[#0A4833] font-medium">Full Message</p>
+            <textarea
+              value={body}
+              onChange={(e) => onBodyChange?.(e.target.value)}
+              rows={5}
+              placeholder="Write your complete notification message here..."
+              className="w-full resize-none rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 py-2 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+            />
+          </label>
           <div className="grid gap-3 md:grid-cols-2">
             <Field label="CTA Button Text" placeholder="View Details" />
             <Field label="CTA Destination" placeholder="/dashboard/events" />
@@ -99,54 +145,48 @@ export default function CreateNotificationFormSections() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Target Audience</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-          {audienceTypes.map((item) => (
-            <label key={item} className="inline-flex items-center gap-2 rounded-md border border-[#DFDFDF] bg-white px-3 py-2 text-xs text-[#4B5563] cursor-pointer hover:bg-gray-50">
-              <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
-              {item}
-            </label>
+          {audienceOptions.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onTargetRoleChange?.(item.id)}
+              className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-xs transition ${
+                targetRole === item.id
+                  ? "border-[#9F8151] bg-[#F8F4EC] text-[#0A4833]"
+                  : "border-[#DFDFDF] bg-white text-[#4B5563] hover:bg-gray-50"
+              }`}
+            >
+              <span className={`h-2 w-2 rounded-full ${targetRole === item.id ? "bg-[#9F8151]" : "bg-[#D1D5DB]"}`} />
+              {item.label}
+            </button>
           ))}
-        </div>
-        <div className="mt-3 flex items-center justify-between text-xs">
-          <span className="text-[#0A4833]">Estimated Recipients: 2,847 users</span>
-          <button type="button" className="text-[#9F8151] font-medium">Advanced Targeting</button>
         </div>
       </article>
 
-      {/* Delivery Channels (FIXED SECTION) */}
+      {/* Delivery Channels */}
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833] mb-3">Delivery Channels</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {channels.map(({ id, label, Icon }) => {
             const isChecked = selectedChannels.includes(id);
-
             return (
               <div
                 key={id}
-                onClick={() => handleToggle(id)}
-                className={`
-                  relative flex flex-col items-center justify-center h-20 cursor-pointer rounded-lg border transition-all duration-200
-                  ${isChecked 
-                    ? "border-[#9F8151] bg-[#F8F4EC]" 
-                    : "border-[#DFDFDF] bg-white hover:border-gray-200"}
-                `}
+                onClick={() => handleToggleChannel(id)}
+                className={`relative flex flex-col items-center justify-center h-20 cursor-pointer rounded-lg border transition-all duration-200 ${
+                  isChecked ? "border-[#9F8151] bg-[#F8F4EC]" : "border-[#DFDFDF] bg-white hover:border-gray-200"
+                }`}
               >
-                {/* The Checkbox wrapper */}
                 <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <input
                     type="checkbox"
                     checked={isChecked}
                     readOnly
-                    className="h-4 w-4 rounded border-gray-300 text-[#007AFF] focus:ring-0 focus:ring-offset-0 transition-all"
+                    className="h-4 w-4 rounded border-gray-300 text-[#007AFF] focus:ring-0"
                   />
                 </div>
-
-                {/* The Content */}
                 <div className="flex flex-col items-center justify-center pl-4 select-none">
-                  <Icon 
-                    size={18} 
-                    strokeWidth={2.5}
-                    className={isChecked ? "text-[#9F8151]" : "text-[#6B7280]"} 
-                  />
+                  <Icon size={18} strokeWidth={2.5} className={isChecked ? "text-[#9F8151]" : "text-[#6B7280]"} />
                   <span className={`text-[11px] mt-1 font-semibold ${isChecked ? "text-[#0A4833]" : "text-[#4B5563]"}`}>
                     {label}
                   </span>
@@ -172,7 +212,6 @@ export default function CreateNotificationFormSections() {
             Schedule for Later
           </label>
         </div>
-
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <DateField label="Date" />
           <TimeField label="Time" />
@@ -220,19 +259,6 @@ function SelectField({ label, value, options }: { label: string; value: string; 
           <option key={item}>{item}</option>
         ))}
       </select>
-    </label>
-  );
-}
-
-function TextAreaField({ label, rows, placeholder }: { label: string; rows: number; placeholder: string }) {
-  return (
-    <label className="block">
-      <p className="mb-1 text-[11px] text-[#0A4833] font-medium">{label}</p>
-      <textarea
-        rows={rows}
-        placeholder={placeholder}
-        className="w-full resize-none rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 py-2 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
-      />
     </label>
   );
 }

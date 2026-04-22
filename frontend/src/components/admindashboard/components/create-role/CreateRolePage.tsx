@@ -4,6 +4,7 @@ import { useState } from "react";
 import BasicRoleInformationCard from "./components/BasicRoleInformationCard";
 import CreateRoleHeader from "./components/CreateRoleHeader";
 import PermissionsMatrixCard from "./components/PermissionsMatrixCard";
+import { toast } from "sonner";
 import api, { getAccessToken } from "@/services/api";
 
 const defaultPermissions = [
@@ -75,7 +76,7 @@ export default function CreateRolePage() {
         },
       });
 
-      alert("Role created successfully! ✅");
+      toast.success("Role created successfully.");
 
     } catch (err: any) {
       setError(err?.response?.data?.message || "Something went wrong!");

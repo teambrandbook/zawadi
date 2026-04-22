@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import api from "@/services/api";
 import ProductBulkActions from "./components/ProductBulkActions";
 import ProductFilters from "./components/ProductFilters";
@@ -46,6 +47,41 @@ function downloadCsv(fileName: string, rows: ProductRow[]) {
   URL.revokeObjectURL(url);
 }
 
+// Inline confirm dialog component
+function ConfirmDialog({
+  message,
+  onConfirm,
+  onCancel,
+}: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+        <p className="text-sm text-[#374151]">{message}</p>
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-md border border-[#D1D5DB] px-4 py-2 text-sm text-[#374151] hover:bg-[#F3F4F6]"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="rounded-md bg-[#DC2626] px-4 py-2 text-sm font-medium text-white hover:bg-[#B91C1C]"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ProductsDashboard() {
   const router = useRouter();
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -57,6 +93,7 @@ export default function ProductsDashboard() {
   const [sortBy, setSortBy] = useState("Newest First");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -123,29 +160,69 @@ export default function ProductsDashboard() {
     return products.filter((p) => selectedIds.includes(p.id));
   }
 
-  function changeVisibility() {
-    if (selectedIds.length === 0) return window.alert("Select at least one product.");
-    setProducts((prev) => prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: p.status === "Active" ? "Draft" : "Active" } : p)));
+  async function changeVisibility() {
+    if (selectedIds.length === 0) {
+      toast.warning("Select at least one product.");
+      return;
+    }
+    const toActive = products
+      .filter((p) => selectedIds.includes(p.id))
+      .map((p) => ({ id: p.id, newStatus: p.status === "Active" ? "inactive" : "active" }));
+
+    setProducts((prev) =>
+      prev.map((p) => (selectedIds.includes(p.id) ? { ...p, status: p.status === "Active" ? "Draft" : "Active" } : p))
+    );
+
+    try {
+      await Promise.all(
+        toActive.map(({ id, newStatus }) => api.patch(`/products/${id}/`, { product_status: newStatus }))
+      );
+      toast.success("Product visibility updated.");
+    } catch {
+      toast.error("Failed to update visibility. Changes may not be saved.");
+      fetchProducts();
+    }
   }
 
-  function markFeatured() {
-    if (selectedIds.length === 0) return window.alert("Select at least one product.");
+  async function markFeatured() {
+    if (selectedIds.length === 0) {
+      toast.warning("Select at least one product.");
+      return;
+    }
     setProducts((prev) => prev.map((p) => (selectedIds.includes(p.id) ? { ...p, featured: true } : p)));
+    try {
+      await Promise.all(selectedIds.map((id) => api.patch(`/products/${id}/`, { is_featured: true })));
+      toast.success("Products marked as featured.");
+    } catch {
+      toast.error("Failed to mark as featured. Changes may not be saved.");
+      fetchProducts();
+    }
   }
 
   async function archiveSelected() {
-    if (selectedIds.length === 0) return window.alert("Select at least one product.");
     try {
       await Promise.all(selectedIds.map((id) => api.delete(`/products/${id}/`)));
       setProducts((prev) => prev.filter((p) => !selectedIds.includes(p.id)));
       setSelectedIds([]);
+      setShowArchiveConfirm(false);
+      toast.success("Selected products deleted.");
     } catch {
-      window.alert("Failed to delete selected products. Please try again.");
+      setShowArchiveConfirm(false);
+      toast.error("Failed to delete selected products. Please try again.");
     }
   }
 
-  function toggleFeaturedRow(id: string) {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: !p.featured } : p)));
+  async function toggleFeaturedRow(id: string) {
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    const newFeatured = !product.featured;
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: newFeatured } : p)));
+    try {
+      await api.patch(`/products/${id}/`, { is_featured: newFeatured });
+    } catch {
+      toast.error("Failed to update featured status.");
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, featured: !newFeatured } : p)));
+    }
   }
 
   function applyQuickFilter(value: string) {
@@ -157,6 +234,14 @@ export default function ProductsDashboard() {
 
   return (
     <section className="w-full bg-white p-4 lg:p-6">
+      {showArchiveConfirm && (
+        <ConfirmDialog
+          message={`Are you sure you want to delete ${selectedIds.length} selected product(s)? This cannot be undone.`}
+          onConfirm={archiveSelected}
+          onCancel={() => setShowArchiveConfirm(false)}
+        />
+      )}
+
       <div className="mx-auto max-w-[1180px] space-y-4">
         <ProductsHeader
           query={query}
@@ -217,10 +302,19 @@ export default function ProductsDashboard() {
           onMarkFeatured={markFeatured}
           onExportSelected={() => {
             const rows = selectedRows();
-            if (rows.length === 0) return window.alert("Select at least one product.");
+            if (rows.length === 0) {
+              toast.warning("Select at least one product.");
+              return;
+            }
             downloadCsv("products-selected.csv", rows);
           }}
-          onArchive={archiveSelected}
+          onArchive={() => {
+            if (selectedIds.length === 0) {
+              toast.warning("Select at least one product.");
+              return;
+            }
+            setShowArchiveConfirm(true);
+          }}
         />
 
         <ProductsTable

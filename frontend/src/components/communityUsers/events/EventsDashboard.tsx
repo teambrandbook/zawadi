@@ -42,6 +42,7 @@ const mockUpcomingEvents = [
     joined: 18,
     date: 'March 15, 10:00 AM',
     icon: Heart,
+    detailsHref: '/communityDashBorde/events/wellness-workshop-mindful-eating',
     actions: ['Join Event']
   },
   {
@@ -54,6 +55,7 @@ const mockUpcomingEvents = [
     joined: 32,
     date: 'March 20, 6:00 PM',
     icon: Users,
+    detailsHref: '/communityDashBorde/events/community-recipe-sharing',
     actions: ['Join Event']
   }
 ];
@@ -84,7 +86,7 @@ const mockJoinedEvents = [
     dateDay: 'March 18',
     time: '7:00 PM',
     primaryAction: 'View Details',
-    detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass'
+    detailsHref: '/communityDashBorde/events/weekly-nutrition-q-and-a'
   }
 ];
 
