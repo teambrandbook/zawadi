@@ -154,7 +154,7 @@ export default function Product() {
       >
         {/* Title Top Left */}
         <div className="w-full">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-boldonse font-light text-[#EAE3D2] mb-0">
+          <h2 className="text-3xl md:text-4xl lg:text-7xl font-playfair font-semibold text-[#EAE3D2] mb-0">
             Our Product
           </h2>
         </div>

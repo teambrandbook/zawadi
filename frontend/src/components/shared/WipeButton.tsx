@@ -9,7 +9,7 @@ interface WipeButtonProps {
     href: string;
     label: string;
     className?: string;
-    variant?: "primary" | "beige";
+    variant?: "primary" | "beige" | "gray" | "gold";
     showIcon?: boolean;
 }
 
@@ -18,10 +18,12 @@ export default function WipeButton({ href, label, className = "", variant = "pri
 
     // Exact colors from the original design
     const isBeige = variant === "beige";
-    const bgClass = isBeige ? "bg-[#EAE3D2]" : "bg-[#0A4834]";
-    const textClass = isBeige ? "text-[#0A4834]" : "text-white";
-    const circleBgClass = isBeige ? "bg-[#0A4834]" : "bg-white";
-    const iconColor = isBeige ? "#EAE3D2" : "#0A4834";
+    const isGray = variant === "gray";
+    const isGold = variant === "gold";
+    const bgClass = isGray ? "bg-[#D9D9D9]" : isBeige ? "bg-[#EAE3D2]" : isGold ? "bg-[#D8C29A]" : "bg-[#0A4834]";
+    const textClass = (isBeige || isGray || isGold) ? "text-[#0A4834]" : "text-white";
+    const circleBgClass = (isBeige || isGray || isGold) ? "bg-[#0A4834]" : "bg-white";
+    const iconColor = isGray ? "#D9D9D9" : isBeige ? "#EAE3D2" : isGold ? "#D8C29A" : "#0A4834";
 
     const handleMouseEnter = () => {
         const scope = gsap.utils.selector(containerRef);

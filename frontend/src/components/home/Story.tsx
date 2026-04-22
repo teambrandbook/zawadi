@@ -5,10 +5,34 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
 const timelineItems = [
-    { id: 1, image: "/home/section4-1.webp", title: "Our Roots", desc: "Starting with a vision to connect everyone to fresh produce." },
-    { id: 2, image: "/home/section4-2.webp", title: "Growing Community", desc: "Expanding our network of local farmers and partners." },
-    { id: 3, image: "/home/section4-3.webp", title: "Sustainable Future", desc: "Implementing tech for zero-waste agriculture." },
-    { id: 4, image: "/home/section5-1.webp", title: "The Road Ahead", desc: "Building a healthier planet, one meal at a time." }
+    { 
+        id: 1, 
+        image: "/home/section4-1.webp", 
+        title: "", 
+        desc: "",
+        storyText: "Zewadi started with a simple thought—food should be more than just filling. It should bring people together, create small moments, and add meaning to daily life. That idea took root and kept growing, turning into more than we ever planned."
+    },
+    { 
+        id: 2, 
+        image: "/home/section4-2.webp", 
+        title: "", 
+        desc: "",
+        storyText: "Gifting, somewhere along the way, got a little too routine. We wanted to bring back the real feeling behind it. With Zewadi, gifting food turns intentional—it becomes something personal, not just something you pick up on the go."
+    },
+    { 
+        id: 3, 
+        image: "/home/section4-3.webp", 
+        title: "", 
+        desc: "",
+        storyText: "Zewadi grew up around people who care about how they live. They want balance but don’t want to make life complicated. It’s less about what you buy, and more about being part of something that’s genuinely getting better—with everyone involved.."
+    },
+    { 
+        id: 4, 
+        image: "/home/section5-1.webp", 
+        title: "", 
+        desc: "",
+        storyText: "Zewadi fits into your day without pressure. It naturally finds its place in your routines and habits, so living well feels right—not like a chore."
+    }
 ];
 
 export default function Story() {
@@ -78,14 +102,11 @@ export default function Story() {
                     
                     {/* Header Section */}
                     <div className="story-header text-center w-full max-w-4xl z-30">
-                        <h2 className="header-item font-display text-2xl md:text-4xl font-light text-[#000000] mb-4 tracking-tighter">
-                            Our Story
+                        <h2 className="header-item font-playfair text-2xl md:text-6xl font-semibold text-[#000000] mb-4 tracking-tighter uppercase">
+                            Where it began
                         </h2>
-                        <p className="header-item font-mulish text-[#555] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto">
-                            Zewadi began with a simple thought - that food should do more than just nourish.
- It should connect people, create moments,  become a meaningful part of everyday life.
- What started as an idea soon grew into a vision of building something deeper than just a food brand.
-
+                        <p key={activeIndex} className="font-mulish text-[#000000] text-xs md:text-sm leading-relaxed max-w-2xl mx-auto transition-all duration-700 ease-in-out opacity-100 min-h-[5rem] md:min-h-[3.5rem] animate-in fade-in slide-in-from-bottom-2 duration-1000">
+                            {timelineItems[activeIndex].storyText}
                         </p>
                     </div>
 
@@ -144,11 +165,11 @@ export default function Story() {
                                     }`}
                                 />
                                 {/* Label inside the active image */}
-                                {index === activeIndex && (
+                                {index === activeIndex && (item.title || item.desc) && (
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 md:p-12 animate-in fade-in zoom-in-95 duration-1000">
                                         <div className="mb-2 w-12 h-1 bg-white/30" />
-                                        <h3 className="text-white font-boldonse text-lg md:text-2xl font-light tracking-tight mb-4">{item.title}</h3>
-                                        <p className="text-white/80 font-mulish text-sm md:text-lg max-w-md leading-relaxed">{item.desc}</p>
+                                        {item.title && <h3 className="text-white font-boldonse text-lg md:text-2xl font-light tracking-tight mb-4">{item.title}</h3>}
+                                        {item.desc && <p className="text-white/80 font-mulish text-sm md:text-lg max-w-md leading-relaxed">{item.desc}</p>}
                                     </div>
                                 )}
                             </div>

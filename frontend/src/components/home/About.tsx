@@ -74,7 +74,7 @@ export default function About() {
                 {/* Row 1: Text Left, Large Image Right */}
                 <div className="about-row-1 grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-x-24 items-start">
                     <div className="flex flex-col gap-6 order-1 md:pt-4">
-                        <h2 className="row-1-text font-display text-4xl md:text-5xl font-light text-black leading-tight tracking-tighter">
+                        <h2 className="row-1-text font-playfair text-4xl md:text-6xl font-semibold text-black leading-tight tracking-tighter">
                             Zewadi Community
                         </h2>
                         <p className="row-1-text font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-md">
@@ -115,7 +115,7 @@ export default function About() {
 
                     <div className="flex flex-col gap-10 order-1 md:order-2 items-start">
                         <div className="flex flex-col gap-6">
-                            <h3 className="row-2-text font-display text-3xl md:text-5xl font-light text-black leading-[1.1] tracking-tighter">
+                            <h3 className="row-2-text font-playfair text-3xl md:text-6xl font-semibold text-black leading-[1.1] tracking-tighter">
                                 Eat Fresh. <br className="md:hidden" /> Live Well.
                             </h3>
                             <p className="row-2-text font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-[400px]">

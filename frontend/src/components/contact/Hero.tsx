@@ -1,17 +1,17 @@
 
 export default function Hero() {
     return (
-        <section className="mx-6 md:mx-12 lg:mx-24 rounded-3xl bg-[#EAE3D2] mt-44 py-24 px-8 md:px-24 lg:px-64 flex items-center justify-center">
+        <section className="mx-6 md:mx-12 lg:mx-24 rounded-3xl bg-[#D8C29A] mt-44 py-24 px-8 md:px-24 lg:px-64 flex items-center justify-center">
 
             {/* Form Container Card */}
             <div className="w-full max-w-3xl bg-[#0A4834] rounded-xl p-8 md:p-12 shadow-2xl">
 
                 {/* Header */}
                 <div className="flex flex-col gap-2 mb-10">
-                    <h1 className="font-display text-2xl md:text-3xl font-light text-white tracking-tight leading-tight mb-4">
+                    <h1 className="font-inter font-light text-2xl md:text-3xl font-semibold text-white tracking-tight leading-tight mb-4">
                         Send Us a Message
                     </h1>
-                    <p className="font-mulish text-white/70 text-sm md:text-base font-light">
+                    <p className="font-inter text-white/70 text-sm md:text-base font-light">
                         Fill out the form below and well get back to you within 24 hours
                     </p>
                 </div>
@@ -102,7 +102,7 @@ export default function Hero() {
                     {/* Submit Button */}
                     <button
                         type="submit"
-                        className="w-full h-12 mt-2 bg-[#E5E5E5] hover:bg-white text-[#2F4848] font-bold rounded-md transition-colors flex items-center justify-center gap-2 shadow-lg"
+                        className="w-full h-12 mt-2 bg-[#D8C29A] hover:bg-white text-[#2F4848] font-bold rounded-md transition-colors flex items-center justify-center gap-2 shadow-lg"
                     >
                         Send Message
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="transform rotate-45 translate-y-[1px]">

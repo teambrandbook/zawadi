@@ -137,10 +137,10 @@ export default function Events() {
                     {/* LEFT */}
                     <div className="col-span-12 lg:col-span-5 flex flex-col justify-center gap-8 md:gap-10 z-20 max-w-[440px] w-full text-left py-4 md:py-6 lg:py-8">
                         <div className="events-left-content lg:-mt-24">
-                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-[#000000] mb-8 tracking-tighter leading-[1.8]">
+                            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold text-[#000000] mb-8 tracking-tighter leading-[1.8]">
                                 The Experience of Zewadi
                             </h2>
-                            <p className="font-mulish text-[#555] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
+                            <p className="font-mulish text-[#000000] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
                                Every meal is more than just food - it’s a moment to share, connect, and remember.
 With Zewadi, even the simplest choices become experiences worth holding on to.
 
@@ -213,7 +213,7 @@ function EventCard({ item, index }: { item: any; index: number }) {
     return (
         <div className="w-full h-[360px] md:h-[400px] lg:h-[420px] flex-shrink-0 flex flex-col justify-center py-6 px-5 rounded-sm shadow-xl border border-black/5 bg-[#f5f5f5]">
             <div className="w-full max-w-lg mx-auto">
-                <h3 className="font-boldonse text-xs md:text-sm lg:text-lg font-light mb-4 tracking-tighter text-black">
+                <h3 className="font-playfair text-xs md:text-sm lg:text-3xl font-normal mb-4 tracking-tighter text-black">
                     {item.title}
                 </h3>
                 <p className="font-mulish text-[12px] md:text-[13px] mb-4 leading-relaxed line-clamp-2 text-[#555]">

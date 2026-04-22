@@ -26,12 +26,12 @@ export default function Hero() {
                 <div className="flex flex-col gap-6">
                     {/* Title */}
                     <div className="fade-text flex flex-col gap-2">
-                        <h1 className="font-boldonse text-3xl md:text-4xl lg:text-5xl font-light text-black tracking-tight leading-none mb-8">
+                        <h1 className="font-playfair text-3xl md:text-4xl lg:text-6xl font-semibold text-black tracking-tight leading-none mb-8">
                             Zewadi Community
                         </h1>
                         
                         {/* Static Paragraph */}
-                        <p className="font-mulish text-gray-600 text-sm md:text-base leading-relaxed max-w-sm">
+                        <p className="font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-sm">
                             The Zewadi community is rooted in simple, meaningful choices - choosing better ingredients, better habits, and a better way of living.
                         </p>
                     </div>
@@ -48,7 +48,7 @@ export default function Hero() {
 
                     {/* Secondary Text and Button */}
                     <div className="flex flex-col gap-8">
-                        <p className="font-mulish text-gray-600 text-sm md:text-base leading-relaxed max-w-md">
+                        <p className="font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-md">
                             It’s about people who care - about their health, their routines, and the impact of what they consume.  
                         </p>
 

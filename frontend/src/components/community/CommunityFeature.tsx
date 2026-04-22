@@ -23,7 +23,7 @@ export default function CommunityFeature() {
                 {/* Column 2: Title and Middle Image */}
                 <div className=" lg:col-span-4 flex flex-col gap-12">
                     <div className="img flex flex-col">
-                        <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light text-black leading-[1.3] tracking-tighter text-right">
+                        <h2 className="font-playfair text-2xl md:text-3xl lg:text-4xl font-semibold text-black leading-[1.3] tracking-tighter text-right">
                             Growing <br />Better, <br /> Together.
                         </h2>
                     </div>
@@ -41,10 +41,10 @@ export default function CommunityFeature() {
                         { title: "Everyday Inspiration", desc: "Small, everyday changes build up over time." }
                     ].map((feature, i) => (
                         <div key={i} className="img flex flex-col gap-2">
-                            <h3 className="font-mulish text-xl font-bold text-black uppercase">
+                            <h3 className="font-playfair text-xl font-semibold text-black uppercase">
                                 {feature.title}
                             </h3>
-                            <p className="font-mulish text-[#555] text-sm md:text-base leading-relaxed">
+                            <p className="font-inter font-light text-[#000000] text-sm md:text-base leading-relaxed">
                                 {feature.desc}
                             </p>
                         </div>

@@ -37,7 +37,7 @@ export const recipes = [
     title: "BUCKWHEAT PANCAKES",
     description:
       "Buckwheat pancakes are soft, wholesome pancakes made from a smooth buckwheat flour batter cooked on a flat pan. Naturally gluten-free and mildly nutty in flavor, they are a healthy and satisfying option for breakfast or a light meal.",
-    image: "/userdash/myrecipy/r1.webp",
+    image: "/recipe/pancake.png",
     benefits: [
       "Naturally gluten-free and easy to digest",
       "Rich in fiber for better digestion and fullness",
@@ -174,7 +174,7 @@ export const blogs = {
   "product-5": {
     title: "Sustainable farming and culture",
     description: "Highlighting the ingredients that make our dishes special.",
-    image: "/product/product-5.webp",
+    image: "/product/product-4.webp",
     content: [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "Discover how we source the best local ingredients. Supporting local farmers and sustainable produce is at the heart of our culinary philosophy. Each ingredient is carefully selected at the peak of its flavor.",

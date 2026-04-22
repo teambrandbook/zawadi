@@ -14,10 +14,10 @@ export default function Hero() {
 
                 {/* Centered Text Content */}
                 <div className="w-full max-w-4xl px-6 text-center z-10 mb-20">
-                    <h1 className="font-display text-4xl md:text-3xl lg:text-5xl font-light text-white mb-10 -mt-20 tracking-tight leading-[1.5]">
+                    <h1 className="font-playfair text-4xl md:text-3xl lg:text-5xl font-semibold text-[#D8C29A] mb-10 -mt-20 tracking-tight leading-[1.5]">
                         Quick Answers to Common Questions
                     </h1>
-                    <p className="font-mulish text-white/80 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
+                    <p className="font-inter text-[#D8C29A] text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
                         Bridging the gap between technology and agriculture to redefine your food experience.Amet minim mollit non deserunt ullamco est sit aliqua dolor do amet sint. Velit officia consequat duis enim velit mollit. Exercitation veniam consequat sunt nostrud amet.
                     </p>
                 </div>

@@ -24,10 +24,10 @@ export default function Bloges() {
 
             {/* Header */}
             <div className="fadecomponent text-center max-w-4xl mb-12 flex flex-col gap-6">
-              <h2 className="font-display text-3xl md:text-4xl font-light text-black tracking-tight leading-none mb-8">
+              <h2 className="font-playfair text-3xl md:text-4xl font-semibold text-black tracking-tight leading-none mb-8">
                 {blog.title}
               </h2>
-              <p className="font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
+              <p className="font-inter font-light text-[#000000] text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
                 {blog.description}
               </p>
             </div>
@@ -44,7 +44,7 @@ export default function Bloges() {
                 {blog.content.slice(0, 2).map((para, index) => (
                   <p
                     key={index}
-                    className="font-mulish text-[#555] text-sm md:text-base leading-relaxed"
+                    className="font-inter font-light text-[#000000] text-sm md:text-base leading-relaxed"
                   >
                     {para}
                   </p>

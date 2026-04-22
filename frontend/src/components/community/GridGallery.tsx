@@ -27,11 +27,11 @@ export default function GridGallery() {
                     </div>
 
                     {/* Item 2: Text (Top Center) */}
-                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-2 lg:order-none">
-                        <h3 className="font-display text-xl font-light text-white mb-6">
+                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#1F4D3A] p-8 text-center rounded-sm shadow-sm md:order-2 lg:order-none">
+                        <h3 className="font-playfair text-2xl font-semibold text-[#FFFAF2] mb-6">
                             More Than Just Food
                         </h3>
-                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                        <p className="font-inter text-[#FFFAF2] font-light text-sm leading-relaxed max-w-xs">
                            From everyday meals to mindful routines, Zewadi becomes a part of your life in ways that go beyond the plate.
                         </p>
                     </div>
@@ -42,11 +42,11 @@ export default function GridGallery() {
                     </div>
 
                     {/* Item 4: Text */}
-                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-3 lg:order-none">
-                        <h3 className="font-display text-xl font-light text-white mb-6">
+                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#1F4D3A] p-8 text-center rounded-sm shadow-sm md:order-3 lg:order-none">
+                        <h3 className="font-playfair text-2xl font-semibold text-[#FFFAF2] mb-6">
                             Growing, Inspiring, Evolving
                         </h3>
-                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                        <p className="font-inter font-light text-[#FFFAF2] text-sm leading-relaxed max-w-xs">
                            Together, we are building a space that inspires healthier living - one choice, one habit, one person at a time.
                         </p>
                     </div>
@@ -57,11 +57,11 @@ export default function GridGallery() {
                     </div>
 
                     {/* Item 6: Text */}
-                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#9F8151] p-8 text-center rounded-sm shadow-sm md:order-6 lg:order-none">
-                        <h3 className="font-display text-xl font-light text-white mb-6">
+                    <div className="item aspect-square flex flex-col items-center justify-center bg-[#1F4D3A] p-8 text-center rounded-sm shadow-sm md:order-6 lg:order-none">
+                        <h3 className="font-playfair text-2xl font-semibold text-[#FFFAF2] mb-6">
                             Built on Shared Values
                         </h3>
-                        <p className="font-mulish text-white/90 text-sm leading-relaxed max-w-xs">
+                        <p className="font-inter text-[#FFFAF2] font-light text-sm leading-relaxed max-w-xs">
                             The Zewadi community is rooted in simple, meaningful choices - choosing better ingredients, better habits, and a better way of living.
                         </p>
                     </div>
@@ -70,7 +70,7 @@ export default function GridGallery() {
 
                 {/* Bottom Description Text */}
                 <div className="w-full">
-                    <p className="fade-text font-mulish text-[#555] text-base leading-relaxed max-w-4xl">
+                    <p className="fade-text font-inter text-[#000000] text-base leading-relaxed max-w-4xl">
                         Zewadi goes beyond what we make. It’s about everyone who shows up and wants to be part of it—a growing community figuring out how to live a little better, in their own way.
                     </p>
                 </div>

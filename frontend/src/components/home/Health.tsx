@@ -56,7 +56,7 @@ export default function Health() {
                     <h2 className="font-display text-3xl md:text-4xl lg:text-6xl font-light text-white mb-5 tracking-tighter leading-[1.5] drop-shadow-sm">
                         Moments Worth <br className="hidden md:block" /> Sharing
                     </h2>
-                    <div className="font-mulish text-gray-300 text-base md:text-lg leading-relaxed max-w-lg lg:max-w-xl opacity-90 font-light space-y-4">
+                    <div className="font-mulish text-[#FFFFFF] text-base md:text-lg leading-relaxed max-w-lg lg:max-w-xl opacity-90 font-light space-y-4">
                         <p>
                             Every Zewadi experience is designed to bring people closer - through shared meals, thoughtful gestures, and meaningful moments.
                         </p>

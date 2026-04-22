@@ -6,22 +6,22 @@ import Image from "next/image";
 export default function Footer() {
     return (
         <footer className="w-full bg-white pt-6 pb-12 px-4 md:px-6 lg:px-8 overflow-hidden">
-            <div className="max-w-[115rem] mx-auto bg-[#EAE3D2] rounded-[10px] pt-16 pb-10 px-6 md:px-12 lg:px-24 text-[#0A4834] shadow-md">
+            <div className="max-w-[115rem] mx-auto bg-[#D8C29A] rounded-[10px] pt-16 pb-10 px-6 md:px-12 lg:px-24 text-[#0A4834] shadow-md">
 
                 {/* Main Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-10 md:gap-12 lg:gap-8 mb-12">
 
                         <div className="col-span-2 lg:col-span-1 flex flex-col gap-4 lg:pr-8">
-                            <div className="relative w-32 h-32 md:w-36 md:h-36 -ml-4">
+                            <div className="relative w-44 h-44 md:w-56 md:h-56 -ml-8 -mt-8 -mb-10">
                                 <Image
-                                    src="/logo/zawadi-logo.webp"
+                                    src="/logo/zewadi-new-logo.png"
                                     alt="Zewadi Logo"
                                     fill
-                                    className="object-contain"
+                                    className="object-contain scale-[1.2]"
                                 />
                             </div>
 
-                            <p className="text-[#3A6B56] font-mulish text-sm md:text-base leading-relaxed max-w-[280px] opacity-80">
+                            <p className="text-[#0A4834] font-inter font-light text-sm md:text-base leading-relaxed max-w-[280px] opacity-100">
                                 Empowering businesses with innovative solutions for sustainable growth and success.
                             </p>
 
@@ -47,10 +47,10 @@ export default function Footer() {
 
                         {/* Quick Links */}
                         <div className="col-span-1 flex flex-col gap-4">
-                            <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
+                            <h3 className="font-inter font-light text-[#000000] text-sm md:text-lg tracking-widest">
                                 Quick Links
                             </h3>
-                            <div className="flex flex-col font-mulish gap-2">
+                            <div className="flex flex-col font-inter font-light gap-2">
                                 <Link href="/">Home</Link>
                                 <Link href="/about">About</Link>
                                 <Link href="/community">Community</Link>
@@ -61,10 +61,10 @@ export default function Footer() {
 
                         {/* Inner Pages */}
                         <div className="col-span-1 flex flex-col gap-4">
-                            <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
+                            <h3 className="font-inter font-light text-[#000000] text-sm md:text-lg tracking-widest">
                                 Inner Pages
                             </h3>
-                            <div className="flex flex-col font-mulish gap-2">
+                            <div className="flex flex-col font-inter font-light gap-2">
                                 <Link href="/recipe">Recipes</Link>
                                 <Link href="/product">Product</Link>
                                 <Link href="/gallery">Gallery</Link>
@@ -75,12 +75,12 @@ export default function Footer() {
 
                         {/* Support */}
                         <div className="col-span-2 lg:col-span-1 flex flex-col gap-4">
-                            <h3 className="font-boldonse font-light text-sm md:text-lg tracking-widest">
+                            <h3 className="font-inter font-light text-[#000000] text-sm md:text-lg tracking-widest">
                                 Support
                             </h3>
 
                             {/* ✅ 2x2 in mobile */}
-                            <div className="flex flex-col font-mulish gap-2">
+                            <div className="flex flex-col font-inter font-light gap-2">
                                 <Link href="#" className="whitespace-nowrap">
                                     Terms and conditions
                                 </Link>

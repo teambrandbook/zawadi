@@ -58,8 +58,8 @@ export default function StoryGrid() {
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
                 {/* 1. Fading Title */}
-                <h2 className="story-grid-title font-display text-3xl md:text-5xl lg:text-6xl font-light text-black text-center mb-24 md:mb-32 tracking-tighter leading-[1.5]">
-                    The story behind the <br /> flavors
+                <h2 className="story-grid-title font-playfair text-3xl md:text-5xl lg:text-6xl font-semibold text-black text-center mb-24 md:mb-32 tracking-tighter leading-[1.5]">
+                    Our Approach
                 </h2>
 
                 {/* Grid Container */}
@@ -84,18 +84,18 @@ export default function StoryGrid() {
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-500" />
 
                                 {/* Number */}
-                                <span className="relative z-20 font-display text-3xl md:text-[3rem] font-light text-[#EAE3D2] tracking-tighter leading-none md:mt-5">
+                                <span className="relative z-20 font-playfair text-3xl md:text-[3rem] font-semibold text-[#D8C29A] tracking-tighter leading-none md:mt-5">
                                     {story.id}
                                 </span>
 
                                 {/* Text Content */}
                                 <div className="relative z-20 flex flex-col gap-3 pt-3">
-                                    <h3 className="font-Poppins text-lg md:text-4xl font-900 text-[#EAE3D2] tracking-tight mb-5 ">
+                                    <h3 className="font-playfair text-lg md:text-4xl font-semibold text-[#D8C29A] tracking-tight mb-5 ">
                                         {story.title}
                                     </h3>
 
                                     {/* ✅ Only visible in lg */}
-                                    <p className="hidden lg:block font-mulish text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                    <p className="hidden lg:block font-inter text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
                                         {story.description}
                                     </p>
                                 </div>

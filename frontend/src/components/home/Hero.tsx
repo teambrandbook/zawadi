@@ -33,17 +33,17 @@ export default function Hero() {
             <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full md:pt-32">
 
                 {/* Main Heading */}
-                <h1 className="font-display text-[2.75rem] md:text-[4.5rem] lg:text-[4rem] font-light tracking-tight text-white mb-6 md:mb-8 leading-[1.2] md:leading-[1.5] drop-shadow-lg max-w-5xl md:-mt-30">
+                <h1 className="font-playfair text-[2.75rem] md:text-[4.5rem] lg:text-[4.6rem] font-semibold text-white mb-6 md:mb-8 leading-[1.1] md:leading-[1.2] drop-shadow-lg max-w-5xl md:-mt-30">
                     The Zewadi Way of Living
                 </h1>
 
                 {/* Subheading */}
-                <h2 className="text-white text-xl md:text-3xl font-voltaire font-normal mb-8 tracking-wide drop-shadow-md">
+                <h2 className="text-white text-xl md:text-3xl font-inter font-light mb-8 tracking-wide drop-shadow-md">
                     Building a Healthier Society, Together
                 </h2>
 
                 {/* Description Text */}
-                <p className="max-w-3xl text-white text-sm md:text-lg leading-relaxed mb-10 font-mulish font-light drop-shadow-sm px-4">
+                <p className="max-w-3xl text-white text-sm md:text-lg leading-relaxed mb-10 font-inter font-light drop-shadow-sm px-4">
                     Wellness doesn’t start with big leaps. It’s all those small choices you make every day that add up and slowly shape how you live. That’s the heart of Zewadi—making that shift feel natural, easy, and honestly, something you want to keep doing. <br className="hidden md:block" />
                 </p>
 
@@ -51,7 +51,7 @@ export default function Hero() {
                 <WipeButton
                     href="/about"
                     label="Explore More"
-                    variant="beige"
+                    variant="gray"
                     showIcon={false}
                 />
             </div>

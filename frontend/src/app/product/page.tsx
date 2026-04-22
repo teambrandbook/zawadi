@@ -11,7 +11,7 @@ export default function ProductPage() {
         <main className="flex flex-col min-h-screen bg-white">
             <Navbar />
             <Hero />
-            <LatestArticles />
+            <TryRecipes />
             <Testimonials />
             <Footer />
         </main>

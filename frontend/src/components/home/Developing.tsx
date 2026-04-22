@@ -81,10 +81,10 @@ export default function Developing() {
 
                 {/* Header Section */}
                 <div className="dev-header text-center max-w-4xl mb-20 flex flex-col items-center gap-6">
-                    <h2 className="header-item font-display text-3xl md:text-5xl font-light text-[#000000] tracking-tight leading-tight">
+                    <h2 className="header-item font-display text-3xl md:text-5xl font-semibold text-[#000000] tracking-tight leading-tight">
                         Where Food Meets Meaning
                     </h2>
-                    <p className="header-item font-mulish text-[#555] text-sm md:text-base leading-relaxed max-w-3xl">
+                    <p className="header-item font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-3xl">
                        It’s never really just about the food. It’s about who you’re with, those random conversations, and the little moments in between. Zewadi makes all of it a bit more meaningful.
                     </p>
                 </div>
@@ -118,7 +118,7 @@ export default function Developing() {
                                 className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                             />
                         </div>
-                        <p className="right-text font-mulish text-[#555] text-sm md:text-[15px] leading-relaxed max-w-xl">
+                        <p className="right-text font-mulish text-[#000000] text-sm md:text-[15px] leading-relaxed max-w-xl">
                             Zewadi brings people closer, in a way that feels real and effortless—through shared meals and thoughtful gestures. In the end, it’s those simple moments that stick with us.
                         </p>
                     </div>

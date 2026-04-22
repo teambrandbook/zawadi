@@ -86,13 +86,13 @@ export default function Navbar() {
                     <div className="lg:hidden w-10"></div>
 
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 transform">
-                        <Link href="/" className="w-24 md:w-32 h-20 md:h-28 bg-[#F5E6CA] rounded-b-[1.5rem] shadow-2xl flex items-center justify-center pt-1 pb-3 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group px-1">
-                            <div className="relative w-24 h-24 md:w-32 md:h-32">
+                        <Link href="/" className="w-28 md:w-36 h-28 md:h-36 bg-[#F5E6CA] rounded-b-[1.5rem] shadow-2xl flex items-center justify-center border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-all hover:-translate-y-1 group">
+                            <div className="relative w-28 h-28 md:w-36 md:h-36">
                                 <Image
-                                    src="/logo/zawadi-logo.webp"
+                                    src="/logo/zewadi-new-logo.png"
                                     alt="ZEWADI Logo"
                                     fill
-                                    className="object-contain group-hover:scale-105 transition-transform"
+                                    className="object-contain group-hover:scale-125 transition-transform scale-[1.4]"
                                 />
                             </div>
                         </Link>

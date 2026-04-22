@@ -31,7 +31,7 @@ export default function Questions() {
                     >
                         {/* Question Row */}
                         <div className="flex justify-between items-center">
-                            <span className="font-mulish font-medium text-white text-sm md:text-base pr-4">
+                            <span className="font-inter font-medium text-white text-sm md:text-base pr-4">
                                 {faq.question}
                             </span>
 
@@ -56,7 +56,7 @@ export default function Questions() {
                             className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-40 mt-4" : "max-h-0"
                                 }`}
                         >
-                            <p className="text-white text-sm opacity-90">
+                            <p className="font-inter text-white text-sm opacity-90">
                                 {faq.answer}
                             </p>
                         </div>

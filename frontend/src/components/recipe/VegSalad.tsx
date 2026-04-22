@@ -23,16 +23,16 @@ export default function VegSalad() {
             </h2>
 
             {/* Description */}
-            <p className="font-mulish text-[#555] text-base leading-relaxed mb-3">
+            <p className="font-inter font-light text-[#555] text-base leading-relaxed mb-3">
               Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it's a delicious option for breakfast or a healthy snack.
             </p>
 
             {/* Benefits */}
             <div className="mb-2">
-              <h3 className="font-mulish text-sm font-bold text-black mb-2 uppercase">
+              <h3 className="font-inter font-light text-sm font-bold text-black mb-2 uppercase">
                 Benefits
               </h3>
-              <ul className="list-disc list-outside ml-5 space-y-1 font-mulish text-[#555] text-sm md:text-base leading-[1.3]">
+              <ul className="list-disc list-outside ml-5 space-y-1 font-inter font-light text-[#555] text-sm md:text-base leading-[1.3]">
                 <li>Rich in plant-based protein and fiber</li>
                 <li>Naturally gluten-free and easy to digest</li>
                 <li>Supports heart health and balanced cholesterol</li>
@@ -50,7 +50,7 @@ export default function VegSalad() {
                 href="/recipe/buckwheat-chilla"
                 className="detail-btn flex h-14 w-48 overflow-hidden rounded-full bg-[#0A4834] text-white shadow-sm transition-colors hover:bg-[#1A5A44] md:h-16"
               >
-                <span className="whitespace-nowrap px-6 font-mulish text-sm font-bold uppercase tracking-widest flex items-center">
+                <span className="whitespace-nowrap px-6 font-inter font-light text-sm font-bold uppercase tracking-widest flex items-center">
                   View More
                 </span>
               </Link>

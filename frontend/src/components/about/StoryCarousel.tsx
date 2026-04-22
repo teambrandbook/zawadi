@@ -131,7 +131,7 @@ export default function StoryCarousel() {
             <div ref={containerRef} className="max-w-[85rem] mx-auto relative flex flex-col items-center">
 
                 {/* Header Zone */}
-                <h2 className="font-display text-3xl md:text-5xl lg:text-6xl font-light text-[#EAE3D2] tracking-tighter leading-tight text-center mb-16 md:mb-24">
+                <h2 className="font-playfair text-3xl md:text-5xl lg:text-6xl font-semibold text-[#D8C29A] tracking-tighter leading-tight text-center mb-16 md:mb-24">
                     The story behind the <br className="hidden md:block" /> flavors
                 </h2>
 
@@ -166,7 +166,7 @@ export default function StoryCarousel() {
                             key={`text-${slide.id}`}
                             className="story-text absolute max-w-2xl text-center flex flex-col items-center gap-4 opacity-0 px-4"
                         >
-                            <p className="font-mulish text-[#EAE3D2]/80 text-sm md:text-base lg:text-[1.05rem] leading-relaxed px-4">
+                            <p className="font-inter text-[#CECECE]/80 text-sm md:text-base lg:text-[1.05rem] leading-relaxed px-4">
                                 {slide.desc}
                             </p>
                         </div>

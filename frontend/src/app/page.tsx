@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen bg-white">
       {/* <Navbar /> */}
-      <Navbar bgColor="bg-white/10 border-white/20"/>
+      <Navbar bgColor="bg-[#0A4834]"/>
       <Hero />
       <About />
       <Community />

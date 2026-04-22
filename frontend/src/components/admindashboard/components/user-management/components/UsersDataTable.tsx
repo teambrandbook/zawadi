@@ -62,7 +62,7 @@ export default function UsersDataTable({
 
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
-                    <img src={user.photo || "/logo/zawadi-logo.webp"} alt={user.fullName} className="h-10 w-10 rounded-full object-cover" />
+                    <img src={user.photo || "/logo/zewadi-new-logo.png"} alt={user.fullName} className="h-10 w-10 rounded-full object-cover" />
                     <div>
                       <p className="text-[15px] font-semibold text-[#0A4833]">{user.fullName}</p>
                     </div>

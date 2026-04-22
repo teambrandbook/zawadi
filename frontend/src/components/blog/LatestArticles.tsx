@@ -23,7 +23,7 @@ export default function LatestArticles() {
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
 
                 {/* Section Header */}
-                <h2 className="font-display text-3xl md:text-4xl font-light text-black tracking-tight mb-20">
+                <h2 className="font-playfair text-3xl md:text-4xl font-semibold text-black tracking-tight mb-20">
                     Latest Articles
                 </h2>
 
@@ -44,7 +44,7 @@ export default function LatestArticles() {
 
                                 {/* Card Title */}
                                 <div className="flex flex-col gap-2 px-2 pb-2">
-                                    <h3 className="font-display text-lg md:text-xl font-light text-white leading-tight">
+                                    <h3 className="font-playfair text-lg md:text-xl font-semibold text-[#D8C29A] leading-tight">
                                         Discover the rich flavors<br />that inspire our kitchen
                                     </h3>
                                     <div className="flex items-center gap-2 text-white/80 font-sans text-xs uppercase tracking-widest font-bold mt-2">

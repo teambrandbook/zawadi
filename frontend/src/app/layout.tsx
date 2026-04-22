@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Oswald, Voltaire, Mulish, Bodoni_Moda } from "next/font/google";
+import { Inter, Oswald, Voltaire, Mulish, Bodoni_Moda, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 import Providers from "./providers"; // 👈 ADD THIS
@@ -7,6 +7,11 @@ import Providers from "./providers"; // 👈 ADD THIS
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
+});
+
+const playfair = Playfair_Display({
+    variable: "--font-playfair",
+    subsets: ["latin"],
 });
 
 const oswald = Oswald({
@@ -45,10 +50,10 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Boldonse&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Boldonse&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet" />
       </head>
       <body
-        className={`${inter.variable} ${oswald.variable} ${bodoniModa.variable} ${voltaire.variable} ${mulish.variable} antialiased`}
+        className={`${inter.variable} ${playfair.variable} ${oswald.variable} ${bodoniModa.variable} ${voltaire.variable} ${mulish.variable} antialiased`}
       >
         <Providers>
           {children}

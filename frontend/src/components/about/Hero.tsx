@@ -50,10 +50,10 @@ export default function Hero() {
 
                 {/* Header Section */}
                 <div className="hero-header text-center max-w-4xl mb-16 md:mb-20">
-                    <h1 className="font-boldonse text-3xl md:text-4xl lg:text-5xl font-light text-black mb-8 tracking-tight leading-[1.5]">
-                        The story behind the <br /> flavors
+                    <h1 className="font-playfair text-3xl md:text-4xl lg:text-5xl font-semibold text-black mb-8 tracking-tight leading-[1.5] uppercase">
+                        About Zawadi
                     </h1>
-                    <p className="font-mulish text-[#555] text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
+                    <p className="font-inter font-light text-[#000000] text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
                         Zewadi is a premium food brand developed to redefine the way we experience everyday nutrition. Rooted in quality, intention, and simplicity, we create products that bring together clean ingredients and refined taste.
                     </p>
                 </div>
@@ -84,7 +84,7 @@ export default function Hero() {
                         </div>
 
                         {/* Text Block */}
-                        <p className="hero-text font-mulish text-[#555] text-base md:text-lg leading-relaxed">
+                        <p className="hero-text font-inter font-light text-[#000000] text-base md:text-lg leading-relaxed">
                             Zewadi is a premium food brand, but there’s a lot more behind the name. It started with one simple idea: make everyday food easier, better, and more meaningful. Every product is made with real care. We focus on quality, on balance, and on how our food actually fits into your life. Food shouldn’t be complicated. It should just feel right.
                         </p>
                     </div>

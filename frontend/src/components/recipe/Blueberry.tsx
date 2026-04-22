@@ -30,21 +30,21 @@ export default function Blueberry() {
                     <div className="flex flex-col">
 
                         {/* Title */}
-                        <h2 className="font-boldonse text-xl md:text-[2rem] font-light text-black tracking-tight leading-[1.3] mb-3 uppercase">
+                        <h2 className="font-playfair text-xl md:text-[2rem] font-semibold text-black tracking-tight leading-[1.3] mb-3 uppercase">
                             Buckwheat <br /> Pancakes
                         </h2>
 
                         {/* Description */}
-                        <p className="font-mulish text-[#555] text-base leading-relaxed mb-3">
+                        <p className="font-inter font-light text-[#555] text-base leading-relaxed mb-3">
                             Buckwheat pancakes are soft, wholesome pancakes made from a smooth buckwheat flour batter cooked on a flat pan. Naturally gluten-free and mildly nutty in flavor, they are a healthy and satisfying option for breakfast or a light meal.
                         </p>
 
                         {/* Benefits */}
                         <div className="mb-2">
-                            <h3 className="font-mulish text-sm font-bold text-black mb-2 uppercase">
+                            <h3 className="font-inter text-lg font-bold text-black mb-2 uppercase">
                                 Benefits
                             </h3>
-                            <ul className="list-disc list-outside ml-5 space-y-1 font-mulish text-[#555] text-sm md:text-base leading-[1.3]">
+                            <ul className="list-disc list-outside ml-5 space-y-1 font-inter font-light text-[#555] text-sm md:text-base leading-[1.3]">
                                 <li>Naturally gluten-free and easy to digest</li>
                                 <li>Rich in fiber for better digestion and fullness</li>
                                 <li>Provides steady, long-lasting energy</li>
@@ -62,7 +62,7 @@ export default function Blueberry() {
                                 href="/recipe/buckwheat-pancakes"
                                 className="detail-btn flex h-14 w-48 overflow-hidden rounded-full bg-[#0A4834] text-white shadow-sm transition-colors hover:bg-[#1A5A44] md:h-16"
                             >
-                                <span className="flex items-center whitespace-nowrap px-6 font-mulish text-sm font-bold uppercase tracking-widest">
+                                <span className="flex items-center whitespace-nowrap px-6 font-inter font-light text-sm font-bold uppercase tracking-widest">
                                     View More
                                 </span>
                             </Link>

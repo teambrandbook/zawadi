@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { dashBorderAnimation } from "../../../lib/animations";
 
 type Props = {
-  count: number 
+  count: number
   text: string;
 };
 
@@ -26,19 +26,19 @@ export default function IncreditionsTable({ count, text }: Props) {
         >
           {/* CONTENT */}
           <div className="flex items-center gap-4">
-            <span className="font-display text-2xl font-light text-black">
+            <span className="font-playfair text-2xl font-light text-black">
               {count}
             </span>
-            <h2 className="font-display text-2xl font-light text-black">
+            <h2 className="font-playfair text-2xl font-light text-black">
               Ingredients
             </h2>
           </div>
 
-          <p className="font-mulish text-gray-600 leading-relaxed max-w-4xl">
+          <p className="font-inter font-light text-gray-600 leading-relaxed max-w-4xl">
             {text}
           </p>
 
-          
+
 
           {/* TOP */}
           <div className="border-top absolute top-0 left-0 w-full h-[2px] border-t-2 border-dashed border-[#0A4834]" />
