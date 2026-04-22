@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Check, Eye, MoreVertical, Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import api from "@/services/api";
 
 type BlogStatus = "published" | "pending" | "draft" | string;
@@ -19,26 +19,10 @@ type BlogRow = {
   image: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapApiBlog(item: Record<string, any>, index: number): BlogRow {
-  const status = String(item.status ?? "pending").toLowerCase();
-  return {
-    id: String(item.id ?? `b-${index}`),
-    title: String(item.title ?? "Untitled Blog"),
-    read: item.reading_time ? `${item.reading_time} min read` : "—",
-    category: String(item.category ?? "—"),
-    contributor: String(item.author ?? item.contributor ?? item.author_name ?? "Unknown"),
-    status,
-    published:
-      status === "published" && item.published_at
-        ? new Date(item.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-        : status === "published" && item.created_at
-        ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-        : "Not Published",
-    engagement: item.views ? `${item.views} | ${item.comments ?? 0}` : "—",
-    image: String(item.cover_image ?? item.image ?? "/blog/blog-1.webp"),
-  };
-}
+type Props = {
+  rows: BlogRow[];
+  onStatusChange: (id: string, newStatus: string) => void;
+};
 
 function StatusBadge({ status }: { status: BlogStatus }) {
   const isPublished = status === "published" || status === "Approved";
@@ -68,6 +52,17 @@ function RowActions({
   onStatusChange: (id: string, newStatus: string) => void;
 }) {
   const isPublished = status === "published" || status === "Approved";
+
+  async function handleApprove() {
+    try {
+      await api.patch(`/blog/admin/${blogId}/status/`, { status: "published" });
+      onStatusChange(blogId, "published");
+      toast.success("Blog approved.");
+    } catch {
+      toast.error("Failed to update blog status. Please try again.");
+    }
+  }
+
   if (isPublished) {
     return (
       <div className="flex items-center gap-2">
@@ -84,7 +79,7 @@ function RowActions({
     <div className="flex items-center gap-2">
       <button
         type="button"
-        onClick={() => onStatusChange(blogId, "published")}
+        onClick={handleApprove}
         className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-2.5 py-1 text-[11px] font-medium text-[#15803D]"
       >
         <Check className="h-3 w-3" />
@@ -97,42 +92,7 @@ function RowActions({
   );
 }
 
-export default function BlogManagementTable() {
-  const [rows, setRows] = useState<BlogRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchBlogs = async () => {
-      setIsLoading(true);
-      setFetchError(null);
-      try {
-        const res = await api.get("/blog/admin/");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const raw: Record<string, any>[] = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.results)
-          ? res.data.results
-          : [];
-        setRows(raw.map(mapApiBlog));
-      } catch {
-        setFetchError("Failed to load blogs");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchBlogs();
-  }, []);
-
-  async function handleStatusChange(id: string, newStatus: string) {
-    try {
-      await api.patch(`/blog/admin/${id}/status/`, { status: newStatus });
-      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
-    } catch {
-      window.alert("Failed to update blog status. Please try again.");
-    }
-  }
-
+export default function BlogManagementTable({ rows, onStatusChange }: Props) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#E4E7EC] bg-white">
       <div className="flex items-center justify-between border-b border-[#E4E7EC] px-4 py-2.5">
@@ -145,17 +105,11 @@ export default function BlogManagementTable() {
         </button>
       </div>
 
-      {isLoading && (
-        <div className="p-6 text-center text-sm text-[#6B7280]">Loading blogs...</div>
-      )}
-      {fetchError && (
-        <div className="p-6 text-center text-sm text-[#B91C1C]">{fetchError}</div>
-      )}
-      {!isLoading && !fetchError && rows.length === 0 && (
+      {rows.length === 0 && (
         <div className="p-8 text-center text-sm text-[#6B7280]">No blogs found.</div>
       )}
 
-      {!isLoading && rows.length > 0 && (
+      {rows.length > 0 && (
         <div className="overflow-x-auto">
           <table className="min-w-full text-left text-sm">
             <thead className="bg-[#F9FAFB] text-[12px] text-[#475467]">
@@ -195,7 +149,7 @@ export default function BlogManagementTable() {
                   <td className="px-3 py-3.5 text-[#475467]">{row.published}</td>
                   <td className="px-3 py-3.5 text-[#475467]">{row.engagement}</td>
                   <td className="px-3 py-3.5">
-                    <RowActions blogId={row.id} status={row.status} onStatusChange={handleStatusChange} />
+                    <RowActions blogId={row.id} status={row.status} onStatusChange={onStatusChange} />
                   </td>
                 </tr>
               ))}

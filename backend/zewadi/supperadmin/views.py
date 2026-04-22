@@ -2,8 +2,8 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from accounts.models import User
-from .serializer import UserSerializer,RoleSerializer
-from .utils.permissions import has_permission,IsAdminRole
+from .serializer import UserSerializer, UserUpdateSerializer, RoleSerializer
+from .utils.permissions import has_permission, IsAdminRole
 from .models import Role
 
 
@@ -49,6 +49,38 @@ class UserListAPIView(APIView):
         users = User.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserDetailAPIView(APIView):
+    """GET /supperadmin/users/{id}/ — single user detail
+    PATCH /supperadmin/users/{id}/ — partial update (admin only)
+    """
+
+    def get_object(self, user_id):
+        try:
+            return User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return None
+
+    def get(self, request, user_id):
+        if not has_permission(request.user, "users", "view"):
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+        obj = self.get_object(user_id)
+        if obj is None:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(UserSerializer(obj).data)
+
+    def patch(self, request, user_id):
+        if not has_permission(request.user, "users", "edit"):
+            return Response({"error": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+        obj = self.get_object(user_id)
+        if obj is None:
+            return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserUpdateSerializer(obj, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(UserSerializer(obj).data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class RoleAPIView(APIView):

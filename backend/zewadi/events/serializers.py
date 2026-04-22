@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Event, EventRegistration
+from zewadi.validators import validate_image_upload
 
 
 class EventListSerializer(serializers.ModelSerializer):
@@ -73,6 +74,8 @@ class EventDetailSerializer(serializers.ModelSerializer):
 
 class EventCreateUpdateSerializer(serializers.ModelSerializer):
     """Writable serializer for create/update; created_by is set by the view."""
+
+    cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
 
     class Meta:
         model = Event

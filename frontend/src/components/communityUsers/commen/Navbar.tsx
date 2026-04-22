@@ -1,19 +1,84 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
+import api from "@/services/api";
 
 interface NavbarProps {
   onMenuClick: () => void;
+  settingsHref?: string;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+interface UserInfo {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: string;
+  initials: string;
+}
+
+function decodeJwtPayload(token: string): Record<string, string> | null {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
+}
+
+function formatRole(role: string): string {
+  return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [user, setUser] = useState<UserInfo>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    role: "",
+    initials: "ZM",
+  });
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
+    if (!match) return;
+    const token = decodeURIComponent(match.split("=")[1]);
+    const payload = decodeJwtPayload(token);
+    if (!payload) return;
+
+    const firstName: string = payload.first_name || "";
+    const lastName: string = payload.last_name || "";
+    const email: string = payload.email || "";
+    const role: string = payload.role || "";
+    const initials =
+      (firstName[0] || "") + (lastName[0] || "") ||
+      email.slice(0, 2).toUpperCase() ||
+      "U";
+
+    setUser({ firstName, lastName, email, role, initials });
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/account/logout/");
+    } catch {
+      // proceed regardless
+    }
+    window.location.href = "/communitLogin";
+  };
+
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
+
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
-      
+
       {/* Menu Icon (Mobile + Tablet) */}
       <div className="flex items-center lg:hidden">
-        <button 
+        <button
           onClick={onMenuClick}
           className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Open Menu"
@@ -45,14 +110,16 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
         {/* Welcome Greeting (Desktop Only) */}
         <div className="hidden lg:flex flex-col min-w-0 ml-4">
-          <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">Hi, Zara</h1>
+          <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">
+            Hi, {user.firstName || "there"}
+          </h1>
           <p className="text-sm text-gray-500 whitespace-nowrap">Welcome back to your health journey.</p>
         </div>
       </div>
 
       {/* Right Section */}
       <div className="flex items-center space-x-1 lg:space-x-4">
-        
+
         {/* Search Bar (Desktop Only) */}
         <div className="relative hidden lg:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -70,17 +137,73 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
         </button>
 
-        {/* Profile Info */}
-        <div className="flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
-          <div className="text-right mr-3 hidden lg:block">
-            <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">Zara Mehak</p>
-            <p className="text-xs text-gray-400 mt-1">Premium</p>
-          </div>
-          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs font-medium text-gray-600">ZM</span>
+        {/* Profile Info — clickable trigger */}
+        <div className="relative flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
+          <button
+            onClick={() => setIsProfileOpen((v) => !v)}
+            className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
+            aria-label="Open profile menu"
+          >
+            <div className="text-right hidden lg:block">
+              <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
+              <p className="text-xs text-gray-400 mt-1">{user.role ? formatRole(user.role) : "Member"}</p>
             </div>
-          </div>
+            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20">
+              <span className="text-xs font-bold text-white">{user.initials}</span>
+            </div>
+          </button>
+
+          {/* Backdrop */}
+          {isProfileOpen && (
+            <div
+              className="fixed inset-0 z-40"
+              onClick={() => setIsProfileOpen(false)}
+            />
+          )}
+
+          {/* Dropdown Card */}
+          {isProfileOpen && (
+            <div className="absolute right-0 top-14 z-50 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+
+              {/* User Info Header */}
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-white">{user.initials}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
+                  <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
+                  {user.role && (
+                    <span className="inline-block mt-1.5 bg-[#EBE3D1] text-[#06402B] text-[10px] uppercase tracking-widest font-semibold rounded-full px-2 py-0.5">
+                      {formatRole(user.role)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 mx-1" />
+
+              {/* Menu Items */}
+              <div className="py-1.5">
+                <Link
+                  href={settingsHref}
+                  onClick={() => setIsProfileOpen(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                  Profile Settings
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 flex-shrink-0" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </nav>

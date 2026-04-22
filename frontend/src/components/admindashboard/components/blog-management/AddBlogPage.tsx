@@ -1,33 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus } from "lucide-react";
+import api from "@/services/api";
 
-function Field({ label, placeholder }: { label: string; placeholder: string }) {
-  return (
-    <label className="space-y-1">
-      <span className="text-[11px] font-medium text-[#344054]">{label}</span>
-      <input
-        placeholder={placeholder}
-        className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
-      />
-    </label>
-  );
-}
+const CATEGORIES = [
+  "Nutrition",
+  "Wellness Tips",
+  "Plant Diet",
+  "Recipes",
+  "Community",
+  "Admin Stories",
+];
 
-function SelectField({ label, option }: { label: string; option: string }) {
-  return (
-    <label className="space-y-1">
-      <span className="text-[11px] font-medium text-[#344054]">{label}</span>
-      <select className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none">
-        <option>{option}</option>
-      </select>
-    </label>
-  );
-}
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-lg border border-[#E4E7EC] bg-white p-3.5">
       <h3 className="mb-3 text-[12px] font-semibold text-[#0A4833]">{title}</h3>
@@ -37,6 +26,66 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 export default function AddBlogPage() {
+  const router = useRouter();
+  const coverImageRef = useRef<HTMLInputElement>(null);
+
+  const [title, setTitle] = useState("");
+  const [excerpt, setExcerpt] = useState("");
+  const [category, setCategory] = useState("");
+  const [content, setContent] = useState("");
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>(["Admin Stories", "Nutrition", "Wellness Tips"]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverImageFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  }
+
+  function addTag() {
+    const tag = tagInput.trim();
+    if (!tag || tags.includes(tag)) return;
+    setTags((prev) => [...prev, tag]);
+    setTagInput("");
+  }
+
+  function removeTag(tag: string) {
+    setTags((prev) => prev.filter((t) => t !== tag));
+  }
+
+  async function submitBlog(status: "draft" | "published") {
+    if (!title.trim()) { toast.error("Blog title is required."); return; }
+    if (!category) { toast.error("Please select a category."); return; }
+    if (!content.trim()) { toast.error("Blog content is required."); return; }
+
+    const fd = new FormData();
+    fd.append("title", title.trim());
+    fd.append("short_excerpt", excerpt.trim());
+    fd.append("category", category);
+    fd.append("content", content.trim());
+    fd.append("status", status);
+    if (coverImageFile) fd.append("cover_image", coverImageFile);
+    tags.forEach((tag) => fd.append("tags", tag));
+
+    setIsSubmitting(true);
+    try {
+      await api.post("/blog/create/", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success(status === "draft" ? "Blog saved as draft." : "Blog created successfully! ✅");
+      router.push("/admindashboard/blog");
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(msg ?? "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <section className="w-full bg-[#F7F8FA] p-3 lg:p-5">
       <div className="mx-auto max-w-[1180px] space-y-3">
@@ -51,7 +100,12 @@ export default function AddBlogPage() {
               <ChevronLeft className="h-3.5 w-3.5" />
               Back
             </Link>
-            <button type="button" className="inline-flex h-9 items-center rounded-md border border-[#D9DEE3] bg-white px-3 text-[12px] text-[#344054]">
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => submitBlog("draft")}
+              className="inline-flex h-9 items-center rounded-md border border-[#D9DEE3] bg-white px-3 text-[12px] text-[#344054] disabled:opacity-50"
+            >
               Save Draft
             </button>
           </div>
@@ -61,22 +115,65 @@ export default function AddBlogPage() {
           <div className="space-y-3">
             <Section title="Basic Information">
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Blog Title *" placeholder="Enter compelling blog title..." />
-                <Field label="Slug (URL) *" placeholder="auto-generated-slug" />
-                <SelectField label="Category *" option="Select category..." />
-                <SelectField label="Author" option="Select Author" />
-                <Field label="Reading Time" placeholder="e.g. 5 min read" />
-                <SelectField label="Status" option="Draft" />
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium text-[#344054]">Blog Title *</span>
+                  <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Enter compelling blog title..."
+                    className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+                  />
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium text-[#344054]">Short Excerpt</span>
+                  <input
+                    value={excerpt}
+                    onChange={(e) => setExcerpt(e.target.value)}
+                    placeholder="Brief description of the blog..."
+                    className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+                  />
+                </label>
+
+                <label className="space-y-1">
+                  <span className="text-[11px] font-medium text-[#344054]">Category *</span>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+                  >
+                    <option value="">Select category...</option>
+                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </label>
               </div>
             </Section>
 
             <Section title="Cover Image">
+              <input
+                type="file"
+                ref={coverImageRef}
+                accept="image/*"
+                className="hidden"
+                onChange={handleCoverChange}
+              />
               <div className="grid place-items-center rounded-md border border-dashed border-[#D0D5DD] bg-[#F9FAFB] px-4 py-8 text-center">
-                <ImagePlus className="h-5 w-5 text-[#A1844F]" />
-                <p className="mt-2 text-[12px] font-medium text-[#344054]">Upload Cover Image</p>
-                <p className="text-[11px] text-[#98A2B3]">Recommended size: 1200x600px (JPG, PNG)</p>
-                <button type="button" className="mt-3 rounded-md bg-[#0A4833] px-3 py-1.5 text-[11px] font-medium text-white">
-                  Choose File
+                {coverPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={coverPreview} alt="Cover preview" className="mb-3 h-32 w-full rounded-md object-cover" />
+                ) : (
+                  <>
+                    <ImagePlus className="h-5 w-5 text-[#A1844F]" />
+                    <p className="mt-2 text-[12px] font-medium text-[#344054]">Upload Cover Image</p>
+                    <p className="text-[11px] text-[#98A2B3]">Recommended size: 1200x600px (JPG, PNG)</p>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => coverImageRef.current?.click()}
+                  className="mt-3 rounded-md bg-[#0A4833] px-3 py-1.5 text-[11px] font-medium text-white"
+                >
+                  {coverPreview ? "Change File" : "Choose File"}
                 </button>
               </div>
             </Section>
@@ -84,104 +181,99 @@ export default function AddBlogPage() {
             <Section title="Tags & Categories">
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-1.5">
-                  {["Admin Stories", "Nutrition", "Wellness Tips", "Plant Diet", "Community"].map((tag) => (
-                    <span key={tag} className="rounded-md bg-[#F2F4F7] px-2 py-1 text-[11px] text-[#475467]">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center gap-1 rounded-md bg-[#F2F4F7] px-2 py-1 text-[11px] text-[#475467]"
+                    >
                       {tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-1 text-[#9CA3AF] hover:text-[#374151]"
+                      >
+                        ×
+                      </button>
                     </span>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <input placeholder="Enter new tag..." className="h-9 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none" />
-                  <button type="button" className="grid h-9 w-9 place-items-center rounded-md bg-[#0A4833] text-white">
+                  <input
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
+                    placeholder="Enter new tag..."
+                    className="h-9 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={addTag}
+                    className="grid h-9 w-9 place-items-center rounded-md bg-[#0A4833] text-white"
+                  >
                     <Plus className="h-4 w-4" />
                   </button>
                 </div>
               </div>
             </Section>
 
-            <Section title="Blog Content">
+            <Section title="Blog Content *">
               <div className="rounded-md border border-[#E4E7EC]">
                 <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E7EC] bg-[#F9FAFB] px-2 py-1.5 text-[11px] text-[#475467]">
-                  <button type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">
-                    B
-                  </button>
-                  <button type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">
-                    I
-                  </button>
-                  <button type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">
-                    U
-                  </button>
+                  {["B", "I", "U"].map((f) => (
+                    <button key={f} type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">{f}</button>
+                  ))}
                   <span className="h-3 w-px bg-[#D0D5DD]" />
-                  <button type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">
-                    H2
-                  </button>
-                  <button type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">
-                    Bullet
-                  </button>
+                  {["H2", "Bullet"].map((f) => (
+                    <button key={f} type="button" className="rounded px-1.5 py-1 hover:bg-[#EEF2F6]">{f}</button>
+                  ))}
                 </div>
                 <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
                   placeholder="Start writing your blog content here..."
                   className="h-56 w-full resize-none rounded-b-md border-0 bg-white px-3 py-2 text-[13px] text-[#667085] outline-none"
                 />
               </div>
               <p className="text-[10px] text-[#98A2B3]">Use sub headings and short paragraphs to make it readable.</p>
             </Section>
-
-            <Section title="Publishing Options">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field label="Publish Date" placeholder="dd/mm/yyyy" />
-                <SelectField label="Visibility" option="Public" />
-                <SelectField label="SEO Keywords" option="Health, buckwheat, wellness" />
-                <SelectField label="Author Category" option="Admin" />
-              </div>
-            </Section>
-
-            <Section title="Internal Notes">
-              <textarea
-                placeholder="Notes for review team (not visible to users)..."
-                className="h-24 w-full resize-none rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2 text-[12px] text-[#667085] outline-none"
-              />
-            </Section>
           </div>
 
           <aside className="rounded-lg border border-[#E4E7EC] bg-white p-3.5">
             <h3 className="mb-3 text-[12px] font-semibold text-[#0A4833]">Blog Preview</h3>
-            <div className="mb-3 h-32 rounded-md border border-[#E4E7EC] bg-[#F9FAFB]" />
+            {coverPreview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={coverPreview} alt="Preview" className="mb-3 h-32 w-full rounded-md object-cover" />
+            )}
+            {!coverPreview && <div className="mb-3 h-32 rounded-md border border-[#E4E7EC] bg-[#F9FAFB]" />}
             <div className="space-y-2 text-[11px] text-[#475467]">
-              <p>
-                <span className="font-semibold text-[#344054]">Blog Title:</span> ...
-              </p>
-              <p>
-                <span className="font-semibold text-[#344054]">Excerpt:</span> ...
-              </p>
-              <p>
-                <span className="font-semibold text-[#344054]">Category:</span> ...
-              </p>
-              <p>
-                <span className="font-semibold text-[#344054]">Tags:</span> ...
-              </p>
-              <p>
-                <span className="font-semibold text-[#344054]">Author:</span> Admin
-              </p>
-              <p>
-                <span className="font-semibold text-[#344054]">Status:</span> Draft
-              </p>
+              <p><span className="font-semibold text-[#344054]">Blog Title:</span> {title || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Excerpt:</span> {excerpt || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Category:</span> {category || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Tags:</span> {tags.join(", ") || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Status:</span> Draft</p>
             </div>
           </aside>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 rounded-lg border border-[#E4E7EC] bg-white p-3">
-          <button type="button" className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054]">
+          <Link href="/admindashboard/blog" className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054] inline-flex items-center">
             Cancel
-          </button>
-          <button type="button" className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054]">
+          </Link>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => submitBlog("draft")}
+            className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054] disabled:opacity-50"
+          >
             Save as Draft
           </button>
-          <button type="button" className="h-8 rounded-md bg-[#A1844F] px-3 text-[11px] text-white">
-            Preview Blog
-          </button>
-          <button type="button" className="h-8 rounded-md bg-[#0A4833] px-3 text-[11px] text-white">
-            Create Blog
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => submitBlog("published")}
+            className="h-8 rounded-md bg-[#0A4833] px-3 text-[11px] text-white disabled:opacity-50"
+          >
+            {isSubmitting ? "Creating..." : "Create Blog"}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Blog, BlogTag
+from zewadi.validators import validate_image_upload
 
 
 class BlogTagSerializer(serializers.ModelSerializer):
@@ -69,6 +70,7 @@ class BlogCreateSerializer(serializers.ModelSerializer):
         required=False,
         write_only=True,
     )
+    cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
 
     class Meta:
         model = Blog

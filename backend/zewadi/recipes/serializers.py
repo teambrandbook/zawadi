@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Recipe, RecipeIngredient, RecipeStep
+from zewadi.validators import validate_image_upload
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -94,6 +95,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientSerializer(many=True, required=False)
     steps = RecipeStepSerializer(many=True, required=False)
+    cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
 
     class Meta:
         model = Recipe

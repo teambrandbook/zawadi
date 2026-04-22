@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
 import OrdersHeader from "./components/OrdersHeader";
@@ -133,7 +134,7 @@ export default function OrdersDashboard() {
       await api.patch(`/orders/admin/${activeOrderId}/status/`, { status: nextStatus });
       setOrders((prev) => prev.map((o) => (o.id === activeOrderId ? { ...o, status: nextStatus } : o)));
     } catch {
-      window.alert("Failed to update order status. Please try again.");
+      toast.error("Failed to update order status. Please try again.");
     } finally {
       setModalOpen(false);
     }

@@ -69,8 +69,6 @@ export default function RoleMembershipSection({
       }));
     }
   };
- console.log(role,role_obj);
- 
   return (
     <CreateUserSection title="User Role & Membership">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

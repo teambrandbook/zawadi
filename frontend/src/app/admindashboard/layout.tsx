@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, ReactNode } from "react";
+import { Toaster } from "sonner";
 import AdminDashboardSidebar from "@/components/admindashboard/shared/AdminDashboardSidebar";
 import Navbar from "@/components/communityUsers/commen/Navbar";
 
@@ -13,10 +14,11 @@ export default function AdminLayout({ children }: Props) {
 
   return (
     <div className="min-h-screen">
+      <Toaster position="top-right" richColors closeButton />
 
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full h-16 z-50 bg-white shadow">
-        <Navbar onMenuClick={() => setIsOpen(true)} />
+        <Navbar onMenuClick={() => setIsOpen(true)} settingsHref="/admindashboard/settings" />
       </div>
 
       {/* ✅ Desktop Sidebar ONLY (lg and above) */}

@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
 import NutritionistFiltersCard from "./components/NutritionistFiltersCard";
 import NutritionistStatsGrid from "./components/NutritionistStatsGrid";
 import NutritionistsDataTable from "./components/NutritionistsDataTable";
 import NutritionistsHeader from "./components/NutritionistsHeader";
-import { nutritionistMockData } from "./nutritionistMockData";
 import type { NutritionistRow, NutritionistStatCard } from "./nutritionistTypes";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,6 +39,28 @@ function mapApiConsultant(item: Record<string, any>, index: number): Nutritionis
   };
 }
 
+function buildStats(rows: NutritionistRow[]): NutritionistStatCard[] {
+  const total = rows.length;
+  const active = rows.filter((r) => r.status === "Active").length;
+  const available = rows.filter((r) => r.availability === "Available").length;
+  const topRated = rows.reduce(
+    (best, r) => (r.rating > best.rating ? r : best),
+    { name: "—", rating: 0 } as { name: string; rating: number }
+  );
+  const totalSessions = rows.reduce((sum, r) => sum + r.sessions, 0);
+
+  return [
+    { id: "total", label: "Total", value: String(total), subText: "Total Nutritionists", icon: "users", iconTone: "green" },
+    { id: "active", label: "Active", value: String(active), subText: "Active Experts", icon: "check", iconTone: "gold" },
+    { id: "today", label: "Today", value: String(available), subText: "Available Today", icon: "calendar", iconTone: "gold" },
+    { id: "top", label: String(topRated.rating || "—"), value: topRated.name, subText: "Highest Rated Expert", icon: "star", iconTone: "teal" },
+    { id: "busy", label: "Busy", value: String(total - available), subText: "Fully Booked", icon: "clock", iconTone: "gold" },
+    { id: "inactive", label: "Inactive", value: String(total - active), subText: "Inactive Experts", icon: "pause", iconTone: "gray" },
+    { id: "assigned", label: "Assigned", value: "—", subText: "Assigned Consultations", icon: "list", iconTone: "teal" },
+    { id: "done", label: "Done", value: String(totalSessions), subText: "Completed Sessions", icon: "done", iconTone: "gold" },
+  ];
+}
+
 export default function NutritionistsDashboard() {
   const [rows, setRows] = useState<NutritionistRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,7 +88,7 @@ export default function NutritionistsDashboard() {
     fetchConsultants();
   }, []);
 
-  const stats: NutritionistStatCard[] = nutritionistMockData.stats;
+  const stats = useMemo(() => buildStats(rows), [rows]);
 
   return (
     <section className="w-full bg-[#F7F8FA] px-4 py-6 lg:px-6">

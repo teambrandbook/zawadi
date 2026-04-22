@@ -28,6 +28,7 @@ const mockUpcomingEvents = [
     joined: 24,
     date: 'Tomorrow, 2:00 PM',
     icon: Apple,
+    detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass',
     actions: ['View Details', 'Add Reminder']
   },
   {
@@ -40,6 +41,7 @@ const mockUpcomingEvents = [
     joined: 18,
     date: 'March 15, 10:00 AM',
     icon: Heart,
+    detailsHref: '/communityDashBorde/events/wellness-workshop-mindful-eating',
     actions: ['Join Event']
   },
   {
@@ -52,6 +54,7 @@ const mockUpcomingEvents = [
     joined: 32,
     date: 'March 20, 6:00 PM',
     icon: Users,
+    detailsHref: '/communityDashBorde/events/community-recipe-sharing',
     actions: ['Join Event']
   }
 ];
@@ -68,7 +71,8 @@ const mockJoinedEvents = [
     dateDay: 'Tomorrow',
     time: '2:00 PM',
     primaryAction: 'Join Now',
-    iconAction: ExternalLink
+    iconAction: ExternalLink,
+    detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass'
   },
   {
     id: 2,
@@ -80,7 +84,8 @@ const mockJoinedEvents = [
     extraIcon: HelpCircle,
     dateDay: 'March 18',
     time: '7:00 PM',
-    primaryAction: 'View Details'
+    primaryAction: 'View Details',
+    detailsHref: '/communityDashBorde/events/weekly-nutrition-q-and-a'
   }
 ];
 
