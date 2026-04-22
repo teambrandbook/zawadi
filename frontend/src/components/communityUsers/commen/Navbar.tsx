@@ -133,9 +133,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         </div>
 
         {/* Notification Icon */}
-        <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full">
+        <Link
+          href="/communityDashBorde/notifications"
+          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Open notifications"
+        >
           <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-        </button>
+        </Link>
 
         {/* Profile Info — clickable trigger */}
         <div className="relative flex items-center lg:pl-6 lg:border-l lg:border-gray-200">

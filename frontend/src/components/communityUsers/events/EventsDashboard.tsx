@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import { 
   Calendar, 
   Users, 
@@ -19,7 +20,7 @@ import {
 
 const mockUpcomingEvents = [
   {
-    id: 1,
+    id: 'buckwheat-nutrition-masterclass',
     title: 'Buckwheat Nutrition Masterclass',
     type: 'Nutrition Session',
     typeColor: 'bg-orange-100 text-orange-800',
@@ -32,7 +33,7 @@ const mockUpcomingEvents = [
     actions: ['View Details', 'Add Reminder']
   },
   {
-    id: 2,
+    id: 'wellness-workshop-mindful-eating',
     title: 'Wellness Workshop: Mindful Eating',
     type: 'Wellness Workshop',
     typeColor: 'bg-purple-100 text-purple-800',
@@ -45,7 +46,7 @@ const mockUpcomingEvents = [
     actions: ['Join Event']
   },
   {
-    id: 3,
+    id: 'community-recipe-sharing',
     title: 'Community Recipe Sharing',
     type: 'Community Meetup',
     typeColor: 'bg-blue-100 text-blue-800',
@@ -61,7 +62,7 @@ const mockUpcomingEvents = [
 
 const mockJoinedEvents = [
   {
-    id: 1,
+    id: 'buckwheat-nutrition-masterclass',
     title: 'Buckwheat Nutrition Masterclass',
     status: 'Confirmed',
     statusBg: 'bg-green-100 text-green-800',
@@ -75,7 +76,7 @@ const mockJoinedEvents = [
     detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass'
   },
   {
-    id: 2,
+    id: 'weekly-nutrition-q-and-a',
     title: 'Weekly Nutrition Q&A',
     status: 'Registered',
     statusBg: 'bg-orange-100 text-orange-800',
@@ -91,7 +92,7 @@ const mockJoinedEvents = [
 
 export default function EventsDashboard() {
   return (
-    <div className="flex-1 p-8 bg-gray-50 min-h-screen">
+    <div className="flex-1 p-8 bg-white min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-end mb-8">
         <div>
@@ -231,9 +232,13 @@ export default function EventsDashboard() {
                       <div className="flex space-x-2">
                         {ev.actions.map(action => (
                           action === 'View Details' ? (
-                            <button key={action} className="bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]">
+                            <Link
+                              key={action}
+                              href={ev.detailsHref}
+                              className="bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]"
+                            >
                               {action}
-                            </button>
+                            </Link>
                           ) : action === 'Join Event' ? (
                             <button key={action} className="bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]">
                               {action}
@@ -285,6 +290,10 @@ export default function EventsDashboard() {
                         <ev.iconAction size={14} />
                         <span>{ev.primaryAction}</span>
                       </button>
+                    ) : ev.primaryAction === 'View Details' ? (
+                      <Link href={ev.detailsHref} className="border border-gray-300 text-gray-600 text-xs font-semibold px-4 py-2 rounded-md hover:bg-gray-50">
+                        {ev.primaryAction}
+                      </Link>
                     ) : (
                       <button className="border border-gray-300 text-gray-600 text-xs font-semibold px-4 py-2 rounded-md hover:bg-gray-50">
                         {ev.primaryAction}

@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  Circle,
   CircleX,
   Clock3,
   Download,
@@ -184,16 +185,16 @@ function getActions(status: OrderLifecycleStatus): ActionItem[] {
   ];
 }
 
+function shouldShowTrack(status: OrderLifecycleStatus) {
+  return status === "Confirmed" || status === "Packed" || status === "Shipped" || status === "Out for Delivery";
+}
+
 function getStatusPercent(status: OrderLifecycleStatus) {
   if (status === "Cancelled") return "Cancelled";
 
   const current = progressStages.indexOf(status);
   const percent = Math.round(((current + 1) / progressStages.length) * 100);
   return `${percent}% Complete`;
-}
-
-function shouldShowTrack(status: OrderLifecycleStatus) {
-  return status === "Confirmed" || status === "Packed" || status === "Shipped" || status === "Out for Delivery";
 }
 
 function matchesTab(order: OrderItem, activeTab: TabFilter) {
@@ -212,7 +213,7 @@ export default function MyOrder() {
   const [activeTab, setActiveTab] = useState<TabFilter>("All Orders");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [trackedOrderId, setTrackedOrderId] = useState<string | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [activeActionByOrder, setActiveActionByOrder] = useState<Record<string, string>>({});
 
   const filteredOrders = useMemo(() => {
@@ -241,15 +242,19 @@ export default function MyOrder() {
     setCurrentPage(1);
   }
 
-  function onTrackClick(orderDataId: string) {
-    setTrackedOrderId((prev) => (prev === orderDataId ? null : orderDataId));
-    setActiveActionByOrder((prev) => ({ ...prev, [orderDataId]: "Track Order" }));
+  function onOrderCardClick(orderDataId: string, status: OrderLifecycleStatus) {
+    if (!shouldShowTrack(status)) return;
+    setExpandedOrderId((prev) => (prev === orderDataId ? null : orderDataId));
   }
 
   function onActionClick(orderDataId: string, actionLabel: string) {
     if (actionLabel === "Write Review") {
       const encodedOrderDataId = encodeURIComponent(orderDataId);
       router.push(`/communityDashBorde/myorders/review/${encodedOrderDataId}`);
+      return;
+    }
+    if (actionLabel === "Track Order") {
+      router.push("/communityDashBorde/myorders/order-placed");
       return;
     }
     if (actionLabel === "View Details") {
@@ -345,8 +350,8 @@ export default function MyOrder() {
           {paginatedOrders.map((order) => {
             const badge = getBadgeData(order.lifecycleStatus);
             const actions = getActions(order.lifecycleStatus);
-            const isTrackingThisOrder = trackedOrderId === order.id;
-            const showTrackingSection = isTrackingThisOrder && shouldShowTrack(order.lifecycleStatus);
+            const showTrackingSection =
+              expandedOrderId === order.id && shouldShowTrack(order.lifecycleStatus);
             const currentStatusIndex =
               order.lifecycleStatus === "Cancelled" ? -1 : progressStages.indexOf(order.lifecycleStatus);
 
@@ -355,7 +360,18 @@ export default function MyOrder() {
                 key={order.orderId}
                 className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]"
               >
-                <div className="p-4 lg:p-6">
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onOrderCardClick(order.id, order.lifecycleStatus)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onOrderCardClick(order.id, order.lifecycleStatus);
+                    }
+                  }}
+                  className="block w-full cursor-pointer p-4 text-left lg:p-6"
+                >
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                     <div className="relative h-24 w-24 overflow-hidden rounded-lg bg-[#EBE1CF]">
                       <Image src={order.image} alt={order.title} fill className="object-cover" />
@@ -401,11 +417,8 @@ export default function MyOrder() {
                           return (
                             <button
                               key={action.label}
-                              onClick={() => {
-                                if (action.label === "Track Order") {
-                                  onTrackClick(order.id);
-                                  return;
-                                }
+                              onClick={(event) => {
+                                event.stopPropagation();
                                 onActionClick(order.id, action.label);
                               }}
                               className={`inline-flex h-9 items-center gap-2 rounded-lg px-4 text-xs font-medium transition-colors ${
@@ -427,9 +440,9 @@ export default function MyOrder() {
                 </div>
 
                 {showTrackingSection && (
-                  <div className="bg-[#EBE1CF] px-4 py-4 lg:px-6">
+                  <div className="border-t border-[#DFDFDF] bg-[#F8F3E9] px-4 py-4 lg:px-6">
                     <div className="mb-3 flex items-center justify-between text-xs text-[#9F8151]">
-                      <span>Delivery Progress</span>
+                      <span>Order Tracking</span>
                       <span className="font-medium text-[#0A4833]">{getStatusPercent(order.lifecycleStatus)}</span>
                     </div>
 
@@ -437,13 +450,13 @@ export default function MyOrder() {
                       {progressStages.map((stage, index) => {
                         const done = index <= currentStatusIndex;
                         const active = index === currentStatusIndex;
-                        const StageIcon = stage === "Out for Delivery" ? Truck : Check;
+                        const StageIcon = stage === "Out for Delivery" ? Truck : done || active ? Check : Circle;
 
                         return (
                           <div key={stage} className="flex items-center gap-3">
                             <div className="flex flex-col items-center">
                               <span
-                                className={`inline-flex h-6 w-6 items-center justify-center rounded-full ${
+                                className={`inline-flex h-7 w-7 items-center justify-center rounded-full ${
                                   active
                                     ? "bg-[#9F8151] text-white"
                                     : done
@@ -451,7 +464,7 @@ export default function MyOrder() {
                                       : "bg-white text-[#9CA3AF]"
                                 }`}
                               >
-                                <StageIcon className="h-3.5 w-3.5" />
+                                <StageIcon className={`h-4 w-4 ${StageIcon === Circle ? "fill-current" : ""}`} />
                               </span>
                               <span className="mt-2 whitespace-nowrap text-[11px] text-[#0A4833]">{stage}</span>
                             </div>

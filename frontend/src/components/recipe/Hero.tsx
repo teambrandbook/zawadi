@@ -19,7 +19,7 @@ export default function Hero() {
                     {/* Left: Image */}
                     <div className="relative aspect-square w-full overflow-hidden rounded-md ">
                         <Image
-                            src="/product/product-5.webp"
+                            src="/product/recipe-1.webp"
                             alt="Buckwheat Soup"
                             fill
                             className="img object-cover"
