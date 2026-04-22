@@ -1,0 +1,125 @@
+import type { ConversationItem } from "./messageTypes";
+
+export const backendConversations: ConversationItem[] = [
+  {
+    id: "michael-johnson",
+    clientName: "Michael Johnson",
+    clientAvatar: "/recipe/recipe-3.webp",
+    activeStatus: "Active 2 minutes ago",
+    preview: "Thank you for the buckwheat recipe! I'll try it this week.",
+    updatedAt: "2m ago",
+    tag: "Diet Plan",
+    unreadCount: 2,
+    priorityFlag: "normal",
+    messages: [
+      {
+        id: "michael-1",
+        sender: "client",
+        text: "Hi Dr. Chen! I wanted to follow up on our last consultation. I've been incorporating more buckwheat into my diet as you suggested.",
+        time: "10:30 AM",
+      },
+      {
+        id: "michael-2",
+        sender: "consultant",
+        text: "That's wonderful to hear! How are you feeling with the new additions? Any improvements in your energy levels?",
+        time: "10:32 AM",
+      },
+      {
+        id: "michael-3",
+        sender: "client",
+        text: "Yes, definitely! I've been tracking my meals. Here's my food diary from this week.",
+        time: "10:35 AM",
+        attachment: {
+          id: "attach-food-diary",
+          name: "food-diary-week1.pdf",
+        },
+      },
+      {
+        id: "michael-4",
+        sender: "consultant",
+        text: "Perfect! I'll review this and send you some personalized buckwheat recipes that align with your preferences.",
+        time: "10:38 AM",
+      },
+      {
+        id: "michael-5",
+        sender: "system",
+        title: "Diet Plan Shared",
+        text: "I've shared your personalized buckwheat meal plan. Please review and let me know if you have any questions!",
+        time: "Just now",
+      },
+    ],
+  },
+  {
+    id: "emma-rodriguez",
+    clientName: "Emma Rodriguez",
+    clientAvatar: "/recipe/recipe-2.webp",
+    activeStatus: "Active 1 hour ago",
+    preview: "Should I continue the buckwheat porridge for breakfast?",
+    updatedAt: "1h ago",
+    tag: "Follow-up",
+    priorityFlag: "unread",
+    messages: [
+      {
+        id: "emma-1",
+        sender: "client",
+        text: "Should I continue the buckwheat porridge for breakfast every day, or should I alternate it?",
+        time: "9:10 AM",
+      },
+      {
+        id: "emma-2",
+        sender: "consultant",
+        text: "Alternating is a great idea. Keep it 3 to 4 times a week so you get variety while staying consistent.",
+        time: "9:16 AM",
+      },
+    ],
+  },
+  {
+    id: "david-park",
+    clientName: "David Park",
+    clientAvatar: "/recipe/recipe-4.webp",
+    activeStatus: "Active 3 hours ago",
+    preview: "Feeling much better after starting the new routine!",
+    updatedAt: "3h ago",
+    tag: "Check-in",
+    priorityFlag: "priority",
+    messages: [
+      {
+        id: "david-1",
+        sender: "client",
+        text: "Feeling much better after starting the new routine!",
+        time: "7:15 AM",
+      },
+      {
+        id: "david-2",
+        sender: "consultant",
+        text: "That is really encouraging. Keep tracking your meals and water intake this week too.",
+        time: "7:22 AM",
+      },
+    ],
+  },
+  {
+    id: "lisa-thompson",
+    clientName: "Lisa Thompson",
+    clientAvatar: "/recipe/recipe-2.webp",
+    activeStatus: "Active 5 hours ago",
+    preview: "Can we reschedule tomorrow's consultation?",
+    updatedAt: "5h ago",
+    tag: "Consultation",
+    unreadCount: 1,
+    priorityFlag: "unread",
+    messages: [
+      {
+        id: "lisa-1",
+        sender: "client",
+        text: "Can we reschedule tomorrow's consultation?",
+        time: "6:00 AM",
+      },
+      {
+        id: "lisa-2",
+        sender: "consultant",
+        text: "Yes, I can help with that. Please share a time window that works better for you.",
+        time: "6:04 AM",
+      },
+    ],
+  },
+];

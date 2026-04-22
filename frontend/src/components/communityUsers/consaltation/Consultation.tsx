@@ -12,6 +12,7 @@ import {
 import StatCard from "../commen/StatCard";
 import UpcomingSessions from "./components/UpcomingSessions";
 import ActiveDietPlan from "./components/ActiveDietPlan";
+import DietPlanModal from "./components/DietPlanModal";
 import FindNutritionist from "./components/FindNutritionist";
 import ExpertRecommendations from "./components/ExpertRecommendations";
 import ConsultationHistory from "./components/ConsultationHistory";
@@ -133,6 +134,7 @@ const historyRows = [
 export default function Consultation() {
   const router = useRouter();
   const [message, setMessage] = useState("");
+  const [isDietPlanOpen, setIsDietPlanOpen] = useState(false);
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -165,7 +167,7 @@ export default function Consultation() {
             onJoin={(id) => setMessage(`Joining session: ${id}`)}
             onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
           />
-          <ActiveDietPlan progress={65} onViewPlan={() => router.push("/communityDashBorde/diet-plan")} />
+          <ActiveDietPlan progress={65} onViewPlan={() => setIsDietPlanOpen(true)} />
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -181,6 +183,8 @@ export default function Consultation() {
           </div>
         )}
       </div>
+
+      <DietPlanModal open={isDietPlanOpen} onClose={() => setIsDietPlanOpen(false)} />
     </section>
   );
 }
