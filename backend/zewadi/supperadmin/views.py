@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import OperationalError, ProgrammingError
 from accounts.models import User
 from .serializer import UserSerializer, UserUpdateSerializer, RoleSerializer
 from .utils.permissions import has_permission, IsAdminRole
@@ -16,14 +17,22 @@ class AdminStatsAPIView(APIView):
         from events.models import Event
         from consultant.models import ConsultationBooking
 
-        total_users = User.objects.count()
-        total_orders = Order.objects.count()
-        total_products = Product.objects.count()
-        total_events = Event.objects.count()
-        total_consultations = ConsultationBooking.objects.count()
-        total_revenue = sum(
-            o.total_amount for o in Order.objects.filter(payment_status="paid")
-        ) or 0
+        def safe_query(query_fn, default=0):
+            try:
+                return query_fn()
+            except (ProgrammingError, OperationalError):
+                # Some apps in this project currently have no DB migrations.
+                # Return zero stats instead of failing the entire dashboard API.
+                return default
+
+        total_users = safe_query(lambda: User.objects.count())
+        total_orders = safe_query(lambda: Order.objects.count())
+        total_products = safe_query(lambda: Product.objects.count())
+        total_events = safe_query(lambda: Event.objects.count())
+        total_consultations = safe_query(lambda: ConsultationBooking.objects.count())
+        total_revenue = safe_query(
+            lambda: sum(o.total_amount for o in Order.objects.filter(payment_status="paid")) or 0
+        )
 
         return Response({
             "total_users": total_users,
