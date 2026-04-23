@@ -29,7 +29,7 @@ export default function Hero() {
                         <h1 className="font-playfair text-3xl md:text-4xl lg:text-6xl font-semibold text-black tracking-tight leading-none mb-8">
                             Zewadi Community
                         </h1>
-                        
+
                         {/* Static Paragraph */}
                         <p className="font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-sm">
                             The Zewadi community is rooted in simple, meaningful choices - choosing better ingredients, better habits, and a better way of living.
@@ -38,18 +38,18 @@ export default function Hero() {
 
                     {/* Image Section - Static */}
                     <div className="img-drop w-full aspect-[4/3] relative rounded-sm overflow-hidden shadow-sm group">
-                        <Image 
-                            src="/community/community-1.webp" 
-                            alt="Community Hero Small" 
-                            fill 
-                            className="object-cover transition-transform duration-[2s] group-hover:scale-105" 
+                        <Image
+                            src="/community/community-1.webp"
+                            alt="Community Hero Small"
+                            fill
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                         />
                     </div>
 
                     {/* Secondary Text and Button */}
                     <div className="flex flex-col gap-8">
                         <p className="font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-md">
-                            It’s about people who care - about their health, their routines, and the impact of what they consume.  
+                            It’s about people who care - about their health, their routines, and the impact of what they consume.
                         </p>
 
                         <div>
@@ -65,11 +65,11 @@ export default function Hero() {
 
                 {/* Right Column - Large Image - Static */}
                 <div className="img-drop w-full h-full min-h-[500px] lg:min-h-[700px] relative rounded-sm overflow-hidden shadow-sm group">
-                    <Image 
-                        src="/community/community-2.webp" 
-                        alt="Community Hero Large" 
-                        fill 
-                        className="object-cover transition-transform duration-[2s] group-hover:scale-105" 
+                    <Image
+                        src="/community/community-2.webp"
+                        alt="Community Hero Large"
+                        fill
+                        className="object-cover transition-transform duration-[2s] group-hover:scale-105"
                     />
                 </div>
             </div>

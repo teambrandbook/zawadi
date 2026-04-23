@@ -51,7 +51,7 @@ export default function Testimonials() {
             <div className="img rounded-[10px] absolute inset-0 z-0 overflow-hidden">
                 <div className="relative w-full h-full">
                     <Image
-                        src="/about/about-6.6.webp"
+                        src="/about/testimonial.webp"
                         alt="Testimonials Background"
                         fill
                         className="object-cover brightness-[0.85] transform scale-105"

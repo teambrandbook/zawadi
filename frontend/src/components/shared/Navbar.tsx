@@ -42,7 +42,7 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm whitespace-nowrap"
                             >
                                 {link.name}
                             </Link>
@@ -104,7 +104,7 @@ export default function Navbar() {
                             <Link
                                 key={link.name}
                                 href={link.href}
-                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-xs lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm"
+                                className="text-[#0A4834] font-semibold hover:text-[#0A4834]/70 transition-colors text-[10px] lg:text-sm uppercase tracking-widest font-mulish drop-shadow-sm whitespace-nowrap"
                             >
                                 {link.name}
                             </Link>

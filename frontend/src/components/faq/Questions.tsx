@@ -20,17 +20,18 @@ export default function Questions() {
 
     return (
         <section className="w-full bg-white pt-20 pb-10 px-6 md:px-12 lg:px-24">
-            <div className="max-w-[85rem] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">                {faqs.map((faq) => {
+            <div className="max-w-[85rem] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 items-start">
+                {faqs.map((faq) => {
                 const isOpen = activeId === faq.id;
 
                 return (
                     <div
                         key={faq.id}
                         onClick={() => toggleFAQ(faq.id)}
-                        className="bg-[#9F8151] rounded-sm p-6 hover:bg-[#b09363] transition-colors cursor-pointer shadow-sm"
+                        className="bg-[#9F8151] rounded-sm p-6 hover:bg-[#b09363] transition-all cursor-pointer shadow-sm min-h-[96px] flex flex-col justify-center"
                     >
                         {/* Question Row */}
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center w-full">
                             <span className="font-inter font-medium text-white text-sm md:text-base pr-4">
                                 {faq.question}
                             </span>

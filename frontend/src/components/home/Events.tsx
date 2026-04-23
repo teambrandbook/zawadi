@@ -83,6 +83,7 @@ export default function Events() {
                     start: "top top",
                     end: "bottom bottom",
                     scrub: 1,
+                    pin: true,
                 }
             });
 
@@ -125,13 +126,15 @@ export default function Events() {
             );
 
             tl.to(indicatorRef.current, { top: "100%", duration: 0.25 }, scrollPoints.stop3);
+
+            ScrollTrigger.refresh();
         });
 
     }, { scope: containerRef });
 
     return (
-        <section ref={containerRef} className="relative h-[400vh] bg-white">
-            <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden">
+        <section ref={containerRef} className="relative h-[300vh] bg-white">
+            <div className="h-screen w-full flex items-center justify-center overflow-hidden">
                 <div className="max-w-[85rem] w-full mx-auto grid grid-cols-12 md:gap-8 lg:gap-16 px-6 md:px-12 lg:px-24 h-full md:h-auto lg:h-[75vh] items-center py-10 md:pt-32 lg:py-0">
 
                     {/* LEFT */}
@@ -141,8 +144,8 @@ export default function Events() {
                                 The Experience of Zewadi
                             </h2>
                             <p className="font-mulish text-[#000000] text-base md:text-xl lg:text-lg leading-relaxed max-w-sm mb-6">
-                               Every meal is more than just food - it’s a moment to share, connect, and remember.
-With Zewadi, even the simplest choices become experiences worth holding on to.
+                                Every meal is more than just food - it’s a moment to share, connect, and remember.
+                                With Zewadi, even the simplest choices become experiences worth holding on to.
 
                             </p>
                             <div className="flex justify-start">

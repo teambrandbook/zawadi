@@ -25,22 +25,22 @@ export default function Hero() {
             duration: 1,
             ease: "power3.inOut"
         })
-        // Image Reveal (Left-to-Right Wipe)
-        .from(".hero-image-wipe", {
-            clipPath: "inset(0% 100% 0% 0%)",
-            opacity: 0,
-            x: -20,
-            duration: 1.2,
-            stagger: 0.2, // Staggered wipe across multiple images
-            ease: "power3.inOut"
-        }, "-=0.6")
-        // Text Block Reveal
-        .from(".hero-text", {
-            opacity: 0,
-            y: 30,
-            duration: 1,
-            ease: "power3.inOut"
-        }, "-=0.8");
+            // Image Reveal (Left-to-Right Wipe)
+            .from(".hero-image-wipe", {
+                clipPath: "inset(0% 100% 0% 0%)",
+                opacity: 0,
+                x: -20,
+                duration: 1.2,
+                stagger: 0.2, // Staggered wipe across multiple images
+                ease: "power3.inOut"
+            }, "-=0.6")
+            // Text Block Reveal
+            .from(".hero-text", {
+                opacity: 0,
+                y: 30,
+                duration: 1,
+                ease: "power3.inOut"
+            }, "-=0.8");
 
     }, { scope: containerRef });
 
@@ -63,11 +63,11 @@ export default function Hero() {
 
                     {/* Left Column: Large Vertical Image */}
                     <div className="hero-image-wipe w-full md:h-[600px] max-sm:h-[400px] aspect-[3/4]  relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
-                        <Image 
-                            src="/about/about-1.1.webp" 
-                            alt="About Hero Vertical" 
-                            fill 
-                            className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
+                        <Image
+                            src="/about/about-1.1.webp"
+                            alt="About Hero Vertical"
+                            fill
+                            className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                         />
                     </div>
 
@@ -75,11 +75,11 @@ export default function Hero() {
                     <div className="flex flex-col gap-8 md:gap-12">
                         {/* Top Image */}
                         <div className="hero-image-wipe w-full  aspect-[5/4] relative rounded-sm overflow-hidden shadow-sm group bg-[#f8f8f8]">
-                            <Image 
-                                src="/about/about-2.2.webp" 
-                                alt="About Hero Square" 
-                                fill 
-                                className="object-cover transition-transform duration-[2s] group-hover:scale-110" 
+                            <Image
+                                src="/about/about-2.2.webp"
+                                alt="About Hero Square"
+                                fill
+                                className="object-cover transition-transform duration-[2s] group-hover:scale-110"
                             />
                         </div>
 

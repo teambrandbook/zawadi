@@ -160,7 +160,7 @@ export default function Product() {
         </div>
 
         {/* Carousel Zone - Fixed positioning for perspective */}
-        <div 
+        <div
           className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] z-20 mt-12 md:mt-16 lg:mt-24"
           style={{ perspective: "1500px" }}
         >

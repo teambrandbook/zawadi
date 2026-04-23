@@ -4,6 +4,11 @@ import Image from "next/image";
 import { useRef } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 import WipeButton from "../shared/WipeButton";
 
 export default function Developing() {
@@ -43,12 +48,12 @@ export default function Developing() {
             duration: 1.2,
             ease: "power3.inOut"
         })
-        .from(".left-button", {
-            opacity: 0,
-            y: 30,
-            duration: 0.8,
-            ease: "circ.out"
-        }, "-=0.6");
+            .from(".left-button", {
+                opacity: 0,
+                y: 30,
+                duration: 0.8,
+                ease: "circ.out"
+            }, "-=0.6");
 
         // Right Column Reveal
         const rightTl = gsap.timeline({
@@ -66,12 +71,12 @@ export default function Developing() {
             duration: 1.2,
             ease: "power3.inOut"
         })
-        .from(".right-text", {
-            opacity: 0,
-            x: -50,
-            duration: 1,
-            ease: "circ.out"
-        }, "-=0.8");
+            .from(".right-text", {
+                opacity: 0,
+                x: -50,
+                duration: 1,
+                ease: "circ.out"
+            }, "-=0.8");
 
     }, { scope: containerRef });
 
@@ -85,7 +90,7 @@ export default function Developing() {
                         Where Food Meets Meaning
                     </h2>
                     <p className="header-item font-mulish text-[#000000] text-sm md:text-base leading-relaxed max-w-3xl">
-                       It’s never really just about the food. It’s about who you’re with, those random conversations, and the little moments in between. Zewadi makes all of it a bit more meaningful.
+                        It’s never really just about the food. It’s about who you’re with, those random conversations, and the little moments in between. Zewadi makes all of it a bit more meaningful.
                     </p>
                 </div>
 
