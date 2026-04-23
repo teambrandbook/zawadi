@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, useRef, useState } from "react";
+import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
@@ -9,6 +9,7 @@ import { expertiseChips } from "./components/add-nutritionist/addNutritionistDat
 import ExpertiseSection from "./components/add-nutritionist/ExpertiseSection";
 import ProfilePhotoSection from "./components/add-nutritionist/ProfilePhotoSection";
 import ProfilePreviewCard from "./components/add-nutritionist/ProfilePreviewCard";
+// import { log } from "console";
 
 // --- Inline form sections (controlled) ---
 
@@ -70,8 +71,11 @@ export default function AddNutritionistPage() {
 
   // Basic info
   const [fullName, setFullName] = useState("");
+  const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [yearsExp, setYearsExp] = useState("");
   const [gender, setGender] = useState("");
   const [location, setLocation] = useState("");
@@ -79,6 +83,7 @@ export default function AddNutritionistPage() {
   // Profile photo
   const [selectedPhotoName, setSelectedPhotoName] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
 
   // Professional details
   const [qualification, setQualification] = useState("");
@@ -106,12 +111,38 @@ export default function AddNutritionistPage() {
 
   const handleBrowsePhoto = () => fileInputRef.current?.click();
 
-  const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    if (!photoFile) {
+      setPhotoPreviewUrl("");
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(photoFile);
+    setPhotoPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [photoFile]);
+
+  function selectPhotoFile(file: File) {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select a valid image file.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be 5 MB or smaller.");
+      return;
+    }
+
     setSelectedPhotoName(file.name);
     setPhotoFile(file);
-  };
+  }
+
+  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    selectPhotoFile(file);
+  }
 
   function buildSessionType() {
     const types: string[] = [];
@@ -123,6 +154,11 @@ export default function AddNutritionistPage() {
 
   async function handleCreateNutritionist() {
     if (!fullName.trim()) { toast.error("Full name is required."); return; }
+    if (!userName.trim()) { toast.error("Username is required."); return; }
+    if (!email.trim()) { toast.error("Email is required."); return; }
+    if (!password.trim()) { toast.error("Password is required."); return; }
+    if (!dateOfBirth) { toast.error("Date of birth is required."); return; }
+    if (!gender) { toast.error("Gender is required."); return; }
     if (!qualification.trim()) { toast.error("Qualification is required."); return; }
     if (!shortBio.trim()) { toast.error("Short bio is required."); return; }
 
@@ -138,20 +174,32 @@ export default function AddNutritionistPage() {
     fd.append("session_duration", sessionDuration);
     // User fields if backend accepts them at creation
     fd.append("full_name", fullName.trim());
+    fd.append("user_name", userName.trim());
     fd.append("email", email.trim());
+    fd.append("password", password);
     fd.append("phone", phone.trim());
+    fd.append("date_of_birth", dateOfBirth);
+    fd.append("gender", gender.toUpperCase());
+    fd.append("role", "CONSULTANT");
+    fd.append("user_type", "MEMBER");
+    fd.append("preferred_communication", "email");
+    fd.append("notification_preferences", "all");
     if (photoFile) fd.append("photo", photoFile);
 
     setIsSubmitting(true);
     try {
-      await api.post("/consultant/consultants/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      await api.post("/account/register/", fd);
       toast.success("Nutritionist added successfully! ✅");
-      router.push("/admindashboard/nutritionist");
+      router.push("/account/nutritionist");
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(msg ?? "Failed to add nutritionist. Please try again.");
+      const responseData = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail =
+        typeof responseData?.detail === "string"
+          ? responseData.detail
+          : Object.entries(responseData ?? {})
+              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+              .join(" | ");
+      toast.error(detail || "Failed to add nutritionist. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,8 +223,11 @@ export default function AddNutritionistPage() {
             <FormCard title="Basic Information">
               <div className="grid gap-3 md:grid-cols-2">
                 <InputField label="Full Name *" value={fullName} onChange={setFullName} placeholder="Enter full name" />
+                <InputField label="Username *" value={userName} onChange={setUserName} placeholder="Enter username" />
                 <InputField label="Email Address *" value={email} onChange={setEmail} placeholder="nutritionist@email.com" type="email" />
+                <InputField label="Temporary Password *" value={password} onChange={setPassword} placeholder="Enter temporary password" type="password" />
                 <InputField label="Phone Number" value={phone} onChange={setPhone} placeholder="+1 (555) 123-4567" />
+                <InputField label="Date of Birth *" value={dateOfBirth} onChange={setDateOfBirth} type="date" />
                 <InputField label="Years of Experience" value={yearsExp} onChange={setYearsExp} placeholder="5" type="number" />
                 <label className="block space-y-1">
                   <span className="text-xs font-medium text-[#0A4833]">Gender</span>
@@ -199,8 +250,10 @@ export default function AddNutritionistPage() {
             <ProfilePhotoSection
               fileInputRef={fileInputRef}
               selectedPhotoName={selectedPhotoName}
+              previewUrl={photoPreviewUrl}
               onBrowsePhoto={handleBrowsePhoto}
               onPhotoChange={handlePhotoChange}
+              onPhotoDrop={selectPhotoFile}
             />
 
             {/* Professional Details */}

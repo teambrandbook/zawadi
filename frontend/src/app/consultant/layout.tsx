@@ -43,8 +43,8 @@ export default function ConsultantLayout({ children }: Props) {
             </div>
 
             {/* ✅ Main Content */}
-            <div className="pt-16 lg:pl-64 bg-white min-h-screen">
-                {children}
+            <div className=" pt-26 lg:pl-64 bg-white min-h-screen">
+                    {children}
             </div>
         </div>
     )

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import {
@@ -17,6 +18,7 @@ import {
   User,
   UserPlus,
   UtensilsCrossed,
+  X,
 } from "lucide-react";
 
 type PlanStatus = "active" | "completed" | "draft" | "pending";
@@ -29,6 +31,9 @@ type DietPlan = {
   duration: string;
   status: PlanStatus;
   updatedAt: string;
+  dailyCalories: string;
+  meals: MealItem[];
+  highlights: string[];
 };
 
 type StatCard = {
@@ -60,6 +65,15 @@ const dietPlans: DietPlan[] = [
     duration: "30 Days",
     status: "active",
     updatedAt: "Updated 2 hours ago",
+    dailyCalories: "1850 cal",
+    meals: [
+      { label: "Breakfast", calories: "420 cal" },
+      { label: "Mid-Morning", calories: "180 cal" },
+      { label: "Lunch", calories: "560 cal" },
+      { label: "Snack", calories: "190 cal" },
+      { label: "Dinner", calories: "500 cal" },
+    ],
+    highlights: ["Buckwheat-focused meals", "High fiber support", "Weekly progress tracking"],
   },
   {
     id: "plan-2",
@@ -69,6 +83,15 @@ const dietPlans: DietPlan[] = [
     duration: "60 Days",
     status: "active",
     updatedAt: "Updated 1 day ago",
+    dailyCalories: "2400 cal",
+    meals: [
+      { label: "Breakfast", calories: "500 cal" },
+      { label: "Mid-Morning", calories: "250 cal" },
+      { label: "Lunch", calories: "700 cal" },
+      { label: "Snack", calories: "250 cal" },
+      { label: "Dinner", calories: "700 cal" },
+    ],
+    highlights: ["Protein-balanced meals", "Strength training support", "Higher calorie target"],
   },
   {
     id: "plan-3",
@@ -78,6 +101,15 @@ const dietPlans: DietPlan[] = [
     duration: "45 Days",
     status: "draft",
     updatedAt: "Updated 3 days ago",
+    dailyCalories: "2000 cal",
+    meals: [
+      { label: "Breakfast", calories: "430 cal" },
+      { label: "Mid-Morning", calories: "170 cal" },
+      { label: "Lunch", calories: "600 cal" },
+      { label: "Snack", calories: "180 cal" },
+      { label: "Dinner", calories: "620 cal" },
+    ],
+    highlights: ["Draft plan", "Balanced maintenance goal", "Ready for assignment"],
   },
   {
     id: "plan-4",
@@ -87,6 +119,15 @@ const dietPlans: DietPlan[] = [
     duration: "30 Days",
     status: "completed",
     updatedAt: "Updated 1 week ago",
+    dailyCalories: "1750 cal",
+    meals: [
+      { label: "Breakfast", calories: "390 cal" },
+      { label: "Mid-Morning", calories: "160 cal" },
+      { label: "Lunch", calories: "520 cal" },
+      { label: "Snack", calories: "180 cal" },
+      { label: "Dinner", calories: "500 cal" },
+    ],
+    highlights: ["Completed successfully", "Energy-focused foods", "Client adherence summary"],
   },
   {
     id: "plan-5",
@@ -96,15 +137,16 @@ const dietPlans: DietPlan[] = [
     duration: "90 Days",
     status: "pending",
     updatedAt: "Updated 5 hours ago",
+    dailyCalories: "2600 cal",
+    meals: [
+      { label: "Breakfast", calories: "520 cal" },
+      { label: "Mid-Morning", calories: "220 cal" },
+      { label: "Lunch", calories: "760 cal" },
+      { label: "Snack", calories: "240 cal" },
+      { label: "Dinner", calories: "860 cal" },
+    ],
+    highlights: ["High-protein structure", "Buckwheat meal base", "Awaiting client approval"],
   },
-];
-
-const previewMeals: MealItem[] = [
-  { label: "Breakfast", calories: "450 cal" },
-  { label: "Mid-Morning", calories: "200 cal" },
-  { label: "Lunch", calories: "550 cal" },
-  { label: "Snack", calories: "150 cal" },
-  { label: "Dinner", calories: "500 cal" },
 ];
 
 function SectionCard({
@@ -177,9 +219,18 @@ function getPlanActions(status: PlanStatus) {
 }
 
 export default function ConsultantDietPlansPage() {
+  const [selectedPlan, setSelectedPlan] = useState<DietPlan>(dietPlans[0]);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+
+  function handleViewPlan(plan: DietPlan) {
+    setSelectedPlan(plan);
+    setIsPreviewOpen(true);
+  }
+
   return (
-    <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
-      <div className="mx-auto max-w-[1220px] space-y-6">
+    <>
+      <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
+        <div className="mx-auto max-w-[1220px] space-y-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#0A4833]">Diet Plans</h1>
@@ -189,7 +240,7 @@ export default function ConsultantDietPlansPage() {
           </div>
 
           <Link
-            href="/consultant/diet-plans"
+            href="/consultant/diet-plans/add"
             className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0A4833] px-5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(10,72,51,0.15)] transition hover:bg-[#083627]"
           >
             <Plus className="h-4 w-4" />
@@ -242,7 +293,7 @@ export default function ConsultantDietPlansPage() {
             </SectionCard>
 
             {dietPlans.map((plan) => (
-              <SectionCard key={plan.id} className="p-5">
+              <SectionCard key={plan.id} className={`p-5 ${selectedPlan.id === plan.id ? "ring-2 ring-[#D8C092]" : ""}`}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -272,11 +323,13 @@ export default function ConsultantDietPlansPage() {
                 <div className="mt-5 flex flex-wrap gap-2">
                   {getPlanActions(plan.status).map((action) => {
                     const Icon = action.icon;
+                    const isViewAction = action.label === "View Plan";
 
                     return (
                       <button
                         key={`${plan.id}-${action.label}`}
                         type="button"
+                        onClick={isViewAction ? () => handleViewPlan(plan) : undefined}
                         className={`inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium transition ${action.className}`}
                       >
                         <Icon className="h-4 w-4" />
@@ -296,7 +349,22 @@ export default function ConsultantDietPlansPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-[#0A4833]">Plan Preview</h2>
-                <p className="mt-1 text-xs text-[rgba(10,72,51,0.6)]">Buckwheat Power Plan</p>
+                <p className="mt-1 text-xs text-[rgba(10,72,51,0.6)]">{selectedPlan.title}</p>
+              </div>
+            </div>
+
+            <div className="mt-5 rounded-xl bg-[#F8FAF9] p-4">
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <span className="text-[#0A4833]">Client</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan.clientName}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                <span className="text-[#0A4833]">Goal</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan.goal}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3 text-sm">
+                <span className="text-[#0A4833]">Duration</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan.duration}</span>
               </div>
             </div>
 
@@ -307,7 +375,7 @@ export default function ConsultantDietPlansPage() {
               </div>
 
               <div className="mt-4 space-y-3">
-                {previewMeals.map((meal) => (
+                {selectedPlan.meals.map((meal) => (
                   <div key={meal.label} className="flex items-center justify-between rounded-lg bg-[#F8F4EC] px-3 py-3 text-sm">
                     <span className="text-[#0A4833]">{meal.label}</span>
                     <span className="font-medium text-[#A88751]">{meal.calories}</span>
@@ -321,11 +389,101 @@ export default function ConsultantDietPlansPage() {
                 <Clock3 className="h-4 w-4 text-[#A88751]" />
                 <span>Daily Target</span>
               </div>
-              <div className="mt-4 h-8 rounded-lg bg-[#F3F4F6]" />
+              <div className="mt-4 rounded-lg bg-[#F3F4F6] px-3 py-3 text-sm font-medium text-[#0A4833]">
+                {selectedPlan.dailyCalories}
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-[#E5E7EB] pt-4">
+              <div className="flex items-center gap-2 text-sm font-semibold text-[#0A4833]">
+                <Check className="h-4 w-4 text-[#A88751]" />
+                <span>Highlights</span>
+              </div>
+              <div className="mt-4 space-y-2">
+                {selectedPlan.highlights.map((item) => (
+                  <div key={item} className="rounded-lg bg-[#F8F4EC] px-3 py-2 text-sm text-[#0A4833]">
+                    {item}
+                  </div>
+                ))}
+              </div>
             </div>
           </SectionCard>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+
+      {isPreviewOpen ? (
+        <div
+          className="fixed inset-0 z-[90] overflow-y-auto bg-[#101828]/55 px-4 py-4 sm:py-6"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div className="flex min-h-full items-start justify-center py-4 sm:items-center">
+          <div
+            className="my-auto flex max-h-[calc(100vh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-[#D1D5DB] bg-white shadow-[0_28px_90px_rgba(16,24,40,0.22)] sm:max-h-[90vh]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between border-b border-[#E5E7EB] px-5 py-4 sm:px-6 sm:py-5">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#A88751]">Plan Preview</p>
+                <h3 className="mt-1 text-2xl font-semibold text-[#0A4833]">{selectedPlan.title}</h3>
+                <p className="mt-2 text-sm text-[#6B7280]">
+                  {selectedPlan.clientName} - {selectedPlan.goal} - {selectedPlan.duration}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsPreviewOpen(false)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#F8F7F4] text-[#344054] transition hover:bg-[#EFECE6]"
+                aria-label="Close preview"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-5 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+              <div className="grid gap-3 md:grid-cols-3">
+                <div className="rounded-xl bg-[#F8F4EC] p-4">
+                  <p className="text-xs text-[#6B7280]">Client</p>
+                  <p className="mt-1 text-sm font-semibold text-[#0A4833]">{selectedPlan.clientName}</p>
+                </div>
+                <div className="rounded-xl bg-[#F8F4EC] p-4">
+                  <p className="text-xs text-[#6B7280]">Status</p>
+                  <p className="mt-1 text-sm font-semibold capitalize text-[#0A4833]">{selectedPlan.status}</p>
+                </div>
+                <div className="rounded-xl bg-[#F8F4EC] p-4">
+                  <p className="text-xs text-[#6B7280]">Daily Target</p>
+                  <p className="mt-1 text-sm font-semibold text-[#0A4833]">{selectedPlan.dailyCalories}</p>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-[#0A4833]">Meal Structure</h4>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {selectedPlan.meals.map((meal) => (
+                    <div key={meal.label} className="rounded-xl border border-[#E5E7EB] p-4">
+                      <p className="text-sm font-medium text-[#0A4833]">{meal.label}</p>
+                      <p className="mt-1 text-sm text-[#A88751]">{meal.calories}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h4 className="text-lg font-semibold text-[#0A4833]">Plan Highlights</h4>
+                <div className="mt-4 space-y-2">
+                  {selectedPlan.highlights.map((item) => (
+                    <div key={item} className="rounded-xl bg-[#F8FAF9] px-4 py-3 text-sm text-[#0A4833]">
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

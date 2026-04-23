@@ -26,7 +26,7 @@ export default function LoginComponent() {
     if (data.role === "admin") {
       router.push("/admindashboard");
     } else if (data.role === "consultant") {
-      router.push("/communityDashBorde");
+      router.push("/consultant");
     } else {
       router.push("/communityDashBorde");
     }

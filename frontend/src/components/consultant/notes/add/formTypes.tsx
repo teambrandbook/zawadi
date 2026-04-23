@@ -1,0 +1,47 @@
+export type NoteClientOption = {
+  id: string;
+  name: string;
+  avatar: string;
+  consultationId: string;
+  sessionDate: string;
+  sessionMode: string;
+  sessionTime: string;
+  wellnessGoal: string;
+  focusArea: string;
+  consultant: string;
+};
+
+export type AddNoteFormState = {
+  userId: string;
+  noteTitle: string;
+  noteType: string;
+  sessionDate: string;
+  sessionMode: string;
+  priorityLevel: string;
+  currentMood: string;
+  sessionSummary: string;
+  keyObservation: string;
+  nutritionObservation: string;
+  foodHabitObservation: string;
+  lifestyleObservation: string;
+  clientProgressNotes: string;
+  foodsToInclude: string;
+  foodsToAvoid: string;
+  buckwheatRecommendation: string;
+  mealTimingAdvice: string;
+  waterIntakeAdvice: string;
+  additionalDietaryGuidance: string;
+  allergies: string;
+  dietaryRestrictions: string;
+  medicalConditions: string;
+  sensitivities: string;
+  specialReminders: string;
+  nextConsultationRecommendation: string;
+  followUpDate: string;
+  actionItemsForClient: string;
+  progressChecksRequired: string;
+  dietPlanUpdateNeeded: string;
+  additionalMonitoringNote: string;
+  internalNotes: string;
+  tags: string[];
+};
