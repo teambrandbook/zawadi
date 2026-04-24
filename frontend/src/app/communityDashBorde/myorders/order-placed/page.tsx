@@ -2,7 +2,7 @@ import OrderPlacedPage, { type OrderPlacedData } from "@/components/communityUse
 
 const orderPlacedData: OrderPlacedData = {
   heading: "Track Your Order",
-  subheading: "Stay updated with your ZEWADI Buckwheat delivery and order progress.",
+  subheading: "Stay updated with your ZEWADI delivery and order progress.",
   orderId: "#ZW-2024-0156",
   summary: {
     image: "/product/product-1.webp",
@@ -90,7 +90,7 @@ const orderPlacedData: OrderPlacedData = {
     { label: "Contact Support", icon: "support" },
     { label: "Report Issue", icon: "issue" },
     { label: "Download Invoice", icon: "invoice" },
-    { label: "Reorder", icon: "reorder", href: "/communityDashBorde/myorders/order-buckwheat" },
+    { label: "Reorder", icon: "reorder", href: "/communityDashBorde/myorders/order" },
   ],
   promo: {
     title: "Your wellness essentials are on the way!",

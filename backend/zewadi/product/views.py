@@ -9,6 +9,19 @@ from .serializers import ProductSerializer, ProductCreateSerializer, ProductVari
 from supperadmin.utils.permissions import has_permission
 
 
+def _is_community_user(user):
+    return bool(
+        user
+        and getattr(user, "is_authenticated", False)
+        and str(getattr(user, "role", "")).upper() == "COMMUNITY_USER"
+    )
+
+
+def _can_view_products(user):
+    # Community users can browse products, while write actions stay RBAC-protected.
+    return _is_community_user(user) or has_permission(user, "products", "view")
+
+
 class ProductListCreateView(APIView):
     """
     GET  /api/products/          — list all products (requires products.view permission)
@@ -17,7 +30,7 @@ class ProductListCreateView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
-        if not has_permission(request.user, "products", "view"):
+        if not _can_view_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -60,7 +73,7 @@ class ProductDetailView(APIView):
             return None
 
     def get(self, request, pk):
-        if not has_permission(request.user, "products", "view"):
+        if not _can_view_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -124,7 +137,7 @@ class ProductVariantListCreateView(APIView):
             return None
 
     def get(self, request, product_id):
-        if not has_permission(request.user, "products", "view"):
+        if not _can_view_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,

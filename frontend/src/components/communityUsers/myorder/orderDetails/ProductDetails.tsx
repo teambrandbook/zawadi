@@ -27,6 +27,20 @@ const productHighlights = [
 ] as const;
 
 export default function ProductDetails() {
+  return <ProductDetailsCard />;
+}
+
+type ProductDetailsProps = {
+  productName?: string;
+  productDescription?: string;
+  productImage?: string;
+};
+
+export function ProductDetailsCard({
+  productName = "ZEWADI Product",
+  productDescription = "Premium wellness product from ZEWADI, crafted to support your healthy lifestyle and daily nutrition.",
+  productImage = "/product/product-1.webp",
+}: ProductDetailsProps) {
   return (
     <section className="rounded-[28px] border border-[#E6E0D6] bg-white p-5 shadow-[0_8px_30px_rgba(15,68,47,0.06)] lg:p-7">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.95fr] lg:items-center">
@@ -34,8 +48,8 @@ export default function ProductDetails() {
           <div className="absolute left-4 top-3 h-14 w-14 rounded-full bg-white/30 blur-[1px] sm:left-5 sm:top-4 sm:h-16 sm:w-16" />
           <div className="relative mx-auto flex h-[250px] w-full max-w-[300px] items-center justify-center sm:h-[280px]">
             <Image
-              src="/product/product-1.webp"
-              alt="ZEWADI Buckwheat"
+              src={productImage}
+              alt={productName}
               fill
               className="object-contain p-6"
               sizes="(max-width: 1024px) 100vw, 420px"
@@ -53,12 +67,10 @@ export default function ProductDetails() {
             Premium Wellness
           </span>
           <h2 className="mt-4 text-[36px] font-bold leading-[0.92] text-[#0A4833] sm:text-[44px]">
-            ZEWADI
-            <span className="block font-semibold text-[#1F5A43]">Buckwheat</span>
+            {productName}
           </h2>
           <p className="mt-4 max-w-[340px] text-[15px] leading-8 text-[#6E8A7B]">
-            Our premium buckwheat is carefully sourced and processed to preserve its natural nutrients. A cornerstone of
-            healthy living, trusted by our wellness community.
+            {productDescription}
           </p>
 
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
