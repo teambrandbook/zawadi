@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { toast } from "sonner";
 import { initialUsers, PER_PAGE, toCsv } from "./userManagementShared";
 import type { UserRecord } from "./userManagementShared";
 import UserFiltersBar from "./components/UserFiltersBar";
@@ -161,31 +161,31 @@ export default function UserManagementDashboard() {
 
   function handleBulkEmail() {
     if (selectedUsers.length === 0) {
-      window.alert("Select at least one user to send a bulk email.");
+      toast.warning("Select at least one user to send a bulk email.");
       return;
     }
     const recipients = selectedUsers.map((user) => user.email).join(", ");
-    window.alert(`Bulk email sent to: ${recipients}`);
+    toast.success(`Bulk email queued for: ${recipients}`);
   }
 
   function handleExportSelected() {
     if (selectedUsers.length === 0) {
-      window.alert("Select at least one user to export.");
+      toast.warning("Select at least one user to export.");
       return;
     }
     downloadCsv("users-selected.csv", selectedUsers);
   }
 
   function handleRowAction(action: "view" | "edit" | "more", user: UserRecord) {
-    if (action === "view") {
-      window.alert(`Viewing ${user.fullName} (${user.userId})`);
-      return;
-    }
     if (action === "edit") {
-      window.alert(`Editing ${user.fullName} (${user.userId})`);
+      router.push(`/admindashboard/users/${user.id}/edit`);
       return;
     }
-    window.alert(`More actions for ${user.fullName}`);
+    if (action === "view") {
+      toast.info(`Viewing ${user.fullName} (${user.userId})`);
+      return;
+    }
+    toast.info(`More actions for ${user.fullName}`);
   }
 
   return (

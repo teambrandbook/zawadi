@@ -248,7 +248,7 @@ export default function AddNewRecipy() {
   }
 
   return (
-    <section className="w-full bg-[#F3F4F6] px-4 py-8 lg:px-8">
+    <section className="w-full bg-white px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-[1280px] space-y-6">
         
 

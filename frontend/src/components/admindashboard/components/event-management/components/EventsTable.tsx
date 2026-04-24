@@ -1,11 +1,12 @@
-import { Eye, Pencil, MoreVertical } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import type { EventRow } from "../types";
 
 type EventsTableProps = {
   rows: EventRow[];
+  onDelete?: (id: string) => void;
 };
 
-export default function EventsTable({ rows }: EventsTableProps) {
+export default function EventsTable({ rows, onDelete }: EventsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="overflow-x-auto">
@@ -75,7 +76,7 @@ export default function EventsTable({ rows }: EventsTableProps) {
                 <td className="px-3 py-4">
                   <div className="flex items-center">
                     <div className="flex -space-x-2">
-                      {row.attendeeAvatars.map((avatar, idx) => (
+                      {row.attendeeAvatars.slice(0, 3).map((avatar, idx) => (
                         <img
                           key={`${row.id}-${idx}`}
                           src={avatar}
@@ -110,9 +111,15 @@ export default function EventsTable({ rows }: EventsTableProps) {
                     <button className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]">
                       <Pencil size={14} />
                     </button>
-                    <button className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]">
-                      <MoreVertical size={14} />
-                    </button>
+                    {onDelete && (
+                      <button
+                        onClick={() => onDelete(row.id)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md text-[#DC2626] hover:bg-[#FEE2E2]"
+                        title="Delete event"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -123,4 +130,3 @@ export default function EventsTable({ rows }: EventsTableProps) {
     </section>
   );
 }
-

@@ -7,6 +7,7 @@ import { AppDispatch, RootState } from "@/redux/store";
 import { fetchRoles } from "@/redux/roleSlice";
 import { registerUser } from "@/redux/userSlice";
 
+import { toast } from "sonner";
 import AccountSetupSection from "./components/AccountSetupSection";
 import AddressSection from "./components/AddressSection";
 import BasicInfoSection from "./components/BasicInfoSection";
@@ -109,7 +110,7 @@ export default function UserCreatePage() {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      alert("Image size should be 5MB or less.");
+      toast.error("Image size should be 5MB or less.");
       return;
     }
 
@@ -130,12 +131,12 @@ export default function UserCreatePage() {
   // ✅ FIXED SUBMIT
   async function handleCreateUser() {
     if (!form.full_name || !form.email || !form.phone || !form.user_name) {
-      alert("Please fill required fields.");
+      toast.error("Please fill in all required fields.");
       return;
     }
 
     if (form.password.length < 8) {
-      alert("Password must be at least 8 chars.");
+      toast.error("Password must be at least 8 characters.");
       return;
     }
 
@@ -149,10 +150,10 @@ export default function UserCreatePage() {
 
     try {
       await dispatch(registerUser(formData)); // ✅ send FormData
-      alert("User created successfully.");
+      toast.success("User created successfully.");
       router.push("/admindashboard/users");
     } catch {
-      alert("Failed to create user.");
+      toast.error("Failed to create user.");
     }
   }
 

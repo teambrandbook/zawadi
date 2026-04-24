@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { AssignmentSummaryData, ScheduleBlock, ScheduleNoteData } from "../assignNutritionistTypes";
 
 type AssignmentSidebarProps = {
@@ -5,9 +6,11 @@ type AssignmentSidebarProps = {
   schedule: ScheduleBlock[];
   summary: AssignmentSummaryData;
   note: ScheduleNoteData;
+  onAssign?: (adminNotes: string) => void;
 };
 
-export default function AssignmentSidebar({ scheduleTitle, schedule, summary, note }: AssignmentSidebarProps) {
+export default function AssignmentSidebar({ scheduleTitle, schedule, summary, note, onAssign }: AssignmentSidebarProps) {
+  const [adminNotes, setAdminNotes] = useState("");
   return (
     <aside className="space-y-4">
       <div className="rounded-xl border border-[#E5E7EB] bg-white p-4">
@@ -45,13 +48,30 @@ export default function AssignmentSidebar({ scheduleTitle, schedule, summary, no
           ))}
           <div>
             <p className="text-xs text-[#6B7280]">{summary.notesLabel}</p>
-            <div className="rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-3 text-[#9CA3AF]">{summary.notesPlaceholder}</div>
+            <textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder={summary.notesPlaceholder}
+              rows={3}
+              className="w-full resize-none rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-3 py-2 text-xs text-[#374151] outline-none placeholder:text-[#9CA3AF]"
+            />
           </div>
         </div>
 
         <div className="mt-4 space-y-2">
-          <button className="h-10 w-full rounded-md bg-[#0A4833] text-sm font-medium text-white">{summary.assignButtonLabel}</button>
-          <button className="h-10 w-full rounded-md bg-[#E5E7EB] text-sm font-medium text-[#374151]">{summary.draftButtonLabel}</button>
+          <button
+            type="button"
+            onClick={() => onAssign?.(adminNotes)}
+            className="h-10 w-full rounded-md bg-[#0A4833] text-sm font-medium text-white hover:bg-[#083927]"
+          >
+            {summary.assignButtonLabel}
+          </button>
+          <button
+            type="button"
+            className="h-10 w-full rounded-md bg-[#E5E7EB] text-sm font-medium text-[#374151] hover:bg-[#D1D5DB]"
+          >
+            {summary.draftButtonLabel}
+          </button>
         </div>
       </div>
 

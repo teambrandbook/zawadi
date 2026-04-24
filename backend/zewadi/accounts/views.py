@@ -7,11 +7,13 @@ from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, Bl
 from rest_framework.exceptions import AuthenticationFailed
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from .models import User
+from .throttles import LoginRateThrottle, RegisterRateThrottle
 
 
 class RegisterAPIView(APIView):
     """Public endpoint — anyone can register as a community user."""
     permission_classes = [AllowAny]
+    throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
         serializer = RegisterSerializer(data=request.data)
@@ -29,6 +31,7 @@ class RegisterAPIView(APIView):
     
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
@@ -75,6 +78,7 @@ class LoginAPIView(APIView):
     
 class RefreshAPIView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
         refresh_token = request.COOKIES.get("refresh_token")
@@ -84,25 +88,33 @@ class RefreshAPIView(APIView):
 
         try:
             refresh = RefreshToken(refresh_token)
-            access_token = str(refresh.access_token)
+            new_access = str(refresh.access_token)
+            # ROTATE_REFRESH_TOKENS=True — calling str() on access_token rotates the refresh
+            new_refresh = str(refresh)
 
-            response = Response({
-                "message": "Token refreshed"
-            })
+            response = Response({"message": "Token refreshed"})
 
-            # 🔐 Update access token cookie
             response.set_cookie(
                 key="access_token",
-                value=access_token,
+                value=new_access,
+                httponly=False,   # JS-readable so frontend can attach as Bearer header
+                secure=False,     # Set True in production (HTTPS)
+                samesite="Lax",
+                max_age=30 * 60,  # 30 minutes, matches ACCESS_TOKEN_LIFETIME
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=new_refresh,
                 httponly=True,
-                secure=False,        # ⭐ change this
-                samesite="Lax", 
+                secure=False,     # Set True in production (HTTPS)
+                samesite="Lax",
+                max_age=7 * 24 * 60 * 60,  # 7 days
             )
 
             return response
 
         except Exception:
-            raise AuthenticationFailed("Invalid refresh token")
+            raise AuthenticationFailed("Invalid or expired refresh token")
 
 
 class LogoutAPIView(APIView):

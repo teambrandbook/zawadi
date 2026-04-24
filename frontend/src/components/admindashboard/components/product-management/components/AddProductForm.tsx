@@ -1,16 +1,40 @@
 import { ImageIcon, Info, Leaf, Package, Tags } from "lucide-react";
 import { ReactNode } from "react";
 
-type FieldProps = {
-  label: string;
-  placeholder: string;
+type FormData = {
+  name: string;
+  subtitle: string;
+  sku: string;
+  category: string;
+  status: string;
+  description: string;
+  full_description: string;
+  price: string;
+  stock_quantity: string;
 };
 
-function TextField({ label, placeholder }: FieldProps) {
+type Props = {
+  formData: FormData;
+  onChange: (data: FormData) => void;
+};
+
+function TextField({
+  label,
+  placeholder,
+  value,
+  onValueChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  onValueChange: (v: string) => void;
+}) {
   return (
     <label className="space-y-1">
       <span className="block text-[11px] font-medium text-[#344054]">{label}</span>
       <input
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
       />
@@ -18,12 +42,33 @@ function TextField({ label, placeholder }: FieldProps) {
   );
 }
 
-function SelectField({ label, placeholder }: FieldProps) {
+function SelectField({
+  label,
+  placeholder,
+  value,
+  options,
+  onValueChange,
+}: {
+  label: string;
+  placeholder: string;
+  value: string;
+  options: string[];
+  onValueChange: (v: string) => void;
+}) {
   return (
     <label className="space-y-1">
       <span className="block text-[11px] font-medium text-[#344054]">{label}</span>
-      <select className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none">
-        <option>{placeholder}</option>
+      <select
+        value={value}
+        onChange={(e) => onValueChange(e.target.value)}
+        className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+      >
+        <option value="">{placeholder}</option>
+        {options.map((o) => (
+          <option key={o} value={o}>
+            {o}
+          </option>
+        ))}
       </select>
     </label>
   );
@@ -42,18 +87,34 @@ function Card({ children }: { children: ReactNode }) {
   return <section className="rounded-lg border border-[#E4E7EC] bg-white p-4">{children}</section>;
 }
 
-export default function AddProductForm() {
+export default function AddProductForm({ formData, onChange }: Props) {
+  function set(field: keyof FormData) {
+    return (v: string) => onChange({ ...formData, [field]: v });
+  }
+
   return (
     <div className="space-y-4">
       <Card>
         <SectionTitle icon={<Info className="h-4 w-4" />} title="Basic Information" />
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField label="Product Name *" placeholder="Enter product name" />
-          <TextField label="Product Subtitle" placeholder="Short tagline or subtitle" />
-          <TextField label="SKU / Product Code *" placeholder="BWT-001" />
-          <SelectField label="Category *" placeholder="Select category" />
-          <TextField label="Brand Name" placeholder="ZEWADI" />
-          <SelectField label="Product Status" placeholder="Draft" />
+          <TextField label="Product Name *" placeholder="Enter product name" value={formData.name} onValueChange={set("name")} />
+          <TextField label="Product Subtitle" placeholder="Short tagline or subtitle" value={formData.subtitle} onValueChange={set("subtitle")} />
+          <TextField label="SKU / Product Code *" placeholder="BWT-001" value={formData.sku} onValueChange={set("sku")} />
+          <SelectField
+            label="Category *"
+            placeholder="Select category"
+            value={formData.category}
+            options={["Flour", "Grains", "Pasta", "Snacks", "Noodles", "Tea"]}
+            onValueChange={set("category")}
+          />
+          <TextField label="Brand Name" placeholder="ZEWADI" value="" onValueChange={() => {}} />
+          <SelectField
+            label="Product Status"
+            placeholder="Draft"
+            value={formData.status}
+            options={["Draft", "Active"]}
+            onValueChange={set("status")}
+          />
         </div>
       </Card>
 
@@ -72,6 +133,8 @@ export default function AddProductForm() {
           <label className="space-y-1">
             <span className="block text-[11px] font-medium text-[#344054]">Short Description *</span>
             <input
+              value={formData.description}
+              onChange={(e) => set("description")(e.target.value)}
               placeholder="Brief product overview (50 characters)"
               className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
             />
@@ -79,6 +142,8 @@ export default function AddProductForm() {
           <label className="space-y-1">
             <span className="block text-[11px] font-medium text-[#344054]">Full Description</span>
             <textarea
+              value={formData.full_description}
+              onChange={(e) => set("full_description")(e.target.value)}
               placeholder="Detailed product description"
               className="h-28 w-full resize-none rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2 text-[12px] text-[#667085] outline-none"
             />
@@ -103,33 +168,18 @@ export default function AddProductForm() {
       <Card>
         <SectionTitle icon={<Tags className="h-4 w-4" />} title="Pricing & Variants" />
         <div className="grid gap-3 sm:grid-cols-3">
-          <TextField label="Base Price *" placeholder="0.00" />
-          <TextField label="Sale Price" placeholder="0.00" />
-          <SelectField label="Currency" placeholder="USD ($)" />
-        </div>
-
-        <div className="mt-4 rounded-md border border-[#EAECF0]">
-          <div className="flex items-center justify-between border-b border-[#EAECF0] px-3 py-2">
-            <p className="text-[11px] font-semibold text-[#344054]">Product Variants</p>
-            <button type="button" className="rounded-md bg-[#A1844F] px-3 py-1.5 text-[11px] font-medium text-white">
-              + Add Variant
-            </button>
-          </div>
-          <div className="grid grid-cols-4 gap-2 p-2">
-            <input placeholder="Variant name" className="h-8 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[11px] text-[#667085] outline-none" />
-            <input placeholder="SKU" className="h-8 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[11px] text-[#667085] outline-none" />
-            <input placeholder="Price" className="h-8 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[11px] text-[#667085] outline-none" />
-            <input placeholder="Stock" className="h-8 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[11px] text-[#667085] outline-none" />
-          </div>
+          <TextField label="Base Price *" placeholder="0.00" value={formData.price} onValueChange={set("price")} />
+          <TextField label="Sale Price" placeholder="0.00" value="" onValueChange={() => {}} />
+          <SelectField label="Currency" placeholder="USD ($)" value="" options={["USD ($)", "KES"]} onValueChange={() => {}} />
         </div>
       </Card>
 
       <Card>
         <SectionTitle icon={<Package className="h-4 w-4" />} title="Inventory Management" />
         <div className="grid gap-3 sm:grid-cols-3">
-          <TextField label="Stock Quantity *" placeholder="0" />
-          <TextField label="Low Stock Alert" placeholder="5" />
-          <SelectField label="Stock Status" placeholder="In Stock" />
+          <TextField label="Stock Quantity *" placeholder="0" value={formData.stock_quantity} onValueChange={set("stock_quantity")} />
+          <TextField label="Low Stock Alert" placeholder="5" value="" onValueChange={() => {}} />
+          <SelectField label="Stock Status" placeholder="In Stock" value="" options={["In Stock", "Out of Stock"]} onValueChange={() => {}} />
         </div>
 
         <div className="mt-3 space-y-2 text-[11px] text-[#475467]">

@@ -2,67 +2,108 @@
 
 import Image from "next/image";
 import { Check, ChefHat, CircleAlert, Eye, Filter, Globe, Plus, Search, ShieldAlert, Sparkles, Star, Upload, X } from "lucide-react";
-import { useRouter } from "next/navigation"; // ✅ USE THIS
-const statCards = [
-  { title: "Total Recipes", value: "1,247", note: "+12%", icon: ChefHat, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
-  { title: "Pending Review", value: "48", note: "Review", icon: CircleAlert, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
-  { title: "Approved Recipes", value: "1,173", note: "94%", icon: Check, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
-  { title: "Featured Recipes", value: "24", note: "Featured", icon: Star, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
-  { title: "Published Recipes", value: "1,089", note: "Live", icon: Globe, accent: "text-[#2563EB]", iconBg: "bg-[#EAF1FE]" },
-  { title: "Draft Recipes", value: "26", note: "Draft", icon: Upload, accent: "text-[#4B5563]", iconBg: "bg-[#F3F4F6]" },
-  { title: "Rejected Recipes", value: "74", note: "Rejected", icon: X, accent: "text-[#DC2626]", iconBg: "bg-[#FEEAEA]" },
-  { title: "New Submissions", value: "32", note: "This Week", icon: Sparkles, accent: "text-[#7C3AED]", iconBg: "bg-[#F2ECFF]" },
-];
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import api from "@/services/api";
 
-const rows = [
-  {
-    id: "r1",
-    image: "/recipe/recipe-2.webp",
-    name: "Buckwheat Pancakes with Berries",
-    meta: "Prep: 15 min | Serves: 4",
-    user: "Sarah Mitchell",
-    category: "Breakfast",
-    date: "Dec 18, 2024",
-    status: "Pending",
-  },
-  {
-    id: "r2",
-    image: "/recipe/recipe-3.webp",
-    name: "Buckwheat Power Bowl",
-    meta: "Prep: 20 min | Serves: 2",
-    user: "James Anderson",
-    category: "Lunch",
-    date: "Dec 17, 2024",
-    status: "Approved",
-  },
-  {
-    id: "r3",
-    image: "/recipe/recipe-4.webp",
-    name: "Buckwheat Chocolate Delight",
-    meta: "Prep: 30 min | Serves: 6",
-    user: "James Anderson",
-    category: "Lunch",
-    date: "Dec 17, 2024",
-    status: "Approved",
-  },
-];
+type StatCardDef = {
+  title: string;
+  value: string;
+  note: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  accent: string;
+  iconBg: string;
+};
 
-function statusBadge(status: string) {
-  if (status === "Pending") return "bg-[#FFF6D8] text-[#A16207]";
-  return "bg-[#E7F7EC] text-[#15803D]";
+function buildStatCards(rows: RecipeRow[]): StatCardDef[] {
+  const total = rows.length;
+  const pending = rows.filter((r) => r.status === "pending" || r.status === "Pending").length;
+  const published = rows.filter((r) => r.status === "published").length;
+  const draft = rows.filter((r) => r.status === "draft").length;
+  const rejected = rows.filter((r) => r.status === "rejected").length;
+
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+  return [
+    { title: "Total Recipes", value: String(total), note: "", icon: ChefHat, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
+    { title: "Pending Review", value: String(pending), note: "Review", icon: CircleAlert, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
+    { title: "Approved Recipes", value: String(published), note: "", icon: Check, accent: "text-[#16A34A]", iconBg: "bg-[#E9F7EE]" },
+    { title: "Featured Recipes", value: "—", note: "Featured", icon: Star, accent: "text-[#B45309]", iconBg: "bg-[#F8F0E4]" },
+    { title: "Published Recipes", value: String(published), note: "Live", icon: Globe, accent: "text-[#2563EB]", iconBg: "bg-[#EAF1FE]" },
+    { title: "Draft Recipes", value: String(draft), note: "Draft", icon: Upload, accent: "text-[#4B5563]", iconBg: "bg-[#F3F4F6]" },
+    { title: "Rejected Recipes", value: String(rejected), note: "Rejected", icon: X, accent: "text-[#DC2626]", iconBg: "bg-[#FEEAEA]" },
+    { title: "New Submissions", value: String(pending), note: "This Week", icon: Sparkles, accent: "text-[#7C3AED]", iconBg: "bg-[#F2ECFF]" },
+  ];
 }
 
-function RecipeRowActions({ status }: { status: string }) {
-  if (status === "Pending") {
+type RecipeRow = {
+  id: string;
+  image: string;
+  name: string;
+  meta: string;
+  user: string;
+  category: string;
+  date: string;
+  status: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapApiRecipe(item: Record<string, any>, index: number): RecipeRow {
+  return {
+    id: String(item.id ?? `r-${index}`),
+    image: String(item.image ?? item.cover_image ?? "/recipe/recipe-2.webp"),
+    name: String(item.title ?? item.name ?? "Untitled Recipe"),
+    meta: `Prep: ${item.prep_time ?? "—"} | Serves: ${item.servings ?? "—"}`,
+    user: String(item.author ?? item.submitted_by ?? item.user ?? "Unknown"),
+    category: String(item.category ?? "—"),
+    date: item.created_at
+      ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      : String(item.date ?? ""),
+    status: String(item.status ?? "Pending"),
+  };
+}
+
+function statusBadge(status: string) {
+  if (status === "pending") return "bg-[#FFF6D8] text-[#A16207]";
+  if (status === "published") return "bg-[#E7F7EC] text-[#15803D]";
+  if (status === "draft") return "bg-[#F3F4F6] text-[#4B5563]";
+  return "bg-[#FFF6D8] text-[#A16207]";
+}
+
+function RecipeRowActions({
+  recipeId,
+  status,
+  onStatusChange,
+}: {
+  recipeId: string;
+  status: string;
+  onStatusChange: (id: string, newStatus: string) => void;
+}) {
+  const isPending = status === "pending" || status === "Pending";
+
+  if (isPending) {
     return (
       <div className="flex items-center gap-2">
         <button type="button" className="grid h-7 w-7 place-items-center rounded-md bg-[#EEF2F6] text-[#475467]">
           <Eye className="h-3.5 w-3.5" />
         </button>
-        <button type="button" className="grid h-7 w-7 place-items-center rounded-md bg-[#CFF2DD] text-[#15803D]">
+        <button
+          type="button"
+          onClick={() => onStatusChange(recipeId, "published")}
+          className="grid h-7 w-7 place-items-center rounded-md bg-[#CFF2DD] text-[#15803D]"
+          title="Approve"
+        >
           <Check className="h-3.5 w-3.5" />
         </button>
-        <button type="button" className="grid h-7 w-7 place-items-center rounded-md bg-[#FEE2E2] text-[#DC2626]">
+        <button
+          type="button"
+          onClick={() => onStatusChange(recipeId, "draft")}
+          className="grid h-7 w-7 place-items-center rounded-md bg-[#FEE2E2] text-[#DC2626]"
+          title="Reject"
+        >
           <X className="h-3.5 w-3.5" />
         </button>
       </div>
@@ -86,6 +127,43 @@ function RecipeRowActions({ status }: { status: string }) {
 
 export default function RecipesDashboard() {
   const router = useRouter();
+  const [rows, setRows] = useState<RecipeRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      setIsLoading(true);
+      setFetchError(null);
+      try {
+        const res = await api.get("/recipes/admin/");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw: Record<string, any>[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.results)
+          ? res.data.results
+          : [];
+        setRows(raw.map(mapApiRecipe));
+      } catch {
+        setFetchError("Failed to load recipes");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRecipes();
+  }, []);
+
+  const statCards = useMemo(() => buildStatCards(rows), [rows]);
+
+  async function handleStatusChange(id: string, newStatus: string) {
+    try {
+      await api.patch(`/recipes/admin/${id}/status/`, { status: newStatus });
+      setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+    } catch {
+      toast.error("Failed to update recipe status. Please try again.");
+    }
+  }
+
   return (
     <section className="w-full bg-[#F7F8FA] p-4 lg:p-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
@@ -196,50 +274,64 @@ export default function RecipesDashboard() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead className="bg-[#F9FAFB] text-[12px] text-[#475467]">
-                <tr>
-                  <th className="w-10 px-3 py-3">
-                    <input type="checkbox" className="h-4 w-4 rounded border-[#D0D5DD]" />
-                  </th>
-                  <th className="px-3 py-3">Recipe</th>
-                  <th className="px-3 py-3">Submitted By</th>
-                  <th className="px-3 py-3">Category</th>
-                  <th className="px-3 py-3">Date</th>
-                  <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id} className="border-t border-[#F2F4F7]">
-                    <td className="px-3 py-3">
+          {isLoading && (
+            <div className="p-6 text-center text-sm text-[#6B7280]">Loading recipes...</div>
+          )}
+          {fetchError && (
+            <div className="p-6 text-center text-sm text-[#B91C1C]">{fetchError}</div>
+          )}
+          {!isLoading && !fetchError && rows.length === 0 && (
+            <div className="p-8 text-center text-sm text-[#6B7280]">No recipe submissions found.</div>
+          )}
+
+          {!isLoading && rows.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="bg-[#F9FAFB] text-[12px] text-[#475467]">
+                  <tr>
+                    <th className="w-10 px-3 py-3">
                       <input type="checkbox" className="h-4 w-4 rounded border-[#D0D5DD]" />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex items-center gap-3">
-                        <Image src={row.image} alt={row.name} width={40} height={40} className="h-10 w-10 rounded-lg object-cover" />
-                        <div>
-                          <p className="font-medium text-[#0F172A]">{row.name}</p>
-                          <p className="text-[12px] text-[#6B7280]">{row.meta}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-[#475467]">{row.user}</td>
-                    <td className="px-3 py-3 text-[#8B5E2A]">{row.category}</td>
-                    <td className="px-3 py-3 text-[#475467]">{row.date}</td>
-                    <td className="px-3 py-3">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadge(row.status)}`}>{row.status}</span>
-                    </td>
-                    <td className="px-3 py-3">
-                      <RecipeRowActions status={row.status} />
-                    </td>
+                    </th>
+                    <th className="px-3 py-3">Recipe</th>
+                    <th className="px-3 py-3">Submitted By</th>
+                    <th className="px-3 py-3">Category</th>
+                    <th className="px-3 py-3">Date</th>
+                    <th className="px-3 py-3">Status</th>
+                    <th className="px-3 py-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.id} className="border-t border-[#F2F4F7]">
+                      <td className="px-3 py-3">
+                        <input type="checkbox" className="h-4 w-4 rounded border-[#D0D5DD]" />
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex items-center gap-3">
+                          <Image src={row.image} alt={row.name} width={40} height={40} className="h-10 w-10 rounded-lg object-cover" />
+                          <div>
+                            <p className="font-medium text-[#0F172A]">{row.name}</p>
+                            <p className="text-[12px] text-[#6B7280]">{row.meta}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-3 py-3 text-[#475467]">{row.user}</td>
+                      <td className="px-3 py-3 text-[#8B5E2A]">{row.category}</td>
+                      <td className="px-3 py-3 text-[#475467]">{row.date}</td>
+                      <td className="px-3 py-3">
+                        <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-medium ${statusBadge(row.status)}`}>
+                          {row.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-3">
+                        <RecipeRowActions recipeId={row.id} status={row.status} onStatusChange={handleStatusChange} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
     </section>

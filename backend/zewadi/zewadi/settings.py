@@ -34,6 +34,9 @@ INSTALLED_APPS = [
     "supperadmin",
     "consultant",
     "communityuser",
+    "orders",
+    "events",
+    "notifications",
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -118,6 +121,28 @@ REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/minute",
+        "user": "300/minute",
+        "login": "5/minute",
+        "register": "10/hour",
+    },
+}
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,       # Issue new refresh token on each refresh
+    "BLACKLIST_AFTER_ROTATION": True,    # Blacklist old refresh token after rotation
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -143,3 +168,32 @@ USE_I18N = True
 USE_TZ = True
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ─── Security Headers ─────────────────────────────────────────────────────────
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = "DENY"
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+# Enable in production via env vars (requires HTTPS)
+SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
+SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
+SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
+SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+
+# ─── Upload Size Limits ───────────────────────────────────────────────────────
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB total POST body
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024    # 5 MB per file
+
+# ─── Production Safety Guard ─────────────────────────────────────────────────
+
+import sys as _sys
+_INSECURE_KEY = "django-insecure-change-me-in-production"
+_MANAGEMENT_CMDS = {"collectstatic", "migrate", "makemigrations", "shell", "createsuperuser"}
+_running_cmd = _sys.argv[1] if len(_sys.argv) > 1 else ""
+if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT_CMDS:
+    raise RuntimeError(
+        "Set a real SECRET_KEY environment variable before running in production."
+    )

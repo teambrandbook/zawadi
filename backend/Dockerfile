@@ -17,8 +17,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy Django project
 COPY zewadi/ .
 
-# Collect static files
-RUN python manage.py collectstatic --noinput
+# Collect static files (SECRET_KEY only needed at runtime, not for collectstatic)
+RUN SECRET_KEY=build-placeholder DEBUG=True python manage.py collectstatic --noinput
 
 EXPOSE 8000
 

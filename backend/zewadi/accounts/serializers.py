@@ -1,9 +1,10 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, ROLE_CHOICES
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from communityuser.models import CommunityUser,CommunityUserAddress
 from consultant.models import Consultant
+from zewadi.validators import validate_image_upload
 
 
 
@@ -18,8 +19,9 @@ class RegisterSerializer(serializers.Serializer):
     date_of_birth = serializers.DateField()
     gender = serializers.CharField(max_length=10)
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    photo = serializers.ImageField(required=False, allow_null=True)
-    role = serializers.ChoiceField(choices=["COMMUNITY_USER", "CONSULTANT"])
+    photo = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
+    # Keep serializer role options in sync with the User model choices.
+    role = serializers.ChoiceField(choices=[choice[0] for choice in ROLE_CHOICES])
 
     # 🔹 Community fields
     user_type = serializers.ChoiceField(choices=["GUEST", "MEMBER"], required=False)
@@ -107,7 +109,7 @@ class RegisterSerializer(serializers.Serializer):
                 languages_spoken=validated_data.get("languages_spoken"),
                 experience_areas=validated_data.get("experience_areas"),
                 session_type=validated_data.get("session_type"),
-                consultation_fee=validated_data.get("consultation_fee"),
+                consiltation_fee=validated_data.get("consultation_fee"),
                 session_duration=validated_data.get("session_duration"),
             )
 
