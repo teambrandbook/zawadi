@@ -1,3 +1,202 @@
-from django.shortcuts import render
+from django.db import OperationalError, ProgrammingError
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-# Create your views here.
+from .models import CommunityUser, UserType
+from .serializers import CommunityProfileSerializer
+from blog.models import Blog, BlogStatus
+from consultant.models import ConsultationBooking
+from events.models import EventRegistration
+from orders.models import Order
+from recipes.models import Recipe
+
+
+class IsCommunityUser(BasePermission):
+    def has_permission(self, request, view):
+        user = getattr(request, "user", None)
+        return bool(
+            user
+            and user.is_authenticated
+            and str(getattr(user, "role", "")).upper() == "COMMUNITY_USER"
+        )
+
+
+class CommunityProfileAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def _get_or_create_profile(self, user):
+        profile, _ = CommunityUser.objects.get_or_create(
+            user=user,
+            defaults={"user_type": UserType.GUEST},
+        )
+        return profile
+
+    def get(self, request):
+        profile = self._get_or_create_profile(request.user)
+        serializer = CommunityProfileSerializer(profile, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        profile = self._get_or_create_profile(request.user)
+        serializer = CommunityProfileSerializer(
+            profile,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommunityDashboardSummaryAPIView(APIView):
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+
+    def get(self, request):
+        user = request.user
+        now = timezone.now()
+
+        def safe_query(query_fn, default):
+            try:
+                return query_fn()
+            except (ProgrammingError, OperationalError):
+                return default
+
+        recent_orders = safe_query(
+            lambda: list(
+                Order.objects.filter(user=user)
+                .order_by("-created_at")[:5]
+                .values(
+                    "order_id",
+                    "product_name",
+                    "status",
+                    "total_amount",
+                    "created_at",
+                )
+            ),
+            [],
+        )
+        upcoming_event_registrations = safe_query(
+            lambda: list(
+                EventRegistration.objects.filter(user=user)
+                .exclude(status=EventRegistration.RegistrationStatus.CANCELLED)
+                .select_related("event")
+                .order_by("event__start_datetime")[:5]
+            ),
+            [],
+        )
+        recent_consultations = safe_query(
+            lambda: list(
+                ConsultationBooking.objects.filter(user=user)
+                .select_related("consultant__user")
+                .order_by("-created_at")[:5]
+            ),
+            [],
+        )
+        recent_recipes = safe_query(
+            lambda: list(
+                Recipe.objects.filter(author=user)
+                .order_by("-created_at")[:5]
+                .values("id", "title", "status", "created_at")
+            ),
+            [],
+        )
+        recent_blogs = safe_query(
+            lambda: list(
+                Blog.objects.filter(author=user)
+                .order_by("-created_at")[:5]
+                .values("id", "title", "status", "created_at")
+            ),
+            [],
+        )
+
+        summary = {
+            "user": {
+                "user_id": user.user_id,
+                "full_name": user.full_name,
+                "email": user.email,
+            },
+            "stats": {
+                "total_orders": safe_query(lambda: Order.objects.filter(user=user).count(), 0),
+                "upcoming_events": safe_query(
+                    lambda: EventRegistration.objects.filter(user=user)
+                    .exclude(status=EventRegistration.RegistrationStatus.CANCELLED)
+                    .filter(event__start_datetime__gte=now)
+                    .count(),
+                    0,
+                ),
+                "consultations": safe_query(
+                    lambda: ConsultationBooking.objects.filter(user=user).count(), 0
+                ),
+                "submitted_recipes": safe_query(
+                    lambda: Recipe.objects.filter(author=user).count(), 0
+                ),
+                "published_blogs": safe_query(
+                    lambda: Blog.objects.filter(
+                        author=user, status=BlogStatus.PUBLISHED
+                    ).count(),
+                    0,
+                ),
+                # Per-user notification inbox is not implemented yet.
+                "unread_notifications": 0,
+            },
+            "recent_orders": [
+                {
+                    "order_id": item["order_id"],
+                    "product_name": item["product_name"],
+                    "status": item["status"],
+                    "total_amount": float(item["total_amount"]),
+                    "created_at": item["created_at"],
+                }
+                for item in recent_orders
+            ],
+            "upcoming_events": [
+                {
+                    "registration_id": item.id,
+                    "event_id": item.event.id,
+                    "title": item.event.title,
+                    "start_datetime": item.event.start_datetime,
+                    "end_datetime": item.event.end_datetime,
+                    "status": item.status,
+                }
+                for item in upcoming_event_registrations
+                if item.event.start_datetime >= now
+            ],
+            "recent_consultations": [
+                {
+                    "booking_id": item.id,
+                    "consultant_name": item.consultant.user.full_name,
+                    "session_type": item.session_type,
+                    "booked_date": item.booked_date,
+                    "booked_slot": item.booked_slot,
+                    "status": item.status,
+                }
+                for item in recent_consultations
+            ],
+            "recent_recipes": [
+                {
+                    "id": item["id"],
+                    "title": item["title"],
+                    "status": item["status"],
+                    "created_at": item["created_at"],
+                }
+                for item in recent_recipes
+            ],
+            "recent_blogs": [
+                {
+                    "id": item["id"],
+                    "title": item["title"],
+                    "status": item["status"],
+                    "created_at": item["created_at"],
+                }
+                for item in recent_blogs
+            ],
+        }
+
+        return Response(summary, status=status.HTTP_200_OK)

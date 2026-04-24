@@ -79,3 +79,45 @@ export type AccountPrivacyControl = {
   title: string;
   description: string;
 };
+
+export type CommunityProfileAddress = {
+  address_line: string;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+} | null;
+
+export type CommunityProfileData = {
+  user_id: string;
+  email: string;
+  role: string;
+  user_name: string;
+  full_name: string;
+  phone: string;
+  date_of_birth: string | null;
+  gender: string | null;
+  location: string | null;
+  photo: string | null;
+  user_type: string;
+  wellness_interests: string | null;
+  address: CommunityProfileAddress;
+};
+
+export type CommunityProfileUpdatePayload = {
+  full_name: string;
+  phone: string;
+  date_of_birth: string;
+  gender: string;
+  location: string;
+  wellness_interests: string;
+  address: {
+    address_line: string;
+    city: string;
+    state: string;
+    country: string;
+    postal_code: string;
+  };
+  photoFile: File | null;
+  removePhoto: boolean;
+};

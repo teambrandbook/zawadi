@@ -30,6 +30,7 @@ urlpatterns = [
     path('api/blog/', include('blog.urls')),
     path('api/events/', include('events.urls')),
     path('api/notifications/', include('notifications.urls')),
+    path('api/community/', include('communityuser.urls')),
 ]
 
 if settings.DEBUG:
