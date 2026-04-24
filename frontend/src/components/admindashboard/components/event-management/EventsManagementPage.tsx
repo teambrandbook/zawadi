@@ -137,7 +137,7 @@ export default function EventsManagementPage() {
   const eventStats = buildStats(events);
 
   return (
-    <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
+    <section className="w-full min-w-0 bg-[#F6F7F9] px-4 py-6 lg:px-6">
       {pendingDeleteId && (
         <DeleteConfirmDialog
           onConfirm={confirmDelete}
@@ -145,7 +145,7 @@ export default function EventsManagementPage() {
         />
       )}
 
-      <div className="mx-auto max-w-[1180px] space-y-4">
+      <div className="mx-auto min-w-0 max-w-[1180px] space-y-4">
         <EventsOverview stats={eventStats} />
         <EventsFiltersAndActions />
 

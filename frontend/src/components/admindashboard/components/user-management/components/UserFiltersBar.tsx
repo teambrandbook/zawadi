@@ -42,6 +42,17 @@ export default function UserFiltersBar({
             <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4B5563]" />
           </label>
 
+          <label className="relative">
+            <select className="appearance-none rounded-lg bg-[#E5E7EB] py-2 pl-3 pr-8 text-sm text-[#1F2937]">
+              <option>Join Date</option>
+              <option>Today</option>
+              <option>This Week</option>
+              <option>This Month</option>
+              <option>This Year</option>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4B5563]" />
+          </label>
+
           <button type="button" onClick={onClearFilters} className="inline-flex items-center gap-2 px-2 py-2 text-sm text-[#A88751] hover:text-[#8D6E3E]">
             <FunnelX className="h-4 w-4" />
             Clear Filters

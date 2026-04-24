@@ -95,7 +95,7 @@ export default function StoryGrid() {
                                     </h3>
 
                                     {/* ✅ Only visible in lg */}
-                                    <p className="hidden lg:block font-inter text-[#EAE3D2]/80 text-sm md:text-base leading-relaxed max-w-sm">
+                                    <p className="hidden lg:block font-inter text-[#D8C29A]/80 text-sm md:text-base leading-relaxed max-w-sm">
                                         {story.description}
                                     </p>
                                 </div>

@@ -42,15 +42,15 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
   }, []);
 
   return (
-    <nav className="absolute top-0 left-0 z-50 w-full flex justify-center pt-0">
-      <div className="relative w-full max-w-[90rem] mx-3 ">
+    <nav className="absolute top-0 left-0 z-50 w-full flex justify-center pt-0 px-3">
+      <div className="relative w-full max-w-[90rem]">
 
         {/* Navbar */}
         <div className={`relative h-20 ${bgColor} rounded-b-2xl shadow-xl flex items-center px-4 md:px-8 lg:px-12`}>
 
           {/* Left Links */}
           <div
-            className="hidden md:flex flex-1 justify-end gap-3 lg:gap-6 items-center pr-4 lg:pr-8"
+            className="hidden lg:flex flex-1 justify-end gap-3 xl:gap-6 items-center pr-4 lg:pr-8"
             onMouseLeave={() => setIsPagesOpen(false)}
             onClick={() => setIsPagesOpen(false)}
           >
@@ -58,7 +58,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white font-medium hover:opacity-70 transition-all text-xs uppercase tracking-widest font-mulish"
+                className="text-white font-medium hover:opacity-70 transition-all text-[10px] lg:text-xs uppercase tracking-widest font-mulish whitespace-nowrap"
               >
                 {link.name}
               </Link>
@@ -67,7 +67,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
             {/* Pages Dropdown */}
             <div className="relative z-50">
               <button
-                className="text-white font-medium hover:opacity-70 transition-all text-xs uppercase tracking-widest font-mulish flex items-center gap-1"
+                className="text-white font-medium hover:opacity-70 transition-all text-[10px] lg:text-xs uppercase tracking-widest font-mulish flex items-center gap-1 whitespace-nowrap"
                 onMouseEnter={() => setIsPagesOpen(true)}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -107,7 +107,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           </div>
 
           {/* Mobile User Icon */}
-          <div className="md:hidden absolute left-4 top-1/2 -translate-y-1/2">
+          <div className="lg:hidden absolute left-4 top-1/2 -translate-y-1/2">
             <div className="relative">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -134,7 +134,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           </div>
 
           {/* Spacer for Centered Logo */}
-          <div className="w-24 md:w-48 flex-shrink-0" />
+          <div className="w-20 md:w-24 lg:w-48 flex-shrink-0" />
 
           <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
             <Link
@@ -153,12 +153,12 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           </div>
 
           {/* Right Links */}
-          <div className="hidden md:flex flex-1 justify-start items-center gap-3 lg:gap-6 xl:gap-8 pl-4 lg:pl-8">
+          <div className="hidden lg:flex flex-1 justify-start items-center gap-3 xl:gap-8 pl-4 lg:pl-8">
             {navLinksRight.map((link) => (
               <Link
                 key={link.name}
                 href={link.href}
-                className="text-white font-medium hover:opacity-70 transition-all text-xs uppercase tracking-widest font-mulish"
+                className="text-white font-medium hover:opacity-70 transition-all text-[10px] lg:text-xs uppercase tracking-widest font-mulish whitespace-nowrap"
               >
                 {link.name}
               </Link>
@@ -196,7 +196,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
           </div>
 
           {/* Mobile right controls */}
-          <div className="md:hidden absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+          <div className="lg:hidden absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
             <button
               onClick={toggleLang}
               className="flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-1 text-white border border-white/10"
@@ -219,7 +219,7 @@ export default function Navbar({ bgColor = "bg-[#0A4834]" }: { bgColor?: string 
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden absolute top-full mt-4 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4">
+          <div className="lg:hidden absolute top-full mt-4 left-0 w-full bg-[#0A4834] rounded-2xl shadow-2xl border border-white/10 p-6 flex flex-col gap-4">
             {[...navLinksLeft, ...navLinksRight].map((link) => (
               <Link
                 key={link.name}

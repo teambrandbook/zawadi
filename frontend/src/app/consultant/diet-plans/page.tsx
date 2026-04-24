@@ -248,7 +248,7 @@ export default function ConsultantDietPlansPage() {
           </Link>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-4 grid-cols-2 xl:grid-cols-5">
           {stats.map((stat) => {
             const Icon = stat.icon;
 

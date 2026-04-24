@@ -31,8 +31,8 @@ export default function NotificationsHeaderAndStats({ stats }: NotificationsHead
   return (
     <section className="space-y-4">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-4xl font-semibold text-[#0A4833]">Notifications</h1>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full lg:w-auto">
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0A4833]">Notifications</h1>
           <div className="relative w-full min-w-[220px] md:w-[320px]">
             <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#96A39D]" />
             <input

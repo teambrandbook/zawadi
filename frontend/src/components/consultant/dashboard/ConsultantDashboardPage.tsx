@@ -358,7 +358,7 @@ export default function ConsultantDashboardPage() {
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-3 grid-cols-2 xl:grid-cols-6">
           {summaryCards.map((card) => {
             const Icon = card.icon;
 

@@ -92,14 +92,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         <div className="relative w-24 lg:w-60 flex-shrink-0">
           <Link
             href="/"
-            className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-28 lg:h-36 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
+            className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-24 lg:h-32 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-2 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
           >
-            <div className="relative w-16 h-16 lg:w-24 lg:h-24 overflow-hidden mb-1">
+            <div className="relative w-20 h-20 lg:w-28 lg:h-28">
               <Image
                 src="/logo/zewadi-new-logo.png"
                 alt="ZEWADI Logo"
                 fill
-                className="object-contain group-hover:scale-110 transition-transform"
+                className="object-contain group-hover:scale-110 transition-transform scale-[1.6]"
               />
             </div>
           </Link>

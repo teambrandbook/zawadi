@@ -96,8 +96,8 @@ export default function AdminRolesPage() {
         <Carts roles={roles} />
       </div>
 
-      <div className="px-1 flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 space-y-4">
+      <div className="px-1 flex flex-col xl:flex-row gap-6 min-w-0">
+        <div className="flex-1 min-w-0 space-y-4">
           <TableFilters
             search={search}
             setSearch={setSearch}
@@ -114,7 +114,7 @@ export default function AdminRolesPage() {
           />
         </div>
 
-        <div className="w-full lg:w-[320px]">
+        <div className="w-full xl:w-[320px] flex-shrink-0">
           {selectedRole ? (
             <RoleDetailsCard role={selectedRole} />
           ) : (

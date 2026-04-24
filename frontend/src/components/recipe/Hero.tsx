@@ -35,7 +35,7 @@ export default function Hero() {
                         </h1>
 
                         {/* Description */}
-                        <p className="font-inter font-light text-[#555] text-base leading-relaxed mb-3">
+                        <p className="font-inter font-light text-black text-base leading-relaxed mb-3">
                             Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.
                         </p>
 
@@ -44,7 +44,7 @@ export default function Hero() {
                             <h3 className="font-playfair text-sm font-bold text-black mb-2 uppercase">
                                 Benefits
                             </h3>
-                            <ul className="list-disc list-outside ml-5 space-y-1 font-inter font-light text-[#555] text-sm md:text-base leading-[1.3]">
+                            <ul className="list-disc list-outside ml-5 space-y-1 font-inter font-light text-black text-sm md:text-base leading-[1.3]">
                                 <li>Rich in nutrients and naturally gluten-free</li>
                                 <li>Supports digestion and gut health</li>
                                 <li>Helps maintain steady energy levels</li>

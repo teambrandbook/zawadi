@@ -2,7 +2,7 @@ import { ImageIcon } from "lucide-react";
 
 export default function ProductPreviewCard() {
   return (
-    <aside className="rounded-lg border border-[#E4E7EC] bg-white p-4">
+    <aside className="rounded-lg border border-[#E4E7EC] bg-white p-4 h-fit">
       <h2 className="mb-3 text-[12px] font-semibold text-[#0A4833]">Product Preview</h2>
 
       <div className="mb-4 grid h-28 place-items-center rounded-md border border-[#EAECF0] bg-[#F9FAFB]">

@@ -64,7 +64,7 @@ export default function Community() {
 
         {/* CONTENT */}
         <div className="relative z-20 container mx-auto px-4 flex flex-col items-center text-center">
-          <h2 className="font-playfair text-2xl md:text-6xl font-semibold text-[#EAE3D2] mb-5 tracking-tight leading-tight max-w-4xl uppercase">
+          <h2 className="font-playfair text-2xl md:text-6xl font-semibold text-[#D8C29A] mb-5 tracking-tight leading-tight max-w-4xl uppercase">
             Learn more about Zewadi
           </h2>
 

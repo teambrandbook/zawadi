@@ -65,9 +65,9 @@ export default function NotificationsTable({ rows }: NotificationsTableProps) {
           </table>
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#E5E7EB] px-4 py-3 text-sm text-[#6B7280]">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-[#E5E7EB] px-4 py-4 text-sm text-[#6B7280]">
           <p>Showing 1 to 3 of 127 notifications</p>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-wrap justify-center items-center gap-1">
             <button className="rounded border border-[#DFDFDF] px-3 py-1">Previous</button>
             <button className="rounded bg-[#0A4833] px-3 py-1 text-white">1</button>
             <button className="rounded border border-[#DFDFDF] px-3 py-1">2</button>

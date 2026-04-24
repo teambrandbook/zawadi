@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col min-w-0">
       <Toaster position="top-right" richColors closeButton />
 
       {/* Navbar */}
@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: Props) {
       </div>
 
       {/* ✅ Content */}
-      <div className="pt-16 lg:pl-64 bg-gray-50 min-h-screen">
+      <div className="pt-16 lg:pl-64 bg-gray-50 flex-1 min-w-0 flex flex-col">
         {children}
       </div>
     </div>

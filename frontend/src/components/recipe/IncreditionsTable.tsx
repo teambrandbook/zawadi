@@ -34,7 +34,7 @@ export default function IncreditionsTable({ count, text }: Props) {
             </h2>
           </div>
 
-          <p className="font-inter font-light text-gray-600 leading-relaxed max-w-4xl">
+          <p className="font-inter font-light text-black leading-relaxed max-w-4xl">
             {text}
           </p>
 

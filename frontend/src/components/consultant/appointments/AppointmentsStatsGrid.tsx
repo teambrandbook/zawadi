@@ -2,7 +2,7 @@ import { appointmentStats } from "./appointmentsData";
 
 export default function AppointmentsStatsGrid() {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+    <section className="grid gap-3 grid-cols-2 xl:grid-cols-6">
       {appointmentStats.map((item) => {
         const Icon = item.icon;
 

@@ -58,7 +58,7 @@ function ConsultantSidebar({ onClose }: Props) {
           >
             {/* Icon */}
             <div
-              className={`flex items-center justify-center w-12 h-12 rounded-full transition-all ${
+              className={`flex shrink-0 items-center justify-center w-12 h-12 rounded-full transition-all ${
                 isActive
                   ? "bg-[#06402B] text-white"
                   : "bg-[#EBE3D1] text-[#06402B] group-hover:bg-[#d8cfb8]"

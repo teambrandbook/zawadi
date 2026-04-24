@@ -58,7 +58,7 @@ export default function TableFilters({ search, setSearch, status, setStatus,acce
                 </div>
 
                 {/* Export Button */}
-                <button className="flex items-center gap-2 bg-[#E5E7EB] hover:bg-gray-300 text-[#4B5563] px-4 py-2 rounded-lg text-sm font-semibold transition-colors ml-auto">
+                <button className="flex items-center justify-center gap-2 bg-[#E5E7EB] hover:bg-gray-300 text-[#4B5563] px-4 py-2 rounded-lg text-sm font-semibold transition-colors w-full sm:w-auto sm:ml-auto">
                     <Download size={18} />
                     <span>Export</span>
                 </button>

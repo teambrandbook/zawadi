@@ -30,7 +30,7 @@ function Carts({ roles }: Props) {
     const superAdmin = roles.filter(role => role.access_level === 'full').length
 
     return (
-        <div className='flex gap-5'>
+        <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'>
             <StatCard
                 Icon={UserCheck}
                 label="Total Roles"

@@ -38,11 +38,11 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
 
   return (
     <section className="space-y-4">
-      <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-4xl font-semibold text-[#0A4833]">Events Management</h1>
+      <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-[#0A4833]">Events Management</h1>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-full min-w-[220px] md:w-[280px]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
+          <div className="relative w-full min-w-[220px] lg:w-[280px]">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#96A39D]" />
             <input
               type="text"
@@ -53,7 +53,7 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
           <button
             type="button"
             onClick={() => router.push("/admindashboard/events/create")}
-            className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white"
+            className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white flex-shrink-0"
           >
             + Create Event
           </button>

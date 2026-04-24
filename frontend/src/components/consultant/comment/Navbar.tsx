@@ -10,10 +10,10 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
-      
+
       {/* Menu Icon (Mobile + Tablet) */}
       <div className="flex items-center lg:hidden">
-        <button 
+        <button
           onClick={onMenuClick}
           className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Open Menu"
@@ -27,19 +27,16 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         <div className="relative w-24 lg:w-60 flex-shrink-0">
           <Link
             href="/"
-            className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-28 lg:h-36 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
+            className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-24 lg:h-32 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-2 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
           >
-            <div className="relative w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+            <div className="relative w-20 h-20 lg:w-28 lg:h-28">
               <Image
-                src="/logo/zawadi-logo.webp"
+                src="/logo/zewadi-new-logo.png"
                 alt="ZEWADI Logo"
                 fill
-                className="object-cover group-hover:scale-110 transition-transform"
+                className="object-contain group-hover:scale-110 transition-transform scale-[1.4]"
               />
             </div>
-            <span className="text-[#0A4834] font-bold tracking-[0.2em] text-[7px] lg:text-[10px] uppercase mt-1">
-              ZEWADI
-            </span>
           </Link>
         </div>
 
@@ -52,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
       {/* Right Section */}
       <div className="flex items-center space-x-1 lg:space-x-4">
-        
+
         {/* Search Bar (Desktop Only) */}
         <div className="relative hidden lg:block">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">

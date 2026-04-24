@@ -41,7 +41,7 @@ export default function MainPanels() {
         </div>
       </article>
 
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      <article className="min-w-0 flex-1 rounded-xl border border-[#DFDFDF] bg-white p-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-semibold text-[#0A4833]">Recent Orders</h3>
           <button className="text-xs text-[#A88751] hover:underline">View All</button>

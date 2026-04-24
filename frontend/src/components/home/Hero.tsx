@@ -33,7 +33,7 @@ export default function Hero() {
             <div className="relative z-10 container mx-auto px-4 flex flex-col items-center text-center justify-center h-full md:pt-32">
 
                 {/* Main Heading */}
-                <h1 className="font-playfair text-[2.75rem] md:text-[4.5rem] lg:text-[4.6rem] font-semibold text-white mb-6 md:mb-8 leading-[1.1] md:leading-[1.2] drop-shadow-lg max-w-5xl md:-mt-30">
+                <h1 className="font-playfair text-[2.75rem] md:text-[4.5rem] lg:text-[4.6rem] font-light text-white mb-6 md:mb-8 leading-[1.1] md:leading-[1.2] drop-shadow-lg max-w-5xl md:-mt-30">
                     The Zewadi Way of Living
                 </h1>
 

@@ -21,7 +21,7 @@ function statusBg(status: string) {
 export default function BottomPanels() {
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      <article className="min-w-0 rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Pending Approvals</h3>
         <div className="mt-3 space-y-2">
           {approvals.map((item) => (
@@ -44,7 +44,7 @@ export default function BottomPanels() {
         </div>
       </article>
 
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      <article className="min-w-0 rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Today&apos;s Consultations</h3>
         <div className="mt-3 space-y-2">
           {consultations.map((item) => (

@@ -67,7 +67,7 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
   }
 
   return (
-    <aside className="w-72 h-full bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
+    <aside className="w-full h-full bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
       {navigation.map((group, idx) => (
         <div key={idx} className="mb-8">
           
