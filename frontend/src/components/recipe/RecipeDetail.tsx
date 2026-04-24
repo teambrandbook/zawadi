@@ -62,7 +62,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                         <div>
                             <h1 className="font-playfair text-xl md:text-[2rem] font-semibold text-black leading-[1.3] mb-8" dangerouslySetInnerHTML={{ __html: recipe.title }}>
                             </h1>
-                            <p className="font-inter font-light text-gray-600 text-lg leading-relaxed">
+                            <p className="font-inter font-light text-black text-lg leading-relaxed">
                                 {recipe.description}
                             </p>
                         </div>
@@ -88,7 +88,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
 
             {/* 3. How to Cook Section */}
             <div className="lectRevelComponent py-20 px-6 md:px-12 lg:px-24">
-                <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#EAE3D2]">
+                <section className="rounded-[10px] py-14 px-6 md:px-12 lg:px-14 bg-[#D8C29A]">
                     <div className="max-w-[85rem] mx-auto flex flex-col gap-4">
 
                         <h2 className="font-playfair text-2xl font-light text-black">
@@ -99,11 +99,11 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                             {recipe.steps.map((step, idx) => (
                                 <div key={idx}>
 
-                                    <span className="font-inter font-light font-black text-[#0A4834]">
+                                    <span className="font-inter font-semibold font-black text-[#0A4834]">
                                         Step {idx + 1} :
                                     </span>{" "}
 
-                                    <span className="font-inter font-light text-gray-700 leading-snug">
+                                    <span className="font-inter font-light text-black leading-snug">
                                         {step}
                                     </span>
 

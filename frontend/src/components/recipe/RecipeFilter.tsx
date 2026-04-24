@@ -6,7 +6,7 @@ const categories = ["Breakfast", "Lunch", "Snack", "Dinner"]
 
 function RecipeFilter() {
   return (
-    <div className="grid pt-52 md:pt-64 grid-cols-2 px-6 md:px-12 lg:px-24 max-sm:px-6 md:grid-cols-4 gap-4 md:gap-8 mb-12">
+    <div className="grid pt-36 md:pt-48 grid-cols-2 px-6 md:px-12 lg:px-24 max-sm:px-6 md:grid-cols-4 gap-4 md:gap-8 mb-12">
       {categories.map((category) => (
         <button
           key={category}

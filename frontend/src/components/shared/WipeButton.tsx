@@ -81,9 +81,16 @@ export default function WipeButton({ href, label, className = "", variant = "pri
                 {showIcon && (
                     <div className="flex items-center justify-end shrink-0 ml-4 pointer-events-none">
                         <div className={`icon-circle w-9 h-9 md:w-11 md:h-11 ${circleBgClass} rounded-full flex items-center justify-center relative z-20 shadow-md`}>
-                            <svg className="h-4 w-4 md:h-5 md:w-5" viewBox="0 0 24 24" fill={iconColor}>
-                                <rect x="3" y="11" width="5" height="2.5" rx="1.25" />
-                                <path d="M10 8c0-1.1 1.2-1.8 2.1-1.3l6.3 3.6c.9.5.9 1.9 0 2.4l-6.3 3.6c-.9.5-2.1-.2-2.1-1.3V8z" />
+                            <svg 
+                                className="h-4 w-4 md:h-5 md:w-5" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke={iconColor} 
+                                strokeWidth="2.5" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round"
+                            >
+                                <path d="M5 12h14M12 5l7 7-7 7" />
                             </svg>
                         </div>
                     </div>

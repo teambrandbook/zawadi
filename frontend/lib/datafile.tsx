@@ -73,85 +73,83 @@ export const recipes = [
 export const recipeDetaila = {
   "buckwheat-chilla": {
     title: "BUCKWHEAT <br /> CHILLA",
-    description: "Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it's a delicious option for breakfast or a healthy snack.",
+    description: "A healthy and savory pancake made with buckwheat flour, fresh vegetables, herbs, and mild spices. This wholesome dish is light, protein-rich, and perfect for breakfast, lunch, or a quick healthy snack.",
     image: "/product/recipe-2.webp",
     nutrition: [
-      { label: "Calories", value: "180g" },
+      { label: "Calories", value: "250g" },
       { label: "Fat", value: "4g" },
-      { label: "Carbs", value: "32g" },
-      { label: "Protein", value: "8g" },
+      { label: "Carbs", value: "38g" },
+      { label: "Protein", value: "9g" },
     ],
     ingredientsCount: 7,
-    ingredientsText: "Buckwheat flour, chopped onions, green chilies, fresh coriander, ginger-garlic paste, cumin seeds, and a pinch of salt.",
+    ingredientsText: "Buckwheat flour, onion, tomato, green chili, coriander leaves, cumin seeds, salt, water, oil",
     steps: [
-      "Mix buckwheat flour with water to form a smooth batter.",
-      "Add finely chopped onions, herbs, and spices to the batter.",
+      "In a bowl, mix buckwheat flour, chopped onion, tomato, green chili, coriander leaves, cumin seeds, and salt.",
+      "Add water gradually and make a smooth batter with a medium-thick consistency.",
       "Heat a non-stick pan and lightly grease it with oil.",
-      "Pour a ladle of batter and spread it into a thin pancake.",
-      "Cook both sides until golden brown and serve hot."
+      "Pour a ladle of batter onto the pan and spread it gently like a pancake.",
+      "Cook on both sides until golden brown and crisp. Serve hot with chutney or yogurt."
     ]
   },
   "buckwheat-pancakes": {
     title: "BUCKWHEAT <br /> PANCAKES",
-    description: "Buckwheat pancakes are soft, wholesome pancakes made from a smooth buckwheat flour batter cooked on a flat pan. Naturally gluten-free and mildly nutty in flavor, they are a healthy and satisfying option for breakfast or a light meal.",
+    description: "A soft, healthy, and delicious breakfast option made with buckwheat flour, milk, eggs, and natural sweeteners. These wholesome pancakes are light, filling, and perfect for a nutritious morning meal or guilt.",
     image: "/userdash/myrecipy/r1.webp",
     nutrition: [
-      { label: "Calories", value: "245g" },
-      { label: "Fat", value: "4g" },
-      { label: "Carbs", value: "38g" },
-      { label: "Protein", value: "5g" },
+      { label: "Calories", value: "270g" },
+      { label: "Fat", value: "6g" },
+      { label: "Carbs", value: "42g" },
+      { label: "Protein", value: "10g" },
     ],
     ingredientsCount: 6,
-    ingredientsText: "Buckwheat flour, almond milk, baking powder, organic eggs, honey, and fresh berries.",
+    ingredientsText: "Buckwheat flour, milk, egg, banana, honey, baking powder, vanilla extract, salt, butter",
     steps: [
-      "In a large bowl, whisk together buckwheat flour and baking powder.",
-      "Add almond milk, eggs, and honey, stirring until smooth.",
-      "Heat a non-stick griddle over medium heat and lightly grease it.",
-      "Pour a small amount of batter for each pancake.",
-      "Cook until bubbles form, then flip and cook until golden brown.",
-      "Serve hot with fresh berries and additional honey."
+      "In a bowl, combine buckwheat flour, baking powder, and salt.",
+      "Add milk, egg, mashed banana, honey, and vanilla extract. Mix well until smooth.",
+      "Heat a non-stick pan and lightly grease it with butter.",
+      "Pour small portions of batter onto the pan and cook until bubbles form on top.",
+      "Flip and cook the other side until golden brown. Serve warm with fruits or extra honey.",
     ]
   },
   "buckwheat-granola": {
     title: "BUCKWHEAT <br /> GRANOLA MIX",
-    description: "Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it's a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.",
+    description: "A crunchy and nutritious breakfast blend made with buckwheat, oats, nuts, seeds, and natural sweeteners. This wholesome mix is rich in fiber, healthy fats, and plant-based protein, making it perfect for breakfast.",
     image: "/product/recipe-4.webp",
     nutrition: [
-      { label: "Calories", value: "288g" },
-      { label: "Fat", value: "5g" },
-      { label: "Carbs", value: "54g" },
-      { label: "Protein", value: "6g" },
+      { label: "Calories", value: "300g" },
+      { label: "Fat", value: "9g" },
+      { label: "Carbs", value: "45g" },
+      { label: "Protein", value: "8g" },
     ],
     ingredientsCount: 6,
-    ingredientsText: "Toasted buckwheat, almonds, sunflower seeds, pumpkin seeds, maple syrup, and a pinch of cinnamon.",
+    ingredientsText: "Buckwheat groats, rolled oats, almonds, pumpkin seeds, sunflower seeds, honey, coconut oil, cinnamon, raisins, salt",
     steps: [
-      "Preheat your oven to 160°C (320°F).",
+      "Preheat the oven to 180°C and line a baking tray with parchment paper.",
       "In a large bowl, combine buckwheat, nuts, and seeds.",
-      "Stir in maple syrup and cinnamon until everything is evenly coated.",
-      "Spread the mixture thinly on a baking sheet lined with parchment paper.",
-      "Bake for 15-20 minutes, tossing halfway through, until golden brown.",
-      "Allow to cool completely before storing in an airtight container."
+      "Add honey and melted coconut oil, then mix well until everything is evenly coated.",
+      "Spread the mixture evenly on the baking tray and bake for 20–25 minutes, stirring halfway through.",
+      "Step 5 : Let it cool completely, then mix in raisins and store in an airtight container.",
     ]
   },
   "buckwheat-soup": {
     title: "SAVOURY <br /> BUCKWHEAT PORRIDGE",
-    description: "Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.",
+    description: "A warm, nourishing, and wholesome dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it is a comforting and versatile option for a healthy breakfast or light meal.",
     image: "/product/recipe-1.webp",
     nutrition: [
-      { label: "Calories", value: "210g" },
-      { label: "Fat", value: "3g" },
-      { label: "Carbs", value: "42g" },
-      { label: "Protein", value: "7g" },
+      { label: "Calories", value: "280g" },
+      { label: "Fat", value: "5g" },
+      { label: "Carbs", value: "54g" },
+      { label: "Protein", value: "8g" },
     ],
     ingredientsCount: 9,
-    ingredientsText: "Toasted buckwheat, carrots, celery, onions, vegetable broth, fresh parsley, olive oil, garlic, and cracked black pepper.",
+    ingredientsText: "1 cup buckwheat groats, 2 cups water or vegetable broth, 1 small onion, finely chopped, 2 cloves garlic, minced, 1 tbsp olive oil, Salt and pepper to taste, Fresh herbs for garnish, Optional: mushrooms, spinach, egg, or grilled chicken",
     steps: [
-      "Prepare all vegetables by dicing them into small, even pieces.",
-      "In a large pot, sauté onions and garlic in olive oil until translucent.",
-      "Add carrots and celery, and cook for another 5 minutes.",
-      "Stir in the toasted buckwheat and pour in the vegetable broth.",
-      "Simmer for 25-30 minutes until buckwheat is tender.",
-      "Garnish with fresh parsley before serving."
+      "Rinse the buckwheat thoroughly under running water and drain well.",
+      "Heat olive oil in a pan, add chopped onions and garlic, and sauté until soft and fragrant.",
+      "Add buckwheat to the pan and lightly roast for 2–3 minutes for a nuttier flavor.",
+      "Pour in water or vegetable broth, add salt and pepper, and let it simmer on low heat until soft and creamy.",
+      "Add optional vegetables like mushrooms or spinach and cook for a few more minutes.",
+      
     ]
   }
 };
