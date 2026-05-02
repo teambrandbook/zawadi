@@ -243,7 +243,6 @@ class FindConsultantView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-
         date = datetime.strptime(request.data["date"], "%Y-%m-%d").date()
         time_str = request.data["time"]
 
@@ -259,7 +258,7 @@ class FindConsultantView(APIView):
             "consultant_name": consultant.user.user_name,
             "photo": consultant.user.photo.url if consultant.user.photo else None,
             "qualification": consultant.qualification,
-            "consultation_fee": consultant.consiltation_fee
+            "consultation_fee": consultant.consultation_fee
         })
 
 class CreateConsultationBookingView(APIView):
@@ -270,6 +269,8 @@ class CreateConsultationBookingView(APIView):
             data=request.data,
             context={"request": request}
         )
+
+        
 
         serializer.is_valid(raise_exception=True)
 

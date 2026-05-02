@@ -30,3 +30,4 @@ urlpatterns = [
     path("community/create-booking/", CreateConsultationBookingView.as_view()),
     path("bookings/<int:pk>/cancel/", CommunityBookingCancelView.as_view()),
 ]
+ 
