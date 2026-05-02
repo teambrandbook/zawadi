@@ -26,7 +26,9 @@ export type EventSidebarAction = {
 };
 
 export type EventReviewData = {
+  eventId: number;
   slug: string;
+  isRegistered: boolean;
   category: string;
   status: string;
   registrationLabel: string;

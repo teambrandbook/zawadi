@@ -1,13 +1,88 @@
-import { Clock3, DollarSign, ShoppingCart, Truck } from "lucide-react";
+"use client";
 
-const cards = [
-  { label: "Total Orders", value: "1,247", Icon: ShoppingCart, iconBg: "bg-[#F4ECE0]", iconColor: "text-[#A88751]" },
-  { label: "Pending Orders", value: "23", Icon: Clock3, iconBg: "bg-[#FFF4CC]", iconColor: "text-[#E4B300]" },
-  { label: "Delivered Today", value: "47", Icon: Truck, iconBg: "bg-[#EAFBEF]", iconColor: "text-[#22C55E]" },
-  { label: "Total Revenue", value: "$24,890", Icon: DollarSign, iconBg: "bg-[#F4ECE0]", iconColor: "text-[#A88751]" },
-] as const;
+import { useEffect, useState } from "react";
+import { Clock3, DollarSign, ShoppingCart, Truck } from "lucide-react";
+import api from "@/services/api";
+
+type OrderStatsData = {
+  total: number;
+  pending: number;
+  delivered: number;
+  revenue: number;
+};
 
 export default function OrderStats() {
+  const [stats, setStats] = useState<OrderStatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get("/orders/admin/");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw: Record<string, any>[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.results)
+          ? res.data.results
+          : [];
+
+        const total = raw.length;
+        const pending = raw.filter((o) => {
+          const s = String(o.status ?? "").toLowerCase();
+          return s === "pending" || s === "processing";
+        }).length;
+        const delivered = raw.filter((o) => {
+          const s = String(o.status ?? "").toLowerCase();
+          return s === "delivered" || s === "shipped";
+        }).length;
+        const revenue = raw.reduce((sum, o) => {
+          const amt = parseFloat(o.total_amount ?? o.amount ?? 0);
+          return sum + (Number.isNaN(amt) ? 0 : amt);
+        }, 0);
+
+        setStats({ total, pending, delivered, revenue });
+      } catch {
+        // Silent fail — keep null stats
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const fmt = (n: number) => n.toLocaleString();
+
+  const cards = [
+    {
+      label: "Total Orders",
+      value: stats != null ? fmt(stats.total) : isLoading ? "…" : "—",
+      Icon: ShoppingCart,
+      iconBg: "bg-[#F4ECE0]",
+      iconColor: "text-[#A88751]",
+    },
+    {
+      label: "Pending Orders",
+      value: stats != null ? fmt(stats.pending) : isLoading ? "…" : "—",
+      Icon: Clock3,
+      iconBg: "bg-[#FFF4CC]",
+      iconColor: "text-[#E4B300]",
+    },
+    {
+      label: "Delivered Today",
+      value: stats != null ? fmt(stats.delivered) : isLoading ? "…" : "—",
+      Icon: Truck,
+      iconBg: "bg-[#EAFBEF]",
+      iconColor: "text-[#22C55E]",
+    },
+    {
+      label: "Total Revenue",
+      value: stats != null ? `$${fmt(Math.round(stats.revenue))}` : isLoading ? "…" : "—",
+      Icon: DollarSign,
+      iconBg: "bg-[#F4ECE0]",
+      iconColor: "text-[#A88751]",
+    },
+  ] as const;
+
   return (
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map(({ label, value, Icon, iconBg, iconColor }) => (

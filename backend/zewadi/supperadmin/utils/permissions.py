@@ -1,17 +1,28 @@
 from rest_framework.permissions import BasePermission
 
 
+def _get_role(user):
+    role = getattr(user, "role", "")
+    return str(role).upper() if role else ""
+
+
 def has_permission(user, module, action):
-    if user.is_superuser or user.role == "admin":
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+
+    role = _get_role(user)
+
+    if user.is_superuser or role == "ADMIN":
         return True
 
-    if user.role != "internal_staff":
+    if role != "INTERNAL_STAFF":
         return False
 
-    if not user.role_obj:
+    role_obj = getattr(user, "role_obj", None)
+    if not role_obj:
         return False
 
-    perm = user.role_obj.permissions.filter(module=module).first()
+    perm = role_obj.permissions.filter(module=module).first()
 
     if not perm:
         return False
@@ -27,4 +38,8 @@ def has_permission(user, module, action):
 
 class IsAdminRole(BasePermission):
     def has_permission(self, request, view):
-        return request.user and request.user.role == "ADMIN"
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+
+        return bool(getattr(user, "is_superuser", False) or _get_role(user) == "ADMIN")

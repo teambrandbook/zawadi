@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import RegisterSerializer, LoginSerializer
+from .serializers import RegisterSerializer, LoginSerializer, MeSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
 from rest_framework.exceptions import AuthenticationFailed
@@ -16,7 +16,12 @@ class RegisterAPIView(APIView):
     throttle_classes = [RegisterRateThrottle]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        payload = request.data.copy()
+        # Public registration can only create community users.
+        if not request.user.is_authenticated or request.user.role != "ADMIN":
+            payload["role"] = "COMMUNITY_USER"
+
+        serializer = RegisterSerializer(data=payload)
 
         if serializer.is_valid():
             user = serializer.save()
@@ -134,3 +139,12 @@ class LogoutAPIView(APIView):
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
         return response
+
+
+class MeAPIView(APIView):
+    """Return current authenticated user's profile basics."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = MeSerializer(request.user, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

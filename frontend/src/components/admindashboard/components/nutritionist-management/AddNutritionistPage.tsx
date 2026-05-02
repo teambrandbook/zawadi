@@ -190,7 +190,7 @@ export default function AddNutritionistPage() {
     try {
       await api.post("/account/register/", fd);
       toast.success("Nutritionist added successfully! ✅");
-      router.push("/account/nutritionist");
+      router.push("/admindashboard/nutritionist");
     } catch (err: unknown) {
       const responseData = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const detail =

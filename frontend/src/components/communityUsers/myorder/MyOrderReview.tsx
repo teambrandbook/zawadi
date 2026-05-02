@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Leaf, MessageSquareText, ShieldCheck, Star, Trash2, UploadCloud } from "lucide-react";
-import { myorders } from "../../../../lib/datafile";
+import { ChangeEvent, useEffect, useState } from "react";
+import { Leaf, MessageSquareText, ShieldCheck, Star, Trash2, UploadCloud } from "lucide-react";
+import api from "@/services/api";
 
 type Props = {
   orderDataId: string;
@@ -24,6 +24,13 @@ type UploadedImage = {
   id: string;
   file: File;
   previewUrl: string;
+};
+
+type ApiOrderDetail = {
+  order_id: string;
+  product_name: string;
+  status: string;
+  created_at: string;
 };
 
 const ratingLabels: Record<number, string> = {
@@ -87,9 +94,25 @@ export default function MyOrderReview({ orderDataId }: Props) {
     initialDraft ? "Draft loaded." : ""
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingOrder, setIsLoadingOrder] = useState(true);
+  const [order, setOrder] = useState<ApiOrderDetail | null>(null);
 
-  const order = useMemo(() => {
-    return myorders.find((item) => item.id === orderDataId) ?? null;
+  useEffect(() => {
+    let isMounted = true;
+    async function loadOrder() {
+      try {
+        const response = await api.get<ApiOrderDetail>(`/orders/${encodeURIComponent(orderDataId)}/`);
+        if (isMounted) setOrder(response.data);
+      } catch {
+        if (isMounted) setOrder(null);
+      } finally {
+        if (isMounted) setIsLoadingOrder(false);
+      }
+    }
+    void loadOrder();
+    return () => {
+      isMounted = false;
+    };
   }, [orderDataId]);
 
   useEffect(() => {
@@ -164,16 +187,42 @@ export default function MyOrderReview({ orderDataId }: Props) {
     setIsSubmitting(true);
     setStatusMessage("Submitting review...");
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    localStorage.removeItem(draftKey);
-    setIsSubmitting(false);
-    setStatusMessage("Review submitted successfully.");
+    try {
+      await api.post(`/orders/${encodeURIComponent(orderDataId)}/review/`, {
+        rating,
+        title: title.trim(),
+        comment: comment.trim(),
+        recommend: recommend === null ? true : recommend === "yes",
+      });
+      localStorage.removeItem(draftKey);
+      setStatusMessage("Review submitted successfully.");
+    } catch (error: unknown) {
+      const message =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === "string"
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : "Unable to submit review.";
+      setStatusMessage(String(message));
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   function toggleTag(tag: string) {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((item) => item !== tag) : [...prev, tag]
+    );
+  }
+
+  if (isLoadingOrder) {
+    return (
+      <section className="mx-auto max-w-[900px] px-4 py-10">
+        <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center">
+          <p className="text-sm text-[#7B6A4C]">Loading order...</p>
+        </div>
+      </section>
     );
   }
 
@@ -221,15 +270,15 @@ export default function MyOrderReview({ orderDataId }: Props) {
             <div className="mt-6 flex flex-col gap-4 rounded-xl border border-[#EEE8DB] bg-[#FFFEFC] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-[#EBE1CF]">
-                  <Image src={order.image} alt={order.title} fill className="object-cover" />
+                  <Image src="/product/product-1.webp" alt={order.product_name} fill className="object-cover" />
                 </div>
                 <div>
-                  <h2 className="text-base font-semibold text-[#0A4833]">Premium Organic Buckwheat</h2>
-                  <p className="text-sm text-[#7B6A4C]">1kg Pack • Whole Grain</p>
+                  <h2 className="text-base font-semibold text-[#0A4833]">{order.product_name}</h2>
+                  <p className="text-sm text-[#7B6A4C]">ZEWADI Product</p>
                   <p className="mt-1 text-xs text-[#9CA3AF]">
-                    Order ID: {order.orderId}
+                    Order ID: {order.order_id}
                     <br />
-                    Delivered: {order.orderDate}
+                    Ordered: {new Date(order.created_at).toLocaleDateString("en-US")}
                   </p>
                 </div>
               </div>
@@ -241,7 +290,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
                 </div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-[#EEF7F1] px-3 py-1 text-[#0A4833]">
                   <Leaf className="h-4 w-4" />
-                  Deliver
+                  {order.status}
                 </div>
               </div>
             </div>

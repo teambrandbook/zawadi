@@ -63,6 +63,8 @@ export default function UserManagementDashboard() {
 
   useEffect(() => {
     const fetchUser = async () => {
+      setIsLoading(true);
+      setFetchError(null);
       try {
         const token = getAccessToken();
 
@@ -77,6 +79,8 @@ export default function UserManagementDashboard() {
       } catch (error) {
         console.log("Error:", error);
         setFetchError("Error fetching users");
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -204,7 +208,7 @@ export default function UserManagementDashboard() {
           onAddUser={handleAddUser}
         />
 
-        <UserStatsGrid />
+        <UserStatsGrid users={users} />
 
         <UserFiltersBar
           statusFilter={statusFilter}

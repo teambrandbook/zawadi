@@ -254,7 +254,7 @@ export default function ProductsDashboard() {
           onAdd={() => router.push("/admindashboard/products/add")}
         />
 
-        <ProductStatsGrid />
+        <ProductStatsGrid rows={products} />
 
         {isLoading && (
           <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
 import AccountSettingsPanel from "./AccountSettingsPanel";
 import NotificationsPanel from "./NotificationsPanel";
 import PreferencesPanel from "./PreferencesPanel";
@@ -25,6 +26,8 @@ import type {
   ReminderPreferences,
   SecurityStatusItem,
   SettingsSectionId,
+  CommunityProfileData,
+  CommunityProfileUpdatePayload,
 } from "./settingsTypes";
 
 const accountDetails: AccountDetail[] = [
@@ -155,6 +158,9 @@ const preferencesPanelData: PreferencesPanelData = {
 
 export default function CommunitySettingsPage() {
   const [activeSection, setActiveSection] = useState<SettingsSectionId>("profile");
+  const [profile, setProfile] = useState<CommunityProfileData | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = useState(true);
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState<LinkedAccount[]>(initialLinkedAccounts);
   const [notificationCategories, setNotificationCategories] = useState<NotificationCategory[]>(initialNotificationCategories);
   const [deliveryChannels, setDeliveryChannels] = useState<DeliveryChannel[]>(initialDeliveryChannels);
@@ -167,6 +173,84 @@ export default function CommunitySettingsPage() {
   const [dataConsent, setDataConsent] = useState<PrivacyToggleItem[]>(initialDataConsent);
   const [statusMessage, setStatusMessage] = useState("");
   const activeSectionLabel = settingsSections.find((section) => section.id === activeSection)?.label ?? "Settings";
+  const resolvedAccountDetails: AccountDetail[] = [
+    { label: "Member ID", value: profile?.user_id ? `#${profile.user_id}` : accountDetails[0].value },
+    accountDetails[1],
+    accountDetails[2],
+    accountDetails[3],
+  ];
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const response = await api.get<CommunityProfileData>("/community/profile/");
+        if (isMounted) {
+          setProfile(response.data);
+          setDeliveryChannels((prev) =>
+            prev.map((channel) =>
+              channel.id === "email" ? { ...channel, detail: response.data.email } : channel
+            )
+          );
+        }
+      } catch {
+        if (isMounted) {
+          setStatusMessage("Unable to load profile details.");
+        }
+      } finally {
+        if (isMounted) {
+          setIsProfileLoading(false);
+        }
+      }
+    }
+
+    void loadProfile();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  async function saveProfile(payload: CommunityProfileUpdatePayload) {
+    setIsProfileSaving(true);
+    setStatusMessage("Saving profile...");
+
+    try {
+      if (payload.photoFile) {
+        const formData = new FormData();
+        formData.append("photo", payload.photoFile);
+        await api.patch("/community/profile/", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+
+      const addressHasAnyField = Object.values(payload.address).some((value) => value.trim().length > 0);
+      const jsonPayload: Record<string, unknown> = {
+        full_name: payload.full_name,
+        phone: payload.phone,
+        date_of_birth: payload.date_of_birth || null,
+        gender: payload.gender || null,
+        location: payload.location,
+        wellness_interests: payload.wellness_interests,
+      };
+
+      if (addressHasAnyField) {
+        jsonPayload.address = payload.address;
+      }
+
+      if (payload.removePhoto) {
+        jsonPayload.photo = null;
+      }
+
+      const response = await api.patch<CommunityProfileData>("/community/profile/", jsonPayload);
+      setProfile(response.data);
+      setStatusMessage("Profile updated successfully.");
+    } catch {
+      setStatusMessage("Failed to save profile. Please verify fields and try again.");
+    } finally {
+      setIsProfileSaving(false);
+    }
+  }
 
   function toggleLinkedAccount(accountId: string) {
     setLinkedAccounts((prev) =>
@@ -285,10 +369,17 @@ export default function CommunitySettingsPage() {
           <SettingsSideNav activeSection={activeSection} sections={settingsSections} onSectionChange={setActiveSection} />
 
           <div className="space-y-4">
-            {activeSection === "profile" && <ProfileInformationPanel />}
+            {activeSection === "profile" && (
+              <ProfileInformationPanel
+                profile={profile}
+                isLoading={isProfileLoading}
+                isSaving={isProfileSaving}
+                onSave={saveProfile}
+              />
+            )}
             {activeSection === "account" && (
               <AccountSettingsPanel
-                accountDetails={accountDetails}
+                accountDetails={resolvedAccountDetails}
                 linkedAccounts={linkedAccounts}
                 onToggleLinkedAccount={toggleLinkedAccount}
                 onSave={saveAccountSettings}

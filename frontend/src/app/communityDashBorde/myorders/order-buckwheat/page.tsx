@@ -1,5 +1,5 @@
-import OrderBuckwheatPage from "@/components/communityUsers/myorder/orderDetails/OrderBuckwheatPage";
+import { redirect } from "next/navigation";
 
 export default function OrderBuckwheat() {
-  return <OrderBuckwheatPage/>;
+  redirect("/communityDashBorde/myorders/order");
 }
