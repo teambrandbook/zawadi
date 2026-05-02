@@ -139,18 +139,6 @@ export default function ChooseExpertSection({
         <aside className="rounded-lg border border-[#DFDFDF] bg-white p-4">
           <h3 className="text-xl font-semibold text-[#0A4833]">Booking Summary</h3>
 
-          <div className="mt-3 rounded-lg bg-[#F7F4ED] p-3">
-            <div className="flex items-center gap-2">
-              <div className="relative h-10 w-10 overflow-hidden rounded-full">
-                <Image src="/recipe/recipe-2.webp" alt="Dr Emily Chen" fill className="object-cover" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[#0A4833]">Dr. Emily Chen</p>
-                <p className="text-xs text-[#6B7280]">Certified Nutritionist</p>
-              </div>
-            </div>
-          </div>
-
           <div className="mt-4 space-y-2 text-sm">
             <p className="flex items-center justify-between">
               <span className="text-[#6B7280]">Session Type:</span>
