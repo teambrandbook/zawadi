@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Consultant,WeeklySlot
+from .models import Consultant,WeeklySlot,ConsultationBooking
 
 
 @admin.register(Consultant)
@@ -12,3 +12,4 @@ class ConsultantAdmin(admin.ModelAdmin):
 
 
 admin.site.register(WeeklySlot)
+admin.site.register(ConsultationBooking)

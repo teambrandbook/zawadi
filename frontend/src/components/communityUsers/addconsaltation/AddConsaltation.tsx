@@ -8,7 +8,6 @@ import ChooseExpertSection, { type SessionType } from "./components/ChooseExpert
 import SelectDateTimeSection from "./components/SelectDateTimeSection";
 import HealthDetailsSection, { type HealthDetails } from "./components/HealthDetailsSection";
 import ConfirmBookingSection, { type ConsultationFormData } from "./components/ConfirmBookingSection";
-import { log } from "console";
 
 type Expert = {
   id: string;
@@ -29,6 +28,11 @@ type MatchedConsultant = {
 type FindConsultantError = {
   error?: string;
   detail?: string;
+};
+
+type CreateBookingResponse = {
+  message?: string;
+  booking_id?: number;
 };
 
 const experts: Expert[] = [
@@ -113,6 +117,14 @@ export default function AddConsaltation() {
 
   function updateFormData(field: keyof ConsultationFormData, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function mapSessionTypeForApi(value: string) {
+    const normalizedValue = value.trim().toLowerCase();
+
+    if (normalizedValue.includes("audio")) return "audio";
+    if (normalizedValue.includes("chat")) return "chat";
+    return "video";
   }
 
   function onSelectGoal(goal: string) {
@@ -200,17 +212,45 @@ export default function AddConsaltation() {
       setStatusMessage("Please confirm details before booking.");
       return;
     }
+    if (!matchedConsultant?.consultant_id) {
+      setStatusMessage("Consultant details are missing. Please go back and try again.");
+      return;
+    }
+
     setIsSubmitting(true);
     setStatusMessage("Confirming your booking...");
-    console.log("Consultation formData", formData);
-    await new Promise((resolve) => setTimeout(resolve, 700));
-    setIsSubmitting(false);
-    setStatusMessage("Consultation booked successfully.");
-    
-  }
 
-  console.log(matchedConsultant);
-  
+    try {
+      const payload = {
+        consultant_id: Number(matchedConsultant.consultant_id),
+        time: formatTimeForApi(formData.time || selectedSlot),
+        booked_date: formData.date || selectedDate,
+        session_type: mapSessionTypeForApi(selectedSessionType || "Video Call"),
+        primary_goal: selectedGoal || formData.primary_goal,
+        primary_wellness_goal: formData.primary_wellness_goal || healthDetails.primaryWellnessGoal,
+        focuses_area: formData.focus_area || healthDetails.mainConcern,
+        diet_preferences: formData.diet_restriction || healthDetails.dietPreferences.join(", "),
+        lifestyle_activity_leavel: formData.lifestyle_activity || healthDetails.lifestyle,
+        buckweath_journy_goal: formData.journey_goal || healthDetails.buckwheatGoals,
+        message: formData.additional_message || healthDetails.additionalMessage,
+        language: selectedLanguage || formData.language,
+        is_agreed: isAgreed,
+      };
+
+      const response = await api.post<CreateBookingResponse>("/consultant/create-booking/", payload);
+      setStatusMessage(response.data.message || "Consultation booked successfully.");
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ error?: string; detail?: string }>;
+      const backendMessage =
+        axiosError.response?.data?.error ||
+        axiosError.response?.data?.detail ||
+        "Unable to confirm booking right now. Please try again.";
+
+      setStatusMessage(backendMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <section className="w-full min-h-screen bg-white px-4 py-8 lg:px-8">
