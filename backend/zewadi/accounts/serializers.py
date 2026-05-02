@@ -143,7 +143,7 @@ class RegisterSerializer(serializers.Serializer):
                 languages_spoken=validated_data.get("languages_spoken"),
                 experience_areas=validated_data.get("experience_areas"),
                 session_type=validated_data.get("session_type"),
-                consiltation_fee=validated_data.get("consultation_fee"),
+                consultation_fee=validated_data.get("consultation_fee"),
                 session_duration=validated_data.get("session_duration"),
             )
 

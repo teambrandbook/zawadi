@@ -107,20 +107,47 @@ def find_available_consultant(date, start_time, exclude=None):
     return None
 
 
-# to confor is slote is availble 
-
-
-def is_slot_available(consultant, date, time):
+def is_slot_available(consultant, date, time_str):
     """
-    Check if consultant is free at given date and time
+    Full slot validation. Returns (True, None) on success or (False, error_message) on failure.
+    time_str must be in "%I:%M %p" format, e.g. "10:00 AM".
     """
+    from datetime import date as date_cls
 
-    # 🔹 Check existing booking
-    exists = ConsultationBooking.objects.filter(
+    # 1. Consultant accepting new bookings?
+    settings, _ = ConsultantSettings.objects.get_or_create(consultant=consultant)
+    if not settings.accept_new:
+        return False, "This consultant is not accepting new bookings."
+
+    # 2. Same-day booking policy
+    if not settings.allow_same_day and date == date_cls.today():
+        return False, "This consultant does not accept same-day bookings."
+
+    # 3. Consultant on leave / blocked date?
+    if BlockedDate.objects.filter(
+        consultant=consultant,
+        from_date__lte=date,
+        to_date__gte=date
+    ).exists():
+        return False, "The consultant is unavailable on this date."
+
+    # 4. Does this slot actually exist in the consultant's schedule?
+    day = date.strftime("%A").lower()
+    time_obj = convert_time(time_str)
+    if not WeeklySlot.objects.filter(
+        consultant=consultant,
+        day=day,
+        start_time=time_obj
+    ).exists():
+        return False, "No available slot for this consultant at the requested time."
+
+    # 5. Already booked by someone else?
+    if ConsultationBooking.objects.filter(
         consultant=consultant,
         booked_date=date,
-        booked_slot=time,
-        status__in=["pending", "confirmed"]  # active bookings only
-    ).exists()
+        booked_slot=time_str,
+        status__in=["pending", "confirmed"]
+    ).exists():
+        return False, "This time slot is already booked."
 
-    return not exists
+    return True, None

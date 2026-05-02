@@ -18,7 +18,7 @@ class ConsultantUserSerializer(serializers.ModelSerializer):
 
 class ConsultantListSerializer(serializers.ModelSerializer):
     user = ConsultantUserSerializer(read_only=True)
-    consultation_fee = serializers.IntegerField(source="consiltation_fee")
+    consultation_fee = serializers.IntegerField()
 
     class Meta:
         model = Consultant
@@ -38,7 +38,7 @@ class ConsultantListSerializer(serializers.ModelSerializer):
 
 class ConsultantDetailSerializer(serializers.ModelSerializer):
     user = ConsultantUserSerializer(read_only=True)
-    consultation_fee = serializers.IntegerField(source="consiltation_fee")
+    consultation_fee = serializers.IntegerField()
     bookings_count = serializers.SerializerMethodField()
 
     class Meta:
@@ -61,27 +61,6 @@ class ConsultantDetailSerializer(serializers.ModelSerializer):
 
     def get_bookings_count(self, obj):
         return obj.bookings.count()
-
-
-class ConsultationBookingCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ConsultationBooking
-        fields = [
-            "consultant",
-            "session_type",
-            "booked_date",
-            "booked_slot",
-            "health_goal",
-            "conditions",
-            "notes",
-            "language",
-            "is_agreed",
-        ]
-
-    def create(self, validated_data):
-        request = self.context.get("request")
-        validated_data["user"] = request.user
-        return super().create(validated_data)
 
 
 class ConsultationBookingListSerializer(serializers.ModelSerializer):
@@ -298,29 +277,43 @@ class ConsultationBookingCreateSerializer(serializers.ModelSerializer):
             "time",
             "session_type",
             "booked_date",
-
             "primary_goal",
             "primary_wellness_goal",
             "focuses_area",
             "diet_preferences",
-            "lifestyle_activity_leavel",
-            "buckweath_journy_goal",
+            "lifestyle_activity_level",
+            "buckwheat_journey_goal",
             "message",
             "language",
-            "is_agreed"
+            "is_agreed",
         ]
+
+    def validate(self, attrs):
+        from .util import is_slot_available
+
+        consultant_id = attrs.get("consultant_id")
+        date = attrs.get("booked_date")
+        time_str = attrs.get("time")
+
+        try:
+            consultant = Consultant.objects.get(id=consultant_id)
+        except Consultant.DoesNotExist:
+            raise serializers.ValidationError({"consultant_id": "Consultant not found."})
+
+        available, error = is_slot_available(consultant, date, time_str)
+        if not available:
+            raise serializers.ValidationError({"time": error})
+
+        return attrs
 
     def create(self, validated_data):
         user = self.context["request"].user
-
         consultant_id = validated_data.pop("consultant_id")
         time = validated_data.pop("time")
-
         consultant = Consultant.objects.get(id=consultant_id)
-
         return ConsultationBooking.objects.create(
             user=user,
             consultant=consultant,
-            booked_slot=time,   # 🔥 mapping happens here
+            booked_slot=time,
             **validated_data
         )

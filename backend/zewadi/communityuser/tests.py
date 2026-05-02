@@ -139,7 +139,7 @@ class CommunityDashboardSummaryAPITests(APITestCase):
             languages_spoken="English",
             experience_areas="General",
             session_type="Video",
-            consiltation_fee=200,
+            consultation_fee=200,
             session_duration=30,
         )
         ConsultationBooking.objects.create(
