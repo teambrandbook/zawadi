@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarClock,
@@ -16,20 +16,60 @@ import DietPlanModal from "./components/DietPlanModal";
 import FindNutritionist from "./components/FindNutritionist";
 import ExpertRecommendations from "./components/ExpertRecommendations";
 import ConsultationHistory from "./components/ConsultationHistory";
+import api from "@/services/api";
+
+type ApiBooking = {
+  id: number;
+  consultant_name: string;
+  session_type: string;
+  booked_date: string;
+  booked_slot: string;
+  status: string;
+  created_at: string;
+};
+
+type Session = {
+  id: string;
+  doctor: string;
+  specialty: string;
+  datetime: string;
+  mode: "Video Call" | "Phone Call";
+  status: "upcoming" | "scheduled" | "pending" | "confirmed";
+};
+
+function mapBookingToSession(b: ApiBooking): Session {
+  const modeMap: Record<string, "Video Call" | "Phone Call"> = {
+    VIDEO: "Video Call",
+    AUDIO: "Phone Call",
+    CHAT: "Phone Call",
+  };
+  const statusMap: Record<string, Session["status"]> = {
+    PENDING: "pending",
+    CONFIRMED: "confirmed",
+  };
+  return {
+    id: String(b.id),
+    doctor: b.consultant_name,
+    specialty: "Consultant",
+    datetime: `${b.booked_date} at ${b.booked_slot}`,
+    mode: modeMap[b.session_type] ?? "Video Call",
+    status: statusMap[b.status] ?? "scheduled",
+  };
+}
 
 const statCards = [
   {
     Icon: CalendarClock,
-    value: 2,
+    value: 0,
     label: "Upcoming Sessions",
-    trend: "Next session tomorrow",
+    trend: "Next session soon",
     trendColor: "text-[#6B7280]",
     iconBgColor: "bg-[#E8F2ED]",
     iconColor: "text-[#0A4833]",
   },
   {
     Icon: ClipboardCheck,
-    value: 8,
+    value: 0,
     label: "Completed Sessions",
     trend: "This month",
     trendColor: "text-[#6B7280]",
@@ -53,25 +93,6 @@ const statCards = [
     trendColor: "text-[#6B7280]",
     iconBgColor: "bg-[#F8F3E9]",
     iconColor: "text-[#A88751]",
-  },
-];
-
-const upcomingSessions = [
-  {
-    id: "s-1",
-    doctor: "Dr. Sarah Wilson",
-    specialty: "Certified Nutritionist",
-    datetime: "Tomorrow, 2:00 PM",
-    mode: "Video Call" as const,
-    status: "upcoming" as const,
-  },
-  {
-    id: "s-2",
-    doctor: "Dr. Michael Chen",
-    specialty: "Sports Nutrition",
-    datetime: "Friday, 11:00 AM",
-    mode: "Phone Call" as const,
-    status: "scheduled" as const,
   },
 ];
 
@@ -135,6 +156,26 @@ export default function Consultation() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isDietPlanOpen, setIsDietPlanOpen] = useState(false);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loadingSessions, setLoadingSessions] = useState(true);
+
+  useEffect(() => {
+    api.get<ApiBooking[]>("/consultant/bookings/")
+      .then(({ data }) => {
+        const active = data
+          .filter((b) => ["PENDING", "CONFIRMED"].includes(b.status))
+          .map(mapBookingToSession);
+        setSessions(active);
+      })
+      .catch(() => {/* leave empty on error */})
+      .finally(() => setLoadingSessions(false));
+  }, []);
+
+  async function handleCancelBooking(id: string) {
+    await api.patch(`/consultant/bookings/${id}/cancel/`);
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    setMessage("Booking cancelled successfully.");
+  }
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -162,11 +203,16 @@ export default function Consultation() {
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <UpcomingSessions
-            sessions={upcomingSessions}
-            onJoin={(id) => setMessage(`Joining session: ${id}`)}
-            onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
-          />
+          {loadingSessions ? (
+            <div className="rounded-xl border border-[#DFDFDF] bg-white p-6 text-sm text-[#6B7280]">Loading sessions…</div>
+          ) : (
+            <UpcomingSessions
+              sessions={sessions}
+              onJoin={(id) => setMessage(`Joining session: ${id}`)}
+              onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
+              onCancel={handleCancelBooking}
+            />
+          )}
           <ActiveDietPlan progress={65} onViewPlan={() => setIsDietPlanOpen(true)} />
         </div>
 

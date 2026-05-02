@@ -9,10 +9,12 @@ import {
   ShoppingBag,
   UtensilsCrossed,
 } from "lucide-react";
-import { NotificationsPageData } from "./types";
+import { NotificationItem } from "./types";
 
 type Props = {
-  notifications: NotificationsPageData["notifications"];
+  notifications: NotificationItem[];
+  /** Called with the item id when the user clicks "Mark as read" */
+  onMarkRead?: (id: string) => void;
 };
 
 const iconMap = {
@@ -26,14 +28,16 @@ const iconMap = {
   blog: Bell,
 };
 
-export default function NotificationsList({ notifications }: Props) {
+export default function NotificationsList({ notifications, onMarkRead }: Props) {
   return (
     <div className="space-y-4">
       {notifications.map((item) => {
         const Icon = iconMap[item.icon];
-        const borderClass = item.tone === "gold" ? "border-l-[#B48745]" : "border-l-[#E5E7EB]";
-        const iconShellClass =
-          item.tone === "gold" ? "bg-[#F5EEDF] text-[#A67C3D]" : "bg-[#F3F4F6] text-[#6B7280]";
+        const isUnread = item.tone === "gold";
+        const borderClass = isUnread ? "border-l-[#B48745]" : "border-l-[#E5E7EB]";
+        const iconShellClass = isUnread
+          ? "bg-[#F5EEDF] text-[#A67C3D]"
+          : "bg-[#F3F4F6] text-[#6B7280]";
 
         return (
           <article
@@ -41,19 +45,26 @@ export default function NotificationsList({ notifications }: Props) {
             className={`rounded-xl border border-[#DFDFDF] border-l-4 ${borderClass} bg-white p-5 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]`}
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-              <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconShellClass}`}>
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconShellClass}`}
+              >
                 <Icon className="h-5 w-5" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <h3 className="text-lg font-semibold text-[#0A4833]">{item.title}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-[#0A4833]">{item.title}</h3>
+                  {isUnread && (
+                    <span className="h-2 w-2 rounded-full bg-[#B48745]" aria-label="Unread" />
+                  )}
+                </div>
                 <p className="mt-1 text-sm text-[#4B5563]">{item.message}</p>
                 <p className="mt-3 text-xs text-[#6B7280]">{item.time}</p>
               </div>
 
-              {item.actions && item.actions.length > 0 && (
-                <div className="flex flex-wrap gap-2 lg:justify-end">
-                  {item.actions.map((action) => (
+              <div className="flex flex-wrap gap-2 lg:justify-end">
+                {item.actions && item.actions.length > 0 &&
+                  item.actions.map((action) => (
                     <Link
                       key={action.label}
                       href={action.href ?? "#"}
@@ -68,21 +79,21 @@ export default function NotificationsList({ notifications }: Props) {
                       {action.label}
                     </Link>
                   ))}
-                </div>
-              )}
+
+                {isUnread && onMarkRead && (
+                  <button
+                    type="button"
+                    onClick={() => onMarkRead(item.id)}
+                    className="inline-flex h-8 items-center rounded-lg bg-[#F3F4F6] px-4 text-xs font-medium text-[#6B7280] hover:bg-[#E5E7EB] transition-colors"
+                  >
+                    Mark as read
+                  </button>
+                )}
+              </div>
             </div>
           </article>
         );
       })}
-
-      <div className="pt-2 text-center">
-        <button
-          type="button"
-          className="inline-flex h-11 items-center justify-center rounded-lg border border-[#0A4833] px-6 text-sm font-medium text-[#0A4833] hover:bg-[#F7F3EC]"
-        >
-          Load More Notifications
-        </button>
-      </div>
     </div>
   );
 }

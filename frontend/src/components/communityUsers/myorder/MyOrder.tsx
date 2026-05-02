@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -18,7 +18,8 @@ import {
   Truck,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { myorders } from "../../../../lib/datafile"
+import api from "@/services/api";
+
 type StatCardItem = {
   label: string;
   value: string;
@@ -56,6 +57,14 @@ type OrderItem = {
   lifecycleStatus: OrderLifecycleStatus;
 };
 
+type ApiOrderListItem = {
+  order_id: string;
+  product_name: string;
+  total_amount: string | number;
+  status: string;
+  created_at: string;
+};
+
 const orderLifecycleStatuses: OrderLifecycleStatus[] = [
   "Confirmed",
   "Packed",
@@ -69,10 +78,40 @@ function isOrderLifecycleStatus(value: string): value is OrderLifecycleStatus {
   return orderLifecycleStatuses.includes(value as OrderLifecycleStatus);
 }
 
-const normalizedOrders: OrderItem[] = myorders.map((order) => ({
-  ...order,
-  lifecycleStatus: isOrderLifecycleStatus(order.lifecycleStatus) ? order.lifecycleStatus : "Confirmed",
-}));
+function toLifecycleStatus(status: string): OrderLifecycleStatus {
+  const normalized = status.toLowerCase();
+  if (normalized === "delivered") return "Delivered";
+  if (normalized === "cancelled") return "Cancelled";
+  if (normalized === "shipped") return "Shipped";
+  if (normalized === "processing") return "Packed";
+  if (normalized === "confirmed") return "Confirmed";
+  return "Confirmed";
+}
+
+function toOrderTitle(productName: string): string {
+  return productName?.trim() || "ZEWADI Product";
+}
+
+function toCurrency(value: string | number): string {
+  const amount = Number(value);
+  if (Number.isNaN(amount)) return "$0.00";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function toDateLabel(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
 
 const ITEMS_PER_PAGE = 4;
 const tabs: TabFilter[] = ["All Orders", "Processing", "Shipped", "Delivered", "Cancelled"];
@@ -83,39 +122,6 @@ const progressStages: Exclude<OrderLifecycleStatus, "Cancelled">[] = [
   "Out for Delivery",
   "Delivered",
 ];
-
-const stats: StatCardItem[] = [
-  {
-    label: "Total Orders",
-    value: "24",
-    tag: "All Time",
-    valueClass: "text-[#0A4833]",
-    Icon: ShoppingBag,
-  },
-  {
-    label: "Active Orders",
-    value: "3",
-    tag: "In Progress",
-    valueClass: "text-[#9F8151]",
-    Icon: Clock3,
-  },
-  {
-    label: "Delivered Orders",
-    value: "19",
-    tag: "Completed",
-    valueClass: "text-[#0A4833]",
-    Icon: CheckCircle2,
-  },
-  {
-    label: "Cancelled Orders",
-    value: "2",
-    tag: "Cancelled",
-    valueClass: "text-[#9CA3AF]",
-    Icon: CircleX,
-  },
-];
-
-
 
 function getBadgeData(status: OrderLifecycleStatus) {
   if (status === "Out for Delivery") {
@@ -210,14 +216,90 @@ function matchesTab(order: OrderItem, activeTab: TabFilter) {
 
 export default function MyOrder() {
   const router = useRouter();
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [activeTab, setActiveTab] = useState<TabFilter>("All Orders");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
   const [activeActionByOrder, setActiveActionByOrder] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadOrders() {
+      try {
+        const response = await api.get<ApiOrderListItem[]>("/orders/");
+        if (!isMounted) return;
+
+        const mapped: OrderItem[] = response.data.map((item) => ({
+          id: item.order_id,
+          title: toOrderTitle(item.product_name),
+          orderId: item.order_id,
+          image: "/product/product-1.webp",
+          orderDate: toDateLabel(item.created_at),
+          quantity: "1 item",
+          totalAmount: toCurrency(item.total_amount),
+          dateLabel: "Status",
+          dateValue: item.status,
+          lifecycleStatus: toLifecycleStatus(item.status),
+        }));
+        setOrders(mapped);
+      } catch {
+        if (isMounted) setLoadError("Failed to load orders.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    void loadOrders();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const stats: StatCardItem[] = useMemo(() => {
+    const deliveredCount = orders.filter((item) => item.lifecycleStatus === "Delivered").length;
+    const cancelledCount = orders.filter((item) => item.lifecycleStatus === "Cancelled").length;
+    const activeCount = orders.filter((item) =>
+      ["Confirmed", "Packed", "Shipped", "Out for Delivery"].includes(item.lifecycleStatus)
+    ).length;
+
+    return [
+      {
+        label: "Total Orders",
+        value: String(orders.length),
+        tag: "All Time",
+        valueClass: "text-[#0A4833]",
+        Icon: ShoppingBag,
+      },
+      {
+        label: "Active Orders",
+        value: String(activeCount),
+        tag: "In Progress",
+        valueClass: "text-[#9F8151]",
+        Icon: Clock3,
+      },
+      {
+        label: "Delivered Orders",
+        value: String(deliveredCount),
+        tag: "Completed",
+        valueClass: "text-[#0A4833]",
+        Icon: CheckCircle2,
+      },
+      {
+        label: "Cancelled Orders",
+        value: String(cancelledCount),
+        tag: "Cancelled",
+        valueClass: "text-[#9CA3AF]",
+        Icon: CircleX,
+      },
+    ];
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
-    return normalizedOrders.filter((order) => {
+    return orders.filter((order) => {
       const tabMatch = matchesTab(order, activeTab);
       const searchMatch =
         searchTerm.trim().length === 0 ||
@@ -226,7 +308,7 @@ export default function MyOrder() {
 
       return tabMatch && searchMatch;
     });
-  }, [activeTab, searchTerm]);
+  }, [orders, activeTab, searchTerm]);
 
   const totalPages = Math.max(1, Math.ceil(filteredOrders.length / ITEMS_PER_PAGE));
 
@@ -257,8 +339,12 @@ export default function MyOrder() {
       router.push("/communityDashBorde/myorders/order-placed");
       return;
     }
+    if (actionLabel === "Reorder") {
+      router.push("/communityDashBorde/myorders/order");
+      return;
+    }
     if (actionLabel === "View Details") {
-      router.push("/communityDashBorde/myorders/order-buckwheat");
+      router.push("/communityDashBorde/myorders/order");
       return;
     }
     setActiveActionByOrder((prev) => ({ ...prev, [orderDataId]: actionLabel }));
@@ -279,15 +365,15 @@ export default function MyOrder() {
           <div>
             <h1 className="text-4xl font-bold tracking-tight text-[#0A4833]">My Orders</h1>
             <p className="mt-1 text-base text-[#9F8151]">
-              Track your buckwheat purchases, delivery updates, and order history.
+              Track your purchases, delivery updates, and order history.
             </p>
           </div>
           <button
-            onClick={() => router.push("/communityDashBorde/myorders/order-buckwheat")}
+            onClick={() => router.push("/communityDashBorde/myorders/order")}
             className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#0A4833] px-6 text-sm font-medium text-white shadow-[0px_2px_4px_rgba(0,0,0,0.1),0px_4px_6px_rgba(0,0,0,0.1)] hover:bg-[#083B2A]"
           >
             <ShoppingCart className="h-4 w-4" />
-            Order Buckwheat
+            Place Order
           </button>
         </header>
 
@@ -345,6 +431,18 @@ export default function MyOrder() {
             </div>
           </div>
         </div>
+
+        {isLoading && (
+          <div className="rounded-xl border border-[#DFDFDF] bg-white p-6 text-sm text-[#9F8151]">
+            Loading orders...
+          </div>
+        )}
+
+        {loadError && !isLoading && (
+          <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">
+            {loadError}
+          </div>
+        )}
 
         <div className="space-y-4">
           {paginatedOrders.map((order) => {

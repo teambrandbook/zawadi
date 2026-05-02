@@ -12,6 +12,7 @@ from .views import (
     SaveAvailabilityView,
     FindConsultantView,
     CreateConsultationBookingView,
+    CommunityBookingCancelView,
 )
 
 urlpatterns = [
@@ -26,5 +27,7 @@ urlpatterns = [
     path("admin/bookings/", AdminConsultationListView.as_view()), 
     path("admin/bookings/<int:pk>/status/", AdminConsultationStatusUpdateView.as_view()),
     path("find-consultant/", FindConsultantView.as_view()),
-    path("create-booking/", CreateConsultationBookingView.as_view()),
+    path("community/create-booking/", CreateConsultationBookingView.as_view()),
+    path("bookings/<int:pk>/cancel/", CommunityBookingCancelView.as_view()),
 ]
+ 

@@ -1,6 +1,58 @@
-import { summaryCards } from "../userManagementShared";
+"use client";
+
+import { useEffect, useState } from "react";
+import { Crown, ShieldAlert, UserCheck, UserMinus, UserPlus, Users } from "lucide-react";
+import api from "@/services/api";
+
+type StatsData = {
+  total: number;
+  active: number;
+  inactive: number;
+};
 
 export default function UserStatsGrid() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const res = await api.get("/supperadmin/users/");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw: Record<string, any>[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.results)
+          ? res.data.results
+          : Array.isArray(res.data?.users)
+          ? res.data.users
+          : [];
+
+        const total = raw.length;
+        const active = raw.filter((u) => Boolean(u.is_active)).length;
+        const inactive = total - active;
+
+        setStats({ total, active, inactive });
+      } catch {
+        // Silent fail
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  const fmt = (n: number) => n.toLocaleString();
+  const val = (n: number | undefined) => (stats != null && n != null ? fmt(n) : isLoading ? "…" : "—");
+
+  const summaryCards = [
+    { label: "Total Users", value: val(stats?.total), change: "", hint: "", Icon: Users, iconBg: "bg-[#E7EFEA]", iconColor: "text-[#0A4833]", changeColor: "text-[#16A34A]" },
+    { label: "Active Members", value: val(stats?.active), change: "", hint: "", Icon: UserCheck, iconBg: "bg-[#F2EEE7]", iconColor: "text-[#A88751]", changeColor: "text-[#16A34A]" },
+    { label: "New This Week", value: "—", change: "", hint: "", Icon: UserPlus, iconBg: "bg-[#EAF1FF]", iconColor: "text-[#3B82F6]", changeColor: "text-[#16A34A]" },
+    { label: "Inactive Users", value: val(stats?.inactive), change: "", hint: "", Icon: UserMinus, iconBg: "bg-[#FFF6D9]", iconColor: "text-[#D4A500]", changeColor: "text-[#DC2626]" },
+    { label: "Suspended", value: "—", change: "", hint: "", Icon: ShieldAlert, iconBg: "bg-[#FFEDEE]", iconColor: "text-[#EF4444]", changeColor: "text-[#EF4444]" },
+    { label: "Premium Members", value: "—", change: "", hint: "", Icon: Crown, iconBg: "bg-[#F2EAFE]", iconColor: "text-[#A855F7]", changeColor: "text-[#16A34A]" },
+  ];
+
   return (
     <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {summaryCards.map(({ label, value, change, hint, Icon, iconBg, iconColor, changeColor }) => (
@@ -10,13 +62,14 @@ export default function UserStatsGrid() {
           </div>
           <p className="text-[38px] font-semibold leading-none text-[#0A4833]">{value}</p>
           <p className="mt-1 text-base text-[#4B5563]">{label}</p>
-          <p className="mt-1 text-sm">
-            <span className={changeColor}>{change}</span>
-            <span className="text-[#6B7280]"> {hint}</span>
-          </p>
+          {(change || hint) && (
+            <p className="mt-1 text-sm">
+              {change && <span className={changeColor}>{change}</span>}
+              {hint && <span className="text-[#6B7280]"> {hint}</span>}
+            </p>
+          )}
         </article>
       ))}
     </section>
   );
 }
-

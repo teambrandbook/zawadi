@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useEffect, useState } from 'react';
 import { upcomingEventsData, recentOrdersData,myRecipesData } from '../../../../lib/datafile'
 import { 
   CalendarClock, 
@@ -18,11 +20,47 @@ import {
   User
 } from 'lucide-react';
 import StatCard from '../commen/StatCard';
+import api from "@/services/api";
 
 // Mock data for the Recipes section
 
+type DashboardSummaryResponse = {
+    user: {
+        full_name: string;
+    };
+    stats: {
+        total_orders: number;
+        upcoming_events: number;
+        consultations: number;
+        submitted_recipes: number;
+        published_blogs: number;
+    };
+};
 
 function Home() {
+    const [displayName, setDisplayName] = useState("there");
+    const [summaryStats, setSummaryStats] = useState<DashboardSummaryResponse["stats"] | null>(null);
+
+    useEffect(() => {
+        let isMounted = true;
+        async function loadSummary() {
+            try {
+                const { data } = await api.get<DashboardSummaryResponse>("/community/dashboard/summary/");
+                if (!isMounted) return;
+                const fullName = data.user?.full_name?.trim();
+                const firstName = fullName ? fullName.split(/\s+/)[0] : "";
+                setDisplayName(firstName || "there");
+                setSummaryStats(data.stats);
+            } catch {
+                // Keep fallback greeting.
+            }
+        }
+        void loadSummary();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
     return (
         <div className="w-full bg-white py-10 px-2">
 
@@ -30,7 +68,7 @@ function Home() {
             <div className="relative w-full h-[180px] md:h-[200px] bg-[#0A4834] rounded-3xl p-6 md:p-10 flex flex-col justify-center overflow-hidden">
                 <div className="absolute -top-16 -right-16 w-48 h-48 md:w-64 md:h-64 bg-[#115C43]/50 rounded-full blur-sm" />
                 <div className="relative z-10 space-y-3 max-w-xl md:max-w-2xl">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">Welcome back, Sarah!</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">Welcome back, {displayName}!</h1>
                     <p className="text-xs md:text-sm text-gray-100/90 leading-relaxed">
                         Your wellness journey continues. Explore new buckwheat recipes, join community events, and stay connected with your nutritionists.
                     </p>
@@ -45,11 +83,51 @@ function Home() {
 
             {/* StatCards Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-5">
-                <StatCard Icon={ShoppingBag} value="24" label="Total Orders" trend="+12%" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
-                <StatCard Icon={Calendar} value="5" label="Upcoming Events" trend="3 New" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
-                <StatCard Icon={UserRound} value="2" label="Consultations" trend="Active" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
-                <StatCard Icon={Utensils} value="12" label="Submitted Recipes" trend="8 Live" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
-                <StatCard Icon={PenTool} value="7" label="Published Blogs" trend="2 Draft" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
+                <StatCard
+                    Icon={ShoppingBag}
+                    value={String(summaryStats?.total_orders ?? 24)}
+                    label="Total Orders"
+                    trend="+12%"
+                    iconBgColor="bg-[#E8F0EE]"
+                    iconColor="text-[#0A4834]"
+                    trendColor="text-[#A68966]"
+                />
+                <StatCard
+                    Icon={Calendar}
+                    value={String(summaryStats?.upcoming_events ?? 5)}
+                    label="Upcoming Events"
+                    trend="3 New"
+                    iconBgColor="bg-[#F5F1E9]"
+                    iconColor="text-[#A68966]"
+                    trendColor="text-[#0A4834]"
+                />
+                <StatCard
+                    Icon={UserRound}
+                    value={String(summaryStats?.consultations ?? 2)}
+                    label="Consultations"
+                    trend="Active"
+                    iconBgColor="bg-[#E8F0EE]"
+                    iconColor="text-[#0A4834]"
+                    trendColor="text-[#A68966]"
+                />
+                <StatCard
+                    Icon={Utensils}
+                    value={String(summaryStats?.submitted_recipes ?? 12)}
+                    label="Submitted Recipes"
+                    trend="8 Live"
+                    iconBgColor="bg-[#F5F1E9]"
+                    iconColor="text-[#A68966]"
+                    trendColor="text-[#0A4834]"
+                />
+                <StatCard
+                    Icon={PenTool}
+                    value={String(summaryStats?.published_blogs ?? 7)}
+                    label="Published Blogs"
+                    trend="2 Draft"
+                    iconBgColor="bg-[#E8F0EE]"
+                    iconColor="text-[#0A4834]"
+                    trendColor="text-[#A68966]"
+                />
             </div>
 
             {/* Main Content Grid */}

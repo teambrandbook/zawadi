@@ -2,10 +2,31 @@ from rest_framework import serializers
 from .models import User, ROLE_CHOICES
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from communityuser.models import CommunityUser,CommunityUserAddress
+from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import Consultant
 from zewadi.validators import validate_image_upload
 
+
+class MeSerializer(serializers.ModelSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "user_id",
+            "email",
+            "role",
+            "full_name",
+            "user_name",
+            "phone",
+            "date_of_birth",
+            "gender",
+            "location",
+            "photo",
+        ]
+
+    def get_role(self, obj):
+        return str(obj.role).lower()
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -21,10 +42,14 @@ class RegisterSerializer(serializers.Serializer):
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
     photo = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
     # Keep serializer role options in sync with the User model choices.
-    role = serializers.ChoiceField(choices=[choice[0] for choice in ROLE_CHOICES])
+    role = serializers.ChoiceField(
+        choices=[choice[0] for choice in ROLE_CHOICES],
+        required=False,
+        default="COMMUNITY_USER",
+    )
 
     # 🔹 Community fields
-    user_type = serializers.ChoiceField(choices=["GUEST", "MEMBER"], required=False)
+    user_type = serializers.CharField(required=False, allow_blank=True)
     wellness_interests = serializers.CharField(required=False, allow_blank=True)
     diet_preference = serializers.CharField(required=False, allow_blank=True)
     preferred_communication = serializers.CharField(default="email", required=False)
@@ -53,6 +78,15 @@ class RegisterSerializer(serializers.Serializer):
     consultation_fee = serializers.IntegerField(required=False)
     session_duration = serializers.IntegerField(required=False)
 
+    def validate_user_type(self, value):
+        normalized = str(value).strip().lower()
+        valid_values = {choice[0] for choice in UserType.choices}
+        if normalized not in valid_values:
+            raise serializers.ValidationError(
+                f"Invalid user_type. Choose from: {sorted(valid_values)}."
+            )
+        return normalized
+
     def create(self, validated_data):
 
         # 🔹 Extract password
@@ -76,7 +110,7 @@ class RegisterSerializer(serializers.Serializer):
         if user.role == "COMMUNITY_USER":
             c_user = CommunityUser.objects.create(
                 user=user,
-                user_type=validated_data.get("user_type"),
+                user_type=validated_data.get("user_type", UserType.GUEST),
                 wellness_interests=validated_data.get("wellness_interests", ""),
                 diet_preference=validated_data.get("diet_preference", ""),
                 preferred_communication=validated_data.get("preferred_communication", "email"),
@@ -109,7 +143,7 @@ class RegisterSerializer(serializers.Serializer):
                 languages_spoken=validated_data.get("languages_spoken"),
                 experience_areas=validated_data.get("experience_areas"),
                 session_type=validated_data.get("session_type"),
-                consiltation_fee=validated_data.get("consultation_fee"),
+                consultation_fee=validated_data.get("consultation_fee"),
                 session_duration=validated_data.get("session_duration"),
             )
 

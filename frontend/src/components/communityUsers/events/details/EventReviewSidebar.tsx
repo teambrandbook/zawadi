@@ -1,6 +1,10 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { CalendarPlus2, CheckCircle2, Share2, Users } from "lucide-react";
 import { EventReviewData } from "./types";
+import api from "@/services/api";
 
 type Props = {
   event: EventReviewData;
@@ -10,6 +14,48 @@ const cardClass =
   "rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]";
 
 export default function EventReviewSidebar({ event }: Props) {
+  const [pendingAction, setPendingAction] = useState<"join" | "cancel" | null>(null);
+  const [actionError, setActionError] = useState("");
+
+  function getErrorDetail(error: unknown, fallback: string): string {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "response" in error &&
+      typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+        "string"
+    ) {
+      return (error as { response?: { data?: { detail?: string } } }).response?.data?.detail || fallback;
+    }
+    return fallback;
+  }
+
+  async function handleAction(label: string) {
+    setActionError("");
+    if (label === "Join Event") {
+      setPendingAction("join");
+      try {
+        await api.post(`/events/${event.eventId}/register/`);
+        window.location.reload();
+      } catch (error: unknown) {
+        setActionError(getErrorDetail(error, "Could not join this event."));
+      } finally {
+        setPendingAction(null);
+      }
+    }
+    if (label === "Cancel Registration") {
+      setPendingAction("cancel");
+      try {
+        await api.delete(`/events/${event.eventId}/register/`);
+        window.location.reload();
+      } catch (error: unknown) {
+        setActionError(getErrorDetail(error, "Could not cancel registration."));
+      } finally {
+        setPendingAction(null);
+      }
+    }
+  }
+
   return (
     <aside className="space-y-6">
       <section className={cardClass}>
@@ -22,26 +68,46 @@ export default function EventReviewSidebar({ event }: Props) {
         <p className="mt-4 text-center text-sm text-[#4B5563]">{event.countdown}</p>
 
         <div className="mt-6 space-y-3">
-          {event.sidebarActions.map((action) => (
-            <Link
-              key={action.label}
-              href={action.href ?? "#"}
-              className={`flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors ${
-                action.variant === "gold"
-                  ? "bg-[#9F8151] text-white hover:bg-[#8D7245]"
-                  : action.variant === "outline"
-                    ? "border border-[#DFDFDF] text-[#374151] hover:bg-[#F9FAFB]"
-                    : action.variant === "danger"
-                      ? "text-[#DC2626] hover:bg-[#FEF2F2]"
-                      : "bg-[#0A4833] text-white hover:bg-[#083B2A]"
-              }`}
-            >
-              {action.label === "Add to Calendar" && <CalendarPlus2 className="h-4 w-4" />}
-              {action.label === "Share Event" && <Share2 className="h-4 w-4" />}
-              {action.label}
-            </Link>
-          ))}
+          {event.sidebarActions.map((action) => {
+            const className = `flex h-12 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium transition-colors ${
+              action.variant === "gold"
+                ? "bg-[#9F8151] text-white hover:bg-[#8D7245]"
+                : action.variant === "outline"
+                  ? "border border-[#DFDFDF] text-[#374151] hover:bg-[#F9FAFB]"
+                  : action.variant === "danger"
+                    ? "text-[#DC2626] hover:bg-[#FEF2F2]"
+                    : "bg-[#0A4833] text-white hover:bg-[#083B2A]"
+            }`;
+            if (action.label === "Join Event" || action.label === "Cancel Registration") {
+              const loadingLabel = action.label === "Join Event" ? "Joining..." : "Cancelling...";
+              const isPending =
+                pendingAction === (action.label === "Join Event" ? "join" : "cancel");
+              return (
+                <button
+                  key={action.label}
+                  onClick={() => handleAction(action.label)}
+                  disabled={isPending}
+                  className={`${className} disabled:opacity-60`}
+                >
+                  {isPending ? loadingLabel : action.label}
+                </button>
+              );
+            }
+            return (
+              <Link
+                key={action.label}
+                href={action.href ?? "#"}
+                download={action.label === "Add to Calendar" ? `${event.slug || "event"}.ics` : undefined}
+                className={className}
+              >
+                {action.label === "Add to Calendar" && <CalendarPlus2 className="h-4 w-4" />}
+                {action.label === "Share Event" && <Share2 className="h-4 w-4" />}
+                {action.label}
+              </Link>
+            );
+          })}
         </div>
+        {actionError ? <p className="mt-3 text-center text-xs text-[#B91C1C]">{actionError}</p> : null}
       </section>
 
       <section className={cardClass}>

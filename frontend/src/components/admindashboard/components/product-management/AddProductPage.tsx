@@ -13,36 +13,61 @@ export default function AddProductPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
-    subtitle: "",
-    sku: "",
+    product_name: "",
+    product_subtitle: "",
+    product_code: "",
     category: "",
-    status: "Draft",
-    description: "",
+    product_status: "draft",
+    short_description: "",
     full_description: "",
-    price: "",
+    key_ingredients: "",
+    health_benefits: "",
+    base_price: "",
+    sale_price: "",
+    currency: "USD",
     stock_quantity: "",
+    low_stock_alert: "5",
+    stock_status: "in_stock",
   });
 
   async function handleSubmit() {
-    if (!formData.name || !formData.price) {
-      toast.error("Product name and price are required.");
-      return;
-    }
+    if (!formData.product_name.trim()) { toast.error("Product name is required."); return; }
+    if (!formData.product_code.trim()) { toast.error("SKU / Product Code is required."); return; }
+    if (!formData.base_price) { toast.error("Base price is required."); return; }
+    if (!formData.short_description.trim()) { toast.error("Short description is required."); return; }
+    if (!formData.category) { toast.error("Category is required."); return; }
+
+    const fd = new FormData();
+    fd.append("product_name", formData.product_name.trim());
+    fd.append("product_code", formData.product_code.trim());
+    fd.append("category", formData.category);
+    fd.append("product_status", formData.product_status);
+    fd.append("short_description", formData.short_description.trim());
+    fd.append("base_price", formData.base_price);
+    fd.append("stock_quantity", formData.stock_quantity || "0");
+    fd.append("stock_status", formData.stock_status);
+    fd.append("currency", formData.currency);
+    if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
+    if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
+    if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
+    if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
+    if (formData.sale_price) fd.append("sale_price", formData.sale_price);
+    if (formData.low_stock_alert) fd.append("low_stock_alert", formData.low_stock_alert);
+
     setIsSubmitting(true);
     try {
-      await api.post("/products/", {
-        name: formData.name,
-        description: formData.subtitle || formData.description,
-        sku: formData.sku,
-        category: formData.category,
-        status: formData.status.toLowerCase(),
-        price: parseFloat(formData.price) || 0,
-        stock_quantity: parseInt(formData.stock_quantity, 10) || 0,
-      });
+      await api.post("/products/", fd, { headers: { "Content-Type": "multipart/form-data" } });
+      toast.success("Product created successfully.");
       router.push("/admindashboard/products");
-    } catch {
-      toast.error("Failed to create product. Please check your inputs and try again.");
+    } catch (err: unknown) {
+      const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail =
+        typeof data?.detail === "string"
+          ? data.detail
+          : Object.entries(data ?? {})
+              .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : String(v)}`)
+              .join(" | ");
+      toast.error(detail || "Failed to create product. Please check your inputs.");
     } finally {
       setIsSubmitting(false);
     }

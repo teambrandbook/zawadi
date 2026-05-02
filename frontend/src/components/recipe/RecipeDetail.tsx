@@ -2,17 +2,33 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
-import { borderDraw, dashBorderAnimation, imageAnimation, leftReveal } from "../../../lib/animations";
+import { dashBorderAnimation, imageAnimation, leftReveal } from "../../../lib/animations";
 import IncreditionsTable from "./IncreditionsTable";
+
+interface Ingredient {
+    id: number;
+    ingredient_name: string;
+    quantity: string;
+    unit: string;
+    note: string;
+}
+
+interface Step {
+    id: number;
+    step_no: number;
+    description: string;
+}
 
 interface RecipeData {
     title: string;
-    description: string;
-    image: string;
-    nutrition: { label: string; value: string }[];
-    ingredientsCount: number;
-    ingredientsText: string;
-    steps: string[];
+    short_description: string;
+    cover_image: string;
+    prep_time_minutes: number;
+    cooking_time_minutes: number;
+    servings: number;
+    difficulty_level: string;
+    ingredients: Ingredient[];
+    steps: Step[];
 }
 
 interface RecipeDetailProps {
@@ -23,17 +39,26 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
     useEffect(() => {
         imageAnimation(".img")
         leftReveal(".lectRevelComponent")
-        // borderDraw(".border-box")
-
-        // ------------------------------
 
         const el = document.querySelector(".border-box") as HTMLElement;
-
         if (el) {
             dashBorderAnimation(el);
         }
-
     }, [])
+
+    const nutrition = [
+        { label: "Prep Time", value: `${recipe.prep_time_minutes ?? 0} min` },
+        { label: "Cook Time", value: `${recipe.cooking_time_minutes ?? 0} min` },
+        { label: "Servings", value: String(recipe.servings ?? "-") },
+        { label: "Difficulty", value: recipe.difficulty_level ?? "-" },
+    ];
+
+    const ingredients = recipe.ingredients ?? [];
+    const ingredientsText = ingredients
+        .map((i) => [i.quantity, i.unit, i.ingredient_name].filter(Boolean).join(" "))
+        .join(", ");
+
+    const steps = recipe.steps ?? [];
 
     return (
         <div className="sm:pt-10 w-full bg-white">
@@ -41,14 +66,16 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             <section className="pt-32 pb-16 px-6 md:px-12 lg:px-24">
                 <div className="max-w-[85rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
 
-                    {/* Left: Image with Play Button */}
+                    {/* Left: Image */}
                     <div className="img relative aspect-square rounded-none overflow-hidden group shadow-2xl ">
-                        <Image
-                            src={recipe.image}
-                            alt={recipe.title}
-                            fill
-                            className="object-cover rounded-[10px]"
-                        />
+                        {recipe.cover_image && (
+                            <Image
+                                src={recipe.cover_image}
+                                alt={recipe.title}
+                                fill
+                                className="object-cover rounded-[10px]"
+                            />
+                        )}
                         {/* Play Button Overlay */}
                         <div className="absolute bottom-6 right-6 w-14 h-14 bg-[#0A4834] rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
@@ -57,21 +84,21 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                         </div>
                     </div>
 
-                    {/* Right: Content & Nutrition */}
+                    {/* Right: Content & Recipe Info */}
                     <div className="lectRevelComponent flex flex-col gap-8">
                         <div>
                             <h1 className="font-boldonse text-xl md:text-[2rem] font-light text-black leading-[1.3] mb-8" dangerouslySetInnerHTML={{ __html: recipe.title }}>
                             </h1>
                             <p className="font-mulish text-gray-600 text-lg leading-relaxed">
-                                {recipe.description}
+                                {recipe.short_description}
                             </p>
                         </div>
 
-                        {/* Nutrition Facts Box */}
+                        {/* Recipe Info Box */}
                         <div className="bg-[#0A4834] sm:w-100 rounded-2xl p-8 flex flex-col gap-6 shadow-xl">
-                            <h3 className="font-display text-xl font-light text-white tracking-wider">Nutrition Facts</h3>
+                            <h3 className="font-display text-xl font-light text-white tracking-wider">Recipe Info</h3>
                             <div className="grid grid-cols-2 gap-4">
-                                {recipe.nutrition.map((fact) => (
+                                {nutrition.map((fact) => (
                                     <div key={fact.label} className="bg-[#D9D9D9] p-4 flex flex-col items-center justify-center rounded-sm">
                                         <span className="text-[#0A4834] font-black text-xl">{fact.value}</span>
                                         <span className="text-[#0A4834] font-medium text-xs uppercase tracking-widest">{fact.label}</span>
@@ -84,7 +111,7 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
             </section>
 
             {/* 2. Ingredient Section */}
-            <IncreditionsTable count={recipe.ingredientsCount} text={recipe.ingredientsText} />;
+            <IncreditionsTable count={ingredients.length} text={ingredientsText} />
 
             {/* 3. How to Cook Section */}
             <div className="lectRevelComponent py-20 px-6 md:px-12 lg:px-24">
@@ -96,17 +123,14 @@ export default function RecipeDetail({ recipe }: RecipeDetailProps) {
                         </h2>
 
                         <div className="flex flex-col gap-3">
-                            {recipe.steps.map((step, idx) => (
-                                <div key={idx}>
-
+                            {steps.map((step, idx) => (
+                                <div key={step.id ?? idx}>
                                     <span className="font-mulish font-black text-[#0A4834]">
-                                        Step {idx + 1} :
+                                        Step {step.step_no} :
                                     </span>{" "}
-
                                     <span className="font-mulish text-gray-700 leading-snug">
-                                        {step}
+                                        {step.description}
                                     </span>
-
                                 </div>
                             ))}
                         </div>

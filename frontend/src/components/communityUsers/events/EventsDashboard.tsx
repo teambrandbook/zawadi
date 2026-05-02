@@ -1,388 +1,585 @@
-import React from 'react';
-import Link from 'next/link';
-import { 
-  Calendar, 
-  Users, 
-  CheckCircle2, 
-  Mail, 
-  Apple, 
-  Heart, 
-  Video, 
-  MapPin, 
-  Search, 
-  ChevronDown, 
-  Bell, 
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import {
+  Calendar,
+  Users,
+  CheckCircle2,
+  Mail,
+  Apple,
+  Heart,
+  Video,
+  MapPin,
+  Search,
+  ChevronDown,
+  Bell,
   ExternalLink,
   HelpCircle,
   RefreshCw,
-  Share2
-} from 'lucide-react';
+  Share2,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import api from "@/services/api";
 
-const mockUpcomingEvents = [
-  {
-    id: 'buckwheat-nutrition-masterclass',
-    title: 'Buckwheat Nutrition Masterclass',
-    type: 'Nutrition Session',
-    typeColor: 'bg-orange-100 text-orange-800',
-    description: 'Learn about the incredible health benefits of buckwheat and how to incorporate it into your daily diet.',
-    locationType: 'Online',
-    joined: 24,
-    date: 'Tomorrow, 2:00 PM',
-    icon: Apple,
-    detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass',
-    actions: ['View Details', 'Add Reminder']
-  },
-  {
-    id: 'wellness-workshop-mindful-eating',
-    title: 'Wellness Workshop: Mindful Eating',
-    type: 'Wellness Workshop',
-    typeColor: 'bg-purple-100 text-purple-800',
-    description: 'Discover the art of mindful eating and how it can transform your relationship with food.',
-    locationType: 'Community Center',
-    joined: 18,
-    date: 'March 15, 10:00 AM',
-    icon: Heart,
-    detailsHref: '/communityDashBorde/events/wellness-workshop-mindful-eating',
-    actions: ['Join Event']
-  },
-  {
-    id: 'community-recipe-sharing',
-    title: 'Community Recipe Sharing',
-    type: 'Community Meetup',
-    typeColor: 'bg-blue-100 text-blue-800',
-    description: 'Share your favorite buckwheat recipes and learn new cooking techniques from fellow community members.',
-    locationType: 'Online',
-    joined: 32,
-    date: 'March 20, 6:00 PM',
-    icon: Users,
-    detailsHref: '/communityDashBorde/events/community-recipe-sharing',
-    actions: ['Join Event']
-  }
-];
+type EventListItem = {
+  id: number;
+  title: string;
+  slug: string;
+  short_description: string;
+  event_type: string;
+  start_datetime: string;
+  end_datetime: string;
+  is_online: boolean;
+  location: string;
+  registration_count: number;
+  status: string;
+};
 
-const mockJoinedEvents = [
-  {
-    id: 'buckwheat-nutrition-masterclass',
-    title: 'Buckwheat Nutrition Masterclass',
-    status: 'Confirmed',
-    statusBg: 'bg-green-100 text-green-800',
-    type: 'Online Event',
-    extraInfo: 'Reminder Set',
-    extraIcon: Bell,
-    dateDay: 'Tomorrow',
-    time: '2:00 PM',
-    primaryAction: 'Join Now',
-    iconAction: ExternalLink,
-    detailsHref: '/communityDashBorde/events/buckwheat-nutrition-masterclass'
-  },
-  {
-    id: 'weekly-nutrition-q-and-a',
-    title: 'Weekly Nutrition Q&A',
-    status: 'Registered',
-    statusBg: 'bg-orange-100 text-orange-800',
-    type: 'Online Event',
-    extraInfo: 'Live Q&A',
-    extraIcon: HelpCircle,
-    dateDay: 'March 18',
-    time: '7:00 PM',
-    primaryAction: 'View Details',
-    detailsHref: '/communityDashBorde/events/weekly-nutrition-q-and-a'
-  }
-];
+type RegistrationItem = {
+  id: number;
+  event: number;
+  status: string;
+  event_detail?: {
+    id: number;
+    title: string;
+    start_datetime: string;
+    end_datetime: string;
+    is_online: boolean;
+    location: string;
+    status: string;
+  };
+};
+
+type TabKey = "All Events" | "Upcoming" | "Joined" | "Completed" | "Invitations";
+
+const tabs: TabKey[] = ["All Events", "Upcoming", "Joined", "Completed", "Invitations"];
+
+function eventTypeLabel(type: string): string {
+  const map: Record<string, string> = {
+    webinar: "Webinar",
+    workshop: "Workshop",
+    seminar: "Seminar",
+    community: "Community Meetup",
+    other: "Wellness Session",
+  };
+  return map[type] || "Wellness Session";
+}
+
+function eventTypeColor(type: string): string {
+  const map: Record<string, string> = {
+    webinar: "bg-blue-100 text-blue-800",
+    workshop: "bg-orange-100 text-orange-800",
+    seminar: "bg-purple-100 text-purple-800",
+    community: "bg-green-100 text-green-800",
+    other: "bg-gray-100 text-gray-800",
+  };
+  return map[type] || "bg-gray-100 text-gray-800";
+}
+
+function eventTypeIcon(type: string): LucideIcon {
+  const map: Record<string, LucideIcon> = {
+    workshop: Apple,
+    webinar: Video,
+    seminar: Heart,
+    community: Users,
+    other: Calendar,
+  };
+  return map[type] || Calendar;
+}
+
+function formatDayAndTime(value: string): { day: string; time: string; full: string } {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return { day: "-", time: "-", full: "-" };
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(now.getDate() + 1);
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+  const day = isTomorrow
+    ? "Tomorrow"
+    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const full = date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return { day, time, full };
+}
 
 export default function EventsDashboard() {
+  const [events, setEvents] = useState<EventListItem[]>([]);
+  const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
+  const [activeTab, setActiveTab] = useState<TabKey>("All Events");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeType, setActiveType] = useState("all");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [pendingEventId, setPendingEventId] = useState<number | null>(null);
+
+  function getErrorDetail(errorValue: unknown, fallback: string): string {
+    if (
+      typeof errorValue === "object" &&
+      errorValue !== null &&
+      "response" in errorValue &&
+      typeof (errorValue as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ===
+        "string"
+    ) {
+      return (errorValue as { response?: { data?: { detail?: string } } }).response?.data?.detail || fallback;
+    }
+    return fallback;
+  }
+
+  async function loadData() {
+    setIsLoading(true);
+    setError("");
+    try {
+      const [eventsResponse, registrationsResponse] = await Promise.allSettled([
+        api.get<EventListItem[]>("/events/"),
+        api.get<RegistrationItem[]>("/events/my-registrations/"),
+      ]);
+
+      if (eventsResponse.status === "fulfilled") {
+        setEvents(eventsResponse.value.data);
+      } else {
+        setEvents([]);
+      }
+
+      if (registrationsResponse.status === "fulfilled") {
+        setRegistrations(registrationsResponse.value.data);
+      } else {
+        setRegistrations([]);
+      }
+
+      if (eventsResponse.status === "rejected") {
+        setError("Unable to load events right now.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadData();
+  }, []);
+
+  const activeRegistrations = useMemo(
+    () => registrations.filter((item) => item.status !== "cancelled"),
+    [registrations]
+  );
+
+  const registeredEventIds = useMemo(() => {
+    return new Set(activeRegistrations.map((item) => item.event));
+  }, [activeRegistrations]);
+
+  const completedRegistrationsCount = useMemo(
+    () => registrations.filter((item) => item.status === "attended").length,
+    [registrations]
+  );
+
+  const upcomingEvents = useMemo(() => {
+    const now = Date.now();
+    return events.filter((event) => {
+      const startsAt = new Date(event.start_datetime).getTime();
+      return !Number.isNaN(startsAt) && startsAt >= now;
+    });
+  }, [events]);
+
+  const filteredUpcomingEvents = useMemo(() => {
+    return upcomingEvents.filter((event) => {
+      const searchMatch =
+        searchTerm.trim().length === 0 ||
+        event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        event.short_description.toLowerCase().includes(searchTerm.toLowerCase());
+      const typeMatch = activeType === "all" || event.event_type === activeType;
+      const joined = registeredEventIds.has(event.id);
+
+      if (activeTab === "Joined") return joined && searchMatch && typeMatch;
+      if (activeTab === "Upcoming") return !joined && searchMatch && typeMatch;
+      if (activeTab === "Completed") return false;
+      if (activeTab === "Invitations") return false;
+      return searchMatch && typeMatch;
+    });
+  }, [activeTab, activeType, registeredEventIds, searchTerm, upcomingEvents]);
+
+  const joinedEvents = useMemo(() => {
+    return activeRegistrations
+      .filter((item) => item.event_detail)
+      .map((item) => ({
+        registrationId: item.id,
+        eventId: item.event,
+        status: item.status,
+        event: item.event_detail!,
+      }))
+      .sort(
+        (a, b) =>
+          new Date(a.event.start_datetime).getTime() - new Date(b.event.start_datetime).getTime()
+      );
+  }, [activeRegistrations]);
+
+  const eventTypeOptions = useMemo(() => {
+    const types = Array.from(new Set(events.map((item) => item.event_type)));
+    return ["all", ...types];
+  }, [events]);
+
+  async function handleJoin(eventId: number) {
+    setPendingEventId(eventId);
+    setError("");
+    try {
+      await api.post(`/events/${eventId}/register/`);
+      await loadData();
+    } catch (errorValue: unknown) {
+      setError(getErrorDetail(errorValue, "Could not join the event. Please try again."));
+    } finally {
+      setPendingEventId(null);
+    }
+  }
+
+  async function handleCancel(eventId: number) {
+    setPendingEventId(eventId);
+    setError("");
+    try {
+      await api.delete(`/events/${eventId}/register/`);
+      await loadData();
+    } catch (errorValue: unknown) {
+      setError(getErrorDetail(errorValue, "Could not cancel registration. Please try again."));
+    } finally {
+      setPendingEventId(null);
+    }
+  }
+
   return (
-    <div className="flex-1 p-8 bg-white min-h-screen">
-      {/* Header */}
-      <div className="flex justify-between items-end mb-8">
+    <div className="flex-1 min-h-screen bg-white p-8">
+      <div className="mb-8 flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[#06402B] mb-1">My Events</h1>
-          <p className="text-gray-500 text-sm">Stay connected with wellness sessions, community meetups, and expert-led events.</p>
+          <h1 className="mb-1 text-2xl font-bold text-[#06402B]">My Events</h1>
+          <p className="text-sm text-gray-500">
+            Stay connected with wellness sessions, community meetups, and expert-led events.
+          </p>
         </div>
-        <button className="flex items-center space-x-2 bg-[#06402B] text-white px-4 py-2 rounded-md hover:bg-[#053020] transition">
+        <button className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020]">
           <Search size={16} />
           <span>Explore Events</span>
         </button>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4 mb-8">
-        {/* Card 1 */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-between h-28">
-          <div className="flex justify-between items-start">
-            <div className="bg-green-100 p-2 rounded-md">
+      <div className="mb-8 grid grid-cols-4 gap-4">
+        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="rounded-md bg-green-100 p-2">
               <Calendar size={20} className="text-[#06402B]" />
             </div>
-            <span className="text-2xl font-bold text-[#06402B]">3</span>
+            <span className="text-2xl font-bold text-[#06402B]">{upcomingEvents.length}</span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 text-sm">Upcoming Events</h3>
-            <p className="text-xs text-gray-500 mt-1">Next: Tomorrow 2:00 PM</p>
+            <h3 className="text-sm font-semibold text-gray-800">Upcoming Events</h3>
+            <p className="mt-1 text-xs text-gray-500">Next wellness sessions</p>
           </div>
         </div>
-        {/* Card 2 */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-between h-28">
-           <div className="flex justify-between items-start">
-            <div className="bg-orange-100 p-2 rounded-md">
+
+        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="rounded-md bg-orange-100 p-2">
               <Users size={20} className="text-orange-700" />
             </div>
-            <span className="text-2xl font-bold text-orange-700">7</span>
+            <span className="text-2xl font-bold text-orange-700">{activeRegistrations.length}</span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 text-sm">Joined Events</h3>
-            <p className="text-xs text-gray-500 mt-1">Active registrations</p>
+            <h3 className="text-sm font-semibold text-gray-800">Joined Events</h3>
+            <p className="mt-1 text-xs text-gray-500">Active registrations</p>
           </div>
         </div>
-        {/* Card 3 */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-between h-28">
-           <div className="flex justify-between items-start">
-            <div className="bg-green-100 p-2 rounded-md">
+
+        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="rounded-md bg-green-100 p-2">
               <CheckCircle2 size={20} className="text-green-600" />
             </div>
-            <span className="text-2xl font-bold text-green-600">12</span>
+            <span className="text-2xl font-bold text-green-600">{completedRegistrationsCount}</span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 text-sm">Completed</h3>
-            <p className="text-xs text-gray-500 mt-1">Events attended</p>
+            <h3 className="text-sm font-semibold text-gray-800">Completed</h3>
+            <p className="mt-1 text-xs text-gray-500">Events attended</p>
           </div>
         </div>
-        {/* Card 4 */}
-        <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm flex flex-col justify-between h-28">
-           <div className="flex justify-between items-start">
-            <div className="bg-orange-100 p-2 rounded-md">
+
+        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+          <div className="flex items-start justify-between">
+            <div className="rounded-md bg-orange-100 p-2">
               <Mail size={20} className="text-orange-600" />
             </div>
-            <span className="text-2xl font-bold text-orange-600">2</span>
+            <span className="text-2xl font-bold text-orange-600">0</span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-800 text-sm">Invitations</h3>
-            <p className="text-xs text-gray-500 mt-1">Pending responses</p>
+            <h3 className="text-sm font-semibold text-gray-800">Invitations</h3>
+            <p className="mt-1 text-xs text-gray-500">Pending responses</p>
           </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+      <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
         <div className="flex space-x-2">
-          {['All Events', 'Upcoming', 'Joined', 'Completed', 'Invitations'].map((tab, idx) => (
-            <button 
-              key={tab} 
-              className={`px-4 py-1.5 rounded-md text-sm font-medium ${idx === 0 ? 'bg-[#06402B] text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          {tabs.map((tab, idx) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-md px-4 py-1.5 text-sm font-medium ${
+                activeTab === tab
+                  ? "bg-[#06402B] text-white"
+                  : idx === 0
+                    ? "bg-[#06402B] text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
             >
               {tab}
             </button>
           ))}
         </div>
+
         <div className="flex space-x-4">
           <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search events..." 
-              className="pl-9 pr-4 py-1.5 border border-gray-200 rounded-md text-sm outline-none focus:border-[#06402B]"
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
+            />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
+              placeholder="Search events..."
+              className="rounded-md border border-gray-200 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-[#06402B]"
             />
           </div>
           <div className="relative">
-            <button className="flex items-center justify-between space-x-4 border border-gray-200 rounded-md px-4 py-1.5 text-sm text-gray-700 bg-white">
+            <button className="flex items-center justify-between space-x-4 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-700">
               <span>All Types</span>
               <ChevronDown size={14} className="text-gray-500" />
             </button>
+            <select
+              value={activeType}
+              onChange={(event) => setActiveType(event.target.value)}
+              className="absolute inset-0 cursor-pointer opacity-0"
+            >
+              {eventTypeOptions.map((type) => (
+                <option key={type} value={type}>
+                  {type === "all" ? "All Types" : eventTypeLabel(type)}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-8">
-        {/* Left Column */}
-        <div className="flex-1 space-y-8">
-          {/* Upcoming Events Section */}
-          <section>
-            <h2 className="text-[#06402B] font-bold text-lg mb-4">Upcoming Events</h2>
-            <div className="space-y-4">
-              {mockUpcomingEvents.map((ev) => (
-                <div key={ev.id} className="bg-white border text-left border-gray-200 rounded-lg p-0 flex shadow-sm overflow-hidden">
-                  {/* Left Icon Block */}
-                  <div className="bg-[#06402B] w-24 flex items-center justify-center flex-shrink-0">
-                    <ev.icon size={28} className="text-white" />
-                  </div>
-                  {/* Content */}
-                  <div className="p-4 flex-1 flex justify-between items-start">
-                    <div className="pr-4 max-w-[70%]">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="font-bold text-gray-800 text-[15px]">{ev.title}</h3>
+      {error ? (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>
+      ) : null}
+
+      {isLoading ? (
+        <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">Loading events...</div>
+      ) : (
+        <div className="flex gap-8">
+          <div className="flex-1 space-y-8">
+            <section>
+              <h2 className="mb-4 text-lg font-bold text-[#06402B]">Upcoming Events</h2>
+              <div className="space-y-4">
+                {filteredUpcomingEvents.map((event) => {
+                  const Icon = eventTypeIcon(event.event_type);
+                  const joined = registeredEventIds.has(event.id);
+                  const formatted = formatDayAndTime(event.start_datetime);
+                  return (
+                    <div
+                      key={event.id}
+                      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white p-0 text-left shadow-sm"
+                    >
+                      <div className="flex w-24 flex-shrink-0 items-center justify-center bg-[#06402B]">
+                        <Icon size={28} className="text-white" />
                       </div>
-                      <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium mb-3 ${ev.typeColor}`}>
-                        {ev.type}
-                      </span>
-                      <p className="text-sm text-gray-600 mb-4">{ev.description}</p>
-                      
-                      <div className="flex items-center space-x-6 text-xs text-gray-500 font-medium">
-                        <div className="flex items-center space-x-1.5">
-                          {ev.locationType === 'Online' ? <Video size={14} /> : <MapPin size={14} />}
-                          <span>{ev.locationType}</span>
+                      <div className="flex flex-1 items-start justify-between p-4">
+                        <div className="max-w-[70%] pr-4">
+                          <div className="mb-2 flex items-center space-x-3">
+                            <h3 className="text-[15px] font-bold text-gray-800">{event.title}</h3>
+                          </div>
+                          <span
+                            className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${eventTypeColor(event.event_type)}`}
+                          >
+                            {eventTypeLabel(event.event_type)}
+                          </span>
+                          <p className="mb-4 text-sm text-gray-600">{event.short_description}</p>
+
+                          <div className="flex items-center space-x-6 text-xs font-medium text-gray-500">
+                            <div className="flex items-center space-x-1.5">
+                              {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
+                              <span>{event.is_online ? "Online" : event.location || "Onsite"}</span>
+                            </div>
+                            <div className="flex items-center space-x-1.5">
+                              <Users size={14} />
+                              <span>{event.registration_count} joined</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-1.5">
-                          <Users size={14} />
-                          <span>{ev.joined} joined</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col items-end justify-between h-full space-y-8 min-w-[140px]">
-                      <span className="text-xs text-gray-500 whitespace-nowrap">{ev.date}</span>
-                      <div className="flex space-x-2">
-                        {ev.actions.map(action => (
-                          action === 'View Details' ? (
+
+                        <div className="min-w-[160px] space-y-6 text-right">
+                          <span className="whitespace-nowrap text-xs text-gray-500">{formatted.full}</span>
+                          <div className="flex justify-end space-x-2">
                             <Link
-                              key={action}
-                              href={ev.detailsHref}
-                              className="bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]"
+                              href={`/communityDashBorde/events/${event.id}`}
+                              className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
                             >
-                              {action}
+                              View Details
                             </Link>
-                          ) : action === 'Join Event' ? (
-                            <button key={action} className="bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]">
-                              {action}
-                            </button>
-                          ) : (
-                            <button key={action} className="border border-gray-300 text-gray-600 text-xs font-semibold px-4 py-2 rounded-md hover:bg-gray-50">
-                              {action}
-                            </button>
-                          )
-                        ))}
+                            {joined ? (
+                              <button
+                                onClick={() => handleCancel(event.id)}
+                                disabled={pendingEventId === event.id}
+                                className="rounded-md border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+                              >
+                                {pendingEventId === event.id ? "Cancelling..." : "Cancel"}
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleJoin(event.id)}
+                                disabled={pendingEventId === event.id}
+                                className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020] disabled:opacity-60"
+                              >
+                                {pendingEventId === event.id ? "Joining..." : "Join Event"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                  );
+                })}
 
-          {/* My Joined Events Section */}
-          <section>
-            <h2 className="text-[#06402B] font-bold text-lg mb-4">My Joined Events</h2>
-            <div className="space-y-4">
-               {mockJoinedEvents.map((ev) => (
-                <div key={ev.id} className="bg-white border text-left border-gray-200 rounded-lg p-5 flex justify-between items-center shadow-sm">
-                  <div>
-                    <h3 className="font-bold text-gray-800 text-[15px] mb-2">{ev.title}</h3>
-                    <span className={`inline-block px-2.5 py-0.5 rounded-xl text-[11px] font-medium mb-4 ${ev.statusBg}`}>
-                      {ev.status}
-                    </span>
-                    <div className="flex items-center space-x-6 text-xs text-gray-500">
-                      <div className="flex items-center space-x-1.5">
-                        <Video size={14} />
-                        <span>{ev.type}</span>
+                {filteredUpcomingEvents.length === 0 ? (
+                  <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-600">
+                    No events found for current filters.
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="mb-4 text-lg font-bold text-[#06402B]">My Joined Events</h2>
+              <div className="space-y-4">
+                {joinedEvents.map(({ eventId, event, status }) => {
+                  const when = formatDayAndTime(event.start_datetime);
+                  const statusClass =
+                    status === "confirmed" ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800";
+                  return (
+                    <div
+                      key={eventId}
+                      className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm"
+                    >
+                      <div>
+                        <h3 className="mb-2 text-[15px] font-bold text-gray-800">{event.title}</h3>
+                        <span className={`mb-4 inline-block rounded-xl px-2.5 py-0.5 text-[11px] font-medium ${statusClass}`}>
+                          {status === "confirmed" ? "Confirmed" : "Registered"}
+                        </span>
+                        <div className="flex items-center space-x-6 text-xs text-gray-500">
+                          <div className="flex items-center space-x-1.5">
+                            {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
+                            <span>{event.is_online ? "Online Event" : event.location || "Onsite Event"}</span>
+                          </div>
+                          <div className="flex items-center space-x-1.5">
+                            <Bell size={14} />
+                            <span>Registered</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-1.5">
-                        <ev.extraIcon size={14} />
-                        <span>{ev.extraInfo}</span>
+
+                      <div className="flex items-center space-x-6">
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-gray-800">{when.day}</p>
+                          <p className="text-xs text-gray-500">{when.time}</p>
+                        </div>
+                        <Link
+                          href={`/communityDashBorde/events/${eventId}`}
+                          className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
+                        >
+                          <ExternalLink size={14} />
+                          <span>View Details</span>
+                        </Link>
                       </div>
                     </div>
+                  );
+                })}
+
+                {joinedEvents.length === 0 ? (
+                  <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-600">
+                    You have not joined any events yet.
                   </div>
-                  
-                  <div className="flex items-center space-x-6">
-                    <div className="text-right">
-                       <p className="text-sm font-semibold text-gray-800">{ev.dateDay}</p>
-                       <p className="text-xs text-gray-500">{ev.time}</p>
+                ) : null}
+              </div>
+            </section>
+          </div>
+
+          <div className="w-80 space-y-6">
+            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Calendar</h3>
+              <div className="relative space-y-4 before:absolute before:inset-0 before:mx-auto before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent before:translate-x-0">
+                {upcomingEvents.slice(0, 3).map((event, index) => {
+                  const when = formatDayAndTime(event.start_datetime);
+                  const dotClass =
+                    index === 0 ? "bg-[#06402B]" : index === 1 ? "bg-purple-500" : "bg-blue-500";
+                  return (
+                    <div key={event.id} className="relative flex items-center justify-between">
+                      <div className={`flex w-full items-center rounded-md p-2 ${index === 0 ? "bg-[#f3ecd9]" : "hover:bg-gray-50"}`}>
+                        <div className={`mr-3 h-2 w-2 flex-shrink-0 rounded-full ${dotClass}`} />
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-800">{when.day}</h4>
+                          <p className="text-[11px] text-gray-600">{event.title}</p>
+                        </div>
+                      </div>
                     </div>
-                    {ev.iconAction ? (
-                      <button className="flex items-center space-x-2 bg-[#06402B] text-white text-xs font-semibold px-4 py-2 rounded-md hover:bg-[#053020]">
-                        <ev.iconAction size={14} />
-                        <span>{ev.primaryAction}</span>
-                      </button>
-                    ) : ev.primaryAction === 'View Details' ? (
-                      <Link href={ev.detailsHref} className="border border-gray-300 text-gray-600 text-xs font-semibold px-4 py-2 rounded-md hover:bg-gray-50">
-                        {ev.primaryAction}
-                      </Link>
-                    ) : (
-                      <button className="border border-gray-300 text-gray-600 text-xs font-semibold px-4 py-2 rounded-md hover:bg-gray-50">
-                        {ev.primaryAction}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+              </div>
             </div>
-          </section>
+
+            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Alerts</h3>
+              <div className="space-y-3">
+                <div className="rounded-lg border border-orange-100 bg-orange-50 p-3">
+                  <div className="mb-1.5 flex items-center space-x-2">
+                    <Bell size={14} className="text-orange-600" />
+                    <span className="text-xs font-bold text-orange-900">New Event Available</span>
+                  </div>
+                  <p className="mb-2 text-xs leading-relaxed text-orange-800">
+                    Fresh wellness events are now available for registration.
+                  </p>
+                  <button className="text-xs font-semibold text-orange-600 hover:text-orange-700">Browse Events</button>
+                </div>
+
+                <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
+                  <div className="mb-1.5 flex items-center space-x-2">
+                    <HelpCircle size={14} className="text-blue-600" />
+                    <span className="text-xs font-bold text-blue-900">Need Help?</span>
+                  </div>
+                  <p className="mb-2 text-xs leading-relaxed text-blue-800">Review event details and attendance updates from your dashboard.</p>
+                  <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">Open Help Center</button>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Quick Actions</h3>
+              <div className="space-y-1">
+                <button className="flex w-full items-center space-x-3 rounded-md p-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                  <RefreshCw size={16} className="text-[#06402B]" />
+                  <span>Refresh Events</span>
+                </button>
+                <button className="flex w-full items-center space-x-3 rounded-md p-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
+                  <Share2 size={16} className="text-[#06402B]" />
+                  <span>Invite Friends</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {/* Right Column */}
-        <div className="w-80 space-y-6">
-          {/* Event Calendar */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-            <h3 className="text-[#06402B] font-bold text-[15px] mb-4">Event Calendar</h3>
-            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2.5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
-              <div className="relative flex items-center justify-between md:-my-5r">
-                <div className="flex items-center w-full bg-[#f3ecd9] p-3 rounded-md">
-                  <div className="w-2.5 h-2.5 bg-[#06402B] rounded-full mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">Tomorrow</h4>
-                    <p className="text-[11px] text-gray-600">Nutrition Masterclass</p>
-                  </div>
-                </div>
-              </div>
-              <div className="relative flex items-center justify-between md:-my-5r">
-                <div className="flex items-center w-full p-2 hover:bg-gray-50 rounded-md transition cursor-pointer">
-                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">March 15</h4>
-                    <p className="text-[11px] text-gray-600">Wellness Workshop</p>
-                  </div>
-                </div>
-              </div>
-              <div className="relative flex items-center justify-between md:-my-5r">
-                <div className="flex items-center w-full p-2 hover:bg-gray-50 rounded-md transition cursor-pointer">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="text-sm font-bold text-gray-800">March 20</h4>
-                    <p className="text-[11px] text-gray-600">Recipe Sharing</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Event Alerts */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-             <h3 className="text-[#06402B] font-bold text-[15px] mb-4">Event Alerts</h3>
-             <div className="space-y-3">
-               <div className="bg-orange-50 border border-orange-100 rounded-lg p-3">
-                 <div className="flex items-center space-x-2 mb-1.5">
-                   <Bell size={14} className="text-orange-600" />
-                   <span className="text-xs font-bold text-orange-900">New Event Available</span>
-                 </div>
-                 <p className="text-xs text-orange-800 mb-2 leading-relaxed">Advanced Buckwheat Cooking - Limited seats</p>
-                 <button className="text-xs font-semibold text-orange-600 hover:text-orange-700">Register Now</button>
-               </div>
-               
-               <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
-                 <div className="flex items-center space-x-2 mb-1.5">
-                   <Mail size={14} className="text-blue-600" />
-                   <span className="text-xs font-bold text-blue-900">Event Invitation</span>
-                 </div>
-                 <p className="text-xs text-blue-800 mb-2 leading-relaxed">VIP Nutrition Consultation Session</p>
-                 <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">View Invitation</button>
-               </div>
-             </div>
-          </div>
-
-          {/* Quick Actions */}
-          <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
-             <h3 className="text-[#06402B] font-bold text-[15px] mb-4">Quick Actions</h3>
-             <div className="space-y-1">
-               <button className="flex items-center space-x-3 w-full p-2 hover:bg-gray-50 rounded-md transition text-sm font-medium text-gray-700">
-                 <RefreshCw size={16} className="text-[#06402B]" />
-                 <span>Sync Calendar</span>
-               </button>
-               <button className="flex items-center space-x-3 w-full p-2 hover:bg-gray-50 rounded-md transition text-sm font-medium text-gray-700">
-                 <Share2 size={16} className="text-[#06402B]" />
-                 <span>Invite Friends</span>
-               </button>
-             </div>
-          </div>
-
-        </div>
-      </div>
+      )}
     </div>
   );
 }
