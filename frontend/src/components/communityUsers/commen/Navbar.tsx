@@ -65,10 +65,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
   const fetchUnreadCount = useCallback(async () => {
     try {
-      const { data } = await api.get<{ unread_notifications: number }>(
+      const { data } = await api.get<{ stats: { unread_notifications: number } }>(
         "/community/dashboard/summary/"
       );
-      setUnreadCount(data.unread_notifications ?? 0);
+      setUnreadCount(data.stats?.unread_notifications ?? 0);
     } catch {
       // not critical — leave at 0
     }

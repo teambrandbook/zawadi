@@ -2,22 +2,30 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, BasePermission
+from rest_framework.permissions import IsAuthenticated, BasePermission
 
 from .models import Notification, UserNotificationReceipt
 from .serializers import NotificationSerializer, UserNotificationReceiptSerializer
+
+
+class IsAdminRole(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and str(getattr(request.user, "role", "")).upper() in ("ADMIN", "INTERNAL_STAFF")
+        )
 
 
 class IsCommunityUser(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated
-            and getattr(request.user, "role", None) == "COMMUNITY_USER"
+            and str(getattr(request.user, "role", "")).upper() == "COMMUNITY_USER"
         )
 
 
 class NotificationListCreateView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def get(self, request):
         notifications = Notification.objects.all()
@@ -37,7 +45,7 @@ class NotificationListCreateView(APIView):
 
 
 class NotificationDetailView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminRole]
 
     def get_object(self, pk):
         try:
