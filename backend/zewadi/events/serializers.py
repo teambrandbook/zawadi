@@ -114,15 +114,34 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
 
     event = serializers.PrimaryKeyRelatedField(read_only=True)
     user = serializers.StringRelatedField(read_only=True)
+    event_detail = serializers.SerializerMethodField()
 
     class Meta:
         model = EventRegistration
         fields = [
             "id",
             "event",
+            "event_detail",
             "user",
             "status",
             "registered_at",
             "notes",
         ]
         read_only_fields = ["id", "event", "user", "registered_at"]
+
+    def get_event_detail(self, obj):
+        event = obj.event
+        if not event:
+            return None
+        return {
+            "id": event.id,
+            "title": event.title,
+            "slug": event.slug,
+            "event_type": event.event_type,
+            "cover_image": event.cover_image.url if event.cover_image else None,
+            "start_datetime": event.start_datetime,
+            "end_datetime": event.end_datetime,
+            "is_online": event.is_online,
+            "location": event.location,
+            "status": event.status,
+        }
