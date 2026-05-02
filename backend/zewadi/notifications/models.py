@@ -47,3 +47,26 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.title} [{self.status}]"
+
+
+class UserNotificationReceipt(models.Model):
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='notification_receipts',
+    )
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name='receipts',
+    )
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'notification')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} — {self.notification.title} [read={self.is_read}]"

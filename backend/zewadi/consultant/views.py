@@ -291,3 +291,33 @@ class CreateConsultationBookingView(APIView):
             "message": "Booking created successfully",
             "booking_id": booking.id
         })
+
+
+class CommunityBookingCancelView(APIView):
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+
+    def patch(self, request, pk):
+        try:
+            booking = ConsultationBooking.objects.get(pk=pk)
+        except ConsultationBooking.DoesNotExist:
+            return Response({"detail": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if booking.user != request.user:
+            return Response({"detail": "You do not have permission to cancel this booking."}, status=status.HTTP_403_FORBIDDEN)
+
+        cancellable_statuses = [
+            ConsultationBooking.BookingStatus.PENDING,
+            ConsultationBooking.BookingStatus.CONFIRMED,
+        ]
+        if booking.status not in cancellable_statuses:
+            return Response(
+                {"detail": f"Cannot cancel a booking with status '{booking.status}'. Only PENDING or CONFIRMED bookings can be cancelled."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        booking.status = ConsultationBooking.BookingStatus.CANCELLED
+        booking.save(update_fields=["status", "updated_at"])
+        return Response(
+            ConsultationBookingListSerializer(booking).data,
+            status=status.HTTP_200_OK,
+        )

@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Briefcase, CalendarPlus2, CirclePlus, ClipboardCheck, Megaphone, Stethoscope } from "lucide-react";
+import api from "@/services/api";
 
 const quickActions = [
   { label: "Add Product", Icon: CirclePlus },
@@ -11,19 +13,59 @@ const quickActions = [
   { label: "Send Alert", Icon: Megaphone },
 ];
 
-const recentOrders = [
-  { id: "#ZW-2024-001", customer: "Emma Johnson", product: "Organic Buckwheat Flour", status: "Shipped", amount: "$24.99" },
-  { id: "#ZW-2024-002", customer: "Michael Chen", product: "Buckwheat Starter Kit", status: "Processing", amount: "$49.99" },
-  { id: "#ZW-2024-003", customer: "Sarah Wilson", product: "Buckwheat Noodles Pack", status: "Confirmed", amount: "$18.50" },
-];
+type RecentOrder = {
+  id: string;
+  customer: string;
+  product: string;
+  status: string;
+  amount: string;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapOrder(item: Record<string, any>, index: number): RecentOrder {
+  return {
+    id: String(item.order_id ?? item.id ?? `ORD-${index + 1}`),
+    customer: String(item.full_name ?? item.customer_name ?? item.customer ?? "Unknown"),
+    product: String(item.product_name ?? item.product ?? "—"),
+    status: String(item.status ?? "Pending"),
+    amount:
+      item.total_amount != null
+        ? `$${parseFloat(item.total_amount).toFixed(2)}`
+        : String(item.amount ?? "$0.00"),
+  };
+}
 
 function statusColor(status: string) {
-  if (status === "Shipped") return "text-[#15803D]";
-  if (status === "Processing") return "text-[#CA8A04]";
+  const s = status.toLowerCase();
+  if (s === "shipped" || s === "delivered") return "text-[#15803D]";
+  if (s === "processing") return "text-[#CA8A04]";
   return "text-[#2563EB]";
 }
 
 export default function MainPanels() {
+  const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const res = await api.get("/orders/admin/");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw: Record<string, any>[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data?.results)
+          ? res.data.results
+          : [];
+        setRecentOrders(raw.slice(0, 5).map(mapOrder));
+      } catch {
+        // Silent fail — show empty state
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOrders();
+  }, []);
+
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_minmax(0,1fr)]">
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
@@ -46,32 +88,43 @@ export default function MainPanels() {
           <h3 className="text-xl font-semibold text-[#0A4833]">Recent Orders</h3>
           <button className="text-xs text-[#A88751] hover:underline">View All</button>
         </div>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-[#EDEDED] text-[#6B7280]">
-                <th className="px-2 py-2 font-medium">Order ID</th>
-                <th className="px-2 py-2 font-medium">Customer</th>
-                <th className="px-2 py-2 font-medium">Product</th>
-                <th className="px-2 py-2 font-medium">Status</th>
-                <th className="px-2 py-2 font-medium">Amount</th>
-                <th className="px-2 py-2 font-medium">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentOrders.map((order) => (
-                <tr key={order.id} className="border-b border-[#F4F4F4] text-[#374151] last:border-0">
-                  <td className="px-2 py-2">{order.id}</td>
-                  <td className="px-2 py-2">{order.customer}</td>
-                  <td className="px-2 py-2">{order.product}</td>
-                  <td className={`px-2 py-2 ${statusColor(order.status)}`}>{order.status}</td>
-                  <td className="px-2 py-2 font-medium text-[#111827]">{order.amount}</td>
-                  <td className="px-2 py-2 text-[#A88751]">View</td>
+
+        {isLoading && (
+          <p className="mt-4 text-sm text-[#6B7280]">Loading recent orders...</p>
+        )}
+
+        {!isLoading && recentOrders.length === 0 && (
+          <p className="mt-4 text-sm text-[#6B7280]">No recent orders.</p>
+        )}
+
+        {!isLoading && recentOrders.length > 0 && (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#EDEDED] text-[#6B7280]">
+                  <th className="px-2 py-2 font-medium">Order ID</th>
+                  <th className="px-2 py-2 font-medium">Customer</th>
+                  <th className="px-2 py-2 font-medium">Product</th>
+                  <th className="px-2 py-2 font-medium">Status</th>
+                  <th className="px-2 py-2 font-medium">Amount</th>
+                  <th className="px-2 py-2 font-medium">Action</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {recentOrders.map((order) => (
+                  <tr key={order.id} className="border-b border-[#F4F4F4] text-[#374151] last:border-0">
+                    <td className="px-2 py-2">{order.id}</td>
+                    <td className="px-2 py-2">{order.customer}</td>
+                    <td className="px-2 py-2">{order.product}</td>
+                    <td className={`px-2 py-2 ${statusColor(order.status)}`}>{order.status}</td>
+                    <td className="px-2 py-2 font-medium text-[#111827]">{order.amount}</td>
+                    <td className="px-2 py-2 text-[#A88751]">View</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </article>
     </section>
   );

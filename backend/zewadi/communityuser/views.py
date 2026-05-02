@@ -11,6 +11,7 @@ from .serializers import CommunityProfileSerializer
 from blog.models import Blog, BlogStatus
 from consultant.models import ConsultationBooking
 from events.models import EventRegistration
+from notifications.models import UserNotificationReceipt
 from orders.models import Order
 from recipes.models import Recipe
 
@@ -143,8 +144,15 @@ class CommunityDashboardSummaryAPIView(APIView):
                     ).count(),
                     0,
                 ),
-                # Per-user notification inbox is not implemented yet.
-                "unread_notifications": 0,
+                "unread_notifications": safe_query(
+                    lambda: UserNotificationReceipt.objects.filter(
+                        user=user,
+                        is_read=False,
+                        notification__status="SENT",
+                        notification__target_role__in=["ALL", "community_user"],
+                    ).count(),
+                    0,
+                ),
             },
             "recent_orders": [
                 {

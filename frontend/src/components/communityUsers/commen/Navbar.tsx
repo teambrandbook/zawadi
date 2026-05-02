@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
@@ -12,18 +12,20 @@ interface NavbarProps {
 }
 
 interface UserInfo {
-  userId: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
   initials: string;
 }
-interface MeResponse {
-  user_id: string;
-  email: string;
-  role: string;
-  full_name: string;
+
+function decodeJwtPayload(token: string): Record<string, string> | null {
+  try {
+    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(base64));
+  } catch {
+    return null;
+  }
 }
 
 function formatRole(role: string): string {
@@ -32,8 +34,8 @@ function formatRole(role: string): string {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState<UserInfo>({
-    userId: "",
     firstName: "",
     lastName: "",
     email: "",
@@ -42,36 +44,39 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   });
 
   useEffect(() => {
-    let isMounted = true;
-    async function loadMe() {
-      try {
-        const { data } = await api.get<MeResponse>("/account/me/");
-        if (!isMounted) return;
-        const names = data.full_name.trim().split(/\s+/);
-        const firstName = names[0] || "";
-        const lastName = names.slice(1).join(" ");
-        const initials =
-          `${firstName[0] || ""}${lastName[0] || ""}`.trim() ||
-          data.email.slice(0, 2).toUpperCase() ||
-          "U";
+    if (typeof document === "undefined") return;
+    const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
+    if (!match) return;
+    const token = decodeURIComponent(match.split("=")[1]);
+    const payload = decodeJwtPayload(token);
+    if (!payload) return;
 
-        setUser({
-          userId: data.user_id,
-          firstName,
-          lastName,
-          email: data.email,
-          role: data.role,
-          initials,
-        });
-      } catch {
-        // Keep fallback UI when session is missing/expired.
-      }
-    }
-    void loadMe();
-    return () => {
-      isMounted = false;
-    };
+    const firstName: string = payload.first_name || "";
+    const lastName: string = payload.last_name || "";
+    const email: string = payload.email || "";
+    const role: string = payload.role || "";
+    const initials =
+      (firstName[0] || "") + (lastName[0] || "") ||
+      email.slice(0, 2).toUpperCase() ||
+      "U";
+
+    setUser({ firstName, lastName, email, role, initials });
   }, []);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const { data } = await api.get<{ unread_notifications: number }>(
+        "/community/dashboard/summary/"
+      );
+      setUnreadCount(data.unread_notifications ?? 0);
+    } catch {
+      // not critical — leave at 0
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadCount();
+  }, [fetchUnreadCount]);
 
   const handleLogout = async () => {
     try {
@@ -150,6 +155,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           aria-label="Open notifications"
         >
           <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+          {unreadCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
         </Link>
 
         {/* Profile Info — clickable trigger */}

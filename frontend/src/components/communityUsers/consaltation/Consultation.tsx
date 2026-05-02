@@ -16,6 +16,7 @@ import DietPlanModal from "./components/DietPlanModal";
 import FindNutritionist from "./components/FindNutritionist";
 import ExpertRecommendations from "./components/ExpertRecommendations";
 import ConsultationHistory from "./components/ConsultationHistory";
+import api from "@/services/api";
 
 const statCards = [
   {
@@ -135,6 +136,13 @@ export default function Consultation() {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [isDietPlanOpen, setIsDietPlanOpen] = useState(false);
+  const [sessions, setSessions] = useState(upcomingSessions);
+
+  async function handleCancelBooking(id: string) {
+    await api.patch(`/consultant/bookings/${id}/cancel/`);
+    setSessions((prev) => prev.filter((s) => s.id !== id));
+    setMessage(`Booking ${id} has been cancelled.`);
+  }
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -163,9 +171,10 @@ export default function Consultation() {
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
           <UpcomingSessions
-            sessions={upcomingSessions}
+            sessions={sessions}
             onJoin={(id) => setMessage(`Joining session: ${id}`)}
             onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
+            onCancel={handleCancelBooking}
           />
           <ActiveDietPlan progress={65} onViewPlan={() => setIsDietPlanOpen(true)} />
         </div>

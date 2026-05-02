@@ -1,3 +1,15 @@
+// API response shape from GET /api/notifications/inbox/
+export type ApiNotificationReceipt = {
+  receipt_id: number;
+  id: number;
+  title: string;
+  body: string;
+  notification_type: "SYSTEM" | "ALERT" | "REMINDER" | "PROMOTIONAL";
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+};
+
 export type NotificationSummaryStat = {
   label: string;
   value: string;
