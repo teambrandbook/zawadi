@@ -1,5 +1,6 @@
 from django.db import models
 from accounts.models import User
+from consultant.models import Consultant
 
 class UserType(models.TextChoices):
     GUEST = "guest", "Guest"
@@ -49,3 +50,43 @@ class CommunityUserAddress(models.Model):
     def __str__(self):
         return f"{self.user.user.email} - Address"
 
+
+
+# booking model
+
+
+
+# class Booking(models.Model):
+
+#     STATUS_CHOICES = (
+#         ('pending', 'Pending'),
+#         ('accepted', 'Accepted'),
+#         ('rejected', 'Rejected'),
+#     )
+
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     consultant = models.ForeignKey(Consultant, on_delete=models.SET_NULL, null=True)
+
+#     date = models.DateField()
+#     start_time = models.TimeField()
+#     end_time = models.TimeField()
+
+#     status = models.CharField(
+#         max_length=20,
+#         choices=STATUS_CHOICES,
+#         default='pending'
+#     )
+
+#     choose_section = models.CharField(max_length=100)
+#     primary_goal = models.CharField(max_length=100)
+#     language = models.CharField(max_length=50)
+
+#     additional_message = models.TextField(blank=True)
+#     allergies = models.CharField(max_length=255, blank=True)
+#     diet_restriction = models.CharField(max_length=255, blank=True)
+#     focus_area = models.CharField(max_length=100, blank=True)
+#     journey_goal = models.CharField(max_length=100, blank=True)
+#     lifestyle_activity = models.CharField(max_length=100, blank=True)
+#     primary_wellness_goal = models.CharField(max_length=100, blank=True)
+
+#     created_at = models.DateTimeField(auto_now_add=True)

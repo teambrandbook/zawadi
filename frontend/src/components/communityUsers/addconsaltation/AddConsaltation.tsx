@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import { Check } from "lucide-react";
+import type { AxiosError } from "axios";
+import api from "@/services/api";
 import ChooseExpertSection, { type SessionType } from "./components/ChooseExpertSection";
 import SelectDateTimeSection from "./components/SelectDateTimeSection";
 import HealthDetailsSection, { type HealthDetails } from "./components/HealthDetailsSection";
 import ConfirmBookingSection, { type ConsultationFormData } from "./components/ConfirmBookingSection";
+import { log } from "console";
 
 type Expert = {
   id: string;
@@ -13,6 +16,19 @@ type Expert = {
   specialty: string;
   experience: string;
   rating: string;
+};
+
+type MatchedConsultant = {
+  consultant_id: string | number;
+  consultant_name: string;
+  photo: string | null;
+  qualification: string | null;
+  consultation_fee?: number | null;
+};
+
+type FindConsultantError = {
+  error?: string;
+  detail?: string;
 };
 
 const experts: Expert[] = [
@@ -60,10 +76,40 @@ export default function AddConsaltation() {
   const [formData, setFormData] = useState<ConsultationFormData>(initialFormData);
   const [isAgreed, setIsAgreed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFindingConsultant, setIsFindingConsultant] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
+  const [matchedConsultant, setMatchedConsultant] = useState<MatchedConsultant | null>(null);
   const stepLabels = ["Choose Expert", "Select Date & Time", "Health Details", "Confirm Booking"];
 
   const selectedExpert = experts.find((item) => item.id === selectedExpertId) ?? null;
+
+  function formatTimeForApi(value: string) {
+    const twelveHourMatch = value.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i);
+    if (twelveHourMatch) return value.toUpperCase().replace(/\s+/g, " ");
+
+    const twentyFourHourMatch = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    if (!twentyFourHourMatch) return value;
+
+    const hour = Number(twentyFourHourMatch[1]);
+    const minute = twentyFourHourMatch[2];
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+
+    return `${String(displayHour).padStart(2, "0")}:${minute} ${suffix}`;
+  }
+
+  function formatDateForDisplay(value: string) {
+    if (!value) return value;
+
+    const date = new Date(`${value}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return value;
+
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
 
   function updateFormData(field: keyof ConsultationFormData, value: string) {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -101,7 +147,7 @@ export default function AddConsaltation() {
     if (field === "additionalMessage") updateFormData("additional_message", value as string);
   }
 
-  function goNext() {
+  async function goNext() {
     if (currentStep === 1 && (!selectedSessionType || !selectedGoal || !selectedLanguage)) {
       setStatusMessage("Please select session type, primary goal, and language.");
       return;
@@ -114,8 +160,34 @@ export default function AddConsaltation() {
       setStatusMessage("Please select your primary wellness goal.");
       return;
     }
+
+    if (currentStep === 3) {
+      setIsFindingConsultant(true);
+      setStatusMessage("Finding an available consultant for your selected date and time...");
+
+      try {
+        const payload = {
+          date: formData.date || selectedDate,
+          time: formatTimeForApi(formData.time || selectedSlot),
+        };
+
+        const response = await api.post("/consultant/find-consultant/", payload);
+        setMatchedConsultant(response.data as MatchedConsultant);
+      } catch (error: unknown) {
+        const axiosError = error as AxiosError<FindConsultantError>;
+        const backendMessage =
+          axiosError.response?.data?.error ||
+          axiosError.response?.data?.detail ||
+          "No consultant is available for the selected date and time.";
+        setStatusMessage(backendMessage);
+        setIsFindingConsultant(false);
+        return;
+      }
+    }
+
     setStatusMessage("");
     setCurrentStep((prev) => Math.min(4, prev + 1));
+    setIsFindingConsultant(false);
   }
 
   function goBack() {
@@ -134,7 +206,11 @@ export default function AddConsaltation() {
     await new Promise((resolve) => setTimeout(resolve, 700));
     setIsSubmitting(false);
     setStatusMessage("Consultation booked successfully.");
+    
   }
+
+  console.log(matchedConsultant);
+  
 
   return (
     <section className="w-full min-h-screen bg-white px-4 py-8 lg:px-8">
@@ -221,14 +297,15 @@ export default function AddConsaltation() {
               onBack={goBack}
               onSaveForLater={() => setStatusMessage("Health details saved for later.")}
               selectedExpertName={selectedExpert?.name ?? "Dr. Emily Chen"}
-              selectedDate={selectedDate || "May 15, 2024"}
-              selectedTime={selectedSlot || "2:00 PM"}
+              selectedDate={formatDateForDisplay(selectedDate) || "May 15, 2024"}
+              selectedTime={formatTimeForApi(selectedSlot) || "2:00 PM"}
               sessionType={selectedSessionType || "Video Call"}
             />
           )}
           {currentStep === 4 && (
             <ConfirmBookingSection
               selectedExpert={selectedExpert}
+              matchedConsultant={matchedConsultant}
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
               sessionType={selectedSessionType || "Video Call"}
@@ -240,7 +317,7 @@ export default function AddConsaltation() {
               onToggleAgreement={() => setIsAgreed((prev) => !prev)}
               onConfirm={onConfirmBooking}
               onBack={goBack}
-              isSubmitting={isSubmitting}
+              isSubmitting={isSubmitting || isFindingConsultant}
             />
           )}
         </div>

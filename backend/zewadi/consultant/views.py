@@ -3,18 +3,36 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 
-from .models import Consultant, ConsultationBooking
-from .serializers import (
-    ConsultantListSerializer,
-    ConsultantDetailSerializer,
-    ConsultationBookingCreateSerializer,
-    ConsultationBookingListSerializer,
-)
+from .models import BlockedDate, ConsultationBooking, Consultant, ConsultantSettings
+from .serializers import *
+from django.db import transaction
+from .models import Availability
+from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available
+from datetime import datetime
+
+
+
 
 
 class IsAdminUser(BasePermission):
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == "ADMIN"
+
+
+class IsConsultantUser(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated
+            and request.user.role == "CONSULTANT"
+            and hasattr(request.user, "consultant")
+        )
+
+class IsCommunityUser(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and
+            getattr(request.user, "role", None) == "COMMUNITY_USER"
+        )
 
 
 class ConsultantListView(APIView):
@@ -104,3 +122,172 @@ class AdminConsultationStatusUpdateView(APIView):
             ConsultationBookingListSerializer(booking).data,
             status=status.HTTP_200_OK,
         )
+
+
+class DietPlanCreateView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def post(self, request):
+        serializer = DietPlanCreateSerializer(
+            data=request.data, context={"request": request}
+        )
+        if serializer.is_valid():
+            diet_plan = serializer.save()
+            return Response(
+                DietPlanDetailSerializer(diet_plan).data,
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+class SaveAvailabilityView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    @transaction.atomic
+    def post(self, request):
+        consultant = request.user.consultant
+
+        serializer = AvailabilitySerializer(data=request.data, many=True)
+        serializer.is_valid(raise_exception=True)
+
+        Availability.objects.filter(consultant=consultant).delete()
+
+        for item in serializer.validated_data:
+            Availability.objects.create(
+                consultant=consultant,
+                day=item["day"],
+                start_time=item["start_time"],
+                end_time=item["end_time"]
+            )
+
+        generate_weekly_slots(consultant)
+
+        return Response({
+            "message": "Availability saved and slots generated successfully"
+        })
+
+class ConsultantSettingsView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        consultant = request.user.consultant
+
+        settings, _ = ConsultantSettings.objects.get_or_create(
+            consultant=consultant
+        )
+
+        serializer = ConsultantSettingsSerializer(settings)
+        return Response(serializer.data)
+
+    def put(self, request):
+        consultant = request.user.consultant
+
+        settings, _ = ConsultantSettings.objects.get_or_create(
+            consultant=consultant
+        )
+
+        serializer = ConsultantSettingsSerializer(
+            settings,
+            data=request.data,
+            partial=True
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({
+            "message": "Settings updated",
+            "data": serializer.data
+        })
+    
+
+class BlockedDateView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        consultant = request.user.consultant
+
+        blocked_dates = BlockedDate.objects.filter(consultant=consultant)
+        serializer = BlockedDateSerializer(blocked_dates, many=True)
+
+        return Response(serializer.data)
+
+    def post(self, request):
+        consultant = request.user.consultant
+
+        serializer = BlockedDateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        serializer.save(consultant=consultant)
+
+        return Response({
+            "message": "Blocked date added",
+            "data": serializer.data
+        })
+
+    def delete(self, request):
+        block_id = request.data.get("id")
+
+        try:
+            block = BlockedDate.objects.get(id=block_id)
+            block.delete()
+            return Response({"message": "Deleted successfully"})
+        except BlockedDate.DoesNotExist:
+            return Response({"error": "Not found"}, status=404)
+
+
+# For find consultent
+
+
+class FindConsultantView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        date = datetime.strptime(request.data["date"], "%Y-%m-%d").date()
+        time_str = request.data["time"]
+
+        start_time = convert_time(time_str)
+
+        consultant = find_available_consultant(date, start_time)
+
+        if not consultant:
+            return Response({"error": "No consultant available"}, status=400)
+
+        return Response({
+            "consultant_id": consultant.id,
+            "consultant_name": consultant.user.user_name,
+            "photo": consultant.user.photo.url if consultant.user.photo else None,
+            "qualification": consultant.qualification,
+            "consultation_fee": consultant.consiltation_fee
+        })
+
+class CreateConsultationBookingView(APIView):
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+
+    def post(self, request):
+        serializer = ConsultationBookingCreateSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        serializer.is_valid(raise_exception=True)
+
+        data = serializer.validated_data
+
+        consultant = Consultant.objects.get(id=data["consultant_id"])
+        date = data["booked_date"]
+        time = data["time"]
+
+        if not is_slot_available(consultant, date, time):
+            return Response(
+                {"error": "This time slot is already booked"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        booking = serializer.save()
+
+        return Response({
+            "message": "Booking created successfully",
+            "booking_id": booking.id
+        })

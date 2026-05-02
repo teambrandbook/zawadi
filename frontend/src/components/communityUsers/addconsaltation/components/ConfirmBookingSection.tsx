@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { ArrowLeft, CalendarCheck2, Check, CheckCircle2, Edit3, Shield, Star } from "lucide-react";
 
 type Expert = {
@@ -36,8 +35,17 @@ type ConsultationFormData = {
   additional_message: string;
 };
 
+type MatchedConsultant = {
+  consultant_id: string | number;
+  consultant_name: string;
+  photo: string | null;
+  qualification: string | null;
+  consultation_fee?: number | null;
+};
+
 type Props = {
   selectedExpert: Expert | null;
+  matchedConsultant: MatchedConsultant | null;
   selectedDate: string;
   selectedSlot: string;
   sessionType: string;
@@ -58,6 +66,19 @@ function formatLabel(value: string) {
     .filter(Boolean)
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+}
+
+function formatDate(value: string) {
+  if (!value) return value;
+
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 function formatTime(value: string) {
@@ -107,6 +128,7 @@ function SidebarRow({ label, value }: { label: string; value: string }) {
 
 export default function ConfirmBookingSection({
   selectedExpert,
+  matchedConsultant,
   selectedDate,
   selectedSlot,
   sessionType,
@@ -120,13 +142,15 @@ export default function ConfirmBookingSection({
   onBack,
   isSubmitting,
 }: Props) {
-  const expertName = selectedExpert?.name || "Dr. Emma Thompson";
-  const expertSpecialty = selectedExpert?.specialty || "Certified Nutritionist";
-  const displayDate = selectedDate || formData.date;
+  const expertName = matchedConsultant?.consultant_name || selectedExpert?.name || "Dr. Emma Thompson";
+  const expertSpecialty = matchedConsultant?.qualification || selectedExpert?.specialty || "Certified Nutritionist";
+  const displayDate = formatDate(selectedDate || formData.date);
   const displayTime = formatTime(selectedSlot || formData.time);
   const duration = getDuration(sessionType);
   const focusArea = formData.focus_area || healthDetails.mainConcern || "belly";
   const wellnessGoal = formData.primary_wellness_goal || healthDetails.primaryWellnessGoal || "fitness";
+  const expertPhoto = matchedConsultant?.photo || null;
+  const consultationFee = matchedConsultant?.consultation_fee ?? 75;
 
   return (
     <section className="space-y-5">
@@ -143,8 +167,13 @@ export default function ConfirmBookingSection({
             <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Consultation Summary</h2>
 
             <div className="mt-6 flex gap-4">
-              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl">
-                <Image src="/recipe/recipe-2.webp" alt={expertName} fill className="object-cover" />
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#EBE1CF]">
+                {expertPhoto ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={expertPhoto} alt={expertName} className="h-full w-full object-cover" />
+                ) : (
+                  <span className="text-lg font-semibold text-[#0A4833]">{expertName.charAt(0)}</span>
+                )}
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-[#0A4833]">{expertName}</h3>
@@ -189,7 +218,7 @@ export default function ConfirmBookingSection({
             <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Session Overview</h2>
             <div className="mt-6 flex items-center justify-between text-sm">
               <span className="text-[#4B5563]">Consultation Fee</span>
-              <span className="font-semibold text-[#0A4833]">$75</span>
+              <span className="font-semibold text-[#0A4833]">${consultationFee}</span>
             </div>
             <div className="mt-6 rounded-lg bg-[#EBE1CF] p-4">
               <h3 className="font-medium text-[#0A4833]">What to Expect</h3>

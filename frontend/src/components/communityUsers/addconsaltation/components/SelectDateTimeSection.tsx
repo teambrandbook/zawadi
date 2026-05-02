@@ -30,13 +30,26 @@ const availableSlots = [
 ];
 
 function formatDate(day: number) {
-  return `Dec ${day}, 2024`;
+  return `2026-04-${String(day).padStart(2, "0")}`;
 }
 
 function getSessionDuration(sessionType: string) {
   if (sessionType === "Audio Call") return "30 minutes";
   if (sessionType === "Chat Session") return "60 minutes";
   return "60 minutes";
+}
+
+function formatDisplayDate(value: string) {
+  if (!value) return "Not selected";
+
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
 }
 
 export default function SelectDateTimeSection({
@@ -51,7 +64,7 @@ export default function SelectDateTimeSection({
   onBack,
   onSaveForLater,
 }: Props) {
-  const selectedDay = Number(selectedDate.match(/\b(\d{1,2})\b/)?.[1] ?? 0);
+  const selectedDay = Number(selectedDate.split("-")[2] ?? 0);
 
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
@@ -77,7 +90,7 @@ export default function SelectDateTimeSection({
                 <button className="rounded-md p-1 hover:bg-[#F3F4F6]">
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-medium text-[#0A4833]">December 2024</span>
+                <span className="text-sm font-medium text-[#0A4833]">April 2026</span>
                 <button className="rounded-md p-1 hover:bg-[#F3F4F6]">
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -121,7 +134,7 @@ export default function SelectDateTimeSection({
 
           <div className="rounded-lg border border-[#DFDFDF] bg-white p-4">
             <h3 className="text-2xl font-semibold text-[#0A4833]">
-              Available Times - {selectedDate || "December 12"}
+              Available Times - {formatDisplayDate(selectedDate)}
             </h3>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {availableSlots.map((slot) => (
@@ -155,7 +168,7 @@ export default function SelectDateTimeSection({
             </p>
             <p className="flex items-center justify-between">
               <span className="text-[#6B7280]">Date</span>
-              <span className="font-medium text-[#0A4833]">{selectedDate || "Not selected"}</span>
+              <span className="font-medium text-[#0A4833]">{formatDisplayDate(selectedDate)}</span>
             </p>
             <p className="flex items-center justify-between">
               <span className="text-[#6B7280]">Time</span>
