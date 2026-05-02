@@ -237,7 +237,7 @@ export default function AddConsaltation() {
         is_agreed: isAgreed,
       };
 
-      const response = await api.post<CreateBookingResponse>("/consultant/create-booking/", payload);
+      const response = await api.post<CreateBookingResponse>("/consultant/community/create-booking/", payload);
       setStatusMessage(response.data.message || "Consultation booked successfully.");
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ error?: string; detail?: string }>;
