@@ -2,7 +2,7 @@ from django.db import transaction
 from rest_framework import serializers
 
 from .models import *
-from accounts.models import User
+from accounts.models import GENDER_CHOICES, User
 
 
 class ConsultantUserSerializer(serializers.ModelSerializer):
@@ -76,6 +76,60 @@ class ConsultantClientSerializer(serializers.ModelSerializer):
             "gender",
             "location",
         ]
+
+
+class ConsultantProfileSerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(source="user.user_id", read_only=True)
+    user_name = serializers.CharField(source="user.user_name", required=False)
+    full_name = serializers.CharField(source="user.full_name", required=False)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    phone = serializers.CharField(source="user.phone", required=False)
+    date_of_birth = serializers.DateField(source="user.date_of_birth", required=False, allow_null=True)
+    gender = serializers.ChoiceField(source="user.gender", choices=GENDER_CHOICES, required=False, allow_null=True)
+    location = serializers.CharField(source="user.location", required=False, allow_blank=True, allow_null=True)
+    photo = serializers.ImageField(source="user.photo", required=False, allow_null=True)
+    role = serializers.CharField(source="user.role", read_only=True)
+
+    class Meta:
+        model = Consultant
+        fields = [
+            "id",
+            "user_id",
+            "user_name",
+            "full_name",
+            "email",
+            "phone",
+            "date_of_birth",
+            "gender",
+            "location",
+            "photo",
+            "role",
+            "years_of_experience",
+            "qualification",
+            "certifications",
+            "short_bio",
+            "languages_spoken",
+            "session_type",
+            "consultation_fee",
+            "session_duration",
+            "experience_areas",
+            "created_at",
+        ]
+        read_only_fields = ["id", "user_id", "email", "role", "created_at"]
+
+    def update(self, instance, validated_data):
+        user_data = validated_data.pop("user", {})
+
+        for attr, value in user_data.items():
+            setattr(instance.user, attr, value)
+        if user_data:
+            instance.user.save()
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        return instance
 
 
 class ConsultationBookingListSerializer(serializers.ModelSerializer):
