@@ -1,9 +1,13 @@
-import { appointmentStats } from "./appointmentsData";
+import { appointmentStats, type AppointmentStat } from "./appointmentsData";
 
-export default function AppointmentsStatsGrid() {
+type Props = {
+  stats?: AppointmentStat[];
+};
+
+export default function AppointmentsStatsGrid({ stats = appointmentStats }: Props) {
   return (
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-      {appointmentStats.map((item) => {
+      {stats.map((item) => {
         const Icon = item.icon;
 
         return (

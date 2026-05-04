@@ -7,8 +7,9 @@ from .models import BlockedDate, ConsultationBooking, Consultant, ConsultantSett
 from .serializers import *
 from django.db import transaction
 from .models import Availability
-from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available
+from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available,create_or_update_client_from_booking
 from datetime import datetime
+from django.utils import timezone
 
 
 
@@ -56,31 +57,31 @@ class ConsultantDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ConsultationBookingCreateView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ConsultationBookingCreateView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        serializer = ConsultationBookingCreateSerializer(
-            data=request.data, context={"request": request}
-        )
-        if serializer.is_valid():
-            booking = serializer.save()
-            return Response(
-                ConsultationBookingListSerializer(booking).data,
-                status=status.HTTP_201_CREATED,
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = ConsultationBookingCreateSerializer(
+#             data=request.data, context={"request": request}
+#         )
+#         if serializer.is_valid():
+#             booking = serializer.save()
+#             return Response(
+#                 ConsultationBookingListSerializer(booking).data,
+#                 status=status.HTTP_201_CREATED,
+#             )
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class ConsultationBookingListView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ConsultationBookingListView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def get(self, request):
-        bookings = ConsultationBooking.objects.filter(user=request.user).select_related(
-            "consultant__user"
-        ).order_by("-created_at")
-        serializer = ConsultationBookingListSerializer(bookings, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+#     def get(self, request):
+#         bookings = ConsultationBooking.objects.filter(user=request.user).select_related(
+#             "consultant__user"
+#         ).order_by("-created_at")
+#         serializer = ConsultationBookingListSerializer(bookings, many=True)
+#         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminConsultationListView(APIView):
@@ -292,6 +293,26 @@ class CreateConsultationBookingView(APIView):
             "message": "Booking created successfully",
             "booking_id": booking.id
         })
+   
+    def get(self, request):
+        today = timezone.now().date()
+
+        bookings = (
+            ConsultationBooking.objects.filter(
+                user=request.user,
+                booked_date__gte=today,
+                status__in=[
+                    ConsultationBooking.BookingStatus.PENDING,
+                    ConsultationBooking.BookingStatus.CONFIRMED,
+                    ConsultationBooking.BookingStatus.CANCELLED,
+                ],
+            )
+            .select_related("consultant__user")
+            .order_by("booked_date", "booked_slot", "created_at")
+        )
+
+        serializer = ConsultationBookingListSerializer(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CommunityBookingCancelView(APIView):
@@ -322,3 +343,54 @@ class CommunityBookingCancelView(APIView):
             ConsultationBookingListSerializer(booking).data,
             status=status.HTTP_200_OK,
         )
+
+
+class ConsultantBookingConformApi(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        bookings = ConsultationBooking.objects.filter(
+            consultant=request.user.consultant,
+            status__in=[
+                ConsultationBooking.BookingStatus.PENDING,
+                ConsultationBooking.BookingStatus.CONFIRMED
+            ]
+        )
+
+        if not bookings.exists():
+            return Response({
+                "message": "No bookings available"
+            })
+
+        serializer = ConsultationBookingListSerializer(bookings, many=True)
+        return Response(serializer.data)
+
+
+    def post(self, request):
+        serializer = ConsultantBookingConformSerializer(
+            data=request.data,
+            context={"request": request}
+        )
+
+        print("hello")
+        serializer.is_valid(raise_exception=True)
+
+        booking = serializer.validated_data["booking"]
+        is_accept = serializer.validated_data["is_accept"]
+
+        if is_accept:
+            booking.status = ConsultationBooking.BookingStatus.CONFIRMED
+            booking.save()
+
+            create_or_update_client_from_booking(booking)
+
+            return Response({
+                "message": "Booking accepted and client created"
+            })
+
+        booking.status = ConsultationBooking.BookingStatus.CANCELLED
+        booking.save()
+
+        return Response({
+            "message": "Booking rejected"
+        })

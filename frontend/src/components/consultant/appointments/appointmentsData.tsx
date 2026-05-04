@@ -30,6 +30,8 @@ export type ScheduleItem = {
   consultationMode: string;
   notes: string;
   consultant: string;
+  sessionStatus?: "pending" | "confirmed" | "completed" | "cancelled";
+  rawDate?: string;
   isEmpty?: boolean;
 };
 
@@ -57,7 +59,7 @@ export const todaySchedule: ScheduleItem[] = [
   {
     id: "appointment-michael-thompson",
     time: "09:00",
-    duration: "60 min",
+    duration: "30 min",
     name: "Michael Thompson",
     type: "Weight Management Consultation",
     meta: ["Lose 15 lbs", "buckwheat diet"],

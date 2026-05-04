@@ -2,6 +2,8 @@
 
 from datetime import datetime, timedelta
 from .models import WeeklySlot, Availability,ConsultationBooking,BlockedDate,ConsultantSettings
+from .models import Client
+
 
 
 SLOT_DURATION = 30
@@ -151,3 +153,40 @@ def is_slot_available(consultant, date, time_str):
         return False, "This time slot is already booked."
 
     return True, None
+
+
+
+def create_or_update_client_from_booking(booking):
+    client, created = Client.objects.get_or_create(
+        consultant=booking.consultant,
+        user=booking.user,
+        defaults={
+            "primary_goal": booking.primary_goal,
+            "primary_wellness_goal": booking.primary_wellness_goal,
+            "focuses_area": booking.focuses_area,
+            "diet_preferences": booking.diet_preferences,
+            "lifestyle_activity_level": booking.lifestyle_activity_level,
+            "buckwheat_journey_goal": booking.buckwheat_journey_goal,
+            "message": booking.message,
+            "language": booking.language,
+            "booking": booking,
+            "is_active": True
+        }
+    )
+
+    # 🔥 IF ALREADY EXISTS → UPDATE
+    if not created:
+        client.primary_goal = booking.primary_goal
+        client.primary_wellness_goal = booking.primary_wellness_goal
+        client.focuses_area = booking.focuses_area
+        client.diet_preferences = booking.diet_preferences
+        client.lifestyle_activity_level = booking.lifestyle_activity_level
+        client.buckwheat_journey_goal = booking.buckwheat_journey_goal
+        client.message = booking.message
+        client.language = booking.language
+        client.booking = booking
+        client.is_active = True
+
+        client.save()
+
+    return client

@@ -35,6 +35,19 @@ type CreateBookingResponse = {
   booking_id?: number;
 };
 
+function pad(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function getTodayIsoDate() {
+  const today = new Date();
+  return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+}
+
+function getDefaultBookingTime() {
+  return "09:00 AM";
+}
+
 const experts: Expert[] = [
   { id: "e1", name: "Dr. Sarah Wilson", specialty: "Certified Nutritionist", experience: "8+ years", rating: "4.9" },
   { id: "e2", name: "Dr. Emma Rodriguez", specialty: "Holistic Nutrition Expert", experience: "10+ years", rating: "5.0" },
@@ -56,8 +69,8 @@ const initialFormData: ConsultationFormData = {
   choose_section: "weight_loss",
   primary_goal: "lose fat",
   language: "english",
-  date: "2026-04-20",
-  time: "10:30:00",
+  date: getTodayIsoDate(),
+  time: getDefaultBookingTime(),
   primary_wellness_goal: "fitness",
   focus_area: "belly",
   allergies: "peanuts",
@@ -74,8 +87,8 @@ export default function AddConsaltation() {
   const [selectedGoal, setSelectedGoal] = useState("lose fat");
   const [selectedLanguage, setSelectedLanguage] = useState("english");
   const [creditUsed, setCreditUsed] = useState(false);
-  const [selectedDate, setSelectedDate] = useState("2026-04-20");
-  const [selectedSlot, setSelectedSlot] = useState("10:30:00");
+  const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
+  const [selectedSlot, setSelectedSlot] = useState(getDefaultBookingTime());
   const [healthDetails, setHealthDetails] = useState<HealthDetails>(initialHealthDetails);
   const [formData, setFormData] = useState<ConsultationFormData>(initialFormData);
   const [isAgreed, setIsAgreed] = useState(false);
@@ -255,7 +268,6 @@ export default function AddConsaltation() {
   return (
     <section className="w-full min-h-screen bg-white px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-[1120px] space-y-5">
-
         <header className="rounded-xl  bg-white p-4 lg:p-5">
 
 
