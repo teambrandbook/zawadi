@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/services/api";
 import DietPlanView, {
   type DailyTarget,
   type DietMeal,
@@ -10,101 +11,181 @@ import DietPlanView, {
 } from "./components/DietPlanView";
 import FullDietPlanDetails from "./components/FullDietPlanDetails";
 
-const todaysMeals: DietMeal[] = [
-  {
-    id: "meal-1",
-    type: "Breakfast",
-    time: "7:00 AM",
-    title: "Buckwheat Pancakes with Berries",
-    description: "Fluffy buckwheat pancakes topped with fresh blueberries, honey, and chopped walnuts",
-    macros: "320 calories | 12g protein | 45g carbs | 8g fiber",
-    completed: true,
-    colorClass: "bg-[#22C55E]",
-  },
-  {
-    id: "meal-2",
-    type: "Mid-Morning",
-    time: "10:30 AM",
-    title: "Green Smoothie",
-    description: "Spinach, banana, almond milk, and chia seeds",
-    macros: "180 calories | 4g protein | 28g carbs | 6g fiber",
-    completed: false,
-    colorClass: "bg-[#EAB308]",
-  },
-  {
-    id: "meal-3",
-    type: "Lunch",
-    time: "1:00 PM",
-    title: "Buckwheat Buddha Bowl",
-    description: "Roasted buckwheat, grilled chicken, roasted vegetables, avocado, and tahini dressing",
-    macros: "450 calories | 28g protein | 52g carbs | 10g fiber",
-    completed: false,
-    colorClass: "bg-[#F97316]",
-  },
-  {
-    id: "meal-4",
-    type: "Evening",
-    time: "4:00 PM",
-    title: "Mixed Nuts & Herbal Tea",
-    description: "Almonds, walnuts, and chamomile tea",
-    macros: "180 calories | 6g protein | 8g carbs | 3g fiber",
-    completed: false,
-    colorClass: "bg-[#A855F7]",
-  },
-  {
-    id: "meal-5",
-    type: "Dinner",
-    time: "7:30 PM",
-    title: "Buckwheat Stuffed Peppers",
-    description: "Bell peppers stuffed with buckwheat, mushrooms, herbs, and a side salad",
-    macros: "420 calories | 16g protein | 58g carbs | 12g fiber",
-    completed: false,
-    colorClass: "bg-[#EF4444]",
-  },
-];
-
-const dailyTargets: DailyTarget[] = [
-  { label: "Calories", value: "1350 / 1550", progress: 87, colorClass: "bg-[#A88751]" },
-  { label: "Protein", value: "52g / 68g", progress: 76, colorClass: "bg-[#0A4833]" },
-  { label: "Carbs", value: "165g / 185g", progress: 89, colorClass: "bg-[#A88751]" },
-  { label: "Fiber", value: "28g / 35g", progress: 80, colorClass: "bg-[#22C55E]" },
-  { label: "Water", value: "6 / 8 glasses", progress: 75, colorClass: "bg-[#38BDF8]" },
-];
-
-const weeklySummary: WeeklySummary[] = [
-  { label: "Meals Completed", value: "28/35" },
-  { label: "Adherence Rate", value: "80%" },
-  { label: "Weight Change", value: "-0.8 kg", valueClassName: "font-medium text-[#16A34A]" },
-  { label: "Energy Level", value: "High" },
-];
-
-const nutritionGuidance: NutritionGuidance = {
-  doctorNote: {
-    doctor: "Dr. Sarah Johnson",
-    image: "/recipe/recipe-2.webp",
-    message:
-      "Great progress this week! Your adherence to the buckwheat-based meals is excellent. Remember to drink plenty of water and aim for 7-8 hours of sleep to support your metabolism.",
-  },
-  foodsToEmphasize: [
-    "Buckwheat in various forms",
-    "Lean proteins (fish, chicken)",
-    "Leafy greens and colorful vegetables",
-    "Healthy fats (avocado, nuts)",
-  ],
-  lifestyleTips: ["30 minutes walking daily", "Meal prep on Sundays", "Mindful eating practice", "Stay hydrated (8-10 glasses)"],
+type MealItem = {
+  food_name: string;
+  quantity: string;
+  calories: number;
+  protein_grams: number;
+  carbs_grams: number;
 };
+
+type Meal = {
+  meal_type: string;
+  title: string;
+  time: string;
+  calories: number;
+  notes: string;
+  sort_order: number;
+  items: MealItem[];
+};
+
+type DietPlan = {
+  id: number;
+  title: string;
+  goal: string;
+  status: string;
+  description: string;
+  instructions: string;
+  foods_to_avoid: string;
+  recommended_foods: string;
+  daily_calories: number;
+  protein_grams: number;
+  carbs_grams: number;
+  fats_grams: number;
+  water_intake_liters: number;
+  start_date: string;
+  end_date: string;
+  duration_days: number;
+  consultant_name: string;
+  meals: Meal[];
+};
+
+const MEAL_COLORS: Record<string, string> = {
+  BREAKFAST: "bg-[#22C55E]",
+  MID_MORNING: "bg-[#EAB308]",
+  SNACK: "bg-[#EAB308]",
+  LUNCH: "bg-[#F97316]",
+  EVENING: "bg-[#A855F7]",
+  DINNER: "bg-[#EF4444]",
+};
+
+function formatTime(raw: string): string {
+  if (!raw) return "";
+  const [hStr, mStr] = raw.split(":");
+  const h = parseInt(hStr, 10);
+  const m = mStr ?? "00";
+  const suffix = h >= 12 ? "PM" : "AM";
+  const hour = h % 12 || 12;
+  return `${hour}:${m} ${suffix}`;
+}
+
+function capitalize(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function buildMeals(meals: Meal[]): DietMeal[] {
+  return meals.map((m, i) => {
+    const itemList = m.items?.map((it) => `${it.food_name}${it.quantity ? ` (${it.quantity})` : ""}`).join(", ");
+    const description = m.notes || itemList || "";
+    const protein = m.items?.reduce((s, it) => s + (it.protein_grams || 0), 0);
+    const carbs = m.items?.reduce((s, it) => s + (it.carbs_grams || 0), 0);
+    const macros = [
+      m.calories ? `${m.calories} cal` : "",
+      protein ? `${Math.round(protein)}g protein` : "",
+      carbs ? `${Math.round(carbs)}g carbs` : "",
+    ]
+      .filter(Boolean)
+      .join(" | ");
+    return {
+      id: String(m.sort_order ?? i),
+      type: capitalize(m.meal_type),
+      time: formatTime(m.time),
+      title: m.title,
+      description,
+      macros,
+      completed: false,
+      colorClass: MEAL_COLORS[m.meal_type] ?? "bg-[#64748B]",
+    };
+  });
+}
+
+function buildTargets(plan: DietPlan): DailyTarget[] {
+  return [
+    { label: "Calories", value: plan.daily_calories ? `${plan.daily_calories} kcal` : "—", progress: 0, colorClass: "bg-[#A88751]" },
+    { label: "Protein", value: plan.protein_grams ? `${plan.protein_grams}g` : "—", progress: 0, colorClass: "bg-[#0A4833]" },
+    { label: "Carbs", value: plan.carbs_grams ? `${plan.carbs_grams}g` : "—", progress: 0, colorClass: "bg-[#A88751]" },
+    { label: "Fats", value: plan.fats_grams ? `${plan.fats_grams}g` : "—", progress: 0, colorClass: "bg-[#F97316]" },
+    { label: "Water", value: plan.water_intake_liters ? `${plan.water_intake_liters}L` : "—", progress: 0, colorClass: "bg-[#38BDF8]" },
+  ];
+}
+
+function buildSummary(plan: DietPlan): WeeklySummary[] {
+  return [
+    { label: "Goal", value: plan.goal || "—" },
+    { label: "Status", value: capitalize(plan.status || "active"), valueClassName: "font-medium text-[#16A34A]" },
+    { label: "Duration", value: plan.duration_days ? `${plan.duration_days} days` : "—" },
+    { label: "End Date", value: plan.end_date || "—" },
+  ];
+}
+
+function buildGuidance(plan: DietPlan): NutritionGuidance {
+  const foods = (plan.recommended_foods || "")
+    .split(/[\n,]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return {
+    doctorNote: {
+      doctor: plan.consultant_name || "Your Nutritionist",
+      image: "/recipe/recipe-2.webp",
+      message: plan.instructions || plan.description || "Follow your personalised diet plan for best results.",
+    },
+    foodsToEmphasize: foods.length ? foods : ["Buckwheat in various forms", "Lean proteins", "Leafy greens", "Healthy fats"],
+    lifestyleTips: ["30 minutes of walking daily", "Meal prep on Sundays", "Drink 8–10 glasses of water", "Mindful eating practice"],
+  };
+}
 
 export default function DietPlanPageContent() {
   const router = useRouter();
+  const [plan, setPlan] = useState<DietPlan | null>(null);
+  const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    api
+      .get<DietPlan[] | { results: DietPlan[] }>("/consultant/diet-plans/")
+      .then(({ data }) => {
+        const list = Array.isArray(data) ? data : data.results ?? [];
+        setPlan(list[0] ?? null);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center text-[#6B7280]">
+        Loading your diet plan…
+      </div>
+    );
+  }
+
+  if (!plan) {
+    return (
+      <div className="mx-auto max-w-[1120px] px-4 py-16 text-center lg:px-8">
+        <p className="text-lg font-semibold text-[#0A4833]">No diet plan assigned yet.</p>
+        <p className="mt-2 text-sm text-[#6B7280]">
+          Your nutritionist will create a personalised plan after your consultation.
+        </p>
+        <button
+          onClick={() => router.push("/communityDashBorde/addconsaltation")}
+          className="mt-6 rounded-xl bg-[#0A4833] px-6 py-2 text-sm font-bold text-white hover:bg-[#083627]"
+        >
+          Book a Consultation
+        </button>
+      </div>
+    );
+  }
 
   return (
     <>
       <DietPlanView
-        todaysMeals={todaysMeals}
-        dailyTargets={dailyTargets}
-        weeklySummary={weeklySummary}
-        nutritionGuidance={nutritionGuidance}
+        todaysMeals={buildMeals(plan.meals ?? [])}
+        dailyTargets={buildTargets(plan)}
+        weeklySummary={buildSummary(plan)}
+        nutritionGuidance={buildGuidance(plan)}
         onBookFollowUp={() => router.push("/communityDashBorde/addconsaltation")}
         onDownloadPlan={() => setMessage("Diet plan download requested.")}
         onViewNotes={() => setMessage("Opening nutritionist notes.")}
@@ -119,7 +200,7 @@ export default function DietPlanPageContent() {
             Detailed plan information based on the diet plan creation fields.
           </p>
         </div>
-        <FullDietPlanDetails />
+        <FullDietPlanDetails plan={plan} />
       </section>
 
       {message && (

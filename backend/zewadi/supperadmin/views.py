@@ -2,10 +2,114 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db import OperationalError, ProgrammingError
+from django.db.models import Sum, Count
+from django.db.models.functions import TruncMonth, TruncWeek
+from django.utils import timezone
+from datetime import timedelta
 from accounts.models import User
 from .serializer import UserSerializer, UserUpdateSerializer, RoleSerializer
 from .utils.permissions import has_permission, IsAdminRole
 from .models import Role
+from zewadi.pagination import StandardPagination
+
+
+class AdminReportsAPIView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def get(self, request):
+        from orders.models import Order
+        from consultant.models import ConsultationBooking
+        from events.models import Event, EventRegistration
+        from recipes.models import Recipe
+        from blog.models import Blog
+
+        def safe(fn, default):
+            try:
+                return fn()
+            except (ProgrammingError, OperationalError):
+                return default
+
+        now = timezone.now()
+        six_months_ago = now - timedelta(days=180)
+        four_weeks_ago = now - timedelta(days=28)
+
+        def revenue_trend():
+            qs = (
+                Order.objects.filter(payment_status="paid", created_at__gte=six_months_ago)
+                .annotate(month=TruncMonth("created_at"))
+                .values("month")
+                .annotate(value=Sum("total_amount"))
+                .order_by("month")
+            )
+            return [{"label": row["month"].strftime("%b"), "value": float(row["value"] or 0)} for row in qs]
+
+        def user_growth():
+            qs = (
+                User.objects.filter(date_joined__gte=four_weeks_ago)
+                .annotate(week=TruncWeek("date_joined"))
+                .values("week")
+                .annotate(value=Count("id"))
+                .order_by("week")
+            )
+            result = [{"label": f"Week {i + 1}", "value": row["value"]} for i, row in enumerate(qs)]
+            while len(result) < 4:
+                result.append({"label": f"Week {len(result) + 1}", "value": 0})
+            return result[:4]
+
+        def consultation_analytics():
+            total = ConsultationBooking.objects.count()
+            completed = ConsultationBooking.objects.filter(status="completed").count()
+            cancelled = ConsultationBooking.objects.filter(status="cancelled").count()
+            rate = round((completed / total * 100), 1) if total else 0
+            return {"total": total, "completed": completed, "cancelled": cancelled, "completion_rate": rate}
+
+        def events_analytics():
+            total = Event.objects.count()
+            registrations = EventRegistration.objects.count()
+            avg = round(registrations / total, 1) if total else 0
+            return {"total": total, "registrations": registrations, "avg_per_event": avg}
+
+        def content_analytics():
+            recipes = Recipe.objects.count()
+            published_recipes = Recipe.objects.filter(status="PUBLISHED").count()
+            blogs = Blog.objects.count()
+            published_blogs = Blog.objects.filter(status="PUBLISHED").count()
+            total = recipes + blogs
+            published = published_recipes + published_blogs
+            approval_rate = round((published / total * 100), 1) if total else 0
+            return {
+                "recipes": recipes,
+                "blogs": blogs,
+                "approval_rate": approval_rate,
+                "recipes_published_pct": round((published_recipes / recipes * 100), 0) if recipes else 0,
+            }
+
+        def report_rows():
+            orders_count = Order.objects.count()
+            total_rev = float(
+                Order.objects.filter(payment_status="paid").aggregate(t=Sum("total_amount"))["t"] or 0
+            )
+            date_str = now.strftime("%b %d, %Y")
+            return [
+                {"id": "revenue", "report_type": "Revenue Report", "date_range": "All Time",
+                 "records": str(orders_count), "total": total_rev, "status": "Ready", "updated_at": date_str},
+                {"id": "users", "report_type": "User Analytics", "date_range": "All Time",
+                 "records": str(User.objects.count()), "status": "Ready", "updated_at": date_str},
+                {"id": "content", "report_type": "Content Performance", "date_range": "All Time",
+                 "records": str(Recipe.objects.count() + Blog.objects.count()),
+                 "status": "Ready", "updated_at": date_str},
+            ]
+
+        return Response({
+            "revenue_trend": safe(revenue_trend, []),
+            "user_growth": safe(user_growth, [{"label": f"Week {i+1}", "value": 0} for i in range(4)]),
+            "analytics": {
+                "consultations": safe(consultation_analytics, {"total": 0, "completed": 0, "cancelled": 0, "completion_rate": 0}),
+                "events": safe(events_analytics, {"total": 0, "registrations": 0, "avg_per_event": 0}),
+                "content": safe(content_analytics, {"recipes": 0, "blogs": 0, "approval_rate": 0, "recipes_published_pct": 0}),
+            },
+            "report_rows": safe(report_rows, []),
+        }, status=status.HTTP_200_OK)
 
 
 class AdminStatsAPIView(APIView):
@@ -56,8 +160,11 @@ class UserListAPIView(APIView):
             )
 
         users = User.objects.all()
-        serializer = UserSerializer(users, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(users, request)
+        if page is not None:
+            return paginator.get_paginated_response(UserSerializer(page, many=True).data)
+        return Response(UserSerializer(users, many=True).data, status=status.HTTP_200_OK)
 
 
 class UserDetailAPIView(APIView):

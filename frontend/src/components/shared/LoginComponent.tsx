@@ -5,6 +5,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/redux/store";
+import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
 
 export default function LoginComponent() {
@@ -13,29 +16,33 @@ export default function LoginComponent() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  try {
-    const res = await api.post("/account/login/", { email, password });
+    try {
+      const res = await api.post("/account/login/", { email, password });
+      const data = res.data.data;
 
-    const data = res.data.data;
+      dispatch(setCredentials({
+        userId: data.user_id,
+        role: data.role,
+        email: data.email,
+      }));
 
-    // ✅ redirect only
-    if (data.role === "admin") {
-      router.push("/admindashboard");
-    } else if (data.role === "consultant") {
-      router.push("/consultant");
-    } else {
-      router.push("/communityDashBorde");
+      if (data.role === "admin") {
+        router.push("/admindashboard");
+      } else if (data.role === "consultant") {
+        router.push("/consultant");
+      } else {
+        router.push("/communityDashBorde");
+      }
+    } catch (error: unknown) {
+      console.log("Login error:", error);
+      toast.error("Login failed. Please check your credentials.");
     }
-
-  } catch (error: unknown) {
-    console.log("Login error:", error);
-    toast.error("Login failed. Please check your credentials.");
-  }
-};
+  };
 
   return (
     <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 sm:px-6 lg:px-8">
