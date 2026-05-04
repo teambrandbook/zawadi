@@ -4,6 +4,7 @@ from .views import (
     ConsultantListView,
     ConsultantDetailView,
     ConsultantSettingsView,
+    ConsultantProfileView,
     ConsultationBookingCreateView,
     ConsultationBookingListView,
     AdminConsultationListView,
@@ -18,6 +19,7 @@ from .views import (
 urlpatterns = [
     path("consultants/", ConsultantListView.as_view()),
     path("consultants/<int:pk>/", ConsultantDetailView.as_view()),
+    path("profile/", ConsultantProfileView.as_view()),
     path("book/", ConsultationBookingCreateView.as_view()),
     path("bookings/", ConsultationBookingListView.as_view()),
     path("diet-plans/create/", DietPlanCreateView.as_view()),

@@ -56,6 +56,30 @@ class ConsultantDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+class ConsultantProfileView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        serializer = ConsultantProfileSerializer(request.user.consultant)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request):
+        serializer = ConsultantProfileSerializer(
+            request.user.consultant,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"message": "Profile updated successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
+
+    def patch(self, request):
+        return self.put(request)
+
+
 class ConsultationBookingCreateView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -143,6 +167,13 @@ class DietPlanCreateView(APIView):
 
 class SaveAvailabilityView(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        availability = Availability.objects.filter(
+            consultant=request.user.consultant
+        ).order_by("day", "start_time")
+        serializer = AvailabilitySerializer(availability, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def post(self, request):
