@@ -9,15 +9,8 @@ import ReportsHeader from "./components/ReportsHeader";
 import ReportsKpiGrid from "./components/ReportsKpiGrid";
 import RevenueTrendCard from "./components/RevenueTrendCard";
 import UserGrowthCard from "./components/UserGrowthCard";
-import {
-  analyticsCards,
-  filterOptions,
-  kpiCards as defaultKpiCards,
-  reportRows,
-  revenueTrendData,
-  userGrowthData,
-} from "./reportsMockData";
-import type { KpiCard } from "./types";
+import { filterOptions, kpiCards as defaultKpiCards } from "./reportsMockData";
+import type { AnalyticsCard, KpiCard, Point, ReportRow } from "./types";
 
 type StatsData = {
   total_users?: number;
@@ -26,6 +19,17 @@ type StatsData = {
   total_events?: number;
   total_consultations?: number;
   total_revenue?: number;
+};
+
+type ReportsData = {
+  revenue_trend: Point[];
+  user_growth: Point[];
+  analytics: {
+    consultations: { total: number; completed: number; cancelled: number; completion_rate: number };
+    events: { total: number; registrations: number; avg_per_event: number };
+    content: { recipes: number; blogs: number; approval_rate: number; recipes_published_pct: number };
+  };
+  report_rows: ReportRow[];
 };
 
 function buildKpiCards(stats: StatsData): KpiCard[] {
@@ -61,23 +65,70 @@ function buildKpiCards(stats: StatsData): KpiCard[] {
   ];
 }
 
+function buildAnalyticsCards(reports: ReportsData): AnalyticsCard[] {
+  const { consultations, events, content } = reports.analytics;
+  return [
+    {
+      id: "consultation",
+      title: "Consultation Analytics",
+      rows: [
+        { label: "Total Consultations", value: String(consultations.total) },
+        { label: "Completed", value: String(consultations.completed), tone: "green" },
+        { label: "Cancelled", value: String(consultations.cancelled), tone: "orange" },
+        { label: "Completion Rate", value: `${consultations.completion_rate}%` },
+      ],
+    },
+    {
+      id: "events",
+      title: "Events Analytics",
+      rows: [
+        { label: "Total Events", value: String(events.total) },
+        { label: "Registrations", value: String(events.registrations), tone: "blue" },
+        { label: "Avg. per Event", value: String(events.avg_per_event) },
+      ],
+    },
+    {
+      id: "content",
+      title: "Content Analytics",
+      rows: [
+        { label: "Recipes", value: String(content.recipes) },
+        { label: "Blogs", value: String(content.blogs) },
+        { label: "Approval Rate", value: `${content.approval_rate}%`, tone: "green" },
+      ],
+      progress: { label: "Recipes Published", value: content.recipes_published_pct, tone: "green" },
+    },
+  ];
+}
+
 export default function ReportsAnalyticsPage() {
   const [stats, setStats] = useState<StatsData>({});
+  const [reports, setReports] = useState<ReportsData | null>(null);
   const [statsError, setStatsError] = useState(false);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAll = async () => {
       try {
-        const res = await api.get("/supperadmin/stats/");
-        setStats(res.data ?? {});
+        const [statsRes, reportsRes] = await Promise.all([
+          api.get("/supperadmin/stats/"),
+          api.get("/supperadmin/reports/"),
+        ]);
+        setStats(statsRes.data ?? {});
+        setReports(reportsRes.data ?? null);
       } catch {
         setStatsError(true);
       }
     };
-    fetchStats();
+    fetchAll();
   }, []);
 
   const kpiCards = useMemo(() => buildKpiCards(stats), [stats]);
+  const analyticsCards = useMemo(
+    () => (reports ? buildAnalyticsCards(reports) : []),
+    [reports]
+  );
+  const revenueTrendData: Point[] = reports?.revenue_trend ?? [];
+  const userGrowthData: Point[] = reports?.user_growth ?? [];
+  const reportRows: ReportRow[] = reports?.report_rows ?? [];
 
   return (
     <section className="w-full bg-white px-4 py-6 lg:px-6">
@@ -94,13 +145,11 @@ export default function ReportsAnalyticsPage() {
         <ReportsKpiGrid cards={kpiCards} />
 
         <div className="grid gap-3 xl:grid-cols-2">
-          {/* TODO: needs dedicated time-series analytics endpoint for chart data */}
           <RevenueTrendCard data={revenueTrendData} />
           <UserGrowthCard data={userGrowthData} />
         </div>
 
         <AnalyticsCardsGrid cards={analyticsCards} />
-        {/* TODO: needs dedicated reports endpoint for tabular report rows */}
         <DetailedReportsTable rows={reportRows} />
       </div>
     </section>

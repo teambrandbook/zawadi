@@ -11,6 +11,7 @@ from .serializers import (
     OrderStatusUpdateSerializer,
     OrderReviewSerializer,
 )
+from zewadi.pagination import StandardPagination
 
 
 class IsAdminUser(BasePermission):
@@ -44,8 +45,11 @@ class OrderListView(APIView):
 
     def get(self, request):
         orders = Order.objects.filter(user=request.user)
-        serializer = OrderListSerializer(orders, many=True)
-        return Response(serializer.data)
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(orders, request)
+        if page is not None:
+            return paginator.get_paginated_response(OrderListSerializer(page, many=True).data)
+        return Response(OrderListSerializer(orders, many=True).data)
 
 
 class OrderDetailView(APIView):
@@ -129,8 +133,11 @@ class AdminOrderListView(APIView):
         status_filter = request.query_params.get("status")
         if status_filter:
             queryset = queryset.filter(status=status_filter)
-        serializer = OrderListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            return paginator.get_paginated_response(OrderListSerializer(page, many=True).data)
+        return Response(OrderListSerializer(queryset, many=True).data)
 
 
 class AdminOrderStatusUpdateView(APIView):

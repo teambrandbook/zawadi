@@ -7,6 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import Product, ProductVariant
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
 from supperadmin.utils.permissions import has_permission
+from zewadi.pagination import StandardPagination
 
 
 def _is_community_user(user):
@@ -37,6 +38,11 @@ class ProductListCreateView(APIView):
             )
 
         products = Product.objects.prefetch_related("variants").all()
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(products, request)
+        if page is not None:
+            serializer = ProductSerializer(page, many=True, context={"request": request})
+            return paginator.get_paginated_response(serializer.data)
         serializer = ProductSerializer(products, many=True, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
