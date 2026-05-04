@@ -27,12 +27,17 @@ export default function LoginComponent() {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
       const role = normalizeRole(data.role);
+      const accessToken = res.data.access;
 
       dispatch(setCredentials({
         userId: data.user_id,
         role,
         email: data.email,
       }));
+
+      if (accessToken) {
+        document.cookie = `access_token=${encodeURIComponent(accessToken)}; path=/; max-age=${30 * 60}; SameSite=Lax`;
+      }
 
       if (role === "admin") {
         router.push("/admindashboard");
