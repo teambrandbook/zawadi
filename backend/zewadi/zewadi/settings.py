@@ -131,6 +131,8 @@ REST_FRAMEWORK = {
         "login": "5/minute",
         "register": "10/hour",
     },
+    "DEFAULT_PAGINATION_CLASS": "zewadi.pagination.StandardPagination",
+    "PAGE_SIZE": 20,
 }
 
 from datetime import timedelta
