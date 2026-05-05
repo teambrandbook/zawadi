@@ -1,19 +1,20 @@
-import Navbar from "@/components/community/Navbar";
-import Footer from "@/components/shared/Footer";
-import Hero from "@/components/events/Hero";
-import StoryCheckerboard from "@/components/events/StoryCheckerboard";
-import UpcomingEvents from "@/components/events/UpcomingEvents";
-import Testimonials from "@/components/shared/Testimonials";
+import { Metadata } from "next";
+import EventsExperiencePage from "@/components/events/EventsExperiencePage";
+import Navbar from "@/components/common/Navbar";
+import Footer from "@/components/common/Footer";
+
+export const metadata: Metadata = {
+  title: "Zewadi Events | Join our community",
+  description:
+    "Zewadi events are spaces where people come together, connect, and try something new.",
+};
 
 export default function EventsPage() {
-    return (
-        <main className="flex flex-col min-h-screen bg-white">
-            <Navbar />
-            <Hero />
-            <StoryCheckerboard />
-            <UpcomingEvents />
-            <Testimonials />
-            <Footer />
-        </main>
-    );
+  return (
+    <div>
+      <Navbar/>
+      <EventsExperiencePage />
+      <Footer/>
+    </div>
+  );
 }

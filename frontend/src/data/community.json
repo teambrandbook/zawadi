@@ -1,0 +1,123 @@
+{
+  "hero": {
+    "title": "You Belong In",
+    "titleAccent": "Zewadi",
+    "description": "It's about people who care about their health, their routines, and the impact of what they consume.",
+    "ctaText": "Learn More"
+  },
+  "statsSection": {
+    "largeImage": "/community/com-1.webp",
+    "card": {
+      "title": "Zewadi Community",
+      "description": "The Zewadi community is rooted in simple, meaningful choices choosing better ingredients, better habits, and a better way of living.",
+      "ctaText": "Join the Community",
+      "image": "/community/com-2.webp"
+    },
+    "stats": [
+      {
+        "label": "Community Members",
+        "value": "10k+"
+      },
+      {
+        "label": "Events Hosted",
+        "value": "20+"
+      },
+      {
+        "label": "Consultants",
+        "value": "15+"
+      },
+      {
+        "label": "Healthy Products",
+        "value": "100+"
+      }
+    ]
+  },
+  "gridSection": {
+    "footerText": "Zewadi goes beyond what we make. It's about everyone who shows up and wants to be part of it—a growing community figuring out how to live a little better, in their own way.",
+    "items": [
+      {
+        "type": "image",
+        "src": "/community/grid-1.webp"
+      },
+      {
+        "type": "text",
+        "title": "More Than Just Food",
+        "description": "From everyday meals to mindful routines, Zewadi becomes a part of your life in ways that go beyond the plate."
+      },
+      {
+        "type": "image",
+        "src": "/community/grid-2.webp"
+      },
+      {
+        "type": "text",
+        "title": "Growing, Inspiring, Evolving",
+        "description": "Together, we are building a space that inspires healthier living - one choice, one habit, one person at a time."
+      },
+      {
+        "type": "image",
+        "src": "/community/grid-3.webp"
+      },
+      {
+        "type": "text",
+        "title": "Built on Shared Values",
+        "description": "The Zewadi community is rooted in simple, meaningful choices choosing better ingredients, better habits, and a better way of living."
+      }
+    ]
+  },
+  "overviewSection": {
+    "title": "Growing Better, Together.",
+    "subtitle": "OVERVIEW",
+    "image": "/community/com-3.webp",
+    "cards": [
+      {
+        "id": "01",
+        "title": "Shared Values",
+        "description": "No one's perfect—we're all just finding what works.",
+        "icon": "Diamond"
+      },
+      {
+        "id": "02",
+        "title": "Strong Together",
+        "description": "Everything feels lighter when we're doing it together.",
+        "icon": "Users"
+      },
+      {
+        "id": "03",
+        "title": "Everyday Inspiration",
+        "description": "Small, everyday changes build up over time.",
+        "icon": "Lightbulb"
+      }
+    ]
+  },
+  "valuesGridSection": {
+    "title": "Rooted by Values,\nDriven in\npurpose",
+    "backgroundImage": "/community/com-value.webp",
+    "cards": [
+      {
+        "title": "Wellness First",
+        "description": "Not a passing trend this is all about a better way to live.",
+        "icon": "Heart"
+      },
+      {
+        "title": "Moments That Matter",
+        "description": "The little things tend to stick with us.",
+        "icon": "Clock"
+      },
+      {
+        "title": "Inclusive & Evolving",
+        "description": "We learn as we go, and that's part of the journey.",
+        "icon": "Leaf"
+      },
+      {
+        "title": "Beyond the Product",
+        "description": "It's truly about how you live, not just what's in your cart.",
+        "icon": "LayoutGrid"
+      },
+      {
+        "title": "Everyday Inspiration",
+        "description": "Small, everyday changes build up over time.",
+        "icon": "Layers"
+      }
+    ]
+  }
+}

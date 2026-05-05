@@ -1,0 +1,43 @@
+{
+  "hero": {
+    "badge": "Welcome to the future of design",
+    "titleMain": "Build Faster",
+    "titleSecondary": "Experience",
+    "titleSecondaryGradient": "Premium",
+    "description": "Create stunning, high-performance websites with our cutting-edge framework. Elevate your digital presence with zero compromise on speed or style.",
+    "ctaPrimary": "Start Building",
+    "ctaSecondary": "View Components"
+  },
+  "features": {
+    "title": "Powerful Features for Modern Teams",
+    "description": "Everything you need to build, deploy, and scale your digital experiences with confidence and ease.",
+    "items": [
+      {
+        "title": "Blazing Fast",
+        "description": "Optimized for speed with Next.js and static site generation.",
+        "icon": "Zap"
+      },
+      {
+        "title": "Secure by Design",
+        "description": "Built-in security features to keep your data safe and sound.",
+        "icon": "Shield"
+      },
+      {
+        "title": "Fully Responsive",
+        "description": "Looks great on every device, from mobile to ultra-wide monitors.",
+        "icon": "Smartphone"
+      },
+      {
+        "title": "Next-Gen Tech",
+        "description": "Utilizing the latest versions of React, TypeScript, and Tailwind CSS.",
+        "icon": "Cpu"
+      }
+    ]
+  },
+  "ctaSection": {
+    "title": "Ready to transform your \ndigital presence?",
+    "description": "Join thousands of developers and designers building the future with Zewadi.",
+    "primaryBtn": "Get Started Now",
+    "secondaryBtn": "Contact Sales"
+  }
+}
