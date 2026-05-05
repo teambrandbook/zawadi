@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
+import uuid
 
 from accounts.models import User
 
@@ -40,6 +42,7 @@ class BlogTag(models.Model):
 class Blog(models.Model):
     # Basic information
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=240, unique=True, blank=True)
     short_excerpt = models.CharField(max_length=255)
     category = models.CharField(max_length=30, choices=BlogCategory.choices, default=BlogCategory.OTHER)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blogs")
@@ -72,3 +75,9 @@ class Blog(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)[:200] or "blog"
+            self.slug = f"{base}-{str(uuid.uuid4())[:8]}"
+        super().save(*args, **kwargs)

@@ -9,8 +9,8 @@ from .views import (
 
 urlpatterns = [
     path("", BlogListView.as_view()),
-    path("<int:pk>/", BlogDetailView.as_view()),
     path("create/", BlogCreateView.as_view()),
     path("admin/", AdminBlogListView.as_view()),
     path("admin/<int:pk>/status/", AdminBlogStatusUpdateView.as_view()),
+    path("<slug:slug>/", BlogDetailView.as_view()),
 ]

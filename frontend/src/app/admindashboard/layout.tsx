@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, ReactNode } from "react";
-import { Toaster } from "sonner";
 import AdminDashboardSidebar from "@/components/admindashboard/shared/AdminDashboardSidebar";
 import Navbar from "@/components/communityUsers/commen/Navbar";
+import AuthGuard from "@/components/shared/AuthGuard";
 
 type Props = {
   children: ReactNode;
@@ -13,9 +13,8 @@ export default function AdminLayout({ children }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
+    <AuthGuard allowedRoles={["admin"]}>
     <div className="min-h-screen">
-      <Toaster position="top-right" richColors closeButton />
-
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full h-16 z-50 bg-white shadow">
         <Navbar onMenuClick={() => setIsOpen(true)} settingsHref="/admindashboard/settings" />
@@ -53,5 +52,6 @@ export default function AdminLayout({ children }: Props) {
         {children}
       </div>
     </div>
+    </AuthGuard>
   );
 }

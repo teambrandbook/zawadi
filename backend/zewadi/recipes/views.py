@@ -44,7 +44,7 @@ class RecipeListView(generics.ListAPIView):
                 return Recipe.objects.none()
             qs = Recipe.objects.filter(author=request.user)
         else:
-            qs = Recipe.objects.filter(status=RecipeStatus.PUBLISHED)
+            qs = Recipe.objects.filter(status=RecipeStatus.PUBLISHED, show_in_community=True)
 
         category = params.get("category")
         if category:
@@ -59,17 +59,19 @@ class RecipeListView(generics.ListAPIView):
 
 class RecipeDetailView(generics.RetrieveAPIView):
     """
-    GET /api/recipes/<pk>/
+    GET /api/recipes/<slug>/
     Returns a single recipe. Non-admin users can only see published recipes.
     """
     serializer_class = RecipeDetailSerializer
     permission_classes = [AllowAny]
+    lookup_field = "slug"
+    lookup_url_kwarg = "slug"
 
     def get_queryset(self):
         user = self.request.user
         if user.is_authenticated and getattr(user, "role", None) == "ADMIN":
             return Recipe.objects.all()
-        return Recipe.objects.filter(status=RecipeStatus.PUBLISHED)
+        return Recipe.objects.filter(status=RecipeStatus.PUBLISHED, show_in_community=True)
 
 
 class RecipeCreateView(generics.CreateAPIView):

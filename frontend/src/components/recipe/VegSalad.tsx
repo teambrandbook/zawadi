@@ -24,7 +24,7 @@ export default function VegSalad() {
 
             {/* Description */}
             <p className="font-mulish text-[#555] text-base leading-relaxed mb-3">
-              Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it's a delicious option for breakfast or a healthy snack.
+              Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it&apos;s a delicious option for breakfast or a healthy snack.
             </p>
 
             {/* Benefits */}

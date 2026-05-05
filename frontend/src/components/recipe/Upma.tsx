@@ -25,7 +25,7 @@ export default function Upma() {
 
                         {/* Description */}
                         <p className="font-mulish text-[#555] text-base leading-relaxed mb-3">
-                            Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it's a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.
+                            Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it&apos;s a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.
                         </p>
 
                         {/* Benefits */}

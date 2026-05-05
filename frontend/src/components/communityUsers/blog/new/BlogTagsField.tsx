@@ -1,11 +1,19 @@
 const suggestedTags = ["Healthy Living", "Weight Management", "Buckwheat Meals", "Morning Routine", "Energy Boost"];
 
-export default function BlogTagsField() {
+export default function BlogTagsField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <section className="rounded-lg border border-[#DFDFDF] bg-white p-5">
       <h2 className="text-lg font-bold text-[#06402B]">Tags</h2>
       <input
         type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
         placeholder="Add tags separated by commas..."
         className="mt-4 h-12 w-full rounded-md border border-[#E5E7EB] px-4 text-sm text-[#111827] outline-none focus:border-[#06402B]"
       />

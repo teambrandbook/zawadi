@@ -3,12 +3,19 @@ import { DateField, Field, SelectField, TextAreaField, TimeField } from "./Creat
 
 type FormData = {
   title: string;
-  category: string;
+  short_description: string;
+  full_description: string;
   event_type: string;
-  description: string;
   start_date: string;
+  start_time: string;
   end_date: string;
+  end_time: string;
+  is_online: boolean;
+  location: string;
+  meeting_link: string;
   max_attendees: string;
+  status: string;
+  show_in_community: boolean;
 };
 
 type Props = {
@@ -16,13 +23,23 @@ type Props = {
   onChange: (data: FormData) => void;
 };
 
-const eventTypes = ["Online", "Offline"];
+const eventTypes = [
+  { label: "Webinar", value: "webinar" },
+  { label: "Workshop", value: "workshop" },
+  { label: "Seminar", value: "seminar" },
+  { label: "Community Meetup", value: "community" },
+  { label: "Other", value: "other" },
+];
 const hostTypes = ["Individual", "Organization"];
 const timezones = ["UTC", "GMT", "EST", "IST"];
 
 export default function CreateEventFormSections({ formData, onChange }: Props) {
   function set(field: keyof FormData) {
     return (v: string) => onChange({ ...formData, [field]: v });
+  }
+
+  function setBoolean(field: "is_online" | "show_in_community") {
+    return (checked: boolean) => onChange({ ...formData, [field]: checked });
   }
 
   return (
@@ -32,8 +49,8 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <Field label="Event Title" className="md:col-span-2" value={formData.title} onValueChange={set("title")} />
           <Field label="Start Date" className="md:col-span-2" value={formData.start_date} onValueChange={set("start_date")} />
-          <SelectField label="Event Category" value={formData.category} options={["Nutrition Session", "Community Meetup"]} onValueChange={set("category")} />
           <SelectField label="Event Type" value={formData.event_type} options={eventTypes} onValueChange={set("event_type")} />
+          <SelectField label="Publish Status" value={formData.status} options={[{ label: "Published", value: "published" }, { label: "Draft", value: "draft" }]} onValueChange={set("status")} />
           <Field label="Institutional Name" value="" onValueChange={() => {}} />
           <SelectField label="Host Type" value="Direct" options={hostTypes} onValueChange={() => {}} />
         </div>
@@ -58,8 +75,8 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Event Description</h2>
         <div className="mt-3 space-y-3">
-          <TextAreaField label="Short Description" rows={3} value={formData.description} onValueChange={set("description")} />
-          <TextAreaField label="Full Event Description" rows={4} value="" onValueChange={() => {}} />
+          <TextAreaField label="Short Description" rows={3} value={formData.short_description} onValueChange={set("short_description")} />
+          <TextAreaField label="Full Event Description" rows={4} value={formData.full_description} onValueChange={set("full_description")} />
           <TextAreaField label="Event Agenda Highlights" rows={3} value="" onValueChange={() => {}} />
         </div>
       </article>
@@ -68,16 +85,28 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
         <h2 className="text-sm font-semibold text-[#0A4833]">Date &amp; Time Scheduling</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-3">
           <DateField label="Event Date" value={formData.start_date} onValueChange={set("start_date")} />
-          <TimeField label="Start Time" value="" onValueChange={() => {}} />
-          <TimeField label="End Time" value="" onValueChange={() => {}} />
+          <TimeField label="Start Time" value={formData.start_time} onValueChange={set("start_time")} />
+          <TimeField label="End Time" value={formData.end_time} onValueChange={set("end_time")} />
           <SelectField label="Timezone" value="UTC" options={timezones} onValueChange={() => {}} />
-          <DateField label="Registration Deadline" value={formData.end_date} onValueChange={set("end_date")} />
+          <DateField label="End Date" value={formData.end_date} onValueChange={set("end_date")} />
           <div className="flex items-end">
             <label className="inline-flex items-center gap-2 text-xs text-[#6B7280]">
-              <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
-              Repeat Event
+              <input type="checkbox" checked={formData.show_in_community} onChange={(event) => setBoolean("show_in_community")(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+              Show in Community
             </label>
           </div>
+        </div>
+      </article>
+
+      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+        <h2 className="text-sm font-semibold text-[#0A4833]">Venue &amp; Access</h2>
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          <label className="flex items-center gap-2 pt-6 text-xs text-[#0A4833]">
+            <input type="checkbox" checked={formData.is_online} onChange={(event) => setBoolean("is_online")(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+            Online event
+          </label>
+          <Field label="Location" value={formData.location} onValueChange={set("location")} />
+          <Field label="Meeting Link" className="md:col-span-2" value={formData.meeting_link} onValueChange={set("meeting_link")} />
         </div>
       </article>
 

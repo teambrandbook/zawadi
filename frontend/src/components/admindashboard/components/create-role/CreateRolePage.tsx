@@ -7,6 +7,14 @@ import PermissionsMatrixCard from "./components/PermissionsMatrixCard";
 import { toast } from "sonner";
 import api, { getAccessToken } from "@/services/api";
 
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
 const defaultPermissions = [
   { module: "Users",         can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
   { module: "Orders",        can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
@@ -78,8 +86,9 @@ export default function CreateRolePage() {
 
       toast.success("Role created successfully.");
 
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Something went wrong!");
+    } catch (err: unknown) {
+      const apiError = err as ApiError;
+      setError(apiError.response?.data?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }

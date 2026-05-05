@@ -18,6 +18,7 @@ export default function AddProductPage() {
     product_code: "",
     category: "",
     product_status: "draft",
+    image: null as File | null,
     short_description: "",
     full_description: "",
     key_ingredients: "",
@@ -48,6 +49,7 @@ export default function AddProductPage() {
     fd.append("stock_status", formData.stock_status);
     fd.append("currency", formData.currency);
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
+    if (formData.image) fd.append("image", formData.image);
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());

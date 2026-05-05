@@ -37,7 +37,7 @@ class ProductListCreateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        products = Product.objects.prefetch_related("variants").all()
+        products = Product.objects.prefetch_related("variants").order_by("id")
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:

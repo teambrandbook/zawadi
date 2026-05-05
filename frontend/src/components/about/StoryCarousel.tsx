@@ -5,6 +5,10 @@ import Image from "next/image";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
+type MatchMediaConditions = {
+    sm?: boolean;
+};
+
 const slides = [
     {
         id: 1,
@@ -63,9 +67,7 @@ export default function StoryCarousel() {
             sm: "(max-width: 767px)",
             md: "(min-width: 768px)",
         }, (context) => {
-            const { sm } = context.conditions as any;
-            const spreadX = sm ? 30 : 38;
-            const baseScale = sm ? 0.8 : 0.75;
+            const { sm } = context.conditions as MatchMediaConditions;
 
             setIsAnimating(true);
 

@@ -5,6 +5,11 @@ import { useRef, useState } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 
+type MatchMediaConditions = {
+  sm?: boolean;
+  md?: boolean;
+};
+
 const products = [
   {
     id: 1,
@@ -62,7 +67,7 @@ export default function Product() {
       md: "(min-width: 768px) and (max-width: 1023px)",
       lg: "(min-width: 1024px)",
     }, (context) => {
-      const { sm, md } = context.conditions as any;
+      const { sm, md } = context.conditions as MatchMediaConditions;
 
       const spreadX = sm ? 32 : md ? 42 : 48; // Calibrated for responsive fanning
       const baseScale = sm ? 0.75 : 0.8;

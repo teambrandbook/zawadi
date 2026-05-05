@@ -63,6 +63,21 @@ class ConsultantDetailSerializer(serializers.ModelSerializer):
         return obj.bookings.count()
 
 
+class ConsultantClientSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            "id",
+            "user_id",
+            "email",
+            "full_name",
+            "phone",
+            "date_of_birth",
+            "gender",
+            "location",
+        ]
+
+
 class ConsultationBookingListSerializer(serializers.ModelSerializer):
     consultant_name = serializers.SerializerMethodField()
 

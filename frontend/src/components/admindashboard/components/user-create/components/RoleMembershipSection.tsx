@@ -1,4 +1,5 @@
 import CreateUserSection from "./CreateUserSection";
+import type { FormType } from "../UserCreatePage";
 
 type Role = {
   access_level: string;
@@ -10,18 +11,32 @@ type Props = {
   role: string;
   role_obj: number | null;
   roles: Role[];
-  setForm: React.Dispatch<React.SetStateAction<any>>;
+  setForm: React.Dispatch<React.SetStateAction<FormType>>;
 };
 
-const staticRoles = [
+type RoleOption =
+  | {
+      type: "static";
+      id: null;
+      roleKey: string;
+      title: string;
+      desc: string;
+    }
+  | {
+      type: "dynamic";
+      id: number;
+      roleKey: string;
+      title: string;
+      desc: string;
+    };
+
+const staticRoles: Omit<Extract<RoleOption, { type: "static" }>, "type" | "id">[] = [
   {
-    key: "admin",
     title: "Admin",
     desc: "Full access with consultations & events",
     roleKey: "ADMIN",
   },
   {
-    key: "user",
     title: "User",
     desc: "Community users",
     roleKey: "COMMUNITY_USER",
@@ -36,16 +51,16 @@ export default function RoleMembershipSection({
 }: Props) {
 
   // 🔹 Merge static + dynamic roles
-  const allRoles = [
+  const allRoles: RoleOption[] = [
     ...staticRoles.map((item) => ({
-      type: "static",
+      type: "static" as const,
       id: null,
       roleKey: item.roleKey,
       title: item.title,
       desc: item.desc,
     })),
     ...roles.map((item) => ({
-      type: "dynamic",
+      type: "dynamic" as const,
       id: item.id,
       roleKey: item.role_name,
       title: item.role_name,
@@ -54,15 +69,15 @@ export default function RoleMembershipSection({
   ];
 
   // 🔹 Single handler
-  const handleSelect = (item: any) => {
+  const handleSelect = (item: RoleOption) => {
     if (item.type === "static") {
-      setForm((prev: any) => ({
+      setForm((prev) => ({
         ...prev,
         role: item.roleKey,
         role_obj: null,
       }));
     } else {
-      setForm((prev: any) => ({
+      setForm((prev) => ({
         ...prev,
         role: "INTERNAL_STAFF",
         role_obj: item.id,

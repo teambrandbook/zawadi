@@ -1,12 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { recipyButtonAnimation, stackScroll } from "../../../lib/animations";
-import { recipes } from "../../../lib/datafile";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import api from "@/services/api";
 
 
 export default function Recipys() {
+  const [recipes, setRecipes] = useState([]);
+
   useEffect(() => {
 
     // ✅ Always run button animation
@@ -23,6 +25,18 @@ export default function Recipys() {
 
   }, []);
 
+  useEffect(() => {
+    api
+      .get("/recipes/")
+      .then(({ data }) => {
+        const list = Array.isArray(data) ? data : (data.results ?? []);
+        setRecipes(list);
+      })
+      .catch(() => setRecipes([]));
+  }, []);
+
+  if (recipes.length === 0) return null;
+
   return (
     <>
       {recipes.map((recipe, i) => (
@@ -33,7 +47,7 @@ export default function Recipys() {
               {/* Image */}
               <div className={` ${i === 0 ? "img" : ""} relative aspect-square w-full md:h-150 overflow-hidden rounded-md`}>
                 <Image
-                  src={recipe.image}
+                  src={recipe.cover_image || "/recipe/recipe-2.webp"}
                   alt={recipe.title}
                   fill
                   className=" object-cover"
@@ -47,20 +61,20 @@ export default function Recipys() {
                 </h1>
 
                 <p className="font-sans text-[#555] text-base leading-relaxed mb-2">
-                  {recipe.description}
+                  {recipe.short_description}
                 </p>
 
                 {/* Benefits */}
-                <div className="mb-1">
+                {recipe.health_benefits ? <div className="mb-1">
                   <h3 className="font-display text-base font-light text-black mb-2">
                     Benefits
                   </h3>
                   <ul className="list-disc list-outside ml-5 space-y-1 font-sans text-[#555] text-sm md:text-base leading-[1.3]">
-                    {recipe.benefits.map((item, idx) => (
+                    {recipe.health_benefits.split(/\n|,/).filter(Boolean).slice(0, 4).map((item, idx) => (
                       <li key={idx}>{item}</li>
                     ))}
                   </ul>
-                </div>
+                </div> : null}
 
                 {/* Buttons */}
                 <div className="recipe-btn-wrap mt-1 flex items-center gap-6">

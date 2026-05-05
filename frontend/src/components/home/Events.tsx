@@ -10,7 +10,19 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-const eventItems = [
+type MatchMediaConditions = {
+    isDesktop?: boolean;
+    isTablet?: boolean;
+};
+
+type EventItem = {
+    id: number;
+    title: string;
+    desc: string;
+    image: string;
+};
+
+const eventItems: EventItem[] = [
     {
         id: 1,
         title: "Thoughtful Choices",
@@ -55,7 +67,7 @@ export default function Events() {
             isMobile: "(max-width: 767px)"
         }, (context) => {
 
-            const { isDesktop, isTablet } = context.conditions as any;
+            const { isDesktop, isTablet } = context.conditions as MatchMediaConditions;
             const cardH = isDesktop ? 420 : (isTablet ? 400 : 360);
 
             // ✅ FIX: delayed animation
@@ -209,7 +221,7 @@ With Zewadi, even the simplest choices become experiences worth holding on to.
     );
 }
 
-function EventCard({ item, index }: { item: any; index: number }) {
+function EventCard({ item }: { item: EventItem; index: number }) {
     return (
         <div className="w-full h-[360px] md:h-[400px] lg:h-[420px] flex-shrink-0 flex flex-col justify-center py-6 px-5 rounded-sm shadow-xl border border-black/5 bg-[#f5f5f5]">
             <div className="w-full max-w-lg mx-auto">

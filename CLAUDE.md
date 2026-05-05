@@ -29,7 +29,7 @@ docker-compose up --build
 #   Next.js     → http://localhost:3000
 ```
 
-**Required env vars** — copy `.env.example` to `.env` in `backend/zewadi/` and fill in:
+**Required env vars** — copy `.env.example` to `.env` at the repo root for Docker, or copy `backend/zewadi/.env.example` to `backend/zewadi/.env` for native backend development:
 - `SECRET_KEY` — Django secret key
 - `DB_PASSWORD` — PostgreSQL password
 - `ALLOWED_HOSTS` — comma-separated hostnames
@@ -113,6 +113,7 @@ CORS_ALLOWED_ORIGINS=http://localhost:3000
 ```bash
 cd frontend
 npm install
+cp .env.example .env.local
 npm run dev     # http://localhost:3000
 npm run build
 npm run lint
@@ -139,15 +140,10 @@ src/
 │   ├── shared/       # Navbar, Footer, WipeButton, LoginComponent, OtpComponent
 │   ├── home/         # Landing page sections
 │   └── <feature>/    # One folder per feature area
-├── lib/              # Redux store
-│   ├── store.ts          # configureStore + types
-│   ├── hooks.ts          # useAppDispatch / useAppSelector (typed)
-│   ├── StoreProvider.tsx # <Provider> wrapper (client component)
-│   └── slices/
-│       ├── authSlice.ts
-│       ├── orderSlice.ts
-│       ├── recipeSlice.ts
-│       └── consultationSlice.ts
+├── redux/            # Redux store and slices
+│   ├── store.ts
+│   ├── userSlice.ts
+│   └── roleSlice.ts
 ├── services/
 │   └── api.js        # Axios instance, interceptors, getAccessToken()
 └── utils/
@@ -156,13 +152,30 @@ src/
 
 ### Redux usage
 ```ts
-import { useAppDispatch, useAppSelector } from "@/lib/hooks"
-import { setCredentials, clearCredentials } from "@/lib/slices/authSlice"
-import { setOrders } from "@/lib/slices/orderSlice"
+import { useDispatch, useSelector } from "react-redux"
+import { setCredentials, clearCredentials } from "@/redux/userSlice"
+import type { AppDispatch, RootState } from "@/redux/store"
 
 // In a component:
-const dispatch = useAppDispatch()
-const { role } = useAppSelector((s) => s.auth)
+const dispatch = useDispatch<AppDispatch>()
+const { role } = useSelector((s: RootState) => s.user)
+```
+
+### Verification
+```bash
+# Backend
+cd backend/zewadi
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py test
+
+# Frontend
+cd frontend
+npm install
+npm run lint
+npm run build
 ```
 
 ### API calls

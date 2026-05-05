@@ -7,6 +7,7 @@ from .models import BlockedDate, ConsultationBooking, Consultant, ConsultantSett
 from .serializers import *
 from django.db import transaction
 from .models import Availability
+from accounts.models import User
 from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available
 from datetime import datetime
 
@@ -80,6 +81,15 @@ class ConsultationBookingListView(APIView):
             "consultant__user"
         ).order_by("-created_at")
         serializer = ConsultationBookingListSerializer(bookings, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ConsultantClientListView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        clients = User.objects.filter(role="COMMUNITY_USER").order_by("full_name", "email")
+        serializer = ConsultantClientSerializer(clients, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 

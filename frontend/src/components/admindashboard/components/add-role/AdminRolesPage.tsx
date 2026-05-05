@@ -6,53 +6,60 @@ import Carts from "./componets/Carts";
 import TableFilters from "./componets/TableFilters";
 import RolesTable from "./componets/RolesTable";
 import RoleDetailsCard from "./componets/RoleDetailsCard";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchRoles } from "@/redux/roleSlice";
 
-export default function AdminRolesPage() {
-  const dispatch = useDispatch();
+type Role = {
+  id: number;
+  role_name: string;
+  description: string;
+  access_level: string;
+  role_status: string;
+  member_count: number;
+  updated_at: string;
+  members: { id: number; src: string }[];
+};
 
-  const roles = useSelector((state: any) => state.roles.data);
-  const loading = useSelector((state: any) => state.roles.loading);
+export default function AdminRolesPage() {
+  const dispatch = useDispatch<AppDispatch>();
+
+  const roles = useSelector((state: RootState) => state.roles.data as Role[]);
+  const loading = useSelector((state: RootState) => state.roles.loading);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [accessFilter, setAccessFilter] = useState("all");
-  const [filteredRoles, setFilteredRoles] = useState<any[]>([]);
-  const [selectedRole, setSelectedRole] = useState<any>(null);
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
 
   useEffect(() => {
     if (roles.length === 0) {
-      dispatch(fetchRoles() as any);
+      dispatch(fetchRoles());
     }
   }, [dispatch, roles.length]);
 
-  useEffect(() => {
-    if (roles.length > 0 && !selectedRole) {
-      setSelectedRole(roles[0]);
-    }
-  }, [roles, selectedRole]);
-
-  useEffect(() => {
+  const filteredRoles = useMemo(() => {
     let data = [...roles];
 
     if (search) {
-      data = data.filter((role: any) =>
+      data = data.filter((role) =>
         role.role_name.toLowerCase().includes(search.toLowerCase())
       );
     }
 
     if (status !== "all") {
-      data = data.filter((role: any) => role.role_status === status);
+      data = data.filter((role) => role.role_status === status);
     }
 
     if (accessFilter !== "all") {
-      data = data.filter((role: any) => role.access_level === accessFilter);
+      data = data.filter((role) => role.access_level === accessFilter);
     }
 
-    setFilteredRoles(data);
-  }, [search, status, roles, accessFilter]);
+    return data;
+  }, [accessFilter, roles, search, status]);
+
+  const selectedRole = roles.find((role) => role.id === selectedRoleId) ?? roles[0] ?? null;
 
   return (
     <div className="px-6 lg:px-10 space-y-6">
@@ -110,7 +117,7 @@ export default function AdminRolesPage() {
           <RolesTable
             roles={filteredRoles}
             selectedRole={selectedRole}
-            onSelectRole={(role) => setSelectedRole(role)}
+            onSelectRole={(role) => setSelectedRoleId(role.id)}
           />
         </div>
 

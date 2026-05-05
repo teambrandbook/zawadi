@@ -1,14 +1,22 @@
 import Link from "next/link";
 import { Eye, Save, Send } from "lucide-react";
 
-export default function NewBlogActions() {
+export default function NewBlogActions({
+  isSubmitting,
+  onSubmit,
+  onSaveDraft,
+}: {
+  isSubmitting: boolean;
+  onSubmit: () => void;
+  onSaveDraft: () => void;
+}) {
   return (
     <div className="grid gap-3 sm:grid-cols-3">
-      <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#06402B] text-sm font-semibold text-white hover:bg-[#053020]">
+      <button type="button" onClick={onSubmit} disabled={isSubmitting} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#06402B] text-sm font-semibold text-white hover:bg-[#053020] disabled:opacity-60">
         <Send className="h-4 w-4" />
-        Submit for Review
+        {isSubmitting ? "Submitting..." : "Submit for Review"}
       </button>
-      <button className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#A88751] text-sm font-semibold text-white hover:bg-[#8E7346]">
+      <button type="button" onClick={onSaveDraft} disabled={isSubmitting} className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#A88751] text-sm font-semibold text-white hover:bg-[#8E7346] disabled:opacity-60">
         <Save className="h-4 w-4" />
         Save as Draft
       </button>

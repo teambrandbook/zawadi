@@ -3,21 +3,38 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { zoomInItems } from "../../../lib/animations";
+import api from "@/services/api";
+
+type Article = {
+    id: number;
+    title: string;
+    slug: string;
+    cover_image: string | null;
+};
 
 export default function LatestArticles() {
+    const [articles, setArticles] = useState<Article[]>([]);
+
     useEffect(() => {
 
         zoomInItems('.latestBlogComponent')
 
     }, [])
 
-    const articles = [
-        { id: 1, image: "/recipe/recipe-4.webp", slug: "recipe-4" },
-        { id: 2, image: "/product/product-5.webp", slug: "product-5" },
-        { id: 3, image: "/recipe/recipe-2.webp", slug: "recipe-2" },
-    ];
+    useEffect(() => {
+        api
+            .get<{ results?: Article[] } | Article[]>("/blog/")
+            .then(({ data }) => {
+                const list = Array.isArray(data) ? data : (data.results ?? []);
+                setArticles(list.slice(0, 3));
+            })
+            .catch(() => setArticles([]));
+    }, []);
+
+    if (articles.length === 0) return null;
+
     return (
         <section className="w-full bg-white py-5 px-6 md:px-12 lg:px-24">
             <div className="max-w-[85rem] mx-auto flex flex-col items-center">
@@ -35,8 +52,8 @@ export default function LatestArticles() {
                                 {/* Image Placeholder Frame */}
                                 <div className=" relative aspect-[4/5] w-full overflow-hidden ">
                                     <Image
-                                        src={article.image}
-                                        alt="Latest Article"
+                                        src={article.cover_image || "/blog/blog-1.webp"}
+                                        alt={article.title}
                                         fill
                                         className="object-cover group-hover:scale-110 transition-transform duration-500 rounded-[10px]"
                                     />
@@ -45,7 +62,7 @@ export default function LatestArticles() {
                                 {/* Card Title */}
                                 <div className="flex flex-col gap-2 px-2 pb-2">
                                     <h3 className="font-display text-lg md:text-xl font-light text-white leading-tight">
-                                        Discover the rich flavors<br />that inspire our kitchen
+                                        {article.title}
                                     </h3>
                                     <div className="flex items-center gap-2 text-white/80 font-sans text-xs uppercase tracking-widest font-bold mt-2">
                                         <span>Read More</span>

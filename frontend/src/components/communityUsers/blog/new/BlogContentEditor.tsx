@@ -1,6 +1,12 @@
 import { Bold, Italic, List, ListOrdered, Quote } from "lucide-react";
 
-export default function BlogContentEditor() {
+export default function BlogContentEditor({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
   return (
     <section className="rounded-lg border border-[#DFDFDF] bg-white p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -27,6 +33,8 @@ export default function BlogContentEditor() {
           </button>
         </div>
         <textarea
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
           placeholder="Start writing your story here... Share your wellness journey, buckwheat discoveries, or lifestyle transformations with our community."
           className="h-72 w-full resize-none px-4 py-4 text-sm leading-6 text-[#111827] outline-none"
         />

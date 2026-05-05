@@ -31,7 +31,7 @@ export type DietPlanProp = {
   end_date: string;
   duration_days: number;
   consultant_name: string;
-  client_name: string;
+  client_name?: string;
   meals: Meal[];
 };
 

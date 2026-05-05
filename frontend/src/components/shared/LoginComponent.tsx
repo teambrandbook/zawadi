@@ -185,6 +185,7 @@ export default function LoginComponent() {
                   </button>
 
                   <div className="pt-4 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
+                    <Link href="/register" className="hover:underline">Create Account</Link>
                     <Link href="#" className="hover:underline">Privacy</Link>
                     <Link href="#" className="hover:underline">Terms</Link>
                     <Link href="#" className="hover:underline">Support</Link>

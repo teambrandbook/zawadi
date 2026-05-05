@@ -4,6 +4,8 @@ from django.db import models
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.utils.text import slugify
+import uuid
 
 from accounts.models import User
 
@@ -46,6 +48,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="recipes")
 
     title = models.CharField(max_length=180)
+    slug = models.SlugField(max_length=220, unique=True, blank=True)
     short_description = models.TextField()
     category = models.CharField(max_length=20, choices=RecipeCategory.choices, default=RecipeCategory.OTHER)
     difficulty_level = models.CharField(max_length=10, choices=DifficultyLevel.choices, default=DifficultyLevel.EASY)
@@ -86,6 +89,12 @@ class Recipe(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base = slugify(self.title)[:180] or "recipe"
+            self.slug = f"{base}-{str(uuid.uuid4())[:8]}"
+        super().save(*args, **kwargs)
 
 
 class RecipeIngredient(models.Model):

@@ -142,8 +142,8 @@ export default function AddRecipePage() {
     fd.append("short_description", shortDescription.trim());
     fd.append("category", category);
     fd.append("difficulty_level", difficulty);
-    if (prepTime) fd.append("prep_time", prepTime);
-    if (cookingTime) fd.append("cooking_time", cookingTime);
+    if (prepTime) fd.append("prep_time_minutes", prepTime);
+    if (cookingTime) fd.append("cooking_time_minutes", cookingTime);
     if (servings) fd.append("servings", servings);
     fd.append("health_benefits", healthBenefits.trim());
     fd.append("is_gluten_free", String(isGlutenFree));
@@ -155,7 +155,7 @@ export default function AddRecipePage() {
 
     // Ingredients & steps as JSON strings (backend can parse)
     const validIngredients = ingredients.filter((i) => i.ingredient_name.trim());
-    fd.append("ingredients", JSON.stringify(validIngredients.map((ing, idx) => ({ ...ing, order: idx + 1 }))));
+    fd.append("ingredients", JSON.stringify(validIngredients));
 
     const validSteps = steps.filter((s) => s.description.trim());
     fd.append("steps", JSON.stringify(validSteps.map((s, idx) => ({ step_no: idx + 1, description: s.description.trim() }))));
