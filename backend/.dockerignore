@@ -1,5 +1,9 @@
 zewadi/.env
 zewadi/db.sqlite3
+zewadi/.venv/
+zewadi/venv/
+**/.venv/
+**/venv/
 zewadi/__pycache__/
 zewadi/**/__pycache__/
 zewadi/**/*.pyc

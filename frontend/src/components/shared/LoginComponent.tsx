@@ -18,22 +18,25 @@ export default function LoginComponent() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
+  const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
+      const role = normalizeRole(data.role);
 
       dispatch(setCredentials({
         userId: data.user_id,
-        role: data.role,
+        role,
         email: data.email,
       }));
 
-      if (data.role === "admin") {
+      if (role === "admin") {
         router.push("/admindashboard");
-      } else if (data.role === "consultant") {
+      } else if (role === "consultant") {
         router.push("/consultant");
       } else {
         router.push("/communityDashBorde");
@@ -44,8 +47,11 @@ export default function LoginComponent() {
     }
   };
 
+
+  
+
   return (
-    <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 sm:px-6 lg:px-8">
+    <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 py-8 sm:px-6 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-cover bg-center" aria-hidden="true">
         <video
           className="absolute inset-0 h-full w-full object-cover"
@@ -56,20 +62,20 @@ export default function LoginComponent() {
           preload="metadata"
           poster="/loginimages/loginBg.webp"
         >
-          <source src="/home/homepage-herosection.webm" type="video/webm" />
+          <source src="/home/heroBg.webm" type="video/webm" />
         </video>
       </div>
 
-      <div className="mx-auto w-full max-w-[1300px] pb-10 pt-30 md:pt-12 lg:pt-45">
+      <div className="mx-auto w-full max-w-[1300px]">
         <div className="overflow-hidden rounded-[34px] border-[4px] border-white/95 bg-transparent shadow-2xl">
-          <div className="grid min-h-[680px] grid-cols-1 lg:grid-cols-2">
+          <div className="grid min-h-[550px] grid-cols-1 lg:grid-cols-2">
             <div className="relative hidden lg:block">
               <div className="absolute inset-y-0 left-0 w-[110%] rounded-[34px] bg-transparent z-10" />
             </div>
 
-            <div className="relative flex items-center justify-center bg-white px-6 py-10 sm:px-8 lg:px-12">
+            <div className="relative flex items-center justify-center bg-white px-6 py-8 sm:px-8 lg:px-12">
               <div className="w-full max-w-[360px]">
-                <div className="text-center mb-6">
+                <div className="text-center mb-4">
                   <h1 className="text-[24px] font-bold tracking-tight text-[#0a4833]">
                     Welcome Back
                   </h1>
@@ -78,7 +84,7 @@ export default function LoginComponent() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center mb-6 font-mulish">
+                <div className="flex flex-col items-center mb-4 font-mulish">
                   <h2 className="text-[#0a4833] text-xs font-bold uppercase tracking-widest mb-2">
                     Login as
                   </h2>
@@ -86,9 +92,9 @@ export default function LoginComponent() {
                     <button
                       type="button"
                       onClick={() => setLoginType("guest")}
-                      className={`w-[130px] h-[42px] rounded-lg border-2 text-sm font-semibold transition-all ${loginType === "guest"
-                          ? "border-[#9f8151] bg-[#fdfaf3] text-[#9f8151]"
-                          : "border-gray-200 bg-white text-gray-400 opacity-60"
+                      className={`w-[130px] h-[40px] rounded-lg border-2 text-sm font-semibold transition-all ${loginType === "guest"
+                        ? "border-[#9f8151] bg-[#fdfaf3] text-[#9f8151]"
+                        : "border-gray-200 bg-white text-gray-400 opacity-60"
                         }`}
                     >
                       Guest
@@ -97,9 +103,9 @@ export default function LoginComponent() {
                     <button
                       type="button"
                       onClick={() => setLoginType("member")}
-                      className={`w-[130px] h-[42px] rounded-lg text-sm font-semibold transition-all ${loginType === "member"
-                          ? "bg-[#0a4833] text-white shadow-md"
-                          : "bg-gray-100 text-gray-400 opacity-60"
+                      className={`w-[130px] h-[40px] rounded-lg text-sm font-semibold transition-all ${loginType === "member"
+                        ? "bg-[#0a4833] text-white shadow-md"
+                        : "bg-gray-100 text-gray-400 opacity-60"
                         }`}
                     >
                       Member
@@ -107,7 +113,7 @@ export default function LoginComponent() {
                   </div>
                 </div>
 
-                <form className="space-y-4" onSubmit={handleLogin}>
+                <form className="space-y-3" onSubmit={handleLogin}>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold uppercase text-[#374151]">
                       Email Address
@@ -118,7 +124,7 @@ export default function LoginComponent() {
                       onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
                       type="email"
                       placeholder="name@company.com"
-                      className="h-[44px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
+                      className="h-[42px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
                     />
                   </div>
 
@@ -133,7 +139,7 @@ export default function LoginComponent() {
                         required
                         type={showPassword ? "text" : "password"}
                         placeholder="********"
-                        className="h-[44px] w-full rounded-lg border border-gray-300 px-4 pr-10 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
+                        className="h-[42px] w-full rounded-lg border border-gray-300 px-4 pr-10 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
                       />
                       <button
                         type="button"
@@ -157,12 +163,12 @@ export default function LoginComponent() {
 
                   <button
                     type="submit"
-                    className="h-[46px] w-full rounded-lg bg-[#0a4833] text-sm font-bold text-white shadow-lg hover:bg-[#0c5a40] transition active:scale-[0.98]"
+                    className="flex h-[44px] w-full items-center justify-center rounded-lg bg-[#0a4833] text-sm font-bold text-white shadow-lg hover:bg-[#0c5a40] transition active:scale-[0.98]"
                   >
                     Sign In
                   </button>
 
-                  <div className="relative py-2">
+                  <div className="relative py-1">
                     <div className="absolute inset-0 flex items-center">
                       <span className="w-full border-t border-gray-100"></span>
                     </div>
@@ -173,7 +179,7 @@ export default function LoginComponent() {
 
                   <button
                     type="button"
-                    className="flex h-[44px] w-full items-center justify-center gap-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
+                    className="flex h-[42px] w-full items-center justify-center gap-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4">
                       <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.24 1.26-.96 2.32-2.04 3.03l3.3 2.56c1.92-1.77 3.03-4.38 3.03-7.48 0-.71-.06-1.39-.19-2.05H12Z" />
@@ -184,8 +190,8 @@ export default function LoginComponent() {
                     Google
                   </button>
 
-                  <div className="pt-4 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
-                    <Link href="/register" className="hover:underline">Create Account</Link>
+                  <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
+                    <Link href="/signup" className="hover:underline">Create Account</Link>
                     <Link href="#" className="hover:underline">Privacy</Link>
                     <Link href="#" className="hover:underline">Terms</Link>
                     <Link href="#" className="hover:underline">Support</Link>

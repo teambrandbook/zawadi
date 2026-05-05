@@ -1,0 +1,45 @@
+{
+  "hero": {
+    "title": "Products",
+    "subtitle": "Zewadi Buckwheat"
+  },
+  "details": {
+    "title": "Zewadi Buckwheat",
+    "price": "$ 120.00 USD",
+    "description": "Zewadi Buckwheat is a wholesome, naturally gluten-free grain packed with fiber, protein, and essential nutrients. It supports healthy digestion, steady energy, and overall wellness, making it a perfect choice for a balanced and healthier lifestyle.",
+    "benefits": [
+      "Better digestion.",
+      "Steady energy.",
+      "Supports heart health",
+      "Helps balance blood sugar",
+      "Rich in fiber and protein",
+      "Naturally gluten-free",
+      "Supports healthy lifestyle"
+    ],
+    "images": [
+      "/product/p-main.webp",
+      "/product/p-2.webp",
+      "/product/p-3.webp",
+      "/product/p-4.webp"
+    ],
+    "fullDescription": "Zewadi Buckwheat is a wholesome and naturally gluten-free superfood packed with fiber, protein, and essential nutrients that support a healthier lifestyle. It helps improve digestion, provides steady energy throughout the day, and supports heart health and balanced blood sugar levels. Rich in important minerals and plant-based nutrition, buckwheat is a great choice for everyday meals. Whether used in porridge, wraps, pancakes, salads, or traditional dishes, Zewadi Buckwheat makes healthy eating simple, tasty, and part of your daily routine."
+  },
+  "items": [
+    {
+      "id": 1,
+      "title": "Buckwheat Flour",
+      "category": "FLOUR",
+      "image": "/product1.png",
+      "price": "KSh 450",
+      "description": "Premium quality organic buckwheat flour."
+    },
+    {
+      "id": 2,
+      "title": "Buckwheat Groats",
+      "category": "GROATS",
+      "image": "/product2.png",
+      "price": "KSh 600",
+      "description": "Whole grain buckwheat groats for healthy meals."
+    }
+  ]
+}

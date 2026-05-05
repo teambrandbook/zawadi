@@ -79,7 +79,7 @@ function BrowserAuthGuard({
 
         if (!role) {
           dispatch(clearCredentials());
-          router.replace("/communitLogin");
+          router.replace("/login");
           return;
         }
 
@@ -92,7 +92,7 @@ function BrowserAuthGuard({
       } catch {
         if (cancelled) return;
         dispatch(clearCredentials());
-        router.replace(`/communitLogin?next=${encodeURIComponent(pathname)}`);
+        router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       }
     }
 

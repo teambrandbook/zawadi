@@ -105,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     } catch {
       // proceed regardless
     }
-    window.location.href = "/communitLogin";
+    window.location.href = "/login";
   };
 
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";

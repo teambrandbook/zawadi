@@ -1,20 +1,26 @@
-import Navbar from "@/components/community/Navbar";
-import Footer from "@/components/shared/Footer";
-import Hero from "@/components/community/Hero";
-import GridGallery from "@/components/community/GridGallery";
-import CommunityListing from "@/components/community/CommunityListing";
-import CommunityFeature from "@/components/community/CommunityFeature";
+import CommunityHero from "@/components/community/CommunityHero";
+import CommunityStats from "@/components/community/CommunityStats";
+import CommunityGrid from "@/components/community/CommunityGrid";
+import CommunityOverview from "@/components/community/CommunityOverview";
+import CommunityValues from "@/components/community/CommunityValues";
+import Navbar from "@/components/common/Navbar";
+import Footer from "@/components/common/Footer";
+
+export const metadata = {
+  title: "Community | Zewadi",
+  description: "Join the Zewadi community - people who care about their health and routines.",
+};
 
 export default function CommunityPage() {
-    
-    return (
-        <main className="flex flex-col min-h-screen bg-white">
-            <Navbar />
-            <Hero />
-            <GridGallery />
-            <CommunityFeature />
-            <CommunityListing />
-            <Footer />
-        </main>
-    );
+  return (
+    <main>
+      <Navbar/>
+      <CommunityHero />
+      <CommunityStats />
+      <CommunityGrid />
+      <CommunityOverview />
+      <CommunityValues />
+      <Footer/>
+    </main>
+  );
 }

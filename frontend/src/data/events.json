@@ -1,0 +1,47 @@
+{
+  "upcomingEvents": [
+    {
+      "id": "1",
+      "date": "17 March",
+      "title": "The Environmental Benefit of Organic Farming",
+      "description": "More Details",
+      "image": "/event/event_organic_farming.png"
+    },
+    {
+      "id": "2",
+      "date": "08 June",
+      "title": "Growing a Greener Future with Organic Practices",
+      "description": "We are committed to promoting sustainable agriculture through organic ...",
+      "image": "https://images.unsplash.com/photo-1592417817098-8fd3d9eb14a5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+      "featured": true
+    },
+    {
+      "id": "3",
+      "date": "30 March",
+      "title": "Health Food Fest",
+      "description": "More Details"
+    },
+    {
+      "id": "4",
+      "date": "29 June",
+      "title": "Lets speak About health and Culture",
+      "description": "More Details"
+    }
+  ],
+  "pastEvents": [
+    {
+      "id": "1",
+      "date": "January 01, 2026",
+      "title": "Remote Destinations and Hideaways",
+      "description": "Lorem Ipsum is simply dummy text the printing an typese Destina tion Weddings Honeym",
+      "image": "/event/past_event_1.png"
+    },
+    {
+      "id": "2",
+      "date": "January 13, 2026",
+      "title": "Hiking Through Nature's Beauty",
+      "description": "Lorem Ipsum is simply dummy text the printing an typese Destina tion Weddings Honeym",
+      "image": "/event/past_event_2.png"
+    }
+  ]
+}

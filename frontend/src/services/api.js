@@ -19,8 +19,14 @@ export const getAccessToken = () => {
 // ─── Request interceptor — attach Bearer token ────────────────────────────────
 api.interceptors.request.use(
   (config) => {
+    const isAuthEndpoint =
+      config.url?.includes("/account/login/") ||
+      config.url?.includes("/account/register/") ||
+      config.url?.includes("/account/refresh/") ||
+      config.url?.includes("/account/logout/");
+
     const token = getAccessToken();
-    if (token) {
+    if (token && !isAuthEndpoint) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -74,7 +80,7 @@ api.interceptors.response.use(
         processQueue(refreshError);
         // Refresh token is expired/invalid — force logout
         if (typeof window !== "undefined") {
-          window.location.href = "/communitLogin";
+          window.location.href = "/login";
         }
         return Promise.reject(refreshError);
       } finally {

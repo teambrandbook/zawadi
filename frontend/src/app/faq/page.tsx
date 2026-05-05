@@ -1,15 +1,18 @@
-import Navbar from "@/components/community/Navbar";
-import Footer from "@/components/shared/Footer";
-import Hero from "@/components/faq/Hero";
-import Questions from "@/components/faq/Questions";
+import Footer from "@/components/common/Footer";
+import Navbar from "@/components/common/Navbar";
+import Faq from "@/components/faq/faq";
 
-export default function FAQPage() {
-    return (
-        <main className="flex flex-col min-h-screen bg-white">
-            <Navbar />
-            <Hero />
-            <Questions />
-            <Footer />
-        </main>
-    );
+export const metadata = {
+  title: "FAQ | Zewadi",
+  description: "Frequently asked questions about Zewadi products and community.",
+};
+
+export default function FaqPage() {
+  return (
+  <div>
+    <Navbar/>
+    <Faq />
+    <Footer/>
+  </div>
+);
 }
