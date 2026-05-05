@@ -20,6 +20,7 @@ class RegisterAPIView(APIView):
         # Public registration can only create community users.
         if not request.user.is_authenticated or request.user.role != "ADMIN":
             payload["role"] = "COMMUNITY_USER"
+            payload.pop("role_obj", None)
 
         serializer = RegisterSerializer(data=payload)
 

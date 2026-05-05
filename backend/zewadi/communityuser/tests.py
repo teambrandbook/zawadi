@@ -145,7 +145,7 @@ class CommunityDashboardSummaryAPITests(APITestCase):
         ConsultationBooking.objects.create(
             user=self.user,
             consultant=consultant,
-            session_type=ConsultationBooking.SessionType.GENERAL,
+            session_type=ConsultationBooking.CommunicationType.VIDEO,
             booked_date=timezone.now().date(),
             booked_slot="10:00 AM",
             status=ConsultationBooking.BookingStatus.PENDING,

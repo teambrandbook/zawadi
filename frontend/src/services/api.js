@@ -80,7 +80,7 @@ api.interceptors.response.use(
         processQueue(refreshError);
         // Refresh token is expired/invalid — force logout
         if (typeof window !== "undefined") {
-          window.location.href = "/communitLogin";
+          window.location.href = "/login";
         }
         return Promise.reject(refreshError);
       } finally {

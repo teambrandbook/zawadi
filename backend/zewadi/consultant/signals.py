@@ -38,7 +38,7 @@ def _notify_booking_status_change(sender, instance, created, **kwargs):
         # Notify the client that their booking was received.
         from notifications.utils import send_user_notification
         send_user_notification(
-            instance.client,
+            instance.user,
             "Booking Received",
             "Your consultation booking has been received and is pending confirmation.",
         )
@@ -50,4 +50,4 @@ def _notify_booking_status_change(sender, instance, created, **kwargs):
     if current in BOOKING_MESSAGES:
         from notifications.utils import send_user_notification
         title, body = BOOKING_MESSAGES[current]
-        send_user_notification(instance.client, title, body)
+        send_user_notification(instance.user, title, body)

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
@@ -32,51 +32,72 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getUserFromTokenCookie(): UserInfo {
+  if (typeof document === "undefined") {
+    return {
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "",
+      initials: "ZM",
+    };
+  }
+
+  const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
+  if (!match) {
+    return {
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "",
+      initials: "ZM",
+    };
+  }
+
+  const token = decodeURIComponent(match.split("=")[1]);
+  const payload = decodeJwtPayload(token);
+  if (!payload) {
+    return {
+      firstName: "",
+      lastName: "",
+      email: "",
+      role: "",
+      initials: "ZM",
+    };
+  }
+
+  const firstName: string = payload.first_name || "";
+  const lastName: string = payload.last_name || "";
+  const email: string = payload.email || "";
+  const role: string = payload.role || "";
+  const initials =
+    (firstName[0] || "") + (lastName[0] || "") ||
+    email.slice(0, 2).toUpperCase() ||
+    "U";
+
+  return { firstName, lastName, email, role, initials };
+}
+
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState<UserInfo>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    role: "",
-    initials: "ZM",
-  });
+  const [user] = useState<UserInfo>(getUserFromTokenCookie);
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
-    const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
-    if (!match) return;
-    const token = decodeURIComponent(match.split("=")[1]);
-    const payload = decodeJwtPayload(token);
-    if (!payload) return;
-
-    const firstName: string = payload.first_name || "";
-    const lastName: string = payload.last_name || "";
-    const email: string = payload.email || "";
-    const role: string = payload.role || "";
-    const initials =
-      (firstName[0] || "") + (lastName[0] || "") ||
-      email.slice(0, 2).toUpperCase() ||
-      "U";
-
-    setUser({ firstName, lastName, email, role, initials });
+    let isMounted = true;
+    api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
+      .then(({ data }) => {
+        if (isMounted) {
+          setUnreadCount(data.stats?.unread_notifications ?? 0);
+        }
+      })
+      .catch(() => {
+        // not critical — leave at 0
+      });
+    return () => {
+      isMounted = false;
+    };
   }, []);
-
-  const fetchUnreadCount = useCallback(async () => {
-    try {
-      const { data } = await api.get<{ stats: { unread_notifications: number } }>(
-        "/community/dashboard/summary/"
-      );
-      setUnreadCount(data.stats?.unread_notifications ?? 0);
-    } catch {
-      // not critical — leave at 0
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchUnreadCount();
-  }, [fetchUnreadCount]);
 
   const handleLogout = async () => {
     try {
@@ -84,7 +105,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     } catch {
       // proceed regardless
     }
-    window.location.href = "/communitLogin";
+    window.location.href = "/login";
   };
 
   const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";

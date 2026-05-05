@@ -3,10 +3,64 @@
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import api from "@/services/api";
 
 export default function CommenLogin() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [form, setForm] = useState({
+    full_name: "",
+    user_name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    date_of_birth: "",
+    gender: "OTHER",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function updateField(field: keyof typeof form, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+    if (!form.full_name || !form.user_name || !form.email || !form.phone || !form.date_of_birth || !form.gender) {
+      toast.error("Please complete all required fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await api.post("/account/register/", {
+        full_name: form.full_name,
+        user_name: form.user_name,
+        email: form.email,
+        password: form.password,
+        phone: form.phone,
+        date_of_birth: form.date_of_birth,
+        gender: form.gender,
+      });
+      toast.success("Account created. Please sign in.");
+      router.push("/communitLogin");
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail = Object.entries(data ?? {})
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+        .join(" | ");
+      toast.error(detail || "Registration failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <section className="relative isolate overflow-hidden bg-[#f5f2ec] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
@@ -53,14 +107,29 @@ export default function CommenLogin() {
             </span>
           </div>
 
-          <form className="mt-7 space-y-5">
+          <form className="mt-7 space-y-5" onSubmit={handleSubmit}>
             <div>
               <label className="mb-2 block text-sm font-medium tracking-[-0.02em] text-[#374151]">
                 Full Name
               </label>
               <input
                 type="text"
+                value={form.full_name}
+                onChange={(event) => updateField("full_name", event.target.value)}
                 placeholder="Enter your full name"
+                className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium tracking-[-0.02em] text-[#374151]">
+                Username
+              </label>
+              <input
+                type="text"
+                value={form.user_name}
+                onChange={(event) => updateField("user_name", event.target.value)}
+                placeholder="Enter your username"
                 className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
               />
             </div>
@@ -71,6 +140,8 @@ export default function CommenLogin() {
               </label>
               <input
                 type="email"
+                value={form.email}
+                onChange={(event) => updateField("email", event.target.value)}
                 placeholder="Enter your email"
                 className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
               />
@@ -83,6 +154,8 @@ export default function CommenLogin() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  value={form.password}
+                  onChange={(event) => updateField("password", event.target.value)}
                   placeholder="Create a password"
                   className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 pr-12 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
                 />
@@ -110,6 +183,8 @@ export default function CommenLogin() {
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
+                  value={form.confirmPassword}
+                  onChange={(event) => updateField("confirmPassword", event.target.value)}
                   placeholder="Confirm your password"
                   className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 pr-12 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
                 />
@@ -121,6 +196,47 @@ export default function CommenLogin() {
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+            </div>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium tracking-[-0.02em] text-[#374151]">
+                  Phone
+                </label>
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) => updateField("phone", event.target.value)}
+                  placeholder="+1 555 000 0000"
+                  className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 text-base text-black outline-none placeholder:text-gray-400:text-black focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-medium tracking-[-0.02em] text-[#374151]">
+                  Date of Birth
+                </label>
+                <input
+                  type="date"
+                  value={form.date_of_birth}
+                  onChange={(event) => updateField("date_of_birth", event.target.value)}
+                  className="h-12 w-full rounded-[12px] border border-[#e5e7eb] px-4 text-base text-black outline-none focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium tracking-[-0.02em] text-[#374151]">
+                Gender
+              </label>
+              <select
+                value={form.gender}
+                onChange={(event) => updateField("gender", event.target.value)}
+                className="h-12 w-full rounded-[12px] border border-[#e5e7eb] bg-white px-4 text-base text-black outline-none focus:border-[#0a4834] focus:ring-2 focus:ring-[#0a4834]/10"
+              >
+                <option value="FEMALE">Female</option>
+                <option value="MALE">Male</option>
+                <option value="OTHER">Other</option>
+              </select>
             </div>
 
             <label className="flex items-start gap-2.5 pt-1 text-sm tracking-[-0.02em] text-[#4b5563]">
@@ -142,9 +258,10 @@ export default function CommenLogin() {
 
             <button
               type="submit"
+              disabled={isSubmitting}
               className="flex h-12 w-full items-center justify-center rounded-[12px] bg-[#0a4834] text-base font-medium text-white transition hover:bg-[#083a2b]"
             >
-              Create Account
+              {isSubmitting ? "Creating..." : "Create Account"}
             </button>
           </form>
 
@@ -153,7 +270,7 @@ export default function CommenLogin() {
               Already have an account?
             </p>
             <Link
-              href="#"
+              href="/communitLogin"
               className="mt-1 inline-block text-base font-medium text-[#0a4834] hover:underline"
             >
               Sign in

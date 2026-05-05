@@ -1,18 +1,65 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, CalendarDays, ChevronRight, Search } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
+import api from "@/services/api";
 
 const blogImageOne = "/blogs/blog-1.webp";
 const blogImageTwo = "/blogs/blog-2.webp";
 const blogImageThree = "/blogs/blog-3.webp";
 
-const blogPosts = [
+type BlogPost = {
+  title: string;
+  description: string;
+  image: string;
+  href: string;
+  date: string;
+};
+
+type BackendBlog = {
+  slug?: string;
+  id: number | string;
+  title: string;
+  short_excerpt?: string;
+  cover_image?: string | null;
+  created_at?: string;
+};
+
+function mediaUrl(value?: string | null) {
+  if (!value) return blogImageOne;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  if (value.startsWith("http")) return value;
+  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  if (value.startsWith("/")) return value;
+  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+}
+
+function formatDate(value?: string) {
+  if (!value) return "October 19, 2022";
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function mapBackendBlog(blog: BackendBlog): BlogPost {
+  const slug = blog.slug || String(blog.id);
+  return {
+    title: blog.title,
+    description: blog.short_excerpt || "",
+    image: mediaUrl(blog.cover_image),
+    href: `/blogs/${slug}`,
+    date: formatDate(blog.created_at),
+  };
+}
+
+const blogPostsFallback: BlogPost[] = [
   {
     title: "WellLife for Everyday Living",
     description:
@@ -62,6 +109,7 @@ const popularPosts = [
 
 export default function Blogs() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [posts, setPosts] = useState<BlogPost[]>(blogPostsFallback);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -149,6 +197,24 @@ export default function Blogs() {
     return () => ctx.revert();
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    api.get("/blog/")
+      .then(({ data }) => {
+        const raw = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
+        if (mounted && raw.length > 0) {
+          setPosts(raw.map(mapBackendBlog));
+        }
+      })
+      .catch(() => {
+        // Keep static design data as fallback.
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div ref={containerRef} className="bg-white">
       <ContentSection title="Blogs" subtitle="Zewadi Blogs" />
@@ -157,7 +223,7 @@ export default function Blogs() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-24 2xl:px-48">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,850px)_340px] xl:gap-24">
             <div className="space-y-16 sm:space-y-24">
-              {blogPosts.map((post, index) => (
+              {posts.map((post, index) => (
                 <article key={post.title} className="blog-article max-w-[850px]">
                   <div className="blog-main-image relative overflow-hidden rounded-[20px] h-[220px] sm:h-[300px] lg:h-[400px] xl:h-[480px]">
                     <Image

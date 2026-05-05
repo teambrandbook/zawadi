@@ -1,6 +1,7 @@
 "use client";
 import ConsultantSidebar from "@/components/consultant/comment/ConsaltentSidebar";
 import Navbar from "@/components/consultant/comment/Navbar";
+import AuthGuard from "@/components/shared/AuthGuard";
 import { useState, ReactNode } from "react";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
 export default function ConsultantLayout({ children }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     return (
+        <AuthGuard allowedRoles={["consultant"]}>
         <div className="min-h-screen">
 
             {/* Navbar */}
@@ -47,5 +49,6 @@ export default function ConsultantLayout({ children }: Props) {
                     {children}
             </div>
         </div>
+        </AuthGuard>
     )
 }

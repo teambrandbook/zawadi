@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import Recipe, RecipeIngredient, RecipeStep
 from zewadi.validators import validate_image_upload
+import json
 
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
@@ -22,6 +23,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             "id",
+            "slug",
             "title",
             "category",
             "difficulty_level",
@@ -53,6 +55,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             "id",
+            "slug",
             "title",
             "short_description",
             "category",
@@ -79,6 +82,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             "ingredients",
             "steps",
         ]
+        read_only_fields = ["id", "slug", "status", "published_at", "created_at", "updated_at"]
 
     def get_author_name(self, obj):
         user = obj.author
@@ -101,6 +105,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = [
             "id",
+            "slug",
             "title",
             "short_description",
             "category",
@@ -121,7 +126,21 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "steps",
         ]
         # author and status are set in the view, not accepted from the client
-        read_only_fields = ["id"]
+        read_only_fields = ["id", "slug"]
+
+    def to_internal_value(self, data):
+        if hasattr(data, "get") and hasattr(data, "keys"):
+            mutable = {key: data.get(key) for key in data.keys()}
+        else:
+            mutable = dict(data)
+        for field in ("ingredients", "steps"):
+            value = mutable.get(field)
+            if isinstance(value, str):
+                try:
+                    mutable[field] = json.loads(value)
+                except json.JSONDecodeError:
+                    pass
+        return super().to_internal_value(mutable)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop("ingredients", [])

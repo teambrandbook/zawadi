@@ -5,6 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import Consultant
 from zewadi.validators import validate_image_upload
+from supperadmin.models import Role
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -46,6 +47,11 @@ class RegisterSerializer(serializers.Serializer):
         choices=[choice[0] for choice in ROLE_CHOICES],
         required=False,
         default="COMMUNITY_USER",
+    )
+    role_obj = serializers.PrimaryKeyRelatedField(
+        queryset=Role.objects.all(),
+        required=False,
+        allow_null=True,
     )
 
     # 🔹 Community fields
@@ -104,6 +110,7 @@ class RegisterSerializer(serializers.Serializer):
             location=validated_data.get("location"),
             photo=validated_data.get("photo"),
             role=validated_data.get("role"),
+            role_obj=validated_data.get("role_obj"),
         )
 
         # 🔹 COMMUNITY USER

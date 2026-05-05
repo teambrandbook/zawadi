@@ -46,26 +46,25 @@ function buildFormState(profile: CommunityProfileData | null): FormState {
 export default function ProfileInformationPanel({ profile, isLoading, isSaving, onSave }: Props) {
   const [form, setForm] = useState<FormState>(buildFormState(profile));
   const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setForm(buildFormState(profile));
     setPhotoFile(null);
-    setPhotoPreviewUrl(null);
     setRemovePhoto(false);
   }, [profile]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const photoPreviewUrl = useMemo(() => {
+    if (!photoFile) return null;
+    return URL.createObjectURL(photoFile);
+  }, [photoFile]);
 
   useEffect(() => {
-    if (!photoFile) {
-      setPhotoPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(photoFile);
-    setPhotoPreviewUrl(objectUrl);
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [photoFile]);
+    if (!photoPreviewUrl) return;
+    return () => URL.revokeObjectURL(photoPreviewUrl);
+  }, [photoPreviewUrl]);
 
   const previewPhoto = useMemo(() => {
     if (removePhoto) return null;

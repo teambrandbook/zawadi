@@ -406,7 +406,7 @@ export const storyScrollAnimation = (container: HTMLElement) => {
 
         // ScrollTrigger settings (FIXED like your code)
         let startValue = "top 20%";
-        let endValue = "bottom+=300 75%"; // ✅ FIX
+        const endValue = "bottom+=300 75%"; // ✅ FIX
 
         if (sm) {
           startValue = "top 18%";

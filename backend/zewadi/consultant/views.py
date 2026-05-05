@@ -7,6 +7,7 @@ from .models import BlockedDate, ConsultationBooking, Consultant, ConsultantSett
 from .serializers import *
 from django.db import transaction
 from .models import Availability
+from accounts.models import User
 from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available,create_or_update_client_from_booking
 from datetime import datetime
 from django.utils import timezone
@@ -82,6 +83,15 @@ class ConsultantDetailView(APIView):
 #         ).order_by("-created_at")
 #         serializer = ConsultationBookingListSerializer(bookings, many=True)
 #         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ConsultantClientListView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        clients = User.objects.filter(role="COMMUNITY_USER").order_by("full_name", "email")
+        serializer = ConsultantClientSerializer(clients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AdminConsultationListView(APIView):
@@ -281,9 +291,10 @@ class CreateConsultationBookingView(APIView):
         date = data["booked_date"]
         time = data["time"]
 
-        if not is_slot_available(consultant, date, time):
+        available, error = is_slot_available(consultant, date, time)
+        if not available:
             return Response(
-                {"error": "This time slot is already booked"},
+                {"error": error},
                 status=status.HTTP_400_BAD_REQUEST
             )
 

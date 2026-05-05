@@ -18,22 +18,25 @@ export default function LoginComponent() {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
 
+  const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
+
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     try {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
+      const role = normalizeRole(data.role);
 
       dispatch(setCredentials({
         userId: data.user_id,
-        role: data.role,
+        role,
         email: data.email,
       }));
 
-      if (data.role === "admin") {
+      if (role === "admin") {
         router.push("/admindashboard");
-      } else if (data.role === "consultant") {
+      } else if (role === "consultant") {
         router.push("/consultant");
       } else {
         router.push("/communityDashBorde");
@@ -188,6 +191,7 @@ export default function LoginComponent() {
                   </button>
 
                   <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
+                    <Link href="/signup" className="hover:underline">Create Account</Link>
                     <Link href="#" className="hover:underline">Privacy</Link>
                     <Link href="#" className="hover:underline">Terms</Link>
                     <Link href="#" className="hover:underline">Support</Link>

@@ -16,6 +16,7 @@ class BlogListSerializer(serializers.ModelSerializer):
         model = Blog
         fields = [
             "id",
+            "slug",
             "title",
             "short_excerpt",
             "category",
@@ -39,6 +40,7 @@ class BlogDetailSerializer(serializers.ModelSerializer):
         model = Blog
         fields = [
             "id",
+            "slug",
             "title",
             "short_excerpt",
             "category",
@@ -59,6 +61,7 @@ class BlogDetailSerializer(serializers.ModelSerializer):
             "updated_at",
             "published_at",
         ]
+        read_only_fields = ["id", "slug", "author", "status", "created_at", "updated_at", "published_at"]
 
     def get_author_name(self, obj):
         return obj.author.get_full_name() if obj.author else None

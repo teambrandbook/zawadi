@@ -9,8 +9,8 @@ from .views import (
 
 urlpatterns = [
     path("", RecipeListView.as_view()),
-    path("<int:pk>/", RecipeDetailView.as_view()),
     path("create/", RecipeCreateView.as_view()),
     path("admin/", AdminRecipeListView.as_view()),
     path("admin/<int:pk>/status/", AdminRecipeStatusUpdateView.as_view()),
+    path("<slug:slug>/", RecipeDetailView.as_view()),
 ]

@@ -18,7 +18,7 @@ import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
 
 // ✅ FIXED TYPE
-type FormType = {
+export type FormType = {
   full_name: string;
   email: string;
   phone: string;
@@ -144,12 +144,16 @@ export default function UserCreatePage() {
 
     Object.entries(form).forEach(([key, value]) => {
       if (value !== null && value !== "") {
-        formData.append(key, value as any);
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, String(value));
+        }
       }
     });
 
     try {
-      await dispatch(registerUser(formData)); // ✅ send FormData
+      await dispatch(registerUser(formData)).unwrap(); // ✅ send FormData
       toast.success("User created successfully.");
       router.push("/admindashboard/users");
     } catch {
