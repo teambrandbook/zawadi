@@ -64,22 +64,60 @@ class ConsultantDetailSerializer(serializers.ModelSerializer):
 
 
 class ConsultationBookingListSerializer(serializers.ModelSerializer):
+    # 🔹 consultant data
     consultant_name = serializers.SerializerMethodField()
+    consultant_role = serializers.SerializerMethodField()
+
+    # 🔹 user data
+    user_name = serializers.CharField(source="user.user_name")
+    user_image = serializers.ImageField(source="user.photo", read_only=True)
 
     class Meta:
         model = ConsultationBooking
         fields = [
             "id",
             "consultant_name",
-            "session_type",
+            "consultant_role",
+            "user_name",
+            "user_image",
+            "primary_goal",
             "booked_date",
             "booked_slot",
             "status",
-            "created_at",
         ]
 
     def get_consultant_name(self, obj):
-        return str(obj.consultant.user.get_full_name() or obj.consultant.user.email)
+        return str(obj.consultant.user.get_full_name() or obj.consultant.user.user_name)
+
+    def get_consultant_role(self, obj):
+        return obj.consultant.qualification or "Consultant"
+
+
+
+
+
+class ConsultantBookingConformSerializer(serializers.Serializer):
+    booking_id = serializers.IntegerField()
+    is_accept = serializers.BooleanField()
+
+    def validate(self, data):
+        request = self.context["request"]
+        consultant = request.user.consultant
+
+        try:
+            booking = ConsultationBooking.objects.get(
+                id=data["booking_id"],
+                consultant=consultant
+            )
+        except ConsultationBooking.DoesNotExist:
+            raise serializers.ValidationError("Booking not found")
+
+        if booking.status != ConsultationBooking.BookingStatus.PENDING:
+            raise serializers.ValidationError("Booking already processed")
+
+        # attach booking for later use
+        data["booking"] = booking
+        return data
 
 
 class DietPlanMealItemSerializer(serializers.ModelSerializer):
@@ -317,3 +355,5 @@ class ConsultationBookingCreateSerializer(serializers.ModelSerializer):
             booked_slot=time,
             **validated_data
         )
+
+

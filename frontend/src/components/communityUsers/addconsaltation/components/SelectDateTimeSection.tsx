@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 
@@ -17,21 +18,52 @@ type Props = {
 };
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const firstDayOffset = 0;
-const daysInMonth = 31;
 
-const availableSlots = [
-  { label: "09:00 AM", disabled: false },
-  { label: "11:30 AM", disabled: false },
-  { label: "02:00 PM", disabled: false },
-  { label: "04:30 PM", disabled: false },
-  { label: "06:00 PM", disabled: false },
-  { label: "07:30 PM", disabled: true },
-];
-
-function formatDate(day: number) {
-  return `2026-04-${String(day).padStart(2, "0")}`;
+function pad(value: number) {
+  return String(value).padStart(2, "0");
 }
+
+function toIsoDate(value: Date) {
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+}
+
+function startOfDay(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), value.getDate());
+}
+
+function getTodayIsoDate() {
+  return toIsoDate(startOfDay(new Date()));
+}
+
+function parseIsoDate(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return null;
+
+  const parsed = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
+}
+
+function formatSlotLabel(hour: number, minute: number) {
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${pad(displayHour)}:${pad(minute)} ${suffix}`;
+}
+
+function createAvailableSlots() {
+  const slots: string[] = [];
+
+  for (let hour = 9; hour <= 17; hour += 1) {
+    for (const minute of [0, 30]) {
+      if (hour === 17 && minute === 30) continue;
+      slots.push(formatSlotLabel(hour, minute));
+    }
+  }
+
+  return slots;
+}
+
+const availableSlots = createAvailableSlots();
 
 function getSessionDuration(sessionType: string) {
   if (sessionType === "Audio Call") return "30 minutes";
@@ -64,7 +96,32 @@ export default function SelectDateTimeSection({
   onBack,
   onSaveForLater,
 }: Props) {
+  const today = useMemo(() => startOfDay(new Date()), []);
+  const parsedSelectedDate = useMemo(() => parseIsoDate(selectedDate), [selectedDate]);
+  const initialVisibleMonth = parsedSelectedDate && parsedSelectedDate >= today ? parsedSelectedDate : today;
+  const [visibleMonth, setVisibleMonth] = useState(
+    new Date(initialVisibleMonth.getFullYear(), initialVisibleMonth.getMonth(), 1),
+  );
+
   const selectedDay = Number(selectedDate.split("-")[2] ?? 0);
+  const firstDayOffset = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay();
+  const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+  const visibleMonthLabel = visibleMonth.toLocaleDateString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+
+  useEffect(() => {
+    const todayIsoDate = getTodayIsoDate();
+
+    if (!parsedSelectedDate || parsedSelectedDate < today) {
+      onSelectDate(todayIsoDate);
+    }
+
+    if (!selectedSlot || !availableSlots.includes(selectedSlot)) {
+      onSelectSlot(availableSlots[0]);
+    }
+  }, [onSelectDate, onSelectSlot, parsedSelectedDate, selectedSlot, today]);
 
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
@@ -87,11 +144,31 @@ export default function SelectDateTimeSection({
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-2xl font-semibold text-[#0A4833]">Select Date</h3>
               <div className="inline-flex items-center gap-3 text-[#4B5563]">
-                <button className="rounded-md p-1 hover:bg-[#F3F4F6]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleMonth(
+                      (current) => new Date(current.getFullYear(), current.getMonth() - 1, 1),
+                    )
+                  }
+                  disabled={
+                    visibleMonth.getFullYear() === today.getFullYear() &&
+                    visibleMonth.getMonth() === today.getMonth()
+                  }
+                  className="rounded-md p-1 hover:bg-[#F3F4F6] disabled:cursor-not-allowed disabled:text-[#D1D5DB]"
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
-                <span className="text-sm font-medium text-[#0A4833]">April 2026</span>
-                <button className="rounded-md p-1 hover:bg-[#F3F4F6]">
+                <span className="text-sm font-medium text-[#0A4833]">{visibleMonthLabel}</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleMonth(
+                      (current) => new Date(current.getFullYear(), current.getMonth() + 1, 1),
+                    )
+                  }
+                  className="rounded-md p-1 hover:bg-[#F3F4F6]"
+                >
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -110,19 +187,23 @@ export default function SelectDateTimeSection({
 
               {Array.from({ length: daysInMonth }, (_, index) => {
                 const day = index + 1;
-                const active = selectedDay === day;
-                const faded = day >= 22 && day <= 25;
+                const dateValue = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), day);
+                const dateIso = toIsoDate(dateValue);
+                const isPastDate = startOfDay(dateValue) < today;
+                const active = selectedDay === day && selectedDate === dateIso;
+
                 return (
                   <button
                     key={day}
                     type="button"
-                    onClick={() => onSelectDate(formatDate(day))}
+                    disabled={isPastDate}
+                    onClick={() => onSelectDate(dateIso)}
                     className={`mx-auto h-8 w-10 rounded-md text-sm ${
-                      active
+                      isPastDate
+                        ? "cursor-not-allowed text-[#B8BDC4]"
+                        : active
                         ? "bg-[#A88751] text-white"
-                        : faded
-                          ? "text-[#B8BDC4]"
-                          : "text-[#0A4833] hover:bg-[#F4F5F6]"
+                        : "text-[#0A4833] hover:bg-[#F4F5F6]"
                     }`}
                   >
                     {day}
@@ -139,19 +220,16 @@ export default function SelectDateTimeSection({
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {availableSlots.map((slot) => (
                 <button
-                  key={slot.label}
+                  key={slot}
                   type="button"
-                  disabled={slot.disabled}
-                  onClick={() => onSelectSlot(slot.label)}
+                  onClick={() => onSelectSlot(slot)}
                   className={`h-10 rounded-lg border text-sm ${
-                    slot.disabled
-                      ? "cursor-not-allowed border-[#E5E7EB] bg-[#E5E7EB] text-[#9CA3AF]"
-                      : selectedSlot === slot.label
+                    selectedSlot === slot
                         ? "border-[#A88751] bg-[#A88751] text-white"
                         : "border-[#DFDFDF] bg-white text-[#374151] hover:bg-[#F9FAFB]"
-                  }`}
+                    }`}
                 >
-                  {slot.label}
+                  {slot}
                 </button>
               ))}
             </div>

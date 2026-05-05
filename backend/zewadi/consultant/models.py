@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 from accounts.models import User
@@ -52,6 +53,53 @@ class ConsultationBooking(models.Model):
 
     def __str__(self):
         return f"{self.user} -> {self.consultant} on {self.booked_date}"
+
+
+# CLIENT TABLE
+
+class Client(models.Model):
+    consultant = models.ForeignKey(
+        'Consultant',
+        on_delete=models.CASCADE,
+        related_name="clients"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="client_profiles"
+    )
+
+    primary_goal = models.CharField(max_length=255, blank=True)
+    primary_wellness_goal = models.CharField(max_length=255, blank=True)
+    focuses_area = models.CharField(max_length=255, blank=True)
+    diet_preferences = models.CharField(max_length=255, blank=True)
+    lifestyle_activity_level = models.CharField(max_length=255, blank=True)
+    buckwheat_journey_goal = models.CharField(max_length=255, blank=True)
+    language = models.CharField(max_length=50, default="English")
+    message = models.TextField(blank=True)
+
+    # 🔗 link to original booking
+    booking = models.OneToOneField(
+        'ConsultationBooking',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="client_profile"
+    )
+
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("consultant", "user")
+
+    def __str__(self):
+        return f"{self.user} → {self.consultant}"
+
+
+
+# Diet plane
+
 
 
 class DietPlan(models.Model):

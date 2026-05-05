@@ -1,38 +1,33 @@
 import type { Metadata } from "next";
-import { Inter, Oswald, Voltaire, Mulish, Bodoni_Moda } from "next/font/google";
+import { Inter, Playfair_Display, DM_Sans, Caveat } from "next/font/google";
 import "./globals.css";
-
-import Providers from "./providers"; // 👈 ADD THIS
+import AppWrapper from "@/components/AppWrapper"; // ✅ ADD THIS
 
 const inter = Inter({
-  variable: "--font-inter",
+  variable: "--inter-font",
   subsets: ["latin"],
 });
 
-const oswald = Oswald({
-  variable: "--font-oswald",
+const dmSans = DM_Sans({
+  variable: "--dm-font",
   subsets: ["latin"],
 });
 
-const bodoniModa = Bodoni_Moda({
-  variable: "--font-boldonse",
+const playfair = Playfair_Display({
+  variable: "--playfair-font",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
 });
 
-const voltaire = Voltaire({
-  weight: "400",
-  variable: "--font-voltaire",
+const caveat = Caveat({
+  variable: "--caveat-font",
   subsets: ["latin"],
-});
-
-const mulish = Mulish({
-  variable: "--font-mulish",
-  subsets: ["latin"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
-  title: "Zewadi | The Way of Living",
-  description: "Building a Healthier Society, Together",
+  title: "Zewadi | Premium Digital Experience",
+  description: "Modern, high-performance website built with Next.js and GSAP.",
 };
 
 export default function RootLayout({
@@ -41,18 +36,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link href="https://fonts.googleapis.com/css2?family=Boldonse&display=swap" rel="stylesheet" />
-      </head>
-      <body
-        className={`${inter.variable} ${oswald.variable} ${bodoniModa.variable} ${voltaire.variable} ${mulish.variable} antialiased`}
-      >
-        <Providers>
-          {children}
-        </Providers>
+    <html
+      lang="en"
+      className={`scroll-smooth ${inter.variable} ${dmSans.variable} ${playfair.variable} ${caveat.variable}`}
+    >
+      <body className="antialiased font-sans">
+
+        {/* ✅ WRAP EVERYTHING */}
+        <AppWrapper>
+          <main>{children}</main>
+        </AppWrapper>
+
       </body>
     </html>
   );

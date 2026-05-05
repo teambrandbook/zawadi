@@ -58,7 +58,7 @@ export default function AppointmentDetailsModal({ appointment, onClose }: Props)
               <DetailRow label="Consultation Mode" value={appointment.consultationMode} />
               <DetailRow label="Consultant" value={appointment.consultant} />
               <DetailRow label="Focus Area" value={appointment.focus} />
-              <DetailRow label="Tags" value={appointment.meta.join(", ")} />
+              <DetailRow label="Tags" value={appointment.meta.length ? appointment.meta.join(", ") : "No tags"} />
             </div>
           </section>
 

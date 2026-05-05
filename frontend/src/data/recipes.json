@@ -1,0 +1,755 @@
+[
+  {
+    "id": "savoury-buckwheat-porridge",
+    "title": "SAVOURY BUCKWHEAT PORRIDGE",
+    "description": "Savoury buckwheat porridge is a warm, nourishing dish made with soft-cooked buckwheat, sautéed onions, garlic, and a touch of olive oil. Lightly seasoned and easily customizable with vegetables or protein, it’s a comforting and versatile option for a healthy breakfast or light meal.",
+    "benefits": [
+      "Rich in nutrients and naturally gluten-free",
+      "Supports digestion and gut health",
+      " Helps maintain steady energy levels",
+      "High in plant-based protein and fiber",
+      "Heart-friendly and supports cholesterol control",
+      "Made with simple, clean, and wholesome ingredients",
+      "Easily customizable with vegetables and proteins"
+    ],
+    "image": "/recipe/recipe-1.webp",
+    "categories": [
+      "BREAKFAST"
+    ],
+    "nutrition": {
+      "calories": "280g",
+      "fat": "5g",
+      "carbs": "54g",
+      "protein": "8g"
+    },
+    "ingredients": [
+      "Buckwheat groats - 1 cup",
+      "Water or vegetable broth - 2 cup",
+      "Finely chopped small onion - 1",
+      "Garlic minced - 2 cloves",
+      "Olive oil - 1 tbsp",
+      "Salt & pepper - to taste",
+      "Fresh herbs"
+    ],
+    "optional": [
+      "Mushrooms",
+      "Spinach",
+      "Egg",
+      "Grilled chicken"
+    ],
+    "steps": [
+      "Rinse the buckwheat thoroughly under running water and drain well.",
+      "Heat olive oil in a pan, add chopped onions and garlic, and sauté until soft and fragrant.",
+      "Add buckwheat to the pan and lightly roast for 2–3 minutes for a nuttier flavor.",
+      "Pour in water or vegetable broth, add salt and pepper, and let it simmer on low heat until soft and creamy",
+      "Add optional vegetables like mushrooms or spinach and cook for a few more minutes. Serve   warm with herbs or a fried egg on top."
+    ]
+  },
+  {
+    "id": "buckwheat-chilla",
+    "title": "BUCKWHEAT CHILLA",
+    "description": "Buckwheat chilla is a savory, protein-rich pancake made with buckwheat flour, finely chopped onions, fresh herbs, and mild spices. Light, wholesome, and quick to prepare, it’s a delicious option for breakfast or a healthy snack.",
+    "benefits": [
+      "Rich in fiber for improved digestion",
+      "Packed with healthy fats from nuts and seeds",
+      "Provides sustained energy throughout the day",
+      "Naturally gluten-free and easy to digest",
+      "High in plant-based protein",
+      "Supports heart health",
+      "Crunchy, satisfying, and nutrient-dense",
+      "Perfect as a quick, healthy snack or breakfast option"
+    ],
+    "image": "/recipe/recipe-2.webp",
+    "categories": [
+      "BREAKFAST"
+    ],
+    "nutrition": {
+      "calories": "250g",
+      "fat": "4g",
+      "carbs": "28g",
+      "protein": "9g"
+    },
+    "ingredients": [
+      "Buckwheat flour - 1 cup",
+      "Chopped onion",
+      "Green chili",
+      "Coriander leaves",
+      "Cumin seeds",
+      "Salt",
+      "Water",
+      "Oil"
+    ],
+    "optional": [
+      "Grated carrot",
+      "Capsicum",
+      "Paneer"
+    ],
+    "steps": [
+      "In a bowl, mix buckwheat flour, chopped onion, tomato, green chili, coriander leaves, cumin seeds, and salt.",
+      "Add water gradually and make a smooth batter with a medium-thick consistency.",
+      "Heat a non-stick pan and lightly grease it with oil.",
+      "Pour a ladle of batter onto the pan and spread it gently like a pancake.",
+      "Cook on both sides until golden brown and crisp. Serve hot with chutney or yogurt."
+    ]
+  },
+  {
+    "id": "buckwheat-pancakes",
+    "title": "BUCKWHEAT PANCAKES",
+    "description": "Buckwheat pancakes are soft, wholesome pancakes made from a smooth buckwheat flour batter cooked on a flat pan. Naturally gluten-free and mildly nutty in flavor, they are a healthy and satisfying option for breakfast or a light meal.",
+    "benefits": [
+      "Naturally gluten-free and easy to digest",
+      "Rich in fiber for better digestion and fullness",
+      "Provides steady, long-lasting energy",
+      "Supports heart health and cholesterol balance",
+      "Contains essential nutrients like magnesium and iron",
+      "Light yet satisfying—perfect for breakfast",
+      "Can be made sweet or savory for versatility",
+      "Made with simple, wholesome ingredients"
+    ],
+    "image": "/recipe/recipe-3.webp",
+    "categories": [
+      "BREAKFAST"
+    ],
+    "nutrition": {
+      "calories": "270g",
+      "fat": "6g",
+      "carbs": "40g",
+      "protein": "10g"
+    },
+    "ingredients": [
+      "Buckwheat flour - 1 cup",
+      "Milk",
+      "Egg",
+      "Banana",
+      "Baking powder",
+      "Vanilla extract",
+      "Butter"
+    ],
+    "optional": [
+      "Honey",
+      "Maple syrup",
+      "Fruits"
+    ],
+    "steps": [
+      "In a bowl, combine buckwheat flour, baking powder, and salt.",
+      "Add milk, egg, mashed banana, honey, and vanilla extract. Mix well until smooth.",
+      "Heat a non-stick pan and lightly grease it with butter.",
+      "Pour small portions of batter onto the pan and cook until bubbles form on top.",
+      "Flip and cook the other side until golden brown. Serve warm with fruits or extra honey."
+    ]
+  },
+  {
+    "id": "buckwheat-granola-mix",
+    "title": "BUCKWHEAT GRANOLA MIX",
+    "description": "Buckwheat granola mix is a crunchy, wholesome blend of roasted buckwheat combined with nuts and seeds. Lightly toasted for a nutty flavor, it’s a nutritious and versatile option perfect for breakfast, snacking, or topping yogurt and smoothies.",
+    "benefits": [
+      "Rich in fiber for improved digestion",
+      "Packed with healthy fats from nuts and seeds",
+      "Provides sustained energy throughout the day",
+      "Naturally gluten-free and easy to digest",
+      "High in plant-based protein",
+      "Supports heart health",
+      "Crunchy, satisfying, and nutrient-dense",
+      "Perfect as a quick, healthy snack or breakfast option"
+    ],
+    "image": "/recipe/recipe-4.webp",
+    "categories": [
+      "BREAKFAST"
+    ],
+    "nutrition": {
+      "calories": "300g",
+      "fat": "9g",
+      "carbs": "45g",
+      "protein": "9g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Rolled oats",
+      "Almonds",
+      "Pumpkin seeds",
+      "Sunflower seeds",
+      "Honey",
+      "Coconut oil",
+      "Cinnamon",
+      "Salt"
+    ],
+    "optional": [
+      "Raisins",
+      "Dry fruits",
+      "Dark chocolate chips"
+    ],
+    "steps": [
+      "Preheat the oven to 180°C and line a baking tray with parchment paper.",
+      "In a large bowl, mix buckwheat groats, rolled oats, almonds, pumpkin seeds, sunflower seeds, cinnamon, and a pinch of salt.",
+      "Add honey and melted coconut oil, then mix well until everything is evenly coated.",
+      "Spread the mixture evenly on the baking tray and bake for 20–25 minutes, stirring halfway through.",
+      "Let it cool completely, then mix in raisins and store in an airtight container."
+    ]
+  },
+  {
+    "id": "buckwheat-pilaf",
+    "title": "BUCKWHEAT PILAF",
+    "description": "A wholesome and nutritious lunch dish made with roasted buckwheat, fresh vegetables, and mild seasonings. With its light nutty flavor and satisfying texture, it is a healthy, fiber-rich meal that keeps you full and energized throughout the day.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "High in plant-based protein for longer fullness",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady blood sugar levels",
+      "Supports heart health with magnesium and antioxidants",
+      "Packed with iron, zinc, and essential B vitamins",
+      "Helps in healthy weight management",
+      "Boosts energy levels throughout the day"
+    ],
+    "image": "/recipe/lunch-1.webp",
+    "categories": [
+      "LUNCH"
+    ],
+    "nutrition": {
+      "calories": "300g",
+      "fat": "5g",
+      "carbs": "48g",
+      "protein": "9g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Onion",
+      "Carrot",
+      "Capsicum",
+      "Vegetable broth",
+      "Olive oil",
+      "Salt",
+      "Black pepper",
+      "Fresh herbs"
+    ],
+    "optional": [
+      "Mushroom",
+      "Peas",
+      "Chicken"
+    ],
+    "steps": [
+      "Rinse the buckwheat thoroughly and drain well.",
+      "Heat olive oil in a pan, add chopped onion and garlic, and sauté until soft.",
+      "Add carrot and capsicum, then cook for a few minutes until slightly tender.",
+      "Add buckwheat groats and lightly roast for 2–3 minutes. Pour in vegetable broth, salt, and black pepper.",
+      "Cover and cook on low heat until the buckwheat becomes soft and fluffy. Garnish with fresh herbs and serve warm."
+    ]
+  },
+  {
+    "id": "buckwheat-chicken-one-pot",
+    "title": "BUCKWHEAT CHICKEN ONE-POT",
+    "description": "A wholesome and protein rich meal made with buckwheat, tender chicken, fresh vegetables, and mild seasonings cooked together in one pot. This nutritious dish offers a perfect balance of flavor, energy, and comfort, making it an ideal healthy lunch or dinner option.",
+    "benefits": [
+      "High in protein for muscle strength and fullness",
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Supports heart health and metabolism",
+      "Packed with iron, magnesium, and B vitamins",
+      "Balanced meal with protein, carbs, and nutrients"
+    ],
+    "image": "/recipe/lunch-2.webp",
+    "categories": [
+      "LUNCH"
+    ],
+    "nutrition": {
+      "calories": "320g",
+      "fat": "8g",
+      "carbs": "36g",
+      "protein": "24g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Chicken breast",
+      "Onion",
+      "Garlic",
+      "Carrot",
+      "Capsicum",
+      "Olive oil",
+      "Vegetable broth",
+      "Salt",
+      "Black pepper",
+      "Fresh herbs"
+    ],
+    "optional": [
+      "Spinach",
+      "Beans"
+    ],
+    "steps": [
+      "Cut the chicken into small pieces and season with salt and black pepper.",
+      "Heat olive oil in a pot, add garlic and onion, and sauté until fragrant.",
+      "Add chicken pieces and cook until lightly browned. Then add carrot and capsicum.",
+      "Add buckwheat groats and pour in vegetable broth. Mix well and cover.",
+      "Cook on low heat until the buckwheat is soft and the chicken is fully cooked. Garnish with fresh herbs and serve warm."
+    ]
+  },
+  {
+    "id": "buckwheat-vegetable-pulao",
+    "title": "BUCKWHEAT VEGETABLE PULAO",
+    "description": "A healthy and flavorful meal made with buckwheat, fresh vegetables, aromatic herbs, and mild spices. This wholesome dish is light, filling, and rich in fiber, making it a perfect choice for a balanced lunch. ",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Packed with vitamins, minerals, and antioxidants",
+      "Supports heart health and better metabolism",
+      "Helps in weight management and longer fullness",
+      "Good source of plant-based protein",
+      "Light, nutritious, and perfect for everyday meals"
+    ],
+    "image": "/recipe/lunch-3.webp",
+    "categories": [
+      "LUNCH"
+    ],
+    "nutrition": {
+      "calories": "290g",
+      "fat": "6g",
+      "carbs": "50g",
+      "protein": "8g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Carrot",
+      "Beans",
+      "Peas",
+      "Onion",
+      "Garlic",
+      "Ginger",
+      "Tomato",
+      "Cumin seeds",
+      "Olive oil",
+      "Salt",
+      "Black pepper",
+      "Fresh coriander"
+    ],
+    "optional": [
+      "Paneer",
+      "Cashews"
+    ],
+    "steps": [
+      "Rinse the buckwheat thoroughly and keep aside",
+      "Heat oil, sauté cumin, onion, garlic.",
+      "Add chopped carrot, beans, peas, and tomato. Cook for a few minutes until slightly soft",
+      "Add buckwheat groats, salt, and black pepper. Pour in water and mix well.",
+      "Cover and cook on low heat until the buckwheat is soft and fluffy. Garnish with fresh coriander and serve warm."
+    ]
+  },
+  {
+    "id": "buckwheat-lentil-bowl",
+    "title": "BUCKWHEAT LENTIL BOWL",
+    "description": "A wholesome and protein-rich meal made with nutritious buckwheat, cooked lentils, fresh vegetables, and light seasonings. This balanced bowl is rich in fiber, plant-based protein, and essential nutrients, making it a healthy and satisfying option for lunch or dinner.",
+    "benefits": [
+      "High in plant-based protein for longer fullness",
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Supports heart health and better metabolism",
+      "Packed with iron, magnesium, and B vitamins",
+      "Helps in weight management and reduced cravings",
+      "Nutritious, filling, and perfect for balanced meals"
+    ],
+    "image": "/recipe/lunch-4.webp",
+    "categories": [
+      "LUNCH"
+    ],
+    "nutrition": {
+      "calories": "310g",
+      "fat": "7g",
+      "carbs": "52g",
+      "protein": "12g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Cooked lentils",
+      "Carrot",
+      "Capsicum",
+      "Onion",
+      "Garlic",
+      "Olive oil",
+      "Salt",
+      "Black pepper",
+      "Lemon juice",
+      "Fresh herbs"
+    ],
+    "optional": [
+      "Avocado",
+      "Boiled egg"
+    ],
+    "steps": [
+      "Cook buckwheat and lentils separately.",
+      "Sauté vegetables in oil.",
+      "Mix everything together.",
+      "Season well and add lemon juice.",
+      "Serve warm or as bowl meal."
+    ]
+  },
+  {
+    "id": "buckwheat-date-energy-balls",
+    "title": "BUCKWHEAT DATE ENERGY BALLS",
+    "description": "A healthy and naturally sweet snack made with buckwheat, dates, nuts, and seeds. These no-bake energy balls are rich in fiber, healthy fats, and natural sugars, making them a perfect quick bite for instant energy and guilt-free snacking.",
+    "benefits": [
+      "Provides quick and natural energy",
+      "Rich in fiber and supports healthy digestion",
+      "Naturally sweet with no refined sugar",
+      "Packed with healthy fats and plant-based protein",
+      "Helps reduce unhealthy snack cravings",
+      "Supports heart health and better metabolism",
+      "Good source of iron, magnesium, and antioxidants",
+      "Perfect for healthy snacking anytime"
+    ],
+    "image": "/recipe/dessert-1.webp",
+    "categories": [
+      "DESSERT"
+    ],
+    "nutrition": {
+      "calories": "220g",
+      "fat": "9g",
+      "carbs": "30g",
+      "protein": "6g"
+    },
+    "ingredients": [
+      "Buckwheat flour",
+      "Soft dates",
+      "Almonds",
+      "Walnuts",
+      "Chia seeds",
+      "Cocoa powder",
+      "Honey",
+      "Coconut flakes",
+      "Cardamom powder"
+    ],
+    "optional": [
+      "Chia seeds",
+      "Dark chocolate"
+    ],
+    "steps": [
+      "Grind roasted buckwheat and nuts.",
+      "Add dates and blend into sticky mixture.",
+      "Mix coconut and cardamom.",
+      "Roll into small balls.",
+      "Chill and serve."
+    ]
+  },
+  {
+    "id": "buckwheat-muffins",
+    "title": "BUCKWHEAT MUFFINS",
+    "description": "Soft, healthy, and delicious muffins made with nutritious buckwheat flour, natural sweeteners, and wholesome ingredients. These muffins are rich in fiber, gluten-free, and perfect as a healthy snack option.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Provides steady energy throughout the day",
+      "Made with healthier ingredients and natural sweetness",
+      "Helps reduce unhealthy sugar cravings",
+      "Supports heart health and better metabolism",
+      "Good source of essential minerals and antioxidants",
+      "Perfect for breakfast or guilt-free snacking"
+    ],
+    "image": "/recipe/dessert-2.webp",
+    "categories": [
+      "DESSERT"
+    ],
+    "nutrition": {
+      "calories": "260g",
+      "fat": "8g",
+      "carbs": "38g",
+      "protein": "7g"
+    },
+    "ingredients": [
+      "Buckwheat flour",
+      "Banana",
+      "Egg",
+      "Honey",
+      "Milk",
+      "Baking powder",
+      "Cinnamon powder",
+      "Vanilla extract",
+      "Olive oil",
+      "Salt"
+    ],
+    "optional": [
+      "Nuts",
+      "Dry fruits"
+    ],
+    "steps": [
+      "Mix dry ingredients.",
+      "Add wet ingredients and mix well.",
+      "Pour into muffin molds.",
+      "Bake at 180°C for 20–25 minutes.",
+      "Cool and serve."
+    ]
+  },
+  {
+    "id": "buckwheat-savoury-fritters",
+    "title": "BUCKWHEAT SAVOURY FRITTERS",
+    "description": "Crispy and nutritious fritters made with buckwheat flour, fresh vegetables, herbs, and light seasonings. These savory bites are wholesome, filling, and perfect as a healthy snack, breakfast, or light meal option.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Good source of plant-based protein",
+      "Helps maintain steady energy levels",
+      "Packed with vitamins, minerals, and antioxidants",
+      "Supports heart health and better metabolism",
+      "Helps in weight management and longer fullness",
+      "Healthy and satisfying snack for any time"
+    ],
+    "image": "/recipe/dessert-3.webp",
+    "categories": [
+      "DESSERT"
+    ],
+    "nutrition": {
+      "calories": "240g",
+      "fat": "10g",
+      "carbs": "28g",
+      "protein": "8g"
+    },
+    "ingredients": [
+      "Buckwheat flour",
+      "Onion",
+      "Carrot",
+      "Cabbage",
+      "Green chili",
+      "Coriander leaves",
+      "Cumin seeds",
+      "Salt",
+      "Black pepper",
+      "Water",
+      "Oil"
+    ],
+    "optional": [
+      "Paneer",
+      "Corn"
+    ],
+    "steps": [
+      "Mix flour with vegetables and spices.",
+      "Add water to form batter.",
+      "Heat oil and drop small portions.",
+      "Fry until golden brown.",
+      "Serve hot."
+    ]
+  },
+  {
+    "id": "buckwheat-granola-mix-dessert",
+    "title": "BUCKWHEAT GRANOLA MIX",
+    "description": "A crunchy and nutritious blend made with buckwheat, oats, nuts, seeds, and natural sweeteners. This wholesome mix is rich in fiber, healthy fats, and essential nutrients, making it a perfect healthy snack option.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Provides long-lasting energy throughout the day",
+      "Packed with healthy fats and plant-based protein",
+      "Naturally gluten-free and easy to digest",
+      "Helps reduce unhealthy cravings and snacking",
+      "Supports heart health and better metabolism",
+      "Good source of vitamins, minerals, and antioxidants",
+      "Perfect for breakfast, yogurt toppings, or healthy snacking"
+    ],
+    "image": "/recipe/dessert-4.webp",
+    "categories": [
+      "DESSERT"
+    ],
+    "nutrition": {
+      "calories": "300g",
+      "fat": "9g",
+      "carbs": "45g",
+      "protein": "9g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Oats",
+      "Almonds",
+      "Pumpkin seeds",
+      "Honey",
+      "Coconut oil",
+      "Cinnamon"
+    ],
+    "optional": [
+      "Raisins",
+      "Dark chocolate"
+    ],
+    "steps": [
+      "Mix all ingredients.",
+      "Spread on tray.",
+      "Bake at 180°C for 20 minutes.",
+      "Cool and store."
+    ]
+  },
+  {
+    "id": "buckwheat-arabic-style-salad",
+    "title": "BUCKWHEAT ARABIC-STYLE SALAD",
+    "description": "A fresh and nutritious salad made with cooked buckwheat, crisp vegetables, herbs, and a light lemon dressing. This wholesome dish is refreshing, fiber-rich, and packed with essential nutrients, making it a perfect healthy dinner or light meal option.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Packed with vitamins, minerals, and antioxidants",
+      "Supports heart health and better metabolism",
+      "Good source of plant-based protein",
+      "Helps in weight management and longer fullness",
+      "Light, refreshing, and perfect for balanced meals"
+    ],
+    "image": "/recipe/dinner-1.webp",
+    "categories": [
+      "DINNER"
+    ],
+    "nutrition": {
+      "calories": "240g",
+      "fat": "7g",
+      "carbs": "32g",
+      "protein": "7g"
+    },
+    "ingredients": [
+      "Cooked buckwheat",
+      "Tomato",
+      "Cucumber",
+      "Parsley",
+      "Mint",
+      "Lemon juice",
+      "Olive oil",
+      "Salt",
+      "Black pepper"
+    ],
+    "optional": [
+      "Feta cheese",
+      "Olives"
+    ],
+    "steps": [
+      "Cook and cool buckwheat.",
+      "Chop vegetables finely.",
+      "Mix all ingredients in a bowl.",
+      "Add lemon juice and olive oil.",
+      "Toss well and serve fresh."
+    ]
+  },
+  {
+    "id": "buckwheat-lentil-bowl-dinner",
+    "title": "BUCKWHEAT LENTIL BOWL",
+    "description": "A wholesome and nourishing meal made with buckwheat, cooked lentils, fresh vegetables, and light seasonings. This balanced bowl is rich in fiber, plant-based protein, and essential nutrients, making it a healthy and satisfying choice for dinner.",
+    "benefits": [
+      "High in plant-based protein for longer fullness",
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Supports heart health and better metabolism",
+      "Packed with iron, magnesium, and B vitamins",
+      "Helps in weight management and reduced cravings",
+      "Nutritious, filling, and perfect for balanced meals"
+    ],
+    "image": "/recipe/dinner-2.webp",
+    "categories": [
+      "DINNER"
+    ],
+    "nutrition": {
+      "calories": "300g",
+      "fat": "8g",
+      "carbs": "45g",
+      "protein": "14g"
+    },
+    "ingredients": [
+      "Buckwheat groats",
+      "Cooked lentils",
+      "Carrot",
+      "Capsicum",
+      "Onion",
+      "Garlic",
+      "Olive oil",
+      "Salt",
+      "Pepper",
+      "Fresh herbs"
+    ],
+    "optional": [
+      "Avocado",
+      "Boiled egg"
+    ],
+    "steps": [
+      "Cook buckwheat and lentils.",
+      "Sauté vegetables.",
+      "Mix everything together.",
+      "Season well.",
+      "Serve warm."
+    ]
+  },
+  {
+    "id": "buckwheat-wrap",
+    "title": "BUCKWHEAT WRAP",
+    "description": "A healthy and wholesome wrap made with soft buckwheat flatbread filled with fresh vegetables, protein-rich fillings, and light seasonings. This nutritious meal is rich in fiber, gluten-free, and perfect for a balanced lunch or quick healthy dinner.",
+    "benefits": [
+      "Rich in fiber and supports healthy digestion",
+      "Naturally gluten-free and easy to digest",
+      "Helps maintain steady energy levels",
+      "Good source of plant-based protein",
+      "Supports heart health and better metabolism",
+      "Helps in weight management and longer fullness",
+      "Packed with vitamins, minerals, and antioxidants",
+      "Light, filling, and perfect for everyday meals"
+    ],
+    "image": "/recipe/dinner-3.webp",
+    "categories": [
+      "DINNER"
+    ],
+    "nutrition": {
+      "calories": "280g",
+      "fat": "9g",
+      "carbs": "38g",
+      "protein": "10g"
+    },
+    "ingredients": [
+      "Buckwheat flour",
+      "Water",
+      "Salt",
+      "Vegetables",
+      "Beans or paneer",
+      "Lettuce",
+      "Sauce or dip"
+    ],
+    "optional": [
+      "Chicken",
+      "Avocado"
+    ],
+    "steps": [
+      "Prepare buckwheat flatbread.",
+      "Cook or prepare filling.",
+      "Place filling on wrap.",
+      "Roll tightly.",
+      "Serve fresh."
+    ]
+  },
+  {
+    "id": "buckwheat-kuboos-flatbread",
+    "title": "BUCKWHEAT KUBOOS / FLATBREAD",
+    "description": "A soft and healthy flatbread made with nutritious buckwheat flour and simple wholesome ingredients. This gluten-free bread is light, filling, and a perfect alternative to regular wheat-based flatbreads for everyday meals.",
+    "benefits": [
+      "Naturally gluten-free and easy to digest",
+      "Rich in fiber and supports healthy digestion",
+      "Helps maintain steady energy levels",
+      "Good source of plant-based protein",
+      "Supports heart health and better metabolism",
+      "Helps in weight management and longer fullness",
+      "Packed with essential minerals and antioxidants",
+      "Healthy and versatile for daily meals"
+    ],
+    "image": "/recipe/dinner-4.webp",
+    "categories": [
+      "DINNER"
+    ],
+    "nutrition": {
+      "calories": "260g",
+      "fat": "4g",
+      "carbs": "48g",
+      "protein": "8g"
+    },
+    "ingredients": [
+      "Buckwheat flour",
+      "Water",
+      "Salt",
+      "Olive oil"
+    ],
+    "optional": [
+      "Herbs",
+      "Garlic"
+    ],
+    "steps": [
+      "Mix flour, water, and salt to make dough.",
+      "Roll into flatbread.",
+      "Cook on hot pan.",
+      "Flip until cooked.",
+      "Serve warm."
+    ]
+  }
+]

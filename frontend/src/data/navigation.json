@@ -1,0 +1,49 @@
+{
+  "navLinks": [
+    { "name": "Home", "href": "/" },
+    { "name": "About Us", "href": "/about" },
+    { "name": "Community", "href": "/community" },
+    { "name": "Product", "href": "/products" },
+    { "name": "Contact Us", "href": "/contact" },
+    {
+      "name": "Pages",
+      "href": "#",
+      "hasDropdown": true,
+      "items": [
+        { "name": "Recipe", "href": "/recipes" },
+        { "name": "FAQ", "href": "/faq" },
+        { "name": "Blogs", "href": "/blogs" },
+        { "name": "Events", "href": "/events" },
+        { "name": "Gallery", "href": "/gallery" }
+      ]
+    }
+  ],
+  "footer": {
+    "quickLinks": [
+      { "name": "Home", "href": "/" },
+      { "name": "About", "href": "/about" },
+      { "name": "Community", "href": "/community" },
+      { "name": "Products", "href": "/products" },
+      { "name": "Contact Us", "href": "/contact" }
+    ],
+    "innerPages": [
+      { "name": "Recipes", "href": "/recipes" },
+      { "name": "Events", "href": "/events" },
+      { "name": "Gallery", "href": "/gallery" },
+      { "name": "Blogs", "href": "/blogs" },
+      { "name": "FAQs", "href": "/faq" }
+    ],
+    "support": [
+      { "name": "Term and Conditions", "href": "#" },
+      { "name": "Privacy Policy", "href": "#" },
+      { "name": "Refund and Cancellation", "href": "#" },
+      { "name": "Shipping Policy", "href": "#" }
+    ]
+  },
+  "socials": [
+    { "platform": "Facebook", "href": "#" },
+    { "platform": "Instagram", "href": "https://www.instagram.com/zewadi_official/" },
+    { "platform": "TikTok", "href": "#" },
+    { "platform": "Linkedin", "href": "https://www.linkedin.com/company/114143920/admin/dashboard/" }
+  ]
+}

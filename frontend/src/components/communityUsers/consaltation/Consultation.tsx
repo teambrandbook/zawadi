@@ -21,6 +21,7 @@ import api from "@/services/api";
 type ApiBooking = {
   id: number;
   consultant_name: string;
+  consultant_role: string;
   session_type: string;
   booked_date: string;
   booked_slot: string;
@@ -32,26 +33,55 @@ type Session = {
   id: string;
   doctor: string;
   specialty: string;
-  datetime: string;
+  dateLabel: string;
+  timeLabel: string;
   mode: "Video Call" | "Phone Call";
-  status: "upcoming" | "scheduled" | "pending" | "confirmed";
+  status: "scheduled" | "pending" | "confirmed" | "cancelled";
 };
+
+function formatSessionDate(dateValue: string) {
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateValue;
+
+  const today = new Date();
+  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const tomorrow = new Date(todayStart);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  if (target.getTime() === todayStart.getTime()) return "Today";
+  if (target.getTime() === tomorrow.getTime()) return "Tomorrow";
+
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+  });
+}
 
 function mapBookingToSession(b: ApiBooking): Session {
   const modeMap: Record<string, "Video Call" | "Phone Call"> = {
+    video: "Video Call",
+    audio: "Phone Call",
+    chat: "Phone Call",
     VIDEO: "Video Call",
     AUDIO: "Phone Call",
     CHAT: "Phone Call",
   };
   const statusMap: Record<string, Session["status"]> = {
+    pending: "pending",
+    confirmed: "confirmed",
+    cancelled: "cancelled",
     PENDING: "pending",
     CONFIRMED: "confirmed",
+    CANCELLED: "cancelled",
   };
   return {
     id: String(b.id),
     doctor: b.consultant_name,
-    specialty: "Consultant",
-    datetime: `${b.booked_date} at ${b.booked_slot}`,
+    specialty: b.consultant_role || "Consultant",
+    dateLabel: formatSessionDate(b.booked_date),
+    timeLabel: b.booked_slot,
     mode: modeMap[b.session_type] ?? "Video Call",
     status: statusMap[b.status] ?? "scheduled",
   };
@@ -160,22 +190,14 @@ export default function Consultation() {
   const [loadingSessions, setLoadingSessions] = useState(true);
 
   useEffect(() => {
-    api.get<ApiBooking[]>("/consultant/bookings/")
+    api.get<ApiBooking[]>("/consultant/community/create-booking/")
       .then(({ data }) => {
-        const active = data
-          .filter((b) => ["PENDING", "CONFIRMED"].includes(b.status))
-          .map(mapBookingToSession);
+        const active = data.map(mapBookingToSession);
         setSessions(active);
       })
       .catch(() => {/* leave empty on error */})
       .finally(() => setLoadingSessions(false));
   }, []);
-
-  async function handleCancelBooking(id: string) {
-    await api.patch(`/consultant/bookings/${id}/cancel/`);
-    setSessions((prev) => prev.filter((s) => s.id !== id));
-    setMessage("Booking cancelled successfully.");
-  }
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -210,7 +232,6 @@ export default function Consultation() {
               sessions={sessions}
               onJoin={(id) => setMessage(`Joining session: ${id}`)}
               onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
-              onCancel={handleCancelBooking}
             />
           )}
           <ActiveDietPlan progress={65} onViewPlan={() => setIsDietPlanOpen(true)} />

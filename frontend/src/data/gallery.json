@@ -1,0 +1,71 @@
+{
+  "hero": {
+    "title": "Events Gallery",
+    "subtitle": "Zewadi Community Events Gallery"
+  },
+  "categories": [
+    "SHOW ALL",
+    "HORTICULTURE",
+    "AGRICULTURE",
+    "FARMING",
+    "COUNTRYLIFE"
+  ],
+  "items": [
+    {
+      "id": 1,
+      "title": "Community Run",
+      "category": "FARMING",
+      "image": "/gallery/gallry -1.webp",
+      "isFeatured": true
+    },
+    {
+      "id": 2,
+      "title": "Modern Agriculture",
+      "category": "AGRICULTURE",
+      "image": "/gallery/g-2.webp",
+      "isFeatured": true
+    },
+    {
+      "id": 3,
+      "title": "Field Research",
+      "category": "COUNTRYLIFE",
+      "image": "/gallery/g3.webp"
+    },
+    {
+      "id": 4,
+      "title": "Summer Festival",
+      "category": "HORTICULTURE",
+      "image": "/gallery/g4.webp"
+    },
+    {
+      "id": 5,
+      "title": "Learning Hub",
+      "category": "FARMING",
+      "image": "/gallery/g-5.webp"
+    },
+    {
+      "id": 6,
+      "title": "Cycling Tour",
+      "category": "COUNTRYLIFE",
+      "image": "/gallery/g-6.webp"
+    },
+    {
+      "id": 7,
+      "title": "Dinner Gathering",
+      "category": "COUNTRYLIFE",
+      "image": "/gallery/g-7.webp"
+    },
+    {
+      "id": 8,
+      "title": "Planting Day",
+      "category": "HORTICULTURE",
+      "image": "/gallery/g-8.webp"
+    },
+    {
+      "id": 9,
+      "title": "Harvest Feast",
+      "category": "AGRICULTURE",
+      "image": "/gallery/g-9.webp"
+    }
+  ]
+}
