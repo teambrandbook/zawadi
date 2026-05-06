@@ -45,6 +45,12 @@ type MeResponse = {
   phone: string;
 };
 
+function toProductsList(payload: ApiProduct[] | { results?: ApiProduct[] } | null | undefined): ApiProduct[] {
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.results)) return payload.results;
+  return [];
+}
+
 function toNumber(value: string | number): number {
   const amount = Number(value);
   return Number.isNaN(amount) ? 0 : amount;
@@ -121,12 +127,13 @@ export default function OrderPage() {
 
     async function loadProducts() {
       try {
-        const response = await api.get<ApiProduct[]>("/products/");
+        const response = await api.get<ApiProduct[] | { results?: ApiProduct[] }>("/products/");
         if (!isMounted) return;
 
-        setProducts(response.data);
-        if (response.data.length) {
-          setSelectedProductId(String(response.data[0].id));
+        const productList = toProductsList(response.data);
+        setProducts(productList);
+        if (productList.length) {
+          setSelectedProductId(String(productList[0].id));
         }
       } catch {
         if (isMounted) setStatusMessage("Unable to load products.");

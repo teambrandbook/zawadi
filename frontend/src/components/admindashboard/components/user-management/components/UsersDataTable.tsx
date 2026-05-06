@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { ChevronLeft, ChevronRight, Ellipsis, Eye, Pencil, UserCheck, UserMinus } from "lucide-react";
+// 1. Added Trash2 to the imports
+import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, UserCheck, UserMinus } from "lucide-react";
 import { statusClass } from "../userManagementShared";
 import type { UserRecord } from "../userManagementShared";
 
@@ -10,7 +11,8 @@ type Props = {
   allVisibleSelected: boolean;
   onToggleSelectAll: () => void;
   onToggleSelectOne: (id: string) => void;
-  onRowAction: (action: "view" | "edit" | "more", user: UserRecord) => void;
+  // 2. Updated the action type to include "delete" instead of "more"
+  onRowAction: (action: "view" | "edit" | "delete", user: UserRecord) => void;
   page: number;
   totalPages: number;
   perPage: number;
@@ -70,7 +72,6 @@ export default function UsersDataTable({
                 </td>
 
                 <td className="px-4 py-4 text-[#4B5563]">{user.userId}</td>
-
                 <td className="px-4 py-4 text-[#4B5563]">{user.email}</td>
                 <td className="px-4 py-4 text-[#4B5563]">{user.phone}</td>
                 <td className="px-4 py-4 text-[#4B5563]">{user.role}</td>
@@ -97,8 +98,14 @@ export default function UsersDataTable({
                     <button type="button" onClick={() => onRowAction("edit", user)} className="hover:text-[#083927]" aria-label={`Edit ${user.fullName}`}>
                       <Pencil className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => onRowAction("more", user)} className="hover:text-[#083927]" aria-label={`More actions for ${user.fullName}`}>
-                      <Ellipsis className="h-4 w-4" />
+                    {/* 3. Replaced Ellipsis with Trash2 and updated style/label */}
+                    <button 
+                      type="button" 
+                      onClick={() => onRowAction("delete", user)} 
+                      className="text-red-600 hover:text-red-800" 
+                      aria-label={`Delete ${user.fullName}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </td>
@@ -116,6 +123,7 @@ export default function UsersDataTable({
         </table>
       </div>
 
+      {/* Pagination remains unchanged */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#DFDFDF] px-4 py-4 text-sm">
         <p className="text-[#4B5563]">
           Showing {users.length === 0 ? 0 : (safePage - 1) * perPage + 1} to {Math.min(safePage * perPage, totalResults)} of {totalResults} results

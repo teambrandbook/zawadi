@@ -53,7 +53,11 @@ class ProductListCreateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = ProductCreateSerializer(data=request.data, context={"request": request})
+        payload = request.data.copy()
+        if "image" not in payload and request.FILES.get("image"):
+            payload["image"] = request.FILES["image"]
+
+        serializer = ProductCreateSerializer(data=payload, context={"request": request})
         if serializer.is_valid():
             product = serializer.save()
             out = ProductSerializer(product, context={"request": request})
@@ -103,8 +107,12 @@ class ProductDetailView(APIView):
         if not product:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
+        payload = request.data.copy()
+        if "image" not in payload and request.FILES.get("image"):
+            payload["image"] = request.FILES["image"]
+
         serializer = ProductCreateSerializer(
-            product, data=request.data, partial=True, context={"request": request}
+            product, data=payload, partial=True, context={"request": request}
         )
         if serializer.is_valid():
             product = serializer.save()

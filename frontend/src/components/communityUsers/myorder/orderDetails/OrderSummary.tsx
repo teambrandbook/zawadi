@@ -42,7 +42,7 @@ export default function OrderSummary({
       <div className="mt-4 rounded-lg bg-[#F8F3E9] p-3">
         <div className="flex items-center gap-2">
           <div className="relative h-10 w-10 overflow-hidden rounded bg-[#E7DAC3]">
-            <Image src={productImage} alt={productName} fill className="object-cover" />
+            <Image src={productImage} alt={productName} fill unoptimized className="object-cover" />
           </div>
           <div>
             <p className="text-sm font-semibold text-[#0A4833]">{productName}</p>
