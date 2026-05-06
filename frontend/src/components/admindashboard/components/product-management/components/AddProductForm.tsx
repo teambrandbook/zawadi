@@ -7,6 +7,7 @@ export type ProductFormData = {
   product_code: string;
   category: string;
   product_status: string;
+  image: File | null;
   short_description: string;
   full_description: string;
   key_ingredients: string;
@@ -185,13 +186,20 @@ export default function AddProductForm({ formData, onChange }: Props) {
         </div>
       </Card>
 
-      {/* Product Images — placeholder, no upload yet */}
       <Card>
         <SectionTitle icon={<ImageIcon className="h-4 w-4" />} title="Product Images" />
         <div className="rounded-md border border-dashed border-[#D0D5DD] bg-[#F9FAFB] p-7 text-center">
           <ImageIcon className="mx-auto h-5 w-5 text-[#98A2B3]" />
-          <p className="mt-2 text-[12px] text-[#344054]">Drag and drop images here, or click to browse</p>
+          <p className="mt-2 text-[12px] text-[#344054]">
+            {formData.image ? formData.image.name : "Drag and drop images here, or click to browse"}
+          </p>
           <p className="text-[11px] text-[#98A2B3]">Recommended size: 600×600px · JPG, PNG</p>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })}
+            className="mt-3 block w-full text-[12px] text-[#667085] file:mr-3 file:rounded-md file:border-0 file:bg-[#0A4833] file:px-3 file:py-2 file:text-white"
+          />
         </div>
       </Card>
 

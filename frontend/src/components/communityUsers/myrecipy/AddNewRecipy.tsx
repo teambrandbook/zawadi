@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
-import { ArrowLeft } from "lucide-react";
+import api from "@/services/api";
 import {
   ActionArea,
   AddLinkSection,
@@ -231,20 +231,52 @@ export default function AddNewRecipy() {
     }
     setIsSubmitting(true);
     setMessage("Submitting recipe...");
-    await new Promise((resolve) => setTimeout(resolve, 700));
+    const formData = new FormData();
+    formData.append("title", draft.title.trim());
+    formData.append("short_description", draft.description.trim());
+    formData.append("category", draft.category.toLowerCase().replace(/\s+/g, "_"));
+    formData.append("difficulty_level", draft.difficulty.toLowerCase());
+    formData.append("prep_time_minutes", String(parseInt(draft.prepTime, 10) || 1));
+    formData.append("cooking_time_minutes", String(parseInt(draft.cookTime, 10) || 1));
+    formData.append("servings", String(parseInt(draft.servings, 10) || 1));
+    formData.append("health_benefits", draft.wellnessNotes.trim());
+    formData.append("buckwheat_wellness_value", draft.nutritionNotes.trim());
+    formData.append("is_gluten_free", String(draft.dietFriendlyTags.includes("Gluten-Free")));
+    formData.append("is_high_fiber", String(draft.dietFriendlyTags.includes("High Fiber")));
+    formData.append("is_weight_management", String(draft.dietFriendlyTags.includes("Weight Management")));
+    formData.append("is_energy_boosting", String(draft.dietFriendlyTags.includes("Energy Boosting")));
+    if (imageFile) formData.append("cover_image", imageFile);
+    formData.append(
+      "ingredients",
+      JSON.stringify(
+        cleanedIngredients.map((ingredient) => ({
+          ingredient_name: ingredient,
+          quantity: "1",
+          unit: "piece",
+        }))
+      )
+    );
+    formData.append(
+      "steps",
+      JSON.stringify(cleanedSteps.map((description, index) => ({ step_no: index + 1, description })))
+    );
 
-    const submitted = {
-      ...draft,
-      ingredients: cleanedIngredients,
-      steps: cleanedSteps,
-      imageName: imageFile?.name ?? null,
-      createdAt: new Date().toISOString(),
-    };
-
-    localStorage.setItem("myrecipy-last-submitted", JSON.stringify(submitted));
-    localStorage.removeItem(DRAFT_KEY);
-    setIsSubmitting(false);
-    setMessage("Recipe submitted successfully.");
+    try {
+      await api.post("/recipes/create/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      localStorage.removeItem(DRAFT_KEY);
+      setMessage("Recipe submitted successfully.");
+      router.push("/communityDashBorde/myrecipy");
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail = Object.entries(data ?? {})
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+        .join(" | ");
+      setMessage(detail || "Recipe submission failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (

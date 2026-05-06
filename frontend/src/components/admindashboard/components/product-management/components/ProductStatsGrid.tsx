@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CircleCheck, DollarSign, Package, Star, Trophy, XCircle, FileText } from "lucide-react";
 import api from "@/services/api";
+import type { ProductRow } from "./ProductsTable";
 
 type ProductStats = {
   total: number;
@@ -15,11 +16,38 @@ type ProductStats = {
   bestSelling: string;
 };
 
-export default function ProductStatsGrid() {
-  const [stats, setStats] = useState<ProductStats | null>(null);
+function calculateStats(rows: ProductRow[]): ProductStats {
+  const total = rows.length;
+  const active = rows.filter((p) => p.status === "Active").length;
+  const lowStock = rows.filter((p) => p.stockUnits > 0 && p.stockUnits <= 20).length;
+  const featured = rows.filter((p) => p.featured).length;
+  const outOfStock = rows.filter((p) => p.stockUnits === 0).length;
+  const draft = rows.filter((p) => p.status === "Draft").length;
+  const revenue = rows.reduce((sum, p) => sum + p.price * p.sales, 0);
+  const bestSelling = rows.reduce(
+    (best: { name: string; sales: number }, p) =>
+      p.sales > best.sales ? { name: p.name, sales: p.sales } : best,
+    { name: "—", sales: -1 }
+  ).name;
+
+  return { total, active, lowStock, featured, outOfStock, draft, revenue, bestSelling };
+}
+
+type Props = {
+  rows?: ProductRow[];
+};
+
+export default function ProductStatsGrid({ rows }: Props) {
+  const [fetchedStats, setFetchedStats] = useState<ProductStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const stats = useMemo(() => (rows ? calculateStats(rows) : fetchedStats), [fetchedStats, rows]);
 
   useEffect(() => {
+    if (rows) {
+      setIsLoading(false);
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         const res = await api.get("/products/");
@@ -62,7 +90,7 @@ export default function ProductStatsGrid() {
           { name: "—", sales: -1 }
         ).name;
 
-        setStats({ total, active, lowStock, featured, outOfStock, draft, revenue, bestSelling });
+        setFetchedStats({ total, active, lowStock, featured, outOfStock, draft, revenue, bestSelling });
       } catch {
         // Silent fail
       } finally {
@@ -70,7 +98,7 @@ export default function ProductStatsGrid() {
       }
     };
     fetchStats();
-  }, []);
+  }, [rows]);
 
   const fmt = (n: number) => n.toLocaleString();
   const val = (v: number | string) => (stats != null ? (typeof v === "number" ? fmt(v) : v) : isLoading ? "…" : "—");

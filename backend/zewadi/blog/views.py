@@ -31,7 +31,10 @@ class BlogListView(ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        qs = Blog.objects.filter(status=BlogStatus.PUBLISHED).order_by("-published_at")
+        qs = Blog.objects.filter(
+            status=BlogStatus.PUBLISHED,
+            show_in_community_blog=True,
+        ).order_by("-published_at")
 
         category = self.request.query_params.get("category")
         if category:
@@ -45,11 +48,13 @@ class BlogListView(ListAPIView):
 
 
 class BlogDetailView(RetrieveAPIView):
-    """Return a single published blog by pk."""
+    """Return a single published blog by slug."""
 
     serializer_class = BlogDetailSerializer
     permission_classes = [AllowAny]
-    queryset = Blog.objects.filter(status=BlogStatus.PUBLISHED)
+    queryset = Blog.objects.filter(status=BlogStatus.PUBLISHED, show_in_community_blog=True)
+    lookup_field = "slug"
+    lookup_url_kwarg = "slug"
 
 
 # ---------------------------------------------------------------------------

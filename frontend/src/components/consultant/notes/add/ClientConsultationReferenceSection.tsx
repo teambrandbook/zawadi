@@ -15,9 +15,11 @@ type Props = {
 export default function ClientConsultationReferenceSection({ clients, selectedClient, form, onFieldChange }: Props) {
   const [searchValue, setSearchValue] = useState(selectedClient?.name ?? "");
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setSearchValue(selectedClient?.name ?? "");
   }, [selectedClient]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   function handleClientSearch(value: string) {
     setSearchValue(value);

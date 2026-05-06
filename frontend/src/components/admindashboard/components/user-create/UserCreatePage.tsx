@@ -17,7 +17,8 @@ import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
 import api, { getAccessToken } from "@/services/api";
 
-type FormType = {
+// ✅ FIXED TYPE
+export type FormType = {
   full_name: string;
   email: string;
   phone: string;
@@ -175,40 +176,21 @@ export default function UserCreatePage() {
       return;
     }
 
-    try {
-      setIsSubmitting(true);
+    const formData = new FormData();
 
-      if (isEditMode && editUserId) {
-        const token = getAccessToken();
-        await api.patch(
-          `/supperadmin/users/${editUserId}/`,
-          {
-            full_name: form.full_name,
-            phone: form.phone,
-            role: form.role,
-            location: form.location,
-            date_of_birth: form.date_of_birth,
-            gender: form.gender,
-            is_active: form.is_active,
-          },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        toast.success("User updated successfully.");
-      } else {
-        const formData = new FormData();
-
-        Object.entries(form).forEach(([key, value]) => {
-          if (value !== null && value !== "") {
-            formData.append(key, value as any);
-          }
-        });
-
-        await dispatch(registerUser(formData)).unwrap();
-        toast.success("User created successfully.");
+    Object.entries(form).forEach(([key, value]) => {
+      if (value !== null && value !== "") {
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, String(value));
+        }
       }
+    });
 
+    try {
+      await dispatch(registerUser(formData)).unwrap(); // ✅ send FormData
+      toast.success("User created successfully.");
       router.push("/admindashboard/users");
     } catch {
       toast.error(isEditMode ? "Failed to update user." : "Failed to create user.");

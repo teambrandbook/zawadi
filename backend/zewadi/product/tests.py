@@ -37,7 +37,8 @@ class ProductAccessTests(APITestCase):
         response = self.client.get("/api/products/")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        products = response.data["results"] if isinstance(response.data, dict) else response.data
+        self.assertEqual(len(products), 1)
 
     def test_community_user_cannot_create_product(self):
         user = User.objects.create_user(

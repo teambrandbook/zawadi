@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 import FullDietPlanDetails from "./FullDietPlanDetails";
+import { fullDietPlanDetails } from "./fullDietPlanData";
 
 type Props = {
   open: boolean;
@@ -10,6 +11,42 @@ type Props = {
 
 export default function DietPlanModal({ open, onClose }: Props) {
   if (!open) return null;
+
+  const fallbackPlan = {
+    id: 0,
+    title: fullDietPlanDetails.plan.title,
+    goal: fullDietPlanDetails.plan.goal,
+    status: fullDietPlanDetails.plan.status,
+    description: fullDietPlanDetails.lifestyle.personalizedAdvice,
+    instructions: fullDietPlanDetails.lifestyle.exerciseRecommendations.join("\n"),
+    foods_to_avoid: fullDietPlanDetails.lifestyle.foodsToAvoid.join("\n"),
+    recommended_foods: fullDietPlanDetails.buckwheatIntegration.products.join("\n"),
+    daily_calories: parseInt(fullDietPlanDetails.plan.dailyCalories, 10) || 0,
+    protein_grams: 0,
+    carbs_grams: 0,
+    fats_grams: 0,
+    water_intake_liters: 0,
+    start_date: fullDietPlanDetails.plan.startDate,
+    end_date: "",
+    duration_days: parseInt(fullDietPlanDetails.plan.duration, 10) || 0,
+    consultant_name: fullDietPlanDetails.plan.consultant,
+    client_name: fullDietPlanDetails.client.name,
+    meals: fullDietPlanDetails.meals.map((meal, index) => ({
+      meal_type: meal.label.toUpperCase(),
+      title: meal.item,
+      time: meal.time,
+      calories: parseInt(meal.calories, 10) || 0,
+      notes: meal.note,
+      sort_order: index,
+      items: [
+        {
+          food_name: meal.item,
+          quantity: meal.quantity,
+          calories: parseInt(meal.calories, 10) || 0,
+        },
+      ],
+    })),
+  };
 
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-[#101828]/55 px-4 py-6" onClick={onClose}>
@@ -35,7 +72,7 @@ export default function DietPlanModal({ open, onClose }: Props) {
         </div>
 
         <div className="p-6">
-          <FullDietPlanDetails />
+          <FullDietPlanDetails plan={fallbackPlan} />
         </div>
       </div>
     </div>

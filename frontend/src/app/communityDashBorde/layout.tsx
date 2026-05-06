@@ -3,6 +3,7 @@
 import { useState, ReactNode } from "react";
 import Navbar from "@/components/communityUsers/commen/Navbar";
 import UserDashboard from "@/components/communityUsers/commen/UserDashboard";
+import AuthGuard from "@/components/shared/AuthGuard";
 
 type Props = {
   children: ReactNode;
@@ -12,6 +13,7 @@ export default function CommunityLayout({ children }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
+    <AuthGuard allowedRoles={["community_user"]}>
     <div className="min-h-screen">
 
       {/* Navbar */}
@@ -52,5 +54,6 @@ export default function CommunityLayout({ children }: Props) {
         {children}
       </div>
     </div>
+    </AuthGuard>
   );
 }

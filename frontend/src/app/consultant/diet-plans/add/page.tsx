@@ -1,8 +1,11 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import api from "@/services/api";
 import {
   CalendarDays,
   Check,
@@ -10,7 +13,6 @@ import {
   Eye,
   Plus,
   Save,
-  Search,
   Sparkles,
   X,
 } from "lucide-react";
@@ -25,7 +27,7 @@ type MealConfig = {
 };
 
 type FormState = {
-  clientSearch: string;
+  clientId: string;
   planTitle: string;
   goal: string;
   duration: string;
@@ -42,6 +44,15 @@ type FormState = {
   meals: Record<MealKey, { item: string; quantity: string; calories: string }>;
 };
 
+type ClientOption = {
+  id: number;
+  user_id: string;
+  email: string;
+  full_name: string;
+  date_of_birth?: string | null;
+  gender?: string | null;
+};
+
 const mealSections: MealConfig[] = [
   { key: "breakfast", label: "Breakfast", calorieTag: "350 cal", dotClassName: "bg-[#F97316]" },
   { key: "midMorningSnack", label: "Mid-Morning Snack", calorieTag: "150 cal", dotClassName: "bg-[#EAB308]" },
@@ -51,7 +62,7 @@ const mealSections: MealConfig[] = [
 ];
 
 const initialState: FormState = {
-  clientSearch: "Emily Chen",
+  clientId: "",
   planTitle: "30-Day Weight Loss Plan",
   goal: "Weight Loss",
   duration: "7 Days",
@@ -164,7 +175,7 @@ function SelectField({
   onChange,
 }: {
   value: string;
-  options: string[];
+  options: Array<string | { label: string; value: string }>;
   onChange: (nextValue: string) => void;
 }) {
   return (
@@ -174,11 +185,14 @@ function SelectField({
         onChange={(event) => onChange(event.target.value)}
         className="h-11 w-full appearance-none rounded-lg border border-[#DFDFDF] bg-white px-3 pr-10 text-sm text-[#111827] outline-none transition focus:border-[#0A4833]"
       >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
+        {options.map((item) => {
+          const option = typeof item === "string" ? { label: item, value: item } : item;
+          return (
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
-        ))}
+          );
+        })}
       </select>
       <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#4B5563]" />
     </div>
@@ -190,11 +204,15 @@ function ActionButton({
   href,
   variant,
   icon,
+  onClick,
+  disabled = false,
 }: {
   children: ReactNode;
   href?: string;
   variant: "primary" | "secondary" | "outline" | "ghost";
   icon: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
 }) {
   const className =
     variant === "primary"
@@ -226,6 +244,8 @@ function ActionButton({
   return (
     <button
       type="button"
+      onClick={onClick}
+      disabled={disabled}
       className={`inline-flex h-11 items-center justify-center gap-2 rounded-lg border px-4 text-sm font-medium transition ${className}`}
     >
       {content}
@@ -234,7 +254,10 @@ function ActionButton({
 }
 
 export default function ConsultantDietAddPage() {
+  const router = useRouter();
   const [form, setForm] = useState<FormState>(initialState);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const preview = useMemo(
     () => ({
@@ -266,6 +289,97 @@ export default function ConsultantDietAddPage() {
     }));
   }
 
+  useEffect(() => {
+    api
+      .get<ClientOption[]>("/consultant/clients/")
+      .then(({ data }) => {
+        setClients(data);
+        if (data.length > 0) {
+          setForm((current) => current.clientId ? current : { ...current, clientId: String(data[0].id) });
+        }
+      })
+      .catch(() => toast.error("Could not load clients."));
+  }, []);
+
+  const selectedClient = clients.find((client) => String(client.id) === form.clientId);
+
+  function goalValue(label: string) {
+    const map: Record<string, string> = {
+      "Weight Loss": "weight_loss",
+      "Muscle Gain": "muscle_gain",
+      Maintenance: "maintenance",
+      Detox: "general_wellness",
+    };
+    return map[label] ?? "general_wellness";
+  }
+
+  function durationDays(value: string) {
+    return parseInt(value, 10) || 7;
+  }
+
+  function endDateFrom(startDate: string, days: number) {
+    const date = new Date(`${startDate}T00:00:00`);
+    date.setDate(date.getDate() + Math.max(0, days - 1));
+    return date.toISOString().slice(0, 10);
+  }
+
+  async function submitDietPlan(status: "draft" | "active") {
+    if (!form.clientId) { toast.error("Please select a client."); return; }
+    if (!form.planTitle.trim()) { toast.error("Plan title is required."); return; }
+    if (!form.startDate) { toast.error("Start date is required."); return; }
+
+    const days = durationDays(form.duration);
+    const meals = mealSections
+      .map((meal, index) => {
+        const entry = form.meals[meal.key];
+        if (!entry.item.trim()) return null;
+        return {
+          meal_type: meal.key === "midMorningSnack" ? "mid_morning" : meal.key === "eveningSnack" ? "evening_snack" : meal.key,
+          title: meal.label,
+          calories: parseInt(entry.calories, 10) || 0,
+          sort_order: index + 1,
+          items: [
+            {
+              food_name: entry.item.trim(),
+              quantity: entry.quantity.trim(),
+              calories: parseInt(entry.calories, 10) || 0,
+              sort_order: 1,
+            },
+          ],
+        };
+      })
+      .filter(Boolean);
+
+    setIsSubmitting(true);
+    try {
+      await api.post("/consultant/diet-plans/create/", {
+        client: Number(form.clientId),
+        title: form.planTitle.trim(),
+        goal: goalValue(form.goal),
+        status,
+        description: form.benefitsNote,
+        instructions: [form.exerciseRecommendations, form.sleepHydration, form.personalizedAdvice].filter(Boolean).join("\n\n"),
+        foods_to_avoid: form.foodsToAvoid,
+        recommended_foods: form.buckwheatProducts || form.buckwheatServing,
+        daily_calories: parseInt(form.dailyCalories, 10) || 0,
+        start_date: form.startDate,
+        end_date: endDateFrom(form.startDate, days),
+        duration_days: days,
+        meals,
+      });
+      toast.success(status === "active" ? "Diet plan created." : "Draft diet plan saved.");
+      router.push("/consultant/diet-plans");
+    } catch (error: unknown) {
+      const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail = Object.entries(data ?? {})
+        .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+        .join(" | ");
+      toast.error(detail || "Failed to create diet plan.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px]">
@@ -282,30 +396,29 @@ export default function ConsultantDietAddPage() {
               <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_1fr]">
                 <div>
                   <FieldLabel>Select Client</FieldLabel>
-                  <InputField
-                    value={form.clientSearch}
-                    placeholder="Search clients..."
-                    onChange={(value) => updateField("clientSearch", value)}
-                    icon={<Search className="h-4 w-4" />}
+                  <SelectField
+                    value={form.clientId}
+                    options={clients.map((client) => ({ label: client.full_name || client.email, value: String(client.id) }))}
+                    onChange={(value) => updateField("clientId", value)}
                   />
                 </div>
 
                 <div className="rounded-lg bg-[#F1E7D5] p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#E3D1B5]">
-                      <Image src="/recipe/recipe-3.webp" alt="Emily Chen" width={48} height={48} className="h-full w-full object-cover" />
+                      <Image src="/recipe/recipe-3.webp" alt={selectedClient?.full_name || "Selected client"} width={48} height={48} className="h-full w-full object-cover" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-semibold text-[#0A4833]">Emily Chen</p>
-                      <p className="mt-1 text-xs text-[#6B7280]">Age: 32, Weight Loss Goal</p>
+                      <p className="text-sm font-semibold text-[#0A4833]">{selectedClient?.full_name || "Select a client"}</p>
+                      <p className="mt-1 text-xs text-[#6B7280]">{selectedClient?.email || "Client details will appear here"}</p>
                       <div className="mt-3 flex items-center justify-between gap-3 text-xs">
                         <div>
                           <p className="text-[#6B7280]">Diet Preference</p>
-                          <p className="font-medium text-[#0A4833]">Vegetarian</p>
+                          <p className="font-medium text-[#0A4833]">{form.goal}</p>
                         </div>
                         <div className="text-right">
                           <p className="text-[#6B7280]">Allergies</p>
-                          <p className="font-medium text-[#D97706]">Nuts, Dairy</p>
+                          <p className="font-medium text-[#D97706]">Review notes</p>
                         </div>
                       </div>
                     </div>
@@ -467,10 +580,10 @@ export default function ConsultantDietAddPage() {
             </SectionCard>
 
             <div className="flex flex-wrap gap-3">
-              <ActionButton variant="primary" icon={<Check className="h-4 w-4" />}>
-                Create Diet Plan
+              <ActionButton variant="primary" icon={<Check className="h-4 w-4" />} onClick={() => submitDietPlan("active")} disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Diet Plan"}
               </ActionButton>
-              <ActionButton variant="secondary" icon={<Save className="h-4 w-4" />}>
+              <ActionButton variant="secondary" icon={<Save className="h-4 w-4" />} onClick={() => submitDietPlan("draft")} disabled={isSubmitting}>
                 Save as Draft
               </ActionButton>
               <ActionButton variant="outline" icon={<Eye className="h-4 w-4" />}>
@@ -490,7 +603,7 @@ export default function ConsultantDietAddPage() {
                 <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#E3D1B5]">
                   <Image src="/recipe/recipe-3.webp" alt="Emily Chen" width={64} height={64} className="h-full w-full object-cover" />
                 </div>
-                <p className="mt-3 text-sm font-semibold text-[#0A4833]">Emily Chen</p>
+                <p className="mt-3 text-sm font-semibold text-[#0A4833]">{selectedClient?.full_name || "No client selected"}</p>
                 <p className="mt-1 text-xs text-[#6B7280]">{preview.planTitle}</p>
               </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Crown, ShieldAlert, UserCheck, UserMinus, UserPlus, Users } from "lucide-react";
 import api from "@/services/api";
+import type { UserRecord } from "../userManagementShared";
 
 type StatsData = {
   total: number;
@@ -10,11 +11,24 @@ type StatsData = {
   inactive: number;
 };
 
-export default function UserStatsGrid() {
-  const [stats, setStats] = useState<StatsData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+function calculateStats(users: UserRecord[]): StatsData {
+  const total = users.length;
+  const active = users.filter((user) => user.isActive).length;
+  return { total, active, inactive: total - active };
+}
+
+type Props = {
+  users?: UserRecord[];
+};
+
+export default function UserStatsGrid({ users }: Props) {
+  const [fetchedStats, setFetchedStats] = useState<StatsData | null>(null);
+  const [isLoading, setIsLoading] = useState(!users);
+  const stats = useMemo(() => (users ? calculateStats(users) : fetchedStats), [fetchedStats, users]);
 
   useEffect(() => {
+    if (users) return;
+
     const fetchUsers = async () => {
       try {
         const res = await api.get("/supperadmin/users/");
@@ -31,7 +45,7 @@ export default function UserStatsGrid() {
         const active = raw.filter((u) => Boolean(u.is_active)).length;
         const inactive = total - active;
 
-        setStats({ total, active, inactive });
+        setFetchedStats({ total, active, inactive });
       } catch {
         // Silent fail
       } finally {
@@ -39,7 +53,7 @@ export default function UserStatsGrid() {
       }
     };
     fetchUsers();
-  }, []);
+  }, [users]);
 
   const fmt = (n: number) => n.toLocaleString();
   const val = (n: number | undefined) => (stats != null && n != null ? fmt(n) : isLoading ? "…" : "—");

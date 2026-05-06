@@ -11,7 +11,7 @@ type FieldProps = {
 type SelectFieldProps = {
   label: string;
   value: string;
-  options: string[];
+  options: Array<string | { label: string; value: string }>;
   onValueChange?: (v: string) => void;
 };
 
@@ -52,11 +52,14 @@ export function SelectField({ label, value, options, onValueChange }: SelectFiel
         onChange={onValueChange ? (e) => onValueChange(e.target.value) : undefined}
         className="h-9 w-full rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 text-xs text-[#111827] outline-none"
       >
-        {options.map((item) => (
-          <option key={item} value={item}>
-            {item}
+        {options.map((item) => {
+          const option = typeof item === "string" ? { label: item, value: item } : item;
+          return (
+          <option key={option.value} value={option.value}>
+            {option.label}
           </option>
-        ))}
+          );
+        })}
       </select>
     </label>
   );

@@ -27,7 +27,7 @@ const initialState: UserState = {
 
 export const registerUser = createAsyncThunk(
   "user/register",
-  async (data: Record<string, unknown>, { rejectWithValue }) => {
+  async (data: Record<string, unknown> | FormData, { rejectWithValue }) => {
     try {
       const res = await api.post("/account/register/", data);
       return res.data;
@@ -96,7 +96,7 @@ const userSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        const d = action.payload;
+        const d = action.payload?.data ?? action.payload;
         state.userId = d.user_id ?? d.userId ?? null;
         state.role = d.role ?? null;
         state.email = d.email ?? null;

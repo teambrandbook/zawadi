@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // ✅ fixed
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import api from "@/services/api";
 
 const SIGNUP_BACKGROUND =
   "https://www.figma.com/api/mcp/asset/4804ac51-5a50-48be-b3c6-1a9b2f636148";
@@ -11,16 +13,57 @@ const SIGNUP_BACKGROUND =
 export default function SignupComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [form, setForm] = useState({
+    full_name: "",
+    user_name: "",
+    email: "",
+    phone: "",
+    date_of_birth: "",
+    gender: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const updateField = (field: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // your signup logic here (API call etc)
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
 
-    // redirect to login page
-    router.push("/login");
+    setIsSubmitting(true);
+    try {
+      await api.post("/account/register/", {
+        full_name: form.full_name.trim(),
+        user_name: form.user_name.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim(),
+        date_of_birth: form.date_of_birth,
+        gender: form.gender,
+        password: form.password,
+      });
+
+      toast.success("Account created. Please sign in.");
+      router.push("/login");
+    } catch (error: unknown) {
+      const detail =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+          ? JSON.stringify((error as { response?: { data?: unknown } }).response?.data ?? "Signup failed.")
+          : "Signup failed.";
+      toast.error(detail);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -71,8 +114,25 @@ export default function SignupComponent() {
               Full Name
             </label>
             <input
+              value={form.full_name}
+              onChange={(event) => updateField("full_name", event.target.value)}
+              required
               type="text"
               placeholder="Enter your full name"
+              className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10px] text-[#374151]">
+              Username
+            </label>
+            <input
+              value={form.user_name}
+              onChange={(event) => updateField("user_name", event.target.value)}
+              required
+              type="text"
+              placeholder="Choose a username"
               className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
             />
           </div>
@@ -82,10 +142,59 @@ export default function SignupComponent() {
               Email Address
             </label>
             <input
+              value={form.email}
+              onChange={(event) => updateField("email", event.target.value)}
+              required
               type="email"
               placeholder="Enter your email"
               className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
             />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className="mb-1 block text-[10px] text-[#374151]">
+                Phone
+              </label>
+              <input
+                value={form.phone}
+                onChange={(event) => updateField("phone", event.target.value)}
+                required
+                type="tel"
+                placeholder="Phone number"
+                className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-[10px] text-[#374151]">
+                Date of Birth
+              </label>
+              <input
+                value={form.date_of_birth}
+                onChange={(event) => updateField("date_of_birth", event.target.value)}
+                required
+                type="date"
+                className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none focus:border-[#0f5b43]"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-[10px] text-[#374151]">
+              Gender
+            </label>
+            <select
+              value={form.gender}
+              onChange={(event) => updateField("gender", event.target.value)}
+              required
+              className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 text-[12px] text-[#111827] outline-none focus:border-[#0f5b43]"
+            >
+              <option value="">Select gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
           </div>
 
           <div>
@@ -94,6 +203,9 @@ export default function SignupComponent() {
             </label>
             <div className="relative">
               <input
+                value={form.password}
+                onChange={(event) => updateField("password", event.target.value)}
+                required
                 type={showPassword ? "text" : "password"}
                 placeholder="Create a password"
                 className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 pr-10 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
@@ -120,6 +232,9 @@ export default function SignupComponent() {
             </label>
             <div className="relative">
               <input
+                value={form.confirmPassword}
+                onChange={(event) => updateField("confirmPassword", event.target.value)}
+                required
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="Confirm your password"
                 className="h-[38px] w-full rounded-[8px] border border-[#e5e7eb] px-3 pr-10 text-[12px] text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#0f5b43]"
@@ -150,9 +265,10 @@ export default function SignupComponent() {
 
           <button
             type="submit"
+            disabled={isSubmitting}
             className="mt-1 h-[40px] w-full rounded-[8px] bg-[#0f5b43] text-[12px] font-medium text-white transition hover:bg-[#0c4a36]"
           >
-            Create Account
+            {isSubmitting ? "Creating..." : "Create Account"}
           </button>
         </form>
 

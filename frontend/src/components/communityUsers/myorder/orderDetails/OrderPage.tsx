@@ -226,6 +226,7 @@ export default function OrderPage() {
         "response" in error &&
         typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === "string"
           ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+            ?? "Failed to place order."
           : "Failed to place order.";
       setStatusMessage(detail);
     } finally {

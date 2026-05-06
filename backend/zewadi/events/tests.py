@@ -61,3 +61,67 @@ class MyEventRegistrationsAPITests(APITestCase):
         response = self.client.get("/api/events/my-registrations/")
 
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+
+class EventManagementAPITests(APITestCase):
+    def setUp(self):
+        self.admin = User.objects.create_user(
+            email="events-admin@example.com",
+            password="Pass@1234",
+            user_name="eventsadmin",
+            full_name="Events Admin",
+            phone="+10000000022",
+            role="ADMIN",
+        )
+        self.member = User.objects.create_user(
+            email="events-create-member@example.com",
+            password="Pass@1234",
+            user_name="eventcreateuser",
+            full_name="Events User",
+            phone="+10000000023",
+            role="COMMUNITY_USER",
+        )
+
+    def test_admin_can_create_published_event(self):
+        self.client.force_authenticate(self.admin)
+        start = timezone.now() + timedelta(days=5)
+        end = start + timedelta(hours=1)
+
+        response = self.client.post(
+            "/api/events/",
+            {
+                "title": "Buckwheat Workshop",
+                "short_description": "Learn buckwheat basics.",
+                "full_description": "A practical workshop for the community.",
+                "event_type": "workshop",
+                "status": "published",
+                "start_datetime": start.isoformat(),
+                "end_datetime": end.isoformat(),
+                "is_online": True,
+                "meeting_link": "https://example.com/session",
+                "show_in_community": True,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["status"], "published")
+        self.assertTrue(response.data["slug"])
+
+    def test_community_user_cannot_create_event(self):
+        self.client.force_authenticate(self.member)
+        start = timezone.now() + timedelta(days=5)
+        end = start + timedelta(hours=1)
+
+        response = self.client.post(
+            "/api/events/",
+            {
+                "title": "Blocked Event",
+                "short_description": "Should not create.",
+                "start_datetime": start.isoformat(),
+                "end_datetime": end.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import AdminContactDetailsCard from "./components/AdminContactDetailsCard";
 import LocalizationFormatCard from "./components/LocalizationFormatCard";
@@ -21,6 +21,8 @@ import type { SettingsTab } from "./settingsTypes";
 
 const STORAGE_KEY = "zawadi_admin_settings";
 
+// MVP note: these admin settings are UI-only and persist in this browser.
+// They are not platform-wide settings until a backend settings API is added.
 type PersistedSettings = {
   securityData: typeof securityPrivacyDefault;
   systemData: typeof systemPreferencesDefault;
@@ -39,20 +41,11 @@ function loadFromStorage(): PersistedSettings | null {
 }
 
 export default function SettingsManagementPage() {
+  const [savedSettings] = useState(loadFromStorage);
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
-  const [securityData, setSecurityData] = useState(securityPrivacyDefault);
-  const [systemData, setSystemData] = useState(systemPreferencesDefault);
-  const [lastSaved, setLastSaved] = useState("Not saved yet");
-
-  // Hydrate from localStorage on mount
-  useEffect(() => {
-    const saved = loadFromStorage();
-    if (saved) {
-      setSecurityData(saved.securityData ?? securityPrivacyDefault);
-      setSystemData(saved.systemData ?? systemPreferencesDefault);
-      setLastSaved(saved.lastSaved ?? "Not saved yet");
-    }
-  }, []);
+  const [securityData, setSecurityData] = useState(savedSettings?.securityData ?? securityPrivacyDefault);
+  const [systemData, setSystemData] = useState(savedSettings?.systemData ?? systemPreferencesDefault);
+  const [lastSaved, setLastSaved] = useState(savedSettings?.lastSaved ?? "Not saved yet");
 
   function persistToStorage(updatedSecurity: typeof securityPrivacyDefault, updatedSystem: typeof systemPreferencesDefault, savedAt: string) {
     const payload: PersistedSettings = {
