@@ -10,12 +10,21 @@ import api from "@/services/api";
 
 type ApiProduct = {
   id: number;
-  name: string;
-  description: string;
+  name?: string;
+  product_name?: string;
+  description?: string;
+  short_description?: string;
   image: string | null;
   // backend may return variants with price/weight; fall back gracefully
-  variants?: Array<{ id: number; weight?: string; price?: number | string }>;
+  variants?: Array<{
+    id: number;
+    variant_name?: string;
+    weight?: string;
+    price?: number | string;
+  }>;
   price?: number | string;
+  base_price?: number | string;
+  sale_price?: number | string;
   weight?: string;
 };
 
@@ -77,12 +86,13 @@ function formatPrice(p: number | string | undefined): number {
 
 function mapApiProduct(p: ApiProduct): CartProduct {
   const firstVariant = p.variants?.[0];
-  const size = firstVariant?.weight ?? p.weight ?? "250g";
-  const price = formatPrice(firstVariant?.price ?? p.price);
+  const productName = p.name ?? p.product_name ?? "ZEWADI Product";
+  const size = firstVariant?.weight ?? firstVariant?.variant_name ?? p.weight ?? "250g";
+  const price = formatPrice(firstVariant?.price ?? p.sale_price ?? p.price ?? p.base_price);
   return {
     id: p.id,
-    name: p.name,
-    description: p.description ?? "",
+    name: productName,
+    description: p.description ?? p.short_description ?? "",
     image: p.image ?? "/product/product-1.webp",
     size,
     price,

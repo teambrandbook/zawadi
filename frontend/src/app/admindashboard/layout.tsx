@@ -16,12 +16,12 @@ export default function AdminLayout({ children }: Props) {
     <AuthGuard allowedRoles={["admin"]}>
     <div className="min-h-screen">
       {/* Navbar */}
-      <div className="fixed top-0 left-0 w-full h-16 z-50 bg-white shadow">
+      <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">
         <Navbar onMenuClick={() => setIsOpen(true)} settingsHref="/admindashboard/settings" />
       </div>
 
       {/* ✅ Desktop Sidebar ONLY (lg and above) */}
-      <div className="hidden lg:block fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white border-r z-40">
+      <div className="hidden lg:block fixed top-20 left-0 w-72 h-[calc(100vh-5rem)] bg-white border-r z-40">
         <AdminDashboardSidebar />
       </div>
 
@@ -39,7 +39,7 @@ export default function AdminLayout({ children }: Props) {
 
         {/* Sidebar */}
         <div
-          className={`relative w-64 bg-white h-full shadow-lg transform transition-transform duration-300 ${
+          className={`relative w-72 max-w-[85vw] bg-white h-full shadow-lg transform transition-transform duration-300 ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: Props) {
       </div>
 
       {/* ✅ Content */}
-      <div className="pt-16 lg:pl-64 bg-gray-50 min-h-screen">
+      <div className="pt-20 lg:pl-72 bg-gray-50 min-h-screen">
         {children}
       </div>
     </div>
