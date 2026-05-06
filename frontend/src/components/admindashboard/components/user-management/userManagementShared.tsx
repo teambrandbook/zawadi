@@ -2,6 +2,13 @@ import { Crown, ShieldAlert, UserCheck, UserMinus, UserPlus, Users } from "lucid
 
 export type UserStatus = "Active" | "Inactive";
 
+export type CommunityUserDetails = {
+  user_type: string;
+  wellness_interests: string;
+  diet_preference: string;
+  preferred_communication: string;
+};
+
 export type UserRecord = {
   id: string;
   fullName: string;
@@ -14,6 +21,7 @@ export type UserRecord = {
   status: UserStatus;
   activity: string;
   lastLogin: string;
+  communityuser: CommunityUserDetails | null;
 };
 
 export const initialUsers: UserRecord[] = [];
@@ -27,9 +35,9 @@ export const summaryCards = [
   { label: "Premium Members", value: "892", change: "+18%", hint: "vs last month", Icon: Crown, iconBg: "bg-[#F2EAFE]", iconColor: "text-[#A855F7]", changeColor: "text-[#16A34A]" },
 ] as const;
 
-export const PER_PAGE = 3;
+export const PER_PAGE = 10;
 export const STATUS_OPTIONS: Array<"All Status" | UserStatus> = ["All Status", "Active", "Inactive"];
-export const ROLE_OPTIONS = ["All Role", "admin", "consultant", "user"] as const;
+export const ROLE_OPTIONS = ["All Role", "admin", "user"] as const;
 export const PERIOD_OPTIONS = ["Last 30 days", "Last 7 days", "Last 90 days"] as const;
 
 export function toCsv(rows: UserRecord[]) {

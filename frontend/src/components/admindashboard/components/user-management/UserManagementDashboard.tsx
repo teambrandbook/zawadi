@@ -8,20 +8,31 @@ import type { UserRecord } from "./userManagementShared";
 import UserFiltersBar from "./components/UserFiltersBar";
 import UserManagementHeader from "./components/UserManagementHeader";
 import UserStatsGrid from "./components/UserStatsGrid";
+import UserDetailsModal from "./components/UserDetailsModal";
 import UsersDataTable from "./components/UsersDataTable";
 import api, { getAccessToken } from "@/services/api";
 
 function mapApiUsers(rawUsers: Record<string, unknown>[]): UserRecord[] {
   return rawUsers.map((item, index) => {
+    const idValue = item.id ?? `user-${index + 1}`;
     const userIdValue = item.user_id ?? item.id ?? `user-${index + 1}`;
     const fullName = String(item.full_name ?? item.name ?? "Unknown User");
     const email = String(item.email ?? "-");
     const phone = String(item.phone ?? "-");
     const role = String(item.role ?? "user");
     const isActive = Boolean(item.is_active);
+    const communityuser =
+      item.communityuser && typeof item.communityuser === "object"
+        ? {
+            user_type: String((item.communityuser as Record<string, unknown>).user_type ?? "-"),
+            wellness_interests: String((item.communityuser as Record<string, unknown>).wellness_interests ?? "-"),
+            diet_preference: String((item.communityuser as Record<string, unknown>).diet_preference ?? "-"),
+            preferred_communication: String((item.communityuser as Record<string, unknown>).preferred_communication ?? "-"),
+          }
+        : null;
 
     return {
-      id: String(userIdValue),
+      id: String(idValue),
       userId: String(userIdValue),
       fullName,
       email,
@@ -32,6 +43,7 @@ function mapApiUsers(rawUsers: Record<string, unknown>[]): UserRecord[] {
       activity: isActive ? "Currently Active" : "Currently Inactive",
       lastLogin: "N/A",
       photo: typeof item.photo === "string" ? item.photo : null,
+      communityuser,
     };
   });
 }
@@ -60,6 +72,7 @@ export default function UserManagementDashboard() {
   const [period, setPeriod] = useState("Last 30 days");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
+  const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -75,6 +88,8 @@ export default function UserManagementDashboard() {
         });
 
         const users = mapApiUsers(extractRawUsers(res.data));
+        console.log(users);
+        
         setUsers(users);
       } catch (error) {
         console.log("Error:", error);
@@ -182,11 +197,11 @@ export default function UserManagementDashboard() {
 
   function handleRowAction(action: "view" | "edit" | "more", user: UserRecord) {
     if (action === "edit") {
-      router.push(`/admindashboard/users/${user.id}/edit`);
+      router.push(`/admindashboard/users/create?userId=${encodeURIComponent(user.id)}`);
       return;
     }
     if (action === "view") {
-      toast.info(`Viewing ${user.fullName} (${user.userId})`);
+      setSelectedUser(user);
       return;
     }
     toast.info(`More actions for ${user.fullName}`);
@@ -251,6 +266,8 @@ export default function UserManagementDashboard() {
           totalResults={filteredUsers.length}
           onPageChange={setPage}
         />
+
+        <UserDetailsModal user={selectedUser} onClose={() => setSelectedUser(null)} />
       </div>
     </section>
   );

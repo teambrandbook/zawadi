@@ -159,12 +159,21 @@ class UserListAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        users = User.objects.all()
+        # ✅ exclude consultants
+        users = User.objects.exclude(role="CONSULTANT")
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(users, request)
+
         if page is not None:
-            return paginator.get_paginated_response(UserSerializer(page, many=True).data)
-        return Response(UserSerializer(users, many=True).data, status=status.HTTP_200_OK)
+            return paginator.get_paginated_response(
+                UserSerializer(page, many=True).data
+            )
+
+        return Response(
+            UserSerializer(users, many=True).data,
+            status=status.HTTP_200_OK
+        )
 
 
 class UserDetailAPIView(APIView):

@@ -65,16 +65,15 @@ export default function NutritionistsDataTable({ rows }: NutritionistsDataTableP
                   <div className="flex items-start gap-3">
                     <img src={row.avatar} alt={row.name} className="h-12 w-12 rounded-full object-cover" />
 
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <p className="text-[24px] font-semibold leading-[1.1] text-[#0A4833]">{row.name}</p>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="break-words text-[24px] font-semibold leading-[1.1] text-[#0A4833]">{row.name}</p>
                         <p className="text-xs font-medium text-[#0A7A44]">{row.status}</p>
                         <p className={`text-xs font-medium ${availabilityTone(row.availability)}`}>{row.availability}</p>
                       </div>
 
                       <div className="mt-1 flex flex-wrap items-center gap-5 text-xs text-[#6D8B81]">
                         <span>{row.qualification}</span>
-                        <span>{row.email}</span>
                         <span className="inline-flex items-center gap-1">
                           <Phone size={12} />
                           {row.phone}

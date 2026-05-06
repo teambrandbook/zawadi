@@ -2,13 +2,23 @@ from rest_framework import serializers
 
 from accounts.models import User
 from .models import AccessLevel, PermissionModule, Role, RolePermission
+from communityuser.models import CommunityUser
+from consultant.models import Consultant
 
+
+
+
+class CommunityUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityUser
+        fields = "__all__"
 
 class UserSerializer(serializers.ModelSerializer):
+    communityuser = CommunityUserSerializer(read_only=True)
+
     class Meta:
         model = User
         fields = "__all__"
-
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for admin partial user updates — only safe editable fields."""

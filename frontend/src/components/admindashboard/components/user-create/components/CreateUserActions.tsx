@@ -3,10 +3,12 @@ import { useRouter } from "next/navigation";
 type Props = {
   onCreate: () => void;
   loading?: boolean;
+  mode?: "create" | "edit";
 };
 
-export default function CreateUserActions({ onCreate, loading = false }: Props) {
+export default function CreateUserActions({ onCreate, loading = false, mode = "create" }: Props) {
   const router = useRouter();
+  const isEditMode = mode === "edit";
 
   return (
     <div className="sticky bottom-4 z-10 flex justify-end gap-3 rounded-lg bg-white/90 p-3 backdrop-blur">
@@ -19,7 +21,7 @@ export default function CreateUserActions({ onCreate, loading = false }: Props) 
         disabled={loading}
         className="rounded-md bg-[#0A4833] px-6 py-2 text-sm text-white hover:bg-[#083927] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {loading ? "Creating..." : "Create User"}
+        {loading ? (isEditMode ? "Saving..." : "Creating...") : isEditMode ? "Save Changes" : "Create User"}
       </button>
     </div>
   );

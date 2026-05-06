@@ -28,6 +28,7 @@ export default function NutritionistStatsGrid({ items }: NutritionistStatsGridPr
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => {
         const Icon = iconByType(item.icon);
+        const isNameCard = item.id === "top";
 
         return (
           <article key={item.id} className="rounded-xl border border-[#DFDFDF] bg-white p-5">
@@ -38,7 +39,16 @@ export default function NutritionistStatsGrid({ items }: NutritionistStatsGridPr
               <p className="text-xs text-[#9F8151]">{item.label}</p>
             </div>
 
-            <p className="mt-3 text-4xl font-semibold leading-none text-[#0A4833]">{item.value}</p>
+            <p
+              className={
+                isNameCard
+                  ? "mt-3 min-h-[56px] break-words text-2xl font-semibold leading-tight text-[#0A4833]"
+                  : "mt-3 text-4xl font-semibold leading-none text-[#0A4833]"
+              }
+              title={item.value}
+            >
+              {item.value}
+            </p>
             <p className="mt-2 text-sm text-[#7C9B90]">{item.subText}</p>
           </article>
         );
@@ -46,4 +56,3 @@ export default function NutritionistStatsGrid({ items }: NutritionistStatsGridPr
     </section>
   );
 }
-

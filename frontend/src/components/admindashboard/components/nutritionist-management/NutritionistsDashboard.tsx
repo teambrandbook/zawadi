@@ -8,6 +8,15 @@ import NutritionistsDataTable from "./components/NutritionistsDataTable";
 import NutritionistsHeader from "./components/NutritionistsHeader";
 import type { NutritionistRow, NutritionistStatCard } from "./nutritionistTypes";
 
+function pickDisplayName(...candidates: Array<unknown>) {
+  const cleanedCandidates = candidates
+    .map((candidate) => String(candidate ?? "").trim())
+    .filter(Boolean);
+
+  const nonEmailCandidate = cleanedCandidates.find((candidate) => !candidate.includes("@"));
+  return nonEmailCandidate ?? cleanedCandidates[0] ?? "Unknown";
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiConsultant(item: Record<string, any>, index: number): NutritionistRow {
   const user = item.user ?? {};
@@ -21,7 +30,16 @@ function mapApiConsultant(item: Record<string, any>, index: number): Nutritionis
 
   return {
     id: String(item.id ?? `c-${index}`),
-    name: String(user.full_name ?? user.name ?? item.name ?? "Unknown"),
+    name: pickDisplayName(
+      user.full_name,
+      item.full_name,
+      user.user_name,
+      item.user_name,
+      user.name,
+      item.name,
+      user.email,
+      item.email
+    ),
     avatar: String(user.photo ?? user.avatar ?? item.avatar ?? "https://i.pravatar.cc/100?img=1"),
     status: "Active",
     availability: "Available",
@@ -79,6 +97,8 @@ export default function NutritionistsDashboard() {
           ? res.data.results
           : [];
         setRows(raw.map(mapApiConsultant));
+        console.log(res.data);
+        
       } catch {
         setFetchError("Failed to load nutritionists");
       } finally {
@@ -95,7 +115,7 @@ export default function NutritionistsDashboard() {
       <div className="mx-auto max-w-[1180px] space-y-4">
         <NutritionistsHeader />
         <NutritionistStatsGrid items={stats} />
-        <NutritionistFiltersCard />
+        {/* <NutritionistFiltersCard /> */}
 
         {isLoading && (
           <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">
