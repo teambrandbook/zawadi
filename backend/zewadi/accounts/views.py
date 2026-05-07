@@ -44,8 +44,12 @@ def google_config_response():
 
 
 def get_frontend_url():
+    frontend_url = getattr(settings, "FRONTEND_URL", None)
+    if frontend_url:
+        return frontend_url.rstrip("/")
+
     origins = getattr(settings, "CORS_ALLOWED_ORIGINS", [])
-    return origins[0] if origins else "http://localhost:3000"
+    return origins[0].rstrip("/") if origins else "http://localhost:3000"
 
 
 def get_or_create_google_user(email, name):

@@ -62,6 +62,7 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+FRONTEND_URL = os.getenv("FRONTEND_URL", CORS_ALLOWED_ORIGINS[0] if CORS_ALLOWED_ORIGINS else "http://localhost:3000")
 
 # ─── URLs & Templates ─────────────────────────────────────────────────────────
 

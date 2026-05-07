@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import productsData from "@/data/products.json";
@@ -138,9 +139,9 @@ const ProductDetails = () => {
               </div>
 
               {/* Action Buttons */}
-              <button className="flex-1 bg-[#1A4331] text-white font-bold py-3.5 px-10 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-[0.98]">
-                Buy Now
-              </button>
+              <Link href="/cart" className="flex-1 flex items-center justify-center bg-[#1A4331] text-white font-bold py-3.5 px-10 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-[0.98]">
+                Add To Cart
+              </Link>
 
               <button className="p-3.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-[#1A4331]">
                 <Heart size={20} />
