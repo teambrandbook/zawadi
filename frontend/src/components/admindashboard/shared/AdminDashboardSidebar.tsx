@@ -69,7 +69,7 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
   return (
     <aside className="w-72 h-full bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
       {navigation.map((group, idx) => (
-        <div key={idx} className="mb-8">
+        <div key={idx} className={`mb-8 ${idx === 0 ? "pt-8" : ""}`}>
           
           <h3 className="text-[#06402B] font-bold text-lg mb-6 px-2 pt-12">
             {group.section}

@@ -184,7 +184,7 @@ export default function About() {
             const logicalIndex =
                 (index - normalizedRotation + storyImageCount) % storyImageCount;
             const pos = positions[logicalIndex];
-            
+
             const animationProps = {
                 x: pos.x,
                 width: pos.width,
@@ -229,41 +229,41 @@ export default function About() {
                 }
             });
 
-            tl.fromTo(".intro-tall-wrapper", 
+            tl.fromTo(".intro-tall-wrapper",
                 { clipPath: "inset(0% 0% 100% 0%)" },
                 { clipPath: "inset(0% 0% 0% 0%)", duration: 1.15, ease: "power3.inOut" }
             )
-            .fromTo(".intro-top-wrapper",
-                { clipPath: "inset(0% 0% 100% 0%)" },
-                { clipPath: "inset(0% 0% 0% 0%)", duration: 1.0, ease: "power3.inOut" },
-                "-=0.82"
-            )
-            .fromTo(".intro-bottom-wrapper",
-                { clipPath: "inset(0% 0% 100% 0%)" },
-                { clipPath: "inset(0% 0% 0% 0%)", duration: 1.0, ease: "power3.inOut" },
-                "-=0.82"
-            )
-            .fromTo(".intro-health-card",
-                { scale: 0.8, opacity: 0, y: 20 },
-                { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.5)" },
-                "-=0.3"
-            )
-            .fromTo(".intro-text-heading",
-                { opacity: 0, y: 30 },
-                { opacity: 1, y: 0, duration: 0.82, ease: "power3.out" },
-                "-=1.0"
-            )
-            .fromTo(".intro-text-card",
-                { opacity: 0, y: 40 },
-                { opacity: 1, y: 0, duration: 0.68, stagger: 0.12, ease: "power2.out" },
-                "-=0.62"
-            );
+                .fromTo(".intro-top-wrapper",
+                    { clipPath: "inset(0% 0% 100% 0%)" },
+                    { clipPath: "inset(0% 0% 0% 0%)", duration: 1.0, ease: "power3.inOut" },
+                    "-=0.82"
+                )
+                .fromTo(".intro-bottom-wrapper",
+                    { clipPath: "inset(0% 0% 100% 0%)" },
+                    { clipPath: "inset(0% 0% 0% 0%)", duration: 1.0, ease: "power3.inOut" },
+                    "-=0.82"
+                )
+                .fromTo(".intro-health-card",
+                    { scale: 0.8, opacity: 0, y: 20 },
+                    { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: "back.out(1.5)" },
+                    "-=0.3"
+                )
+                .fromTo(".intro-text-heading",
+                    { opacity: 0, y: 30 },
+                    { opacity: 1, y: 0, duration: 0.82, ease: "power3.out" },
+                    "-=1.0"
+                )
+                .fromTo(".intro-text-card",
+                    { opacity: 0, y: 40 },
+                    { opacity: 1, y: 0, duration: 0.68, stagger: 0.12, ease: "power2.out" },
+                    "-=0.62"
+                );
 
             gsap.fromTo(".approach-image-wrapper",
                 { clipPath: "inset(0% 0% 100% 0%)" },
-                { 
-                    clipPath: "inset(0% 0% 0% 0%)", 
-                    duration: 1.4, 
+                {
+                    clipPath: "inset(0% 0% 0% 0%)",
+                    duration: 1.4,
                     ease: "power3.inOut",
                     scrollTrigger: {
                         trigger: ".approach-image-wrapper",
@@ -298,11 +298,11 @@ export default function About() {
                 { opacity: 0, y: 30 },
                 { opacity: 1, y: 0, duration: 1.4, ease: "power2.out" }
             )
-            .fromTo([".testimonial-card", ".testimonial-image"],
-                { opacity: 0, y: 40 },
-                { opacity: 1, y: 0, duration: 1.2, stagger: 0.2, ease: "power2.out" },
-                "-=0.5"
-            );
+                .fromTo([".testimonial-card", ".testimonial-image"],
+                    { opacity: 0, y: 40 },
+                    { opacity: 1, y: 0, duration: 1.2, stagger: 0.2, ease: "power2.out" },
+                    "-=0.5"
+                );
         }, containerRef);
 
         return () => ctx.revert();
@@ -315,28 +315,28 @@ export default function About() {
 
             <section className="pt-20 pb-32 sm:pt-28 sm:pb-40 lg:pt-40 lg:pb-56">
                 <div className="container mx-auto px-4 sm:px-6 max-w-[1150px]">
-                    <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-stretch lg:gap-20">
-                        <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:grid-cols-[1.05fr_0.95fr] lg:translate-x-16 xl:translate-x-24">
-                            <div className="space-y-4 sm:space-y-4 lg:flex lg:h-full lg:min-h-[476px] lg:flex-col lg:justify-between lg:space-y-0">
-                                <div className="intro-tall-wrapper overflow-hidden rounded-[20px]">
+                    <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-stretch lg:gap-16">
+                        <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:min-h-[580px] lg:grid-cols-[1.05fr_0.95fr] lg:translate-x-4 xl:translate-x-8">
+                            <div className="flex flex-col gap-4 sm:gap-5 h-full">
+                                <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
                                     <img
                                         src={introTallImage}
                                         alt="Fresh salad bowl"
                                         loading="lazy"
                                         decoding="async"
-                                        className="h-[260px] w-full object-cover sm:h-[320px] lg:h-[390px] -scale-x-100"
+                                        className="h-full w-full object-cover -scale-x-100"
                                     />
                                 </div>
-                                <div className="intro-health-card rounded-[20px] border-2 border-[#1A4331] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
+                                <div className="intro-health-card shrink-0 rounded-[20px] border border-[#83cd20] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
                                     <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#f1f5eb] text-[#034833] sm:h-10 sm:w-10">
-                                            <Leaf size={16} className="sm:w-4 sm:h-4" />
+                                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1A4331] text-white sm:h-12 sm:w-12">
+                                            <Leaf size={18} className="sm:w-5 sm:h-5" />
                                         </div>
                                         <div>
-                                            <p className="text-[13px] font-semibold leading-tight text-[#034833] sm:text-[15px] sm:leading-5">
+                                            <p className="text-[13px] font-bold leading-tight text-[#034833] sm:text-[16px] sm:leading-5">
                                                 Natural Health
                                             </p>
-                                            <p className="text-[10px] leading-3 text-[#727272] sm:text-[12px] sm:leading-4">
+                                            <p className="text-[10px] leading-3 text-[#727272] sm:text-[13px] sm:leading-5">
                                                 Wellness Made<br />Simple
                                             </p>
                                         </div>
@@ -344,51 +344,51 @@ export default function About() {
                                 </div>
                             </div>
 
-                            <div className="space-y-3 pt-0 sm:space-y-4 lg:flex lg:h-full lg:min-h-[476px] lg:flex-col lg:justify-between lg:space-y-0">
-                                <div className="intro-top-wrapper overflow-hidden rounded-[20px]">
+                            <div className="flex flex-col gap-3 sm:gap-4 h-full lg:gap-5">
+                                <div className="intro-top-wrapper shrink-0 overflow-hidden rounded-[20px]">
                                     <img
                                         src={introTopImage}
                                         alt="Hands preparing vegetables"
                                         loading="lazy"
                                         decoding="async"
-                                        className="h-[100px] w-full object-cover sm:h-[120px]"
+                                        className="h-[120px] w-full object-cover sm:h-[140px] lg:h-[160px] xl:h-[180px]"
                                     />
                                 </div>
-                                <div className="intro-bottom-wrapper overflow-hidden rounded-[20px]">
+                                <div className="intro-bottom-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
                                     <img
                                         src={introBottomImage}
                                         alt="Hands holding a seedling"
                                         loading="lazy"
                                         decoding="async"
-                                        className="h-[240px] w-full object-cover sm:h-[340px] lg:h-[370px]"
+                                        className="h-full w-full object-cover"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="self-start pt-10 sm:pt-12 lg:self-stretch lg:pl-4 lg:pt-24 xl:pl-6 xl:pt-28">
-                            <div className="flex h-full flex-col lg:min-h-[476px] lg:justify-between">
-                            <h2 className="intro-text-heading max-w-[16ch] font-serif font-bold text-[1.3rem] leading-[1.3] sm:text-[1.8rem] sm:leading-[1.2] text-[#034833] tracking-normal">
-                                Food That Feels Right,<br />
-                                Every Day<br />
-                                Thoughtfully Crafted for You.
-                            </h2>
+                        <div className="pt-10 sm:pt-12 lg:self-stretch lg:pl-4 xl:pl-6 lg:pt-0">
+                            <div className="flex h-full flex-col lg:justify-between">
+                                <h2 className="intro-text-heading font-serif font-bold text-[1.6rem] leading-[1.25] sm:text-[2rem] lg:text-[2.4rem] xl:text-[2.6rem] text-[#034833] tracking-normal">
+                                    Food That Feels Right,<br />
+                                    Every Day Thoughtfully<br />
+                                    Crafted for You.
+                                </h2>
 
-                            <div className="mt-6 space-y-4">
-                                {introCards.map((card) => (
-                                    <article
-                                        key={card.title}
-                                        className="intro-text-card rounded-[18px] border border-[#e3dbd8] bg-white px-5 py-4 shadow-[0_10px_30px_rgba(0,0,0,0.03)] sm:px-6 sm:py-4"
-                                    >
-                                        <h3 className="text-[1rem] font-semibold leading-tight text-[#034833] sm:text-[1.05rem]">
-                                            {card.title}
-                                        </h3>
-                                        <p className="mt-2 text-[14px] leading-relaxed text-black/80 sm:text-[14.5px]">
-                                            {card.body}
-                                        </p>
-                                    </article>
-                                ))}
-                            </div>
+                                <div className="mt-8 flex flex-col gap-4 sm:gap-5">
+                                    {introCards.map((card) => (
+                                        <article
+                                            key={card.title}
+                                            className="intro-text-card rounded-[18px] border border-[#e3dbd8] bg-white px-5 py-5 shadow-[0_10px_30px_rgba(0,0,0,0.02)] sm:px-6 sm:py-6 lg:px-7 lg:py-7"
+                                        >
+                                            <h3 className="text-[1.05rem] font-bold leading-tight text-[#1A4331] sm:text-[1.15rem] lg:text-[1.25rem]">
+                                                {card.title}
+                                            </h3>
+                                            <p className="mt-3 text-[14px] font-medium leading-[1.7] text-black/70 sm:text-[14.5px] lg:text-[15px]">
+                                                {card.body}
+                                            </p>
+                                        </article>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -411,7 +411,7 @@ export default function About() {
                     </h2>
 
                     <div className="relative mx-auto mt-10 flex w-full max-w-[1020px] items-center justify-between">
-                        <button 
+                        <button
                             type="button"
                             onClick={handlePrev}
                             aria-label="Previous slide"
@@ -420,7 +420,7 @@ export default function About() {
                             <ArrowRight size={20} className="rotate-180" />
                         </button>
 
-                        <div 
+                        <div
                             className="relative h-[300px] w-full max-w-[820px] md:h-[380px]"
                             onTouchStart={handleTouchStart}
                             onTouchEnd={handleTouchEnd}
@@ -428,26 +428,26 @@ export default function About() {
                         >
                             {storySlides.map((img, i) => {
                                 return (
-                                <div
-                                    key={i}
-                                    ref={el => { storyItemsRef.current[i] = el; }}
-                                    className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer"
-                                    onClick={() => {
-                                        if (isAnimating.current) return;
-                                        const pos =
-                                            (i - normalizeRotation(rotation) + storyImageCount) %
-                                            storyImageCount;
-                                        if (pos === 0) handlePrev();
-                                        if (pos === 2) handleNext();
-                                    }}
-                                >
-                                    <img src={img.image} alt={img.alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                                </div>
+                                    <div
+                                        key={i}
+                                        ref={el => { storyItemsRef.current[i] = el; }}
+                                        className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer"
+                                        onClick={() => {
+                                            if (isAnimating.current) return;
+                                            const pos =
+                                                (i - normalizeRotation(rotation) + storyImageCount) %
+                                                storyImageCount;
+                                            if (pos === 0) handlePrev();
+                                            if (pos === 2) handleNext();
+                                        }}
+                                    >
+                                        <img src={img.image} alt={img.alt} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                                    </div>
                                 );
                             })}
                         </div>
 
-                        <button 
+                        <button
                             type="button"
                             onClick={handleNext}
                             aria-label="Next slide"
@@ -515,16 +515,18 @@ export default function About() {
 
                             <Link
                                 href="/community"
-                                className="group relative inline-flex items-center overflow-hidden rounded-full bg-[#1f4d3a] pl-9 pr-0 py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331]"
+                                className="group relative inline-flex items-center rounded-full bg-[#1f4d3a] pl-9 pr-0 py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331]"
                             >
-                                <div
-                                    className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
-                                    style={{
-                                        backgroundImage: "url('/Patterns-03.webp')",
-                                        backgroundSize: "cover",
-                                        backgroundPosition: "center",
-                                    }}
-                                />
+                                <div className="absolute inset-0 overflow-hidden rounded-full">
+                                    <div
+                                        className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
+                                        style={{
+                                            backgroundImage: "url('/Patterns-03.webp')",
+                                            backgroundSize: "cover",
+                                            backgroundPosition: "center",
+                                        }}
+                                    />
+                                </div>
                                 <span className="relative z-10 py-4">Learn More</span>
                                 <span className="relative -right-6 z-10 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#1f4d3a] text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
                                     <div
@@ -535,7 +537,7 @@ export default function About() {
                                             backgroundPosition: "center",
                                         }}
                                     />
-                                    <MoveRight size={22} />
+                                    <MoveRight size={22} className="relative z-10" />
                                 </span>
                             </Link>
                         </div>

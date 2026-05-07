@@ -12,12 +12,34 @@ interface NavbarProps {
 }
 
 interface UserInfo {
+  fullName: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
   initials: string;
+  photo: string | null;
 }
+
+type CommunityProfileSummary = {
+  full_name?: string | null;
+  user_name?: string | null;
+  email?: string | null;
+  role?: string | null;
+  photo?: string | null;
+};
+
+const COMMUNITY_PROFILE_UPDATED_EVENT = "community-profile-updated";
+
+const fallbackUserInfo: UserInfo = {
+  fullName: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  role: "",
+  initials: "ZM",
+  photo: null,
+};
 
 function decodeJwtPayload(token: string): Record<string, string> | null {
   try {
@@ -32,56 +54,66 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getInitials(name: string, email: string): string {
+  const nameInitials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return nameInitials || email.slice(0, 2).toUpperCase() || "U";
+}
+
+function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
+  const hasProfileName = "full_name" in profile || "user_name" in profile;
+  const profileName = profile.full_name?.trim() || profile.user_name?.trim();
+  const fullName = hasProfileName ? profileName || "" : user.fullName;
+  const email = profile.email || user.email;
+  const role = profile.role || user.role;
+
+  return {
+    ...user,
+    fullName,
+    email,
+    role,
+    initials: getInitials(fullName, email),
+    photo: profile.photo ?? null,
+  };
+}
+
 function getUserFromTokenCookie(): UserInfo {
   if (typeof document === "undefined") {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
   if (!match) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const token = decodeURIComponent(match.split("=")[1]);
   const payload = decodeJwtPayload(token);
   if (!payload) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const firstName: string = payload.first_name || "";
   const lastName: string = payload.last_name || "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const email: string = payload.email || "";
   const role: string = payload.role || "";
-  const initials =
-    (firstName[0] || "") + (lastName[0] || "") ||
-    email.slice(0, 2).toUpperCase() ||
-    "U";
+  const initials = getInitials(fullName, email);
 
-  return { firstName, lastName, email, role, initials };
+  return { fullName, firstName, lastName, email, role, initials, photo: null };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user] = useState<UserInfo>(getUserFromTokenCookie);
+  const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,6 +131,34 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    api.get<CommunityProfileSummary>("/community/profile/")
+      .then(({ data }) => {
+        if (isMounted) {
+          setUser((currentUser) => mergeProfileIntoUser(currentUser, data));
+        }
+      })
+      .catch(() => {
+        // Keep token details if the profile request is unavailable.
+      });
+
+    function handleProfileUpdated(event: Event) {
+      const profile = (event as CustomEvent<CommunityProfileSummary>).detail;
+      if (profile) {
+        setUser((currentUser) => mergeProfileIntoUser(currentUser, profile));
+      }
+    }
+
+    window.addEventListener(COMMUNITY_PROFILE_UPDATED_EVENT, handleProfileUpdated);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener(COMMUNITY_PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    };
+  }, []);
+
   const handleLogout = async () => {
     try {
       await api.post("/account/logout/");
@@ -108,7 +168,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     window.location.href = "/login";
   };
 
-  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
+  const displayName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
+  const greetingName = displayName !== "User" ? displayName.split(/\s+/)[0] : "there";
 
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
@@ -148,7 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         {/* Welcome Greeting (Desktop Only) */}
         <div className="hidden lg:flex flex-col min-w-0 ml-4">
           <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">
-            Hi, {user.firstName || "there"}
+            Hi, {greetingName}
           </h1>
           <p className="text-sm text-gray-500 whitespace-nowrap">Welcome back to your health journey.</p>
         </div>
@@ -194,8 +255,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
               <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
               <p className="text-xs text-gray-400 mt-1">{user.role ? formatRole(user.role) : "Member"}</p>
             </div>
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20">
-              <span className="text-xs font-bold text-white">{user.initials}</span>
+            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20 overflow-hidden">
+              {user.photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={user.photo} alt={displayName} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-xs font-bold text-white">{user.initials}</span>
+              )}
             </div>
           </button>
 
@@ -213,8 +279,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
               {/* User Info Header */}
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-white">{user.initials}</span>
+                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {user.photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={user.photo} alt={displayName} className="h-full w-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-white">{user.initials}</span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
