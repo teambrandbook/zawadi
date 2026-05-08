@@ -30,20 +30,27 @@ export default function LoginComponent() {
       const role = normalizeRole(data.role);
       const accessToken = res.data.access;
 
+      if (accessToken) {
+        document.cookie = `access_token=${encodeURIComponent(accessToken)}; path=/; max-age=${30 * 60}; SameSite=Lax`;
+      }
+
+      // Fetch user_type from /me (login response does not include it)
+      const meRes = await api.get("/account/me/");
+      const userType = (meRes.data.user_type as "guest" | "member") ?? null;
+
       dispatch(setCredentials({
         userId: data.user_id,
         role,
         email: data.email,
+        userType,
       }));
-
-      if (accessToken) {
-        document.cookie = `access_token=${encodeURIComponent(accessToken)}; path=/; max-age=${30 * 60}; SameSite=Lax`;
-      }
 
       if (role === "admin") {
         router.push("/admindashboard");
       } else if (role === "consultant") {
         router.push("/consultant");
+      } else if (role === "community_user" && userType === "guest") {
+        router.push("/shop");
       } else {
         router.push("/communityDashBorde");
       }
