@@ -2,8 +2,26 @@
 
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import gsap from "gsap";
+import api from "@/services/api";
+
+type OrderDetail = {
+  order_id: string;
+  product_name: string;
+  pack_name: string;
+  quantity: number;
+  total_amount: string;
+  delivery_charge: string;
+  status: string;
+  payment_method: string;
+  created_at: string;
+  full_name: string;
+  address: string;
+  city: string;
+  postal_code: string;
+};
 
 export default function OrderPlaced() {
   const tickRef = useRef<SVGSVGElement>(null);
@@ -11,6 +29,23 @@ export default function OrderPlaced() {
   const greenRef = useRef<HTMLSpanElement>(null);
   const outerCircleRef = useRef<HTMLDivElement>(null);
   const middleCircleRef = useRef<HTMLDivElement>(null);
+
+  const searchParams = useSearchParams();
+  const orderId = searchParams.get("order_id");
+  const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!orderId) {
+      setLoading(false);
+      return;
+    }
+    api
+      .get(`/orders/${orderId}/`)
+      .then((res) => setOrder(res.data))
+      .catch(() => setOrder(null))
+      .finally(() => setLoading(false));
+  }, [orderId]);
 
   useEffect(() => {
     const tl = gsap.timeline({ delay: 0.2 });
@@ -21,8 +56,8 @@ export default function OrderPlaced() {
       paths.forEach((node) => {
         const path = node as SVGGeometryElement;
         // Add a small padding (2px) to prevent the rounded linecap dot from showing up
-        const length = path.getTotalLength() + 2; 
-        
+        const length = path.getTotalLength() + 2;
+
         // Negative length starts drawing from the opposite end
         gsap.set(path, { strokeDasharray: length, strokeDashoffset: -length, opacity: 1 });
       });
@@ -56,7 +91,29 @@ export default function OrderPlaced() {
       { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
       "-=0.5"
     );
-  }, []);
+  }, [loading]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
+        Loading order...
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-sm text-[#6b7280]">Order not found.</p>
+        <Link
+          href="/shop"
+          className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white"
+        >
+          Back to Shop
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-28 sm:px-6 md:pt-32 lg:px-12 xl:px-24">
@@ -82,8 +139,13 @@ export default function OrderPlaced() {
             Thank you for choosing Zewadi. Your journey to wellness continues.
           </p>
           <div className="mt-5 inline-flex rounded-full border border-[#d8c29a] bg-[#f6f5f0] px-5 py-2.5 text-sm font-bold leading-5 text-[#1f4d3a]">
-            Order ID: #ZW-8492017
+            Order ID: #{order.order_id}
           </div>
+          {order.full_name && (
+            <p className="mt-2 text-sm text-[#6b7280]">
+              Delivering to {order.full_name} — {order.city}
+            </p>
+          )}
         </div>
 
         <Link

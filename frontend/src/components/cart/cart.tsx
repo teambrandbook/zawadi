@@ -4,15 +4,30 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Heart, Minus, Plus, Trash2 } from "lucide-react";
 import { FaCcMastercard, FaCcVisa, FaCcPaypal, FaCcApplePay } from "react-icons/fa";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
+import { toast } from "sonner";
 
 type CartItem = {
   id: number;
-  name: string;
-  description: string;
+  product_id: number;
+  product_name: string;
+  product_subtitle: string;
   image: string;
-  price: number;
+  unit_price: string;
+  line_total: string;
   quantity: number;
+  stock_quantity: number;
+  currency: string;
+};
+
+type CartSummary = {
+  item_count: number;
+  subtotal: string;
+  shipping: string;
+  tax: string;
+  total: string;
+  free_shipping_unlocked: boolean;
 };
 
 type SuggestedProduct = {
@@ -21,36 +36,6 @@ type SuggestedProduct = {
   image: string;
   price: number;
 };
-
-const initialCartItems: CartItem[] = [
-  {
-    id: 1,
-    name: "Zewadi Buckwheat",
-    description:
-      "Wireless Noise Cancelling. Zewadi Buckwheat is a wholesome, naturally gluten-free grain packed with fiber, protein, and essential nutrients.",
-    image: "/product/buckwheat.webp",
-    price: 348,
-    quantity: 7,
-  },
-  {
-    id: 2,
-    name: "Zewadi Oats",
-    description:
-      "A nutritious whole grain rich in fiber, especially beta-glucan, that supports heart health, aids digestion, and keeps you full for longer.",
-    image: "/product/oats.webp",
-    price: 348,
-    quantity: 1,
-  },
-  {
-    id: 3,
-    name: "Zewadi Flaxseed",
-    description:
-      "A small but powerful seed packed with omega-3 fatty acids, fiber, and antioxidants. It supports digestion, heart health, and overall wellness.",
-    image: "/product/flaxseed.webp",
-    price: 348,
-    quantity: 1,
-  },
-];
 
 const suggestions: SuggestedProduct[] = [
   {
@@ -85,9 +70,9 @@ const suggestions: SuggestedProduct[] = [
   },
 ];
 
-const money = new Intl.NumberFormat("en-US", {
+const money = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
   minimumFractionDigits: 2,
 });
 
@@ -138,8 +123,8 @@ function CartRow({
     <article className="grid gap-4 rounded-2xl border border-[#f3f4f6] bg-white p-4 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:grid-cols-[108px_1fr] sm:p-6 lg:grid-cols-[108px_1fr_128px]">
       <div className="relative h-32 w-full overflow-hidden rounded-xl bg-[#f9fafb] sm:w-[108px]">
         <Image
-          src={item.image}
-          alt={item.name}
+          src={item.image || "/product/buckwheat.webp"}
+          alt={item.product_name}
           fill
           sizes="108px"
           className="object-cover mix-blend-multiply"
@@ -148,13 +133,13 @@ function CartRow({
 
       <div className="min-w-0 self-center">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between lg:block">
-          <h2 className="text-base font-bold leading-7 text-[#1f4d3a]">{item.name}</h2>
+          <h2 className="text-base font-bold leading-7 text-[#1f4d3a]">{item.product_name}</h2>
           <p className="text-lg font-bold leading-7 text-[#1f4d3a] lg:hidden">
-            {money.format(item.price)}
+            {money.format(parseFloat(item.unit_price))}
           </p>
         </div>
         <p className="max-w-[650px] text-xs leading-5 text-[#6b7280] sm:text-sm">
-          {item.description}
+          {item.product_subtitle}
         </p>
 
         <div className="mt-4 flex flex-wrap items-center gap-4">
@@ -171,7 +156,7 @@ function CartRow({
       </div>
 
       <p className="hidden self-start justify-self-end pt-3 text-xl font-bold leading-7 text-[#1f4d3a] lg:block">
-        {money.format(item.price)}
+        {money.format(parseFloat(item.unit_price))}
       </p>
     </article>
   );
@@ -179,12 +164,14 @@ function CartRow({
 
 function OrderSummary({
   subtotal,
+  shipping,
   tax,
   total,
 }: {
-  subtotal: number;
-  tax: number;
-  total: number;
+  subtotal: string;
+  shipping: string;
+  tax: string;
+  total: string;
 }) {
   return (
     <aside className="h-fit rounded-[20px] border border-[#f3f4f6] bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">
@@ -193,21 +180,23 @@ function OrderSummary({
       <div className="mt-7 space-y-5 text-sm">
         <div className="flex items-center justify-between text-[#6b7280]">
           <span>Subtotal</span>
-          <span className="font-bold text-[#1f4d3a]">{money.format(subtotal)}</span>
+          <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(subtotal))}</span>
         </div>
         <div className="flex items-center justify-between text-[#6b7280]">
           <span>Shipping</span>
-          <span className="font-bold text-[#1f4d3a]">Free</span>
+          <span className="font-bold text-[#1f4d3a]">
+            {parseFloat(shipping) === 0 ? "Free" : money.format(parseFloat(shipping))}
+          </span>
         </div>
         <div className="flex items-center justify-between text-[#6b7280]">
           <span>Estimated Tax</span>
-          <span className="font-bold text-[#1f4d3a]">{money.format(tax)}</span>
+          <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(tax))}</span>
         </div>
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-[#f3f4f6] pt-6">
         <span className="text-base font-bold text-[#1f4d3a]">Total</span>
-        <span className="text-[28px] font-bold leading-9 text-[#1f4d3a]">{money.format(total)}</span>
+        <span className="text-[28px] font-bold leading-9 text-[#1f4d3a]">{money.format(parseFloat(total))}</span>
       </div>
 
       <Link
@@ -265,28 +254,66 @@ function SuggestedCard({ product }: { product: SuggestedProduct }) {
 }
 
 export default function Cart() {
-  const [items, setItems] = useState(initialCartItems);
+  const [items, setItems] = useState<CartItem[]>([]);
+  const [summary, setSummary] = useState<CartSummary | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const subtotal = useMemo(
-    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
-    [items]
-  );
-  const tax = subtotal * 0.0772;
-  const total = subtotal + tax;
+  async function fetchCart() {
+    try {
+      const res = await api.get("/orders/cart/");
+      setItems(res.data.items ?? []);
+      setSummary(res.data.summary ?? null);
+    } catch {
+      toast.error("Could not load cart.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const updateQuantity = (id: number, direction: 1 | -1) => {
-    setItems((current) =>
-      current.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity + direction) }
-          : item
-      )
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  async function handleQuantityChange(itemId: number, newQty: number) {
+    if (newQty < 1) return;
+    try {
+      const res = await api.patch(`/orders/cart/items/${itemId}/`, { quantity: newQty });
+      setItems(res.data.items ?? []);
+      setSummary(res.data.summary ?? null);
+    } catch {
+      toast.error("Could not update quantity.");
+    }
+  }
+
+  async function handleRemove(itemId: number) {
+    try {
+      const res = await api.delete(`/orders/cart/items/${itemId}/`);
+      setItems(res.data.items ?? []);
+      setSummary(res.data.summary ?? null);
+      toast.success("Item removed.");
+    } catch {
+      toast.error("Could not remove item.");
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
+        Loading cart...
+      </div>
     );
-  };
+  }
 
-  const removeItem = (id: number) => {
-    setItems((current) => current.filter((item) => item.id !== id));
-  };
+  if (items.length === 0) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-lg font-semibold text-[#0A4833]">Your cart is empty</p>
+        <Link href="/shop" className="rounded-lg bg-[#0A4833] px-6 py-2 text-sm text-white">
+          Shop Now
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
@@ -305,9 +332,9 @@ export default function Cart() {
                 <CartRow
                   key={item.id}
                   item={item}
-                  onDecrease={() => updateQuantity(item.id, -1)}
-                  onIncrease={() => updateQuantity(item.id, 1)}
-                  onRemove={() => removeItem(item.id)}
+                  onDecrease={() => handleQuantityChange(item.id, item.quantity - 1)}
+                  onIncrease={() => handleQuantityChange(item.id, item.quantity + 1)}
+                  onRemove={() => handleRemove(item.id)}
                 />
               ))}
             </div>
@@ -322,7 +349,14 @@ export default function Cart() {
           </section>
 
           <div className="lg:mt-[64px]">
-            <OrderSummary subtotal={subtotal} tax={tax} total={total} />
+            {summary && (
+              <OrderSummary
+                subtotal={summary.subtotal}
+                shipping={summary.shipping}
+                tax={summary.tax}
+                total={summary.total}
+              />
+            )}
           </div>
         </div>
 
