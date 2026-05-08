@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
-import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
+import { usePathname } from "next/navigation";
+import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
 
 interface NavbarProps {
@@ -12,34 +13,12 @@ interface NavbarProps {
 }
 
 interface UserInfo {
-  fullName: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
   initials: string;
-  photo: string | null;
 }
-
-type CommunityProfileSummary = {
-  full_name?: string | null;
-  user_name?: string | null;
-  email?: string | null;
-  role?: string | null;
-  photo?: string | null;
-};
-
-const COMMUNITY_PROFILE_UPDATED_EVENT = "community-profile-updated";
-
-const fallbackUserInfo: UserInfo = {
-  fullName: "",
-  firstName: "",
-  lastName: "",
-  email: "",
-  role: "",
-  initials: "ZM",
-  photo: null,
-};
 
 function decodeJwtPayload(token: string): Record<string, string> | null {
   try {
@@ -113,7 +92,9 @@ function getUserFromTokenCookie(): UserInfo {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
+  const [cartCount, setCartCount] = useState(0);
+  const [user] = useState<UserInfo>(getUserFromTokenCookie);
+  const pathname = usePathname();
 
   useEffect(() => {
     let isMounted = true;
@@ -126,38 +107,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       .catch(() => {
         // not critical — leave at 0
       });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    api.get<CommunityProfileSummary>("/community/profile/")
+    api.get<{ summary: { item_count: number } }>("/orders/cart/")
       .then(({ data }) => {
         if (isMounted) {
-          setUser((currentUser) => mergeProfileIntoUser(currentUser, data));
+          setCartCount(data.summary?.item_count ?? 0);
         }
       })
       .catch(() => {
-        // Keep token details if the profile request is unavailable.
+        // not critical — leave at 0
       });
-
-    function handleProfileUpdated(event: Event) {
-      const profile = (event as CustomEvent<CommunityProfileSummary>).detail;
-      if (profile) {
-        setUser((currentUser) => mergeProfileIntoUser(currentUser, profile));
-      }
-    }
-
-    window.addEventListener(COMMUNITY_PROFILE_UPDATED_EVENT, handleProfileUpdated);
-
     return () => {
       isMounted = false;
-      window.removeEventListener(COMMUNITY_PROFILE_UPDATED_EVENT, handleProfileUpdated);
     };
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -168,8 +130,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     window.location.href = "/login";
   };
 
-  const displayName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
-  const greetingName = displayName !== "User" ? displayName.split(/\s+/)[0] : "there";
+  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
 
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
@@ -209,7 +170,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         {/* Welcome Greeting (Desktop Only) */}
         <div className="hidden lg:flex flex-col min-w-0 ml-4">
           <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">
-            Hi, {greetingName}
+            Hi, {user.firstName || "there"}
           </h1>
           <p className="text-sm text-gray-500 whitespace-nowrap">Welcome back to your health journey.</p>
         </div>
@@ -244,6 +205,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           )}
         </Link>
 
+        <Link
+          href="/communityDashBorde/cart"
+          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Open cart"
+        >
+          <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6" />
+          {cartCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0A4833] px-1 text-[10px] font-bold text-white">
+              {cartCount > 99 ? "99+" : cartCount}
+            </span>
+          )}
+        </Link>
+
         {/* Profile Info — clickable trigger */}
         <div className="relative flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
           <button
@@ -255,13 +229,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
               <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
               <p className="text-xs text-gray-400 mt-1">{user.role ? formatRole(user.role) : "Member"}</p>
             </div>
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20 overflow-hidden">
-              {user.photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={user.photo} alt={displayName} className="h-full w-full object-cover" />
-              ) : (
-                <span className="text-xs font-bold text-white">{user.initials}</span>
-              )}
+            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20">
+              <span className="text-xs font-bold text-white">{user.initials}</span>
             </div>
           </button>
 
@@ -279,13 +248,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
               {/* User Info Header */}
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
-                  {user.photo ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.photo} alt={displayName} className="h-full w-full object-cover" />
-                  ) : (
-                    <span className="text-sm font-bold text-white">{user.initials}</span>
-                  )}
+                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-sm font-bold text-white">{user.initials}</span>
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>

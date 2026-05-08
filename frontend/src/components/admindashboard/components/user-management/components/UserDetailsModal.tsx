@@ -26,8 +26,8 @@ export default function UserDetailsModal({ user, onClose }: Props) {
   if (!user) return null;
 
   const normalizedRole = user.role.toLowerCase();
-  const isCommunityUser =
-    (normalizedRole === "community_user" || normalizedRole === "user") && user.communityuser;
+  const communityUser =
+    normalizedRole === "community_user" || normalizedRole === "user" ? user.communityuser : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
@@ -55,17 +55,17 @@ export default function UserDetailsModal({ user, onClose }: Props) {
             <DetailRow label="Status" value={user.status} />
           </div>
 
-          {isCommunityUser && (
+          {communityUser && (
             <div className="mt-5 rounded-xl border border-[#DFDFDF] bg-white p-4">
               <h3 className="mb-3 text-base font-semibold text-[#111827]">Community User Information</h3>
-              <DetailRow label="User Type" value={user.communityuser.user_type} />
-              <DetailRow label="Wellness Interests" value={user.communityuser.wellness_interests} />
-              <DetailRow label="Diet Preference" value={user.communityuser.diet_preference} />
-              <DetailRow label="Preferred Communication" value={user.communityuser.preferred_communication} />
+              <DetailRow label="User Type" value={communityUser.user_type} />
+              <DetailRow label="Wellness Interests" value={communityUser.wellness_interests} />
+              <DetailRow label="Diet Preference" value={communityUser.diet_preference} />
+              <DetailRow label="Preferred Communication" value={communityUser.preferred_communication} />
             </div>
           )}
 
-          {!isCommunityUser && (
+          {!communityUser && (
             <div className="mt-5 rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#6B7280]">
               No additional role-specific information is available for this user.
             </div>

@@ -51,3 +51,36 @@ class RecipeSlugAPITests(APITestCase):
         response = self.client.get(f"/api/recipes/{recipe.slug}/")
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class RecipeAuthorNameTests(APITestCase):
+    def setUp(self):
+        self.author = User.objects.create_user(
+            email="chef@example.com",
+            password="Pass@1234",
+            user_name="chef",
+            full_name="Amara Osei",
+            phone="+10000000020",
+            role="ADMIN",
+        )
+        self.recipe = Recipe.objects.create(
+            title="Buckwheat Porridge",
+            author=self.author,
+            category="breakfast",
+            difficulty_level="easy",
+            prep_time_minutes=5,
+            cooking_time_minutes=10,
+            servings=2,
+            status="published",
+        )
+
+    def test_recipe_list_returns_correct_author_name(self):
+        response = self.client.get("/api/recipes/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data.get("results", response.data)
+        self.assertEqual(results[0]["author_name"], "Amara Osei")
+
+    def test_recipe_detail_returns_correct_author_name(self):
+        response = self.client.get(f"/api/recipes/{self.recipe.slug}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["author_name"], "Amara Osei")

@@ -1,10 +1,10 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from .models import Product, ProductVariant
+from .models import Product, ProductStatus, ProductVariant
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
 from supperadmin.utils.permissions import has_permission
 from zewadi.pagination import StandardPagination
@@ -18,9 +18,13 @@ def _is_community_user(user):
     )
 
 
-def _can_view_products(user):
-    # Community users can browse products, while write actions stay RBAC-protected.
-    return _is_community_user(user) or has_permission(user, "products", "view")
+def _can_manage_products(user):
+    return has_permission(user, "products", "view")
+
+
+def _can_view_public_products(user):
+    # Public/catalog browsing is allowed for guests and community users.
+    return not getattr(user, "is_authenticated", False) or _is_community_user(user)
 
 
 class ProductListCreateView(APIView):
@@ -29,15 +33,19 @@ class ProductListCreateView(APIView):
     POST /api/products/          — create a product  (requires products.create permission)
     """
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        if not _can_view_products(request.user):
+        can_manage = _can_manage_products(request.user)
+        if not can_manage and not _can_view_public_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
         products = Product.objects.prefetch_related("variants").order_by("id")
+        if not can_manage:
+            products = products.filter(product_status=ProductStatus.ACTIVE)
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:
@@ -71,6 +79,7 @@ class ProductDetailView(APIView):
     DELETE /api/products/<id>/   — delete
     """
     parser_classes = [MultiPartParser, FormParser, JSONParser]
+    permission_classes = [AllowAny]
 
     def _get_object(self, pk):
         try:
@@ -79,7 +88,8 @@ class ProductDetailView(APIView):
             return None
 
     def get(self, request, pk):
-        if not _can_view_products(request.user):
+        can_manage = _can_manage_products(request.user)
+        if not can_manage and not _can_view_public_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -87,6 +97,8 @@ class ProductDetailView(APIView):
 
         product = self._get_object(pk)
         if not product:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not can_manage and product.product_status != ProductStatus.ACTIVE:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ProductSerializer(product, context={"request": request})
@@ -135,6 +147,7 @@ class ProductVariantListCreateView(APIView):
     GET  /api/products/<product_id>/variants/   — list variants for a product
     POST /api/products/<product_id>/variants/   — add a variant
     """
+    permission_classes = [AllowAny]
 
     def _get_product(self, pk):
         try:
@@ -143,7 +156,8 @@ class ProductVariantListCreateView(APIView):
             return None
 
     def get(self, request, product_id):
-        if not _can_view_products(request.user):
+        can_manage = _can_manage_products(request.user)
+        if not can_manage and not _can_view_public_products(request.user):
             return Response(
                 {"error": "You do not have permission to view products"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -151,6 +165,8 @@ class ProductVariantListCreateView(APIView):
 
         product = self._get_product(product_id)
         if not product:
+            return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not can_manage and product.product_status != ProductStatus.ACTIVE:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ProductVariantSerializer(product.variants.all(), many=True)
