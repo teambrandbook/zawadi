@@ -1,26 +1,11 @@
+import type { ChangeEvent } from "react";
 import { UploadCloud } from "lucide-react";
 import { DateField, Field, SelectField, TextAreaField, TimeField } from "./CreateEventFields";
-
-type FormData = {
-  title: string;
-  short_description: string;
-  full_description: string;
-  event_type: string;
-  start_date: string;
-  start_time: string;
-  end_date: string;
-  end_time: string;
-  is_online: boolean;
-  location: string;
-  meeting_link: string;
-  max_attendees: string;
-  status: string;
-  show_in_community: boolean;
-};
+import type { CreateEventFormData } from "../../types";
 
 type Props = {
-  formData: FormData;
-  onChange: (data: FormData) => void;
+  formData: CreateEventFormData;
+  onChange: (data: CreateEventFormData) => void;
 };
 
 const eventTypes = [
@@ -34,12 +19,22 @@ const hostTypes = ["Individual", "Organization"];
 const timezones = ["UTC", "GMT", "EST", "IST"];
 
 export default function CreateEventFormSections({ formData, onChange }: Props) {
-  function set(field: keyof FormData) {
+  function set(field: keyof CreateEventFormData) {
     return (v: string) => onChange({ ...formData, [field]: v });
   }
 
-  function setBoolean(field: "is_online" | "show_in_community") {
+  function setBoolean(field: "is_online" | "show_in_community" | "enable_registration" | "waitlist_enabled" | "approval_required") {
     return (checked: boolean) => onChange({ ...formData, [field]: checked });
+  }
+
+  function handleBannerChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    onChange({
+      ...formData,
+      banner_file: file,
+      banner_preview_url: URL.createObjectURL(file),
+    });
   }
 
   return (
@@ -51,23 +46,30 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
           <Field label="Start Date" className="md:col-span-2" value={formData.start_date} onValueChange={set("start_date")} />
           <SelectField label="Event Type" value={formData.event_type} options={eventTypes} onValueChange={set("event_type")} />
           <SelectField label="Publish Status" value={formData.status} options={[{ label: "Published", value: "published" }, { label: "Draft", value: "draft" }]} onValueChange={set("status")} />
-          <Field label="Institutional Name" value="" onValueChange={() => {}} />
-          <SelectField label="Host Type" value="Direct" options={hostTypes} onValueChange={() => {}} />
+          <Field label="Institutional Name" value={formData.institutional_name} onValueChange={set("institutional_name")} />
+          <SelectField label="Host Type" value={formData.host_type} options={hostTypes} onValueChange={set("host_type")} />
         </div>
       </article>
 
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h2 className="text-sm font-semibold text-[#0A4833]">Event Banner</h2>
         <div className="mt-3 flex h-[170px] flex-col items-center justify-center rounded-lg border border-[#DFDFDF] bg-[#F7F6F2] px-4 text-center">
-          <input id="event-banner-upload" type="file" accept="image/*" className="hidden" />
-          <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE2CF] text-[#9F8151]">
-            <UploadCloud size={18} />
-          </div>
-          <p className="mt-2 text-xs font-medium text-[#0A4833]">Upload Event Banner</p>
-          <p className="mt-1 text-[11px] text-[#6B7280]">Drag and drop your image here, or click to browse</p>
-          <p className="text-[11px] text-[#9CA3AF]">Recommended size: 1200x400px, Max file size: 5MB</p>
+          <input id="event-banner-upload" type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
+          {formData.banner_preview_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={formData.banner_preview_url} alt="Event banner preview" className="mb-2 h-24 w-full rounded-md object-cover" />
+          ) : (
+            <>
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#EDE2CF] text-[#9F8151]">
+                <UploadCloud size={18} />
+              </div>
+              <p className="mt-2 text-xs font-medium text-[#0A4833]">Upload Event Banner</p>
+              <p className="mt-1 text-[11px] text-[#6B7280]">Drag and drop your image here, or click to browse</p>
+              <p className="text-[11px] text-[#9CA3AF]">Recommended size: 1200x400px, Max file size: 5MB</p>
+            </>
+          )}
           <label htmlFor="event-banner-upload" className="mt-2 cursor-pointer rounded-md bg-[#9F8151] px-3 py-1 text-xs font-medium text-white">
-            Browse File
+            {formData.banner_preview_url ? "Change File" : "Browse File"}
           </label>
         </div>
       </article>
@@ -77,7 +79,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
         <div className="mt-3 space-y-3">
           <TextAreaField label="Short Description" rows={3} value={formData.short_description} onValueChange={set("short_description")} />
           <TextAreaField label="Full Event Description" rows={4} value={formData.full_description} onValueChange={set("full_description")} />
-          <TextAreaField label="Event Agenda Highlights" rows={3} value="" onValueChange={() => {}} />
+          <TextAreaField label="Event Agenda Highlights" rows={3} value={formData.agenda_highlights} onValueChange={set("agenda_highlights")} />
         </div>
       </article>
 
@@ -87,7 +89,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
           <DateField label="Event Date" value={formData.start_date} onValueChange={set("start_date")} />
           <TimeField label="Start Time" value={formData.start_time} onValueChange={set("start_time")} />
           <TimeField label="End Time" value={formData.end_time} onValueChange={set("end_time")} />
-          <SelectField label="Timezone" value="UTC" options={timezones} onValueChange={() => {}} />
+          <SelectField label="Timezone" value={formData.timezone} options={timezones} onValueChange={set("timezone")} />
           <DateField label="End Date" value={formData.end_date} onValueChange={set("end_date")} />
           <div className="flex items-end">
             <label className="inline-flex items-center gap-2 text-xs text-[#6B7280]">
@@ -116,15 +118,15 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
           <Field label="Maximum Attendees" value={formData.max_attendees} onValueChange={set("max_attendees")} />
           <div className="space-y-2 pt-5 text-xs text-[#0A4833]">
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+              <input type="checkbox" checked={formData.enable_registration} onChange={(event) => setBoolean("enable_registration")(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
               Enable Registration
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+              <input type="checkbox" checked={formData.waitlist_enabled} onChange={(event) => setBoolean("waitlist_enabled")(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
               Waitlist Enabled
             </label>
             <label className="flex items-center gap-2">
-              <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+              <input type="checkbox" checked={formData.approval_required} onChange={(event) => setBoolean("approval_required")(event.target.checked)} className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
               Approval Required
             </label>
           </div>

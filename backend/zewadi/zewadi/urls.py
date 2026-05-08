@@ -14,29 +14,35 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path,include,re_path
 from django.conf import settings
 from django.conf.urls.static import static
+from django.contrib import admin
+from django.urls import include, path, re_path
 from django.views.static import serve
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/account/', include('accounts.urls')),
-    path('api/supperadmin/', include('supperadmin.urls')),
-    path('api/products/', include('product.urls')),
-    path('api/orders/', include('orders.urls')),
-    path('api/recipes/', include('recipes.urls')),
-    path('api/consultant/', include('consultant.urls')),
-    path('api/blog/', include('blog.urls')),
-    path('api/events/', include('events.urls')),
-    path('api/notifications/', include('notifications.urls')),
-    path('api/community/', include('communityuser.urls')),
-    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+    path("admin/", admin.site.urls),
+    path("api/account/", include("accounts.urls")),
+    path("api/supperadmin/", include("supperadmin.urls")),
+    path("api/products/", include("product.urls")),
+    path("api/orders/", include("orders.urls")),
+    path("api/recipes/", include("recipes.urls")),
+    path("api/consultant/", include("consultant.urls")),
+    path("api/blog/", include("blog.urls")),
+    path("api/events/", include("events.urls")),
+    path("api/notifications/", include("notifications.urls")),
+    path("api/community/", include("communityuser.urls")),
 ]
 
+if settings.MEDIA_URL and settings.MEDIA_ROOT:
+    media_prefix = settings.MEDIA_URL.lstrip("/").rstrip("/")
+    urlpatterns += [
+        re_path(
+            rf"^{media_prefix}/(?P<path>.*)$",
+            serve,
+            {"document_root": settings.MEDIA_ROOT},
+        )
+    ]
+
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL,
-        document_root=settings.MEDIA_ROOT
-    )
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

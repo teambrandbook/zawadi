@@ -257,7 +257,7 @@ export default function ConsultantProfilePage() {
 
       try {
         const profileResponse = await api.get<ConsultantProfileApiResponse>("/consultant/profile/");
-        
+
         const [settingsResponse, availabilityResponse, blockedDatesResponse] = await Promise.allSettled([
           api.get<ConsultantSettingsApiResponse>("/consultant/settings/"),
           api.get<AvailabilityApiResponse[]>("/consultant/availability/"),

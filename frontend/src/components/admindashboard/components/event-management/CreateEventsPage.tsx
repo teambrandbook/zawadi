@@ -1,17 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
 import CreateEventActions from "./components/create-event/CreateEventActions";
 import CreateEventFormSections from "./components/create-event/CreateEventFormSections";
 import CreateEventPreview from "./components/create-event/CreateEventPreview";
+import type { CreateEventFormData } from "./types";
 
 export default function CreateEventsPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateEventFormData>({
     title: "",
     short_description: "",
     full_description: "",
@@ -26,9 +27,26 @@ export default function CreateEventsPage() {
     max_attendees: "",
     status: "published",
     show_in_community: true,
+    institutional_name: "",
+    host_type: "Individual",
+    timezone: "UTC",
+    agenda_highlights: "",
+    banner_file: null,
+    banner_preview_url: "",
+    enable_registration: true,
+    waitlist_enabled: false,
+    approval_required: false,
   });
 
-  async function handleSubmit() {
+  useEffect(() => {
+    return () => {
+      if (formData.banner_preview_url.startsWith("blob:")) {
+        URL.revokeObjectURL(formData.banner_preview_url);
+      }
+    };
+  }, [formData.banner_preview_url]);
+
+  async function submitEvent(status: "draft" | "published" = formData.status as "draft" | "published") {
     if (!formData.title) {
       toast.error("Event title is required.");
       return;
@@ -51,7 +69,7 @@ export default function CreateEventsPage() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/events/", {
+      const payload = {
         title: formData.title,
         short_description: formData.short_description,
         full_description: formData.full_description,
@@ -62,10 +80,24 @@ export default function CreateEventsPage() {
         location: formData.location,
         meeting_link: formData.meeting_link,
         max_attendees: formData.max_attendees ? parseInt(formData.max_attendees, 10) : undefined,
-        status: formData.status,
+        status,
         show_in_community: formData.show_in_community,
-      });
-      toast.success("Event created successfully.");
+      };
+
+      if (formData.banner_file) {
+        const fd = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined) fd.append(key, String(value));
+        });
+        fd.append("cover_image", formData.banner_file);
+        await api.post("/events/", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.post("/events/", payload);
+      }
+
+      toast.success(status === "draft" ? "Event saved as draft." : "Event created successfully.");
       router.push("/admindashboard/events");
     } catch (err: unknown) {
       const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
@@ -86,9 +118,13 @@ export default function CreateEventsPage() {
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-4">
             <CreateEventFormSections formData={formData} onChange={setFormData} />
-            <CreateEventActions onSubmit={handleSubmit} isSubmitting={isSubmitting} />
+            <CreateEventActions
+              onSubmit={() => submitEvent("published")}
+              onSaveDraft={() => submitEvent("draft")}
+              isSubmitting={isSubmitting}
+            />
           </div>
-          <CreateEventPreview />
+          <CreateEventPreview formData={formData} />
         </div>
       </div>
     </section>

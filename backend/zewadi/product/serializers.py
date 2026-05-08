@@ -11,6 +11,14 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
+    image = serializers.SerializerMethodField()
+
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get("request")
+        image_url = obj.image.url
+        return request.build_absolute_uri(image_url) if request else image_url
 
     class Meta:
         model = Product

@@ -11,6 +11,7 @@ from accounts.models import User
 from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available,create_or_update_client_from_booking
 from datetime import datetime
 from django.utils import timezone
+from supperadmin.utils.permissions import has_permission
 
 
 
@@ -37,25 +38,181 @@ class IsCommunityUser(BasePermission):
         )
 
 
+# admins side list
+
 class ConsultantListView(APIView):
-    permission_classes = [AllowAny]
+
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
+        # Check permission
+        if not has_permission(request.user, "nutritionists", "view"):
+            return Response(
+                {"message": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         consultants = Consultant.objects.select_related("user").all()
-        serializer = ConsultantListSerializer(consultants, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = ConsultantListSerializer(
+            consultants,
+            many=True
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+    
+
+
+
+
+    
 
 
 class ConsultantDetailView(APIView):
-    permission_classes = [AllowAny]
 
+    permission_classes = [IsAuthenticated]
+
+    # --------------------------------
+    # GET CONSULTANT
+    # --------------------------------
     def get(self, request, pk):
+
+        if not has_permission(request.user, "nutritionists", "view"):
+            return Response(
+                {"detail": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         try:
             consultant = Consultant.objects.select_related("user").get(pk=pk)
+
         except Consultant.DoesNotExist:
-            return Response({"detail": "Consultant not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ConsultantDetailSerializer(consultant)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": "Consultant not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ConsultantListSerializer(consultant)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    # --------------------------------
+    # EDIT CONSULTANT
+    # --------------------------------
+    def patch(self, request, pk):
+
+        if not has_permission(request.user, "nutritionists", "edit"):
+            return Response(
+                {"detail": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            consultant = Consultant.objects.select_related("user").get(pk=pk)
+
+        except Consultant.DoesNotExist:
+            return Response(
+                {"detail": "Consultant not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        user = consultant.user
+        data = request.data
+
+        if "email" in data and data.get("email") != user.email:
+            if User.objects.filter(email=data.get("email")).exclude(pk=user.pk).exists():
+                return Response(
+                    {"email": ["A user with this email already exists."]},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        user_fields = [
+            "full_name",
+            "user_name",
+            "email",
+            "phone",
+            "date_of_birth",
+            "gender",
+            "location",
+        ]
+        consultant_fields = [
+            "years_of_experience",
+            "qualification",
+            "certifications",
+            "short_bio",
+            "languages_spoken",
+            "experience_areas",
+            "session_type",
+            "consultation_fee",
+            "session_duration",
+        ]
+
+        try:
+            with transaction.atomic():
+                for field in user_fields:
+                    if field in data:
+                        setattr(user, field, data.get(field))
+
+                if "photo" in request.FILES:
+                    user.photo = request.FILES["photo"]
+
+                password = data.get("password")
+                if password:
+                    user.set_password(password)
+
+                user.save()
+
+                for field in consultant_fields:
+                    if field in data:
+                        setattr(consultant, field, data.get(field))
+
+                consultant.save()
+
+        except Exception as exc:
+            return Response(
+                {"detail": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ConsultantListSerializer(consultant)
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    # --------------------------------
+    # DELETE CONSULTANT
+    # --------------------------------
+    def delete(self, request, pk):
+
+        if not has_permission(request.user, "nutritionists", "delete"):
+            return Response(
+                {"detail": "Permission denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            consultant = Consultant.objects.select_related("user").get(pk=pk)
+
+        except Consultant.DoesNotExist:
+            return Response(
+                {"detail": "Consultant not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        consultant.delete()
+
+        return Response(
+            {"detail": "Consultant deleted successfully."},
+            status=status.HTTP_200_OK
+        )
 
 
 class ConsultantProfileView(APIView):

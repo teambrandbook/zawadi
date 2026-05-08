@@ -12,6 +12,14 @@ import UserDetailsModal from "./components/UserDetailsModal";
 import UsersDataTable from "./components/UsersDataTable";
 import api, { getAccessToken } from "@/services/api";
 
+function toUserPhotoUrl(photo?: string | null) {
+  if (!photo) return null;
+  if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
+  return `${apiOrigin}${photo.startsWith("/") ? photo : `/${photo}`}`;
+}
+
 function mapApiUsers(rawUsers: Record<string, unknown>[]): UserRecord[] {
   return rawUsers.map((item, index) => {
     const idValue = item.id ?? `user-${index + 1}`;
@@ -42,7 +50,7 @@ function mapApiUsers(rawUsers: Record<string, unknown>[]): UserRecord[] {
       status: isActive ? "Active" : "Inactive",
       activity: isActive ? "Currently Active" : "Currently Inactive",
       lastLogin: "N/A",
-      photo: typeof item.photo === "string" ? item.photo : null,
+      photo: typeof item.photo === "string" ? toUserPhotoUrl(item.photo) : null,
       communityuser,
     };
   });
@@ -61,6 +69,49 @@ function extractRawUsers(payload: unknown): Record<string, unknown>[] {
   return [];
 }
 
+function DeleteUserConfirmDialog({
+  user,
+  isDeleting,
+  onConfirm,
+  onCancel,
+}: {
+  user: UserRecord;
+  isDeleting: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
+        <h2 className="text-lg font-semibold text-[#0A4833]">Delete User</h2>
+        <p className="mt-2 text-sm text-[#4B5563]">
+          Are you sure you want to delete <span className="font-medium text-[#0A4833]">{user.fullName}</span>?
+        </p>
+        <p className="mt-1 text-sm text-[#6B7280]">This action cannot be undone.</p>
+
+        <div className="mt-5 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={isDeleting}
+            className="rounded-md border border-[#D1D5DB] px-4 py-2 text-sm text-[#374151] hover:bg-[#F3F4F6] disabled:opacity-60"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={isDeleting}
+            className="rounded-md bg-[#DC2626] px-4 py-2 text-sm font-medium text-white hover:bg-[#B91C1C] disabled:opacity-60"
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function UserManagementDashboard() {
   const router = useRouter();
   const [users, setUsers] = useState<UserRecord[]>(initialUsers);
@@ -73,6 +124,8 @@ export default function UserManagementDashboard() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -195,7 +248,25 @@ export default function UserManagementDashboard() {
     downloadCsv("users-selected.csv", selectedUsers);
   }
 
-  function handleRowAction(action: "view" | "edit" | "more", user: UserRecord) {
+  async function confirmDeleteUser() {
+    if (!deleteTarget) return;
+
+    setIsDeletingUser(true);
+    try {
+      await api.delete(`/supperadmin/users/${deleteTarget.id}/`);
+      setUsers((prev) => prev.filter((user) => user.id !== deleteTarget.id));
+      setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget.id));
+      setSelectedUser((prev) => (prev?.id === deleteTarget.id ? null : prev));
+      toast.success("User deleted successfully.");
+      setDeleteTarget(null);
+    } catch {
+      toast.error("Failed to delete user. Please try again.");
+    } finally {
+      setIsDeletingUser(false);
+    }
+  }
+
+  function handleRowAction(action: "view" | "edit" | "delete", user: UserRecord) {
     if (action === "edit") {
       router.push(`/admindashboard/users/create?userId=${encodeURIComponent(user.id)}`);
       return;
@@ -204,11 +275,22 @@ export default function UserManagementDashboard() {
       setSelectedUser(user);
       return;
     }
-    toast.info(`More actions for ${user.fullName}`);
+    setDeleteTarget(user);
   }
 
   return (
     <section className="w-full bg-white p-4 lg:p-6">
+      {deleteTarget ? (
+        <DeleteUserConfirmDialog
+          user={deleteTarget}
+          isDeleting={isDeletingUser}
+          onConfirm={confirmDeleteUser}
+          onCancel={() => {
+            if (!isDeletingUser) setDeleteTarget(null);
+          }}
+        />
+      ) : null}
+
       <div className="mx-auto max-w-[1180px] space-y-5">
         <UserManagementHeader
           searchQuery={searchQuery}

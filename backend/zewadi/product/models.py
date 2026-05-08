@@ -37,7 +37,6 @@ class Product(models.Model):
     brand_name = "Zewadi"
     category = models.CharField(max_length=30, choices=ProductCategory.choices, default=ProductCategory.OTHER)
     product_status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    
     image = models.ImageField(upload_to="products/images/", blank=True, null=True)
 
     # Description

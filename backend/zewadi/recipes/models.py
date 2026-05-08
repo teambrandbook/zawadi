@@ -30,8 +30,9 @@ class DifficultyLevel(models.TextChoices):
 
 class RecipeStatus(models.TextChoices):
     DRAFT = "draft", "Draft"
+    PENDING = "pending", "Pending Approval"
     PUBLISHED = "published", "Published"
-
+    REJECTED = "rejected", "Rejected"
 
 class IngredientUnit(models.TextChoices):
     CUPS = "cups", "cups"
@@ -70,8 +71,31 @@ class Recipe(models.Model):
     is_featured = models.BooleanField(default=False)
     show_in_community = models.BooleanField(default=True)
 
-    status = models.CharField(max_length=12, choices=RecipeStatus.choices, default=RecipeStatus.DRAFT)
+    status = models.CharField(max_length=12, choices=RecipeStatus.choices, default=RecipeStatus.PENDING)
     published_at = models.DateTimeField(null=True, blank=True)
+
+    approved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="approved_recipes"
+    )
+
+    approved_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    rejected_at = models.DateTimeField(
+        null=True,
+        blank=True
+    )
+
+    rejection_reason = models.TextField(
+        null=True,
+        blank=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

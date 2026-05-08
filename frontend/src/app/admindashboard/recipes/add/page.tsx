@@ -1,17 +1,49 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
 
-const CATEGORIES = ["Breakfast", "Lunch", "Dinner", "Snacks", "Desserts", "Smoothies", "Salads", "Soups"];
-const DIFFICULTY_LEVELS = ["EASY", "MEDIUM", "HARD", "EXPERT"];
+const CATEGORIES = [
+  { label: "Breakfast", value: "breakfast" },
+  { label: "Lunch", value: "lunch" },
+  { label: "Dinner", value: "dinner" },
+  { label: "Snack", value: "snack" },
+  { label: "Dessert", value: "dessert" },
+  { label: "Drink", value: "drink" },
+  { label: "Other", value: "other" },
+];
+const DIFFICULTY_LEVELS = [
+  { label: "Easy", value: "easy" },
+  { label: "Medium", value: "medium" },
+  { label: "Hard", value: "hard" },
+];
+const INGREDIENT_UNITS = ["cups", "tbsp", "tsp", "g", "kg", "ml", "l", "piece"];
 
 type Ingredient = { ingredient_name: string; quantity: string; unit: string };
 type Step = { description: string };
+type RecipeDetailResponse = {
+  id: string | number;
+  title?: string;
+  short_description?: string;
+  category?: string;
+  difficulty_level?: string;
+  prep_time_minutes?: number | string;
+  cooking_time_minutes?: number | string;
+  servings?: number | string;
+  health_benefits?: string;
+  cover_image?: string | null;
+  is_gluten_free?: boolean;
+  is_high_fiber?: boolean;
+  is_weight_management?: boolean;
+  is_energy_boosting?: boolean;
+  is_featured?: boolean;
+  ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
+  steps?: Array<{ description?: string }>;
+};
 
 function FormCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -72,12 +104,15 @@ function Checkbox({ label, checked, onChange }: { label: string; checked: boolea
 
 export default function AddRecipePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const coverRef = useRef<HTMLInputElement>(null);
+  const recipeId = searchParams.get("id");
+  const isEditMode = Boolean(recipeId);
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [category, setCategory] = useState("");
-  const [difficulty, setDifficulty] = useState("EASY");
+  const [difficulty, setDifficulty] = useState("easy");
   const [prepTime, setPrepTime] = useState("");
   const [cookingTime, setCookingTime] = useState("");
   const [servings, setServings] = useState("");
@@ -94,13 +129,62 @@ export default function AddRecipePage() {
 
   // Ingredients
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { ingredient_name: "", quantity: "", unit: "" },
+    { ingredient_name: "", quantity: "", unit: "piece" },
   ]);
 
   // Steps
   const [steps, setSteps] = useState<Step[]>([{ description: "" }]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingRecipe, setIsLoadingRecipe] = useState(false);
+
+  useEffect(() => {
+    if (!recipeId) return;
+
+    const fetchRecipe = async () => {
+      setIsLoadingRecipe(true);
+      try {
+        const response = await api.get(`/recipes/${recipeId}/`);
+        const recipe: RecipeDetailResponse = response.data?.data ?? response.data;
+        setTitle(recipe.title ?? "");
+        setShortDescription(recipe.short_description ?? "");
+        setCategory(recipe.category ?? "");
+        setDifficulty(recipe.difficulty_level ?? "easy");
+        setPrepTime(recipe.prep_time_minutes ? String(recipe.prep_time_minutes) : "");
+        setCookingTime(recipe.cooking_time_minutes ? String(recipe.cooking_time_minutes) : "");
+        setServings(recipe.servings ? String(recipe.servings) : "");
+        setHealthBenefits(recipe.health_benefits ?? "");
+        setCoverFile(null);
+        setCoverPreview(recipe.cover_image ?? null);
+        setIsGlutenFree(Boolean(recipe.is_gluten_free));
+        setIsHighFiber(Boolean(recipe.is_high_fiber));
+        setIsWeightManagement(Boolean(recipe.is_weight_management));
+        setIsEnergyBoosting(Boolean(recipe.is_energy_boosting));
+        setIsFeatured(Boolean(recipe.is_featured));
+        setIngredients(
+          Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
+            ? recipe.ingredients.map((ingredient) => ({
+                ingredient_name: ingredient.ingredient_name ?? "",
+                quantity: ingredient.quantity ?? "",
+                unit: ingredient.unit ?? "piece",
+              }))
+            : [{ ingredient_name: "", quantity: "", unit: "piece" }]
+        );
+        setSteps(
+          Array.isArray(recipe.steps) && recipe.steps.length > 0
+            ? recipe.steps.map((step) => ({ description: step.description ?? "" }))
+            : [{ description: "" }]
+        );
+      } catch {
+        toast.error("Failed to load recipe details.");
+        router.push("/admindashboard/recipes");
+      } finally {
+        setIsLoadingRecipe(false);
+      }
+    };
+
+    fetchRecipe();
+  }, [recipeId, router]);
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -114,7 +198,7 @@ export default function AddRecipePage() {
   }
 
   function addIngredient() {
-    setIngredients((prev) => [...prev, { ingredient_name: "", quantity: "", unit: "" }]);
+    setIngredients((prev) => [...prev, { ingredient_name: "", quantity: "", unit: "piece" }]);
   }
 
   function removeIngredient(index: number) {
@@ -136,7 +220,10 @@ export default function AddRecipePage() {
   async function handleSubmit() {
     if (!title.trim()) { toast.error("Recipe title is required."); return; }
     if (!category) { toast.error("Please select a category."); return; }
-
+    if (!shortDescription.trim()) { toast.error("Short description is required."); return; }
+    if (!prepTime || Number(prepTime) < 1) { toast.error("Prep time must be at least 1 minute."); return; }
+    if (!cookingTime || Number(cookingTime) < 1) { toast.error("Cooking time must be at least 1 minute."); return; }
+    if (!servings || Number(servings) < 1) { toast.error("Servings must be at least 1."); return; }
     const fd = new FormData();
     fd.append("title", title.trim());
     fd.append("short_description", shortDescription.trim());
@@ -155,21 +242,37 @@ export default function AddRecipePage() {
 
     // Ingredients & steps as JSON strings (backend can parse)
     const validIngredients = ingredients.filter((i) => i.ingredient_name.trim());
+    if (validIngredients.length === 0) { toast.error("Please add at least one ingredient."); return; }
+    if (validIngredients.some((i) => !i.quantity.trim())) { toast.error("Each ingredient needs a quantity."); return; }
     fd.append("ingredients", JSON.stringify(validIngredients));
 
     const validSteps = steps.filter((s) => s.description.trim());
+    if (validSteps.length === 0) { toast.error("Please add at least one preparation step."); return; }
     fd.append("steps", JSON.stringify(validSteps.map((s, idx) => ({ step_no: idx + 1, description: s.description.trim() }))));
 
     setIsSubmitting(true);
     try {
-      await api.post("/recipes/create/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success("Recipe created successfully! ✅");
+      if (isEditMode && recipeId) {
+        await api.patch(`/recipes/${recipeId}/`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.post("/recipes/create/", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
+      toast.success(isEditMode ? "Recipe updated successfully!" : "Recipe created successfully! ✅");
       router.push("/admindashboard/recipes");
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(msg ?? "Failed to create recipe. Please try again.");
+      const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const msg =
+        (typeof data?.message === "string" && data.message) ||
+        (data?.errors && typeof data.errors === "object"
+          ? Object.entries(data.errors as Record<string, unknown>)
+              .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+              .join(" | ")
+          : "");
+      toast.error(msg || (isEditMode ? "Failed to update recipe. Please try again." : "Failed to create recipe. Please try again."));
     } finally {
       setIsSubmitting(false);
     }
@@ -181,8 +284,10 @@ export default function AddRecipePage() {
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-[30px] font-semibold leading-tight text-[#0A4833]">Add Recipe</h1>
-            <p className="text-[12px] text-[#6B7280]">Create a new recipe for the ZEWADI community.</p>
+            <h1 className="text-[30px] font-semibold leading-tight text-[#0A4833]">{isEditMode ? "Edit Recipe" : "Add Recipe"}</h1>
+            <p className="text-[12px] text-[#6B7280]">
+              {isEditMode ? "Update the selected recipe for the ZEWADI community." : "Create a new recipe for the ZEWADI community."}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Link
@@ -197,6 +302,11 @@ export default function AddRecipePage() {
 
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-4">
+            {isLoadingRecipe ? (
+              <section className="rounded-lg border border-[#E4E7EC] bg-white p-4 text-sm text-[#6B7280]">
+                Loading recipe details...
+              </section>
+            ) : null}
             {/* Basic Info */}
             <FormCard title="Basic Information">
               <div className="grid gap-3 sm:grid-cols-2">
@@ -209,7 +319,7 @@ export default function AddRecipePage() {
                     className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#374151] outline-none"
                   >
                     <option value="">Select category...</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </label>
                 <label className="block space-y-1">
@@ -219,7 +329,7 @@ export default function AddRecipePage() {
                     onChange={(e) => setDifficulty(e.target.value)}
                     className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#374151] outline-none"
                   >
-                    {DIFFICULTY_LEVELS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    {DIFFICULTY_LEVELS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
                   </select>
                 </label>
                 <InputRow label="Prep Time (minutes)" value={prepTime} onChange={setPrepTime} placeholder="15" type="number" />
@@ -308,12 +418,13 @@ export default function AddRecipePage() {
                       placeholder="Qty"
                       className="h-9 w-16 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
                     />
-                    <input
+                    <select
                       value={ing.unit}
                       onChange={(e) => updateIngredient(idx, "unit", e.target.value)}
-                      placeholder="Unit"
-                      className="h-9 w-16 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
-                    />
+                      className="h-9 w-20 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
+                    >
+                      {INGREDIENT_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+                    </select>
                     <button
                       type="button"
                       onClick={() => removeIngredient(idx)}
@@ -405,11 +516,11 @@ export default function AddRecipePage() {
           </Link>
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingRecipe}
             onClick={handleSubmit}
             className="h-8 rounded-md bg-[#0A4833] px-3 text-[11px] text-white disabled:opacity-50"
           >
-            {isSubmitting ? "Creating..." : "Create Recipe"}
+            {isSubmitting ? (isEditMode ? "Saving..." : "Creating...") : (isEditMode ? "Save Edit" : "Create Recipe")}
           </button>
         </div>
       </div>

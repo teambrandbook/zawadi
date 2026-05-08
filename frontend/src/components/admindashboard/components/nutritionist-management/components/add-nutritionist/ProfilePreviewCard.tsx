@@ -2,6 +2,12 @@ import { Eye, User } from "lucide-react";
 
 type ProfilePreviewCardProps = {
   activeExpertise: string[];
+  fullName: string;
+  qualification: string;
+  yearsExp: string;
+  consultationFee: string;
+  sessionDuration: string;
+  photoPreviewUrl: string;
 };
 
 function Row({ label, value, valueClassName = "text-[#111827]" }: { label: string; value: string; valueClassName?: string }) {
@@ -13,7 +19,15 @@ function Row({ label, value, valueClassName = "text-[#111827]" }: { label: strin
   );
 }
 
-export default function ProfilePreviewCard({ activeExpertise }: ProfilePreviewCardProps) {
+export default function ProfilePreviewCard({
+  activeExpertise,
+  fullName,
+  qualification,
+  yearsExp,
+  consultationFee,
+  sessionDuration,
+  photoPreviewUrl,
+}: ProfilePreviewCardProps) {
   return (
     <aside className="xl:sticky xl:top-24 xl:self-start">
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4 shadow-sm">
@@ -23,17 +37,25 @@ export default function ProfilePreviewCard({ activeExpertise }: ProfilePreviewCa
         </h3>
 
         <div className="mt-4 text-center">
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#DFDFDF] text-[#9CA3AF]">
-            <User size={28} />
-          </div>
-          <p className="mt-3 text-sm font-semibold text-[#0A4833]">Dr. Sarah Johnson</p>
-          <p className="text-xs text-[#6B7280]">Certified Nutrition Specialist</p>
+          {photoPreviewUrl ? (
+            <img
+              src={photoPreviewUrl}
+              alt={fullName || "Profile preview"}
+              className="mx-auto h-20 w-20 rounded-full object-cover"
+            />
+          ) : (
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#DFDFDF] text-[#9CA3AF]">
+              <User size={28} />
+            </div>
+          )}
+          <p className="mt-3 text-sm font-semibold text-[#0A4833]">{fullName || "Nutritionist Name"}</p>
+          <p className="text-xs text-[#6B7280]">{qualification || "Qualification"}</p>
         </div>
 
         <div className="mt-5 space-y-3 text-xs">
-          <Row label="Experience:" value="8 years" />
-          <Row label="Session Fee:" value="$75" valueClassName="text-[#9F8151]" />
-          <Row label="Duration:" value="60 min" />
+          <Row label="Experience:" value={`${yearsExp || "0"} years`} />
+          <Row label="Session Fee:" value={`$${consultationFee || "0"}`} valueClassName="text-[#9F8151]" />
+          <Row label="Duration:" value={`${sessionDuration} min`} />
           <div>
             <p className="text-[#6B7280]">Expertise:</p>
             {activeExpertise.length === 0 && <p className="mt-1 text-[#9CA3AF]">No expertise selected</p>}
@@ -52,4 +74,3 @@ export default function ProfilePreviewCard({ activeExpertise }: ProfilePreviewCa
     </aside>
   );
 }
-
