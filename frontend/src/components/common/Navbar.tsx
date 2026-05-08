@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, User, ChevronDown, ArrowRight } from "lucide-react";
+import { Menu, X, Globe, User, ChevronDown, ArrowRight, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import navData from "@/data/navigation.json";
 import gsap from "@/lib/gsap";
@@ -152,12 +152,17 @@ const Navbar = () => {
               <span className="text-white font-bold text-sm">En</span>
             </div>
 
+            {/* Cart Icon */}
+            <Link href="/cart" className="hidden lg:flex items-center justify-center text-white cursor-pointer hover:text-brand-primary transition-colors px-2">
+              <ShoppingCart size={24} strokeWidth={1.5} />
+            </Link>
+
             {/* Profile Icon */}
             <Link href="/login">
-  <div className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-brand-primary hover:text-brand-dark transition-all shadow-inner">
-    <User size={22} />
-  </div>
-</Link>
+              <div className="w-10 h-10 bg-white/15 rounded-full flex items-center justify-center text-white cursor-pointer hover:bg-brand-primary hover:text-brand-dark transition-all shadow-inner">
+                <User size={20} strokeWidth={2} />
+              </div>
+            </Link>
 
             {/* Mobile Toggle */}
             <button
