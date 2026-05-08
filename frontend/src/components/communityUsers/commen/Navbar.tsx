@@ -33,50 +33,60 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getInitials(name: string, email: string): string {
+  const nameInitials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return nameInitials || email.slice(0, 2).toUpperCase() || "U";
+}
+
+function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
+  const hasProfileName = "full_name" in profile || "user_name" in profile;
+  const profileName = profile.full_name?.trim() || profile.user_name?.trim();
+  const fullName = hasProfileName ? profileName || "" : user.fullName;
+  const email = profile.email || user.email;
+  const role = profile.role || user.role;
+
+  return {
+    ...user,
+    fullName,
+    email,
+    role,
+    initials: getInitials(fullName, email),
+    photo: profile.photo ?? null,
+  };
+}
+
 function getUserFromTokenCookie(): UserInfo {
   if (typeof document === "undefined") {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
   if (!match) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const token = decodeURIComponent(match.split("=")[1]);
   const payload = decodeJwtPayload(token);
   if (!payload) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const firstName: string = payload.first_name || "";
   const lastName: string = payload.last_name || "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const email: string = payload.email || "";
   const role: string = payload.role || "";
-  const initials =
-    (firstName[0] || "") + (lastName[0] || "") ||
-    email.slice(0, 2).toUpperCase() ||
-    "U";
+  const initials = getInitials(fullName, email);
 
-  return { firstName, lastName, email, role, initials };
+  return { fullName, firstName, lastName, email, role, initials, photo: null };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {

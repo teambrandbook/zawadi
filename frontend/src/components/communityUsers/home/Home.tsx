@@ -32,6 +32,11 @@ type DashboardSummaryResponse = {
   };
 };
 
+type MeResponse = {
+  full_name?: string;
+  role?: string;
+};
+
 type ApiOrder = {
   order_id: string;
   product_name: string;
@@ -90,8 +95,18 @@ function Home() {
 
     async function loadAll() {
       try {
+        const meRes = await api.get<MeResponse>("/account/me/");
+        const userRole = String(meRes.data?.role ?? "").toLowerCase();
+        const fullName = meRes.data?.full_name?.trim();
+
+        if (isMounted && fullName) {
+          setDisplayName(fullName.split(/\s+/)[0]);
+        }
+
         const [summaryRes, ordersRes, eventsRes, recipesRes] = await Promise.allSettled([
-          api.get<DashboardSummaryResponse>("/community/dashboard/summary/"),
+          userRole === "community_user"
+            ? api.get<DashboardSummaryResponse>("/community/dashboard/summary/")
+            : Promise.resolve(null),
           api.get<{ results?: ApiOrder[]; count?: number } | ApiOrder[]>("/orders/"),
           api.get<{ results?: ApiEvent[] } | ApiEvent[]>("/events/"),
           api.get<{ results?: ApiRecipe[] } | ApiRecipe[]>("/recipes/"),
@@ -99,7 +114,7 @@ function Home() {
 
         if (!isMounted) return;
 
-        if (summaryRes.status === "fulfilled") {
+        if (summaryRes.status === "fulfilled" && summaryRes.value) {
           const d = summaryRes.value.data;
           const fullName = d.user?.full_name?.trim();
           setDisplayName(fullName ? fullName.split(/\s+/)[0] : "there");

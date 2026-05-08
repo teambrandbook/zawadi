@@ -6,7 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
-load_dotenv()
+BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(BASE_DIR / ".env")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -65,6 +66,9 @@ CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()
 # ─── URLs & Templates ─────────────────────────────────────────────────────────
 
 ROOT_URLCONF = "zewadi.urls"
+
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 
 TEMPLATES = [
     {

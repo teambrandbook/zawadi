@@ -37,6 +37,8 @@ const accountDetails: AccountDetail[] = [
   { label: "Membership", value: "Premium Member", tone: "premium" },
 ];
 
+const COMMUNITY_PROFILE_UPDATED_EVENT = "community-profile-updated";
+
 const initialLinkedAccounts: LinkedAccount[] = [
   { id: "google", provider: "Google Account", detail: "sarah.johnson@gmail.com", connected: true },
   { id: "facebook", provider: "Facebook", detail: "Not connected", connected: false },
@@ -244,6 +246,7 @@ export default function CommunitySettingsPage() {
 
       const response = await api.patch<CommunityProfileData>("/community/profile/", jsonPayload);
       setProfile(response.data);
+      window.dispatchEvent(new CustomEvent(COMMUNITY_PROFILE_UPDATED_EVENT, { detail: response.data }));
       setStatusMessage("Profile updated successfully.");
     } catch {
       setStatusMessage("Failed to save profile. Please verify fields and try again.");
