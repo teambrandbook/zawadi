@@ -94,3 +94,53 @@ class MeSerializerTest(TestCase):
         response = self.client.get("/api/account/me/")
         self.assertEqual(response.status_code, 200)
         self.assertIsNone(response.data["user_type"])
+
+
+class UpgradeAPIViewTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="upgrade@test.com",
+            password="pass1234",
+            full_name="Upgrade User",
+            user_name="upgradeuser",
+            phone="1234567890",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.GUEST)
+
+    def test_guest_can_upgrade_to_member(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_type"], "member")
+        self.user.communityuser.refresh_from_db()
+        self.assertEqual(self.user.communityuser.user_type, "member")
+
+    def test_unauthenticated_cannot_upgrade(self):
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 401)
+
+
+class MePatchTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="patch@test.com",
+            password="pass1234",
+            full_name="Old Name",
+            user_name="patchuser",
+            phone="0000000000",
+            role="COMMUNITY_USER",
+        )
+
+    def test_patch_me_updates_full_name(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            "/api/account/me/",
+            {"full_name": "New Name"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, "New Name")

@@ -5,8 +5,9 @@ from .views import (
     RefreshAPIView,
     LogoutAPIView,
     MeAPIView,
+    UpgradeAPIView,
     GoogleLoginAPIView,
-    GoogleCallbackAPIView
+    GoogleCallbackAPIView,
 )
 
 urlpatterns = [
@@ -15,7 +16,7 @@ urlpatterns = [
     path("refresh/", RefreshAPIView.as_view()),
     path("logout/", LogoutAPIView.as_view()),
     path("me/", MeAPIView.as_view()),
-
+    path("upgrade/", UpgradeAPIView.as_view()),
     path("google-login/", GoogleLoginAPIView.as_view()),
     path("google/login/", GoogleLoginAPIView.as_view()),
     path("google/callback/", GoogleCallbackAPIView.as_view()),
