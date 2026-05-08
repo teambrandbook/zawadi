@@ -121,6 +121,13 @@ class UpgradeAPIViewTest(TestCase):
         response = self.client.patch("/api/account/upgrade/")
         self.assertEqual(response.status_code, 401)
 
+    def test_already_member_cannot_upgrade_again(self):
+        self.user.communityuser.user_type = UserType.MEMBER
+        self.user.communityuser.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 400)
+
 
 class MePatchTest(TestCase):
     def setUp(self):

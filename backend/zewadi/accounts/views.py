@@ -300,12 +300,16 @@ class MeAPIView(APIView):
 
     def patch(self, request):
         user = request.user
+        changed = []
         for field in ("full_name", "phone"):
             if field in request.data:
                 setattr(user, field, request.data[field])
+                changed.append(field)
         if "photo" in request.FILES:
             user.photo = request.FILES["photo"]
-        user.save()
+            changed.append("photo")
+        if changed:
+            user.save(update_fields=changed)
         serializer = MeSerializer(user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -319,6 +323,11 @@ class UpgradeAPIView(APIView):
         except CommunityUser.DoesNotExist:
             return Response(
                 {"error": "No community profile found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if community_user.user_type == UserType.MEMBER:
+            return Response(
+                {"error": "Already a community member."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         community_user.user_type = UserType.MEMBER
