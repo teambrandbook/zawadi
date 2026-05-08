@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import gsap from "gsap";
 import api from "@/services/api";
+import { toast } from "sonner";
 
 type OrderDetail = {
   order_id: string;
@@ -43,7 +44,10 @@ export default function OrderPlaced() {
     api
       .get(`/orders/${orderId}/`)
       .then((res) => setOrder(res.data))
-      .catch(() => setOrder(null))
+      .catch(() => {
+        toast.error("Could not load order details.");
+        setOrder(null);
+      })
       .finally(() => setLoading(false));
   }, [orderId]);
 
@@ -141,8 +145,21 @@ export default function OrderPlaced() {
           <div className="mt-5 inline-flex rounded-full border border-[#d8c29a] bg-[#f6f5f0] px-5 py-2.5 text-sm font-bold leading-5 text-[#1f4d3a]">
             Order ID: #{order.order_id}
           </div>
+
+          {/* Product summary */}
+          <div className="mx-auto mt-4 w-full max-w-[600px] rounded-lg border border-[#e5e7eb] bg-[#f9fafb] p-3">
+            <p className="text-sm font-semibold text-[#111827]">{order.product_name}</p>
+            {order.pack_name && (
+              <p className="mt-0.5 text-xs text-[#6b7280]">{order.pack_name} · Qty {order.quantity}</p>
+            )}
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-[#6b7280]">Total</span>
+              <span className="text-sm font-bold text-[#0a4833]">₹{order.total_amount}</span>
+            </div>
+          </div>
+
           {order.full_name && (
-            <p className="mt-2 text-sm text-[#6b7280]">
+            <p className="mt-4 text-sm text-[#6b7280]">
               Delivering to {order.full_name} — {order.city}
             </p>
           )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/services/api";
+import { toast } from "sonner";
 
 type Order = {
   order_id: string;
@@ -47,7 +48,10 @@ export default function TrackOrder() {
         const data = res.data;
         setOrders(Array.isArray(data) ? data : (data.results ?? []));
       })
-      .catch(() => setOrders([]))
+      .catch(() => {
+        toast.error("Could not load orders.");
+        setOrders([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 
