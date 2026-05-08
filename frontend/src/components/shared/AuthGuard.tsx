@@ -65,6 +65,7 @@ function BrowserAuthGuard({
   const [status, setStatus] = useState<"checking" | "allowed">("checking");
 
   const allowedKey = allowedRoles.join("|");
+  const userTypesKey = allowedUserTypes?.join("|") ?? "";
   const allowed = useMemo(() => new Set(allowedKey.split("|") as GuardRole[]), [allowedKey]);
 
   useEffect(() => {
@@ -78,21 +79,23 @@ function BrowserAuthGuard({
         const role = normalizeRole(data.role);
         const userType = (data.user_type as "guest" | "member") ?? null;
 
-        dispatch(
-          setCredentials({
-            userId: data.user_id,
-            role: role ?? data.role,
-            email: data.email,
-            fullName: data.full_name,
-            userType,
-          })
-        );
-
+        // Guard: invalid role → clear and redirect before dispatching anything
         if (!role) {
           dispatch(clearCredentials());
           router.replace("/login");
           return;
         }
+
+        // Role is valid — now dispatch credentials
+        dispatch(
+          setCredentials({
+            userId: data.user_id,
+            role: role,
+            email: data.email,
+            fullName: data.full_name,
+            userType,
+          })
+        );
 
         if (!allowed.has(role)) {
           const home =
@@ -124,7 +127,7 @@ function BrowserAuthGuard({
     return () => {
       cancelled = true;
     };
-  }, [allowed, allowedKey, allowedUserTypes, dispatch, pathname, router]);
+  }, [allowed, allowedKey, userTypesKey, dispatch, pathname, router]);
 
   if (status !== "allowed") {
     return (

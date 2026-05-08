@@ -28,15 +28,15 @@ export default function LoginComponent() {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
       const role = normalizeRole(data.role);
-      const accessToken = res.data.access;
 
-      if (accessToken) {
-        document.cookie = `access_token=${encodeURIComponent(accessToken)}; path=/; max-age=${30 * 60}; SameSite=Lax`;
+      // Fetch user_type — non-blocking; if it fails, route by role alone
+      let userType: "guest" | "member" | null = null;
+      try {
+        const meRes = await api.get("/account/me/");
+        userType = (meRes.data.user_type as "guest" | "member") ?? null;
+      } catch {
+        // /me/ failed after successful login — proceed without userType
       }
-
-      // Fetch user_type from /me (login response does not include it)
-      const meRes = await api.get("/account/me/");
-      const userType = (meRes.data.user_type as "guest" | "member") ?? null;
 
       dispatch(setCredentials({
         userId: data.user_id,
