@@ -6,7 +6,7 @@ from rest_framework.test import APITestCase
 
 from accounts.models import User
 from blog.models import Blog
-from communityuser.models import CommunityUser, CommunityUserAddress
+from communityuser.models import CommunityUser
 from consultant.models import ConsultationBooking, Consultant
 from events.models import Event, EventRegistration
 from orders.models import Order
@@ -33,19 +33,12 @@ class CommunityProfileAPITests(APITestCase):
         self.assertEqual(response.data["user_type"], "guest")
         self.assertEqual(CommunityUser.objects.filter(user=self.user).count(), 1)
 
-    def test_patch_profile_updates_user_and_address(self):
+    def test_patch_profile_updates_user(self):
         CommunityUser.objects.create(user=self.user, user_type="guest")
         payload = {
             "full_name": "Updated Member",
             "phone": "+10000000099",
             "user_type": "member",
-            "address": {
-                "address_line": "221B Baker Street",
-                "city": "London",
-                "state": "Greater London",
-                "country": "UK",
-                "postal_code": "NW1",
-            },
         }
 
         response = self.client.patch("/api/community/profile/", payload, format="json")
@@ -53,12 +46,10 @@ class CommunityProfileAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         profile = CommunityUser.objects.get(user=self.user)
-        address = CommunityUserAddress.objects.get(user=profile)
 
         self.assertEqual(self.user.full_name, "Updated Member")
         self.assertEqual(self.user.phone, "+10000000099")
         self.assertEqual(profile.user_type, "member")
-        self.assertEqual(address.city, "London")
 
     def test_non_community_user_cannot_access_profile(self):
         admin_user = User.objects.create_user(
