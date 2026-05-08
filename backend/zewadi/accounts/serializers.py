@@ -10,6 +10,7 @@ from supperadmin.models import Role
 
 class MeSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -24,10 +25,17 @@ class MeSerializer(serializers.ModelSerializer):
             "gender",
             "location",
             "photo",
+            "user_type",
         ]
 
     def get_role(self, obj):
         return str(obj.role).lower()
+
+    def get_user_type(self, obj):
+        try:
+            return obj.communityuser.user_type
+        except Exception:
+            return None
 
 
 class RegisterSerializer(serializers.Serializer):

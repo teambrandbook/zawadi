@@ -48,3 +48,35 @@ class RegisterSecurityTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["role"], "COMMUNITY_USER")
+
+
+from django.test import TestCase
+from rest_framework.test import APIClient
+from communityuser.models import CommunityUser, UserType
+
+
+class MeSerializerTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="guest@test.com",
+            password="pass1234",
+            full_name="Guest User",
+            user_name="guestuser",
+            phone="1234567890",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.GUEST)
+
+    def test_me_returns_user_type(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_type"], "guest")
+
+    def test_me_returns_member_user_type(self):
+        self.user.communityuser.user_type = UserType.MEMBER
+        self.user.communityuser.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.data["user_type"], "member")
