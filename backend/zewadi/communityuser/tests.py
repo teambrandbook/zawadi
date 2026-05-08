@@ -77,6 +77,7 @@ class CommunityDashboardSummaryAPITests(APITestCase):
             phone="+10000000005",
             role="COMMUNITY_USER",
         )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.MEMBER)
         self.client.force_authenticate(user=self.user)
 
     def test_summary_requires_community_user(self):
@@ -187,6 +188,40 @@ class CommunityDashboardSummaryAPITests(APITestCase):
         self.assertEqual(response.data["stats"]["submitted_recipes"], 1)
         self.assertEqual(response.data["stats"]["published_blogs"], 1)
         self.assertEqual(len(response.data["recent_orders"]), 1)
+
+
+class DashboardSummaryPermissionTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.guest_user = User.objects.create_user(
+            email="guestdash@test.com",
+            password="pass1234",
+            full_name="Guest Dash",
+            user_name="guestdash",
+            phone="1111111111",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.guest_user, user_type=UserType.GUEST)
+
+        self.member_user = User.objects.create_user(
+            email="memberdash@test.com",
+            password="pass1234",
+            full_name="Member Dash",
+            user_name="memberdash",
+            phone="2222222222",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.member_user, user_type=UserType.MEMBER)
+
+    def test_guest_cannot_access_dashboard_summary(self):
+        self.client.force_authenticate(user=self.guest_user)
+        response = self.client.get("/api/community/dashboard/summary/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_can_access_dashboard_summary(self):
+        self.client.force_authenticate(user=self.member_user)
+        response = self.client.get("/api/community/dashboard/summary/")
+        self.assertEqual(response.status_code, 200)
 
 
 class AddressAPITest(TestCase):

@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
+from accounts.permissions import IsMemberUser
 from .models import CommunityUser, CommunityUserAddress, UserType
 from .serializers import CommunityProfileSerializer, DeliveryAddressSerializer
 from blog.models import Blog, BlogStatus
@@ -57,7 +58,7 @@ class CommunityProfileAPIView(APIView):
 
 
 class CommunityDashboardSummaryAPIView(APIView):
-    permission_classes = [IsAuthenticated, IsCommunityUser]
+    permission_classes = [IsAuthenticated, IsCommunityUser, IsMemberUser]
 
     def get(self, request):
         user = request.user
