@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Eye, Heart, Tag, X } from "lucide-react";
 
 export type BlogDetailsRow = {
@@ -25,10 +25,15 @@ type Props = {
 };
 
 export default function BlogDetailsModal({ blog, onClose }: Props) {
-  if (!blog) return null;
+  const [coverSrc, setCoverSrc] = useState("/blog/blog-1.webp");
+  const [authorSrc, setAuthorSrc] = useState<string | null>(null);
 
-  const [coverSrc, setCoverSrc] = useState(blog.image || "/blog/blog-1.webp");
-  const [authorSrc, setAuthorSrc] = useState(blog.contributorImage);
+  useEffect(() => {
+    setCoverSrc(blog?.image || "/blog/blog-1.webp");
+    setAuthorSrc(blog?.contributorImage ?? null);
+  }, [blog]);
+
+  if (!blog) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">

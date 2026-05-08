@@ -56,6 +56,10 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function isCommunityRole(role: string): boolean {
+  return role.toLowerCase() === "community_user";
+}
+
 function getInitials(name: string, email: string): string {
   const nameInitials = name
     .trim()
@@ -132,8 +136,9 @@ function getUserFromTokenCookie(): UserInfo {
   const email: string = payload.email || "";
   const role: string = payload.role || "";
   const initials = getInitials(fullName, email);
+  const userType = isCommunityRole(role) ? "member" : "";
 
-  return { fullName, firstName, lastName, email, role, userType: "member", initials, photo: null };
+  return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
@@ -142,8 +147,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const [cartCount, setCartCount] = useState(0);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
+  const isCommunityUser = isCommunityRole(user.role);
 
   useEffect(() => {
+    if (!isCommunityUser) return;
+
     let isMounted = true;
 
     async function loadProfile() {
@@ -171,10 +179,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       isMounted = false;
       window.removeEventListener("community-profile-updated", handleProfileUpdated);
     };
-  }, []);
+  }, [isCommunityUser]);
 
   useEffect(() => {
     let isMounted = true;
+    if (!isCommunityUser) {
+      setUnreadCount(0);
+      setCartCount(0);
+      return;
+    }
     api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
       .then(({ data }) => {
         if (isMounted) {
@@ -196,7 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, [pathname, isCommunityUser]);
 
   const handleLogout = async () => {
     try {
