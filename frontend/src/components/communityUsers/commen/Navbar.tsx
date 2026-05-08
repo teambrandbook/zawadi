@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
-import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
+import { usePathname } from "next/navigation";
+import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
 
 interface NavbarProps {
@@ -81,7 +82,9 @@ function getUserFromTokenCookie(): UserInfo {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
   const [user] = useState<UserInfo>(getUserFromTokenCookie);
+  const pathname = usePathname();
 
   useEffect(() => {
     let isMounted = true;
@@ -94,10 +97,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       .catch(() => {
         // not critical — leave at 0
       });
+    api.get<{ summary: { item_count: number } }>("/orders/cart/")
+      .then(({ data }) => {
+        if (isMounted) {
+          setCartCount(data.summary?.item_count ?? 0);
+        }
+      })
+      .catch(() => {
+        // not critical — leave at 0
+      });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -179,6 +191,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           {unreadCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Link>
+
+        <Link
+          href="/communityDashBorde/cart"
+          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Open cart"
+        >
+          <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6" />
+          {cartCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0A4833] px-1 text-[10px] font-bold text-white">
+              {cartCount > 99 ? "99+" : cartCount}
             </span>
           )}
         </Link>

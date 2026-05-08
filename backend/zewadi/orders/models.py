@@ -105,3 +105,44 @@ class OrderReview(models.Model):
 
     def __str__(self):
         return f"Review for {self.order.order_id} — {self.rating}/5"
+
+
+class CartItem(models.Model):
+    user = models.ForeignKey(
+        "accounts.User", on_delete=models.CASCADE, related_name="cart_items"
+    )
+    product = models.ForeignKey(
+        "product.Product", on_delete=models.CASCADE, related_name="cart_items"
+    )
+    variant = models.ForeignKey(
+        "product.ProductVariant",
+        on_delete=models.SET_NULL,
+        related_name="cart_items",
+        blank=True,
+        null=True,
+    )
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "product", "variant"],
+                name="unique_cart_product_variant_per_user",
+            )
+        ]
+
+    @property
+    def unit_price(self):
+        if self.variant:
+            return self.variant.price
+        return self.product.sale_price or self.product.base_price
+
+    @property
+    def line_total(self):
+        return self.unit_price * self.quantity
+
+    def __str__(self):
+        return f"{self.user} — {self.product.product_name} x {self.quantity}"
