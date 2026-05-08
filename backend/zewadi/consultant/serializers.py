@@ -10,30 +10,43 @@ class ConsultantUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ["full_name", "email", "photo"]
+        fields = [
+            "id",
+            "user_id",
+            "user_name",
+            "full_name",
+            "email",
+            "phone",
+            "date_of_birth",
+            "gender",
+            "location",
+            "photo",
+            "role",
+            "is_active",
+            "date_joined",
+        ]
 
     def get_full_name(self, obj):
-        return obj.get_full_name() or obj.email
+        return obj.full_name or obj.get_full_name() or obj.user_name or obj.email
+
+
+# ----------------------------------------------------
+
+class UserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = "__all__"
+
 
 
 class ConsultantListSerializer(serializers.ModelSerializer):
-    user = ConsultantUserSerializer(read_only=True)
-    consultation_fee = serializers.IntegerField()
-
+    user = UserSerializer(read_only=True)
     class Meta:
         model = Consultant
-        fields = [
-            "id",
-            "user",
-            "years_of_experience",
-            "qualification",
-            "short_bio",
-            "languages_spoken",
-            "session_type",
-            "consultation_fee",
-            "session_duration",
-            "experience_areas",
-        ]
+        fields = "__all__"
+
+# -----------------------------------        
 
 
 class ConsultantDetailSerializer(serializers.ModelSerializer):
@@ -78,36 +91,149 @@ class ConsultantClientSerializer(serializers.ModelSerializer):
         ]
 
 
+
+
+
+
+
+
 class ConsultationBookingListSerializer(serializers.ModelSerializer):
-    # 🔹 consultant data
+
+    # consultant details
     consultant_name = serializers.SerializerMethodField()
     consultant_role = serializers.SerializerMethodField()
+    consultant_image = serializers.SerializerMethodField()
 
-    # 🔹 user data
-    user_name = serializers.CharField(source="user.user_name")
-    user_image = serializers.ImageField(source="user.photo", read_only=True)
+    # user details
+    user_name = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
+    user_email = serializers.SerializerMethodField()
 
     class Meta:
         model = ConsultationBooking
+
         fields = [
             "id",
+
+            # consultant details
+            "consultant",
             "consultant_name",
             "consultant_role",
+            "consultant_image",
+
+            # user details
+            "user",
             "user_name",
             "user_image",
+            "user_email",
+
+            # booking details
             "primary_goal",
+            "primary_wellness_goal",
+            "focuses_area",
+            "diet_preferences",
+            "lifestyle_activity_level",
+            "buckwheat_journey_goal",
+            "message",
+            "language",
             "booked_date",
             "booked_slot",
             "status",
+
+            # timestamps
+            "created_at",
+            "updated_at",
         ]
 
+        read_only_fields = [
+            "id",
+
+            # consultant readonly
+            "consultant",
+            "consultant_name",
+            "consultant_role",
+            "consultant_image",
+
+            # user readonly
+            "user",
+            "user_name",
+            "user_image",
+            "user_email",
+
+            # timestamps readonly
+            "created_at",
+            "updated_at",
+        ]
+
+    # -----------------------------------
+    # CONSULTANT DETAILS
+    # -----------------------------------
+
     def get_consultant_name(self, obj):
-        return str(obj.consultant.user.get_full_name() or obj.consultant.user.user_name)
+
+        if obj.consultant and obj.consultant.user:
+
+            return (
+                obj.consultant.user.get_full_name()
+                or obj.consultant.user.user_name
+            )
+
+        return None
 
     def get_consultant_role(self, obj):
-        return obj.consultant.qualification or "Consultant"
 
+        if obj.consultant:
+            return obj.consultant.qualification
 
+        return None
+
+    def get_consultant_image(self, obj):
+
+        if (
+            obj.consultant and
+            obj.consultant.user and
+            hasattr(obj.consultant.user, "photo") and
+            obj.consultant.user.photo
+        ):
+
+            return obj.consultant.user.photo.url
+
+        return None
+
+    # -----------------------------------
+    # USER DETAILS
+    # -----------------------------------
+
+    def get_user_name(self, obj):
+
+        if obj.user:
+
+            return (
+                obj.user.get_full_name()
+                or obj.user.user_name
+            )
+
+        return None
+
+    def get_user_image(self, obj):
+
+        if (
+            obj.user and
+            hasattr(obj.user, "photo") and
+            obj.user.photo
+        ):
+
+            return obj.user.photo.url
+
+        return None
+
+    def get_user_email(self, obj):
+
+        if obj.user:
+
+            return obj.user.email
+
+        return None    
 
 
 

@@ -1,19 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus } from "lucide-react";
 import api from "@/services/api";
 
 const CATEGORIES = [
-  "Nutrition",
-  "Wellness Tips",
-  "Plant Diet",
-  "Recipes",
-  "Community",
-  "Admin Stories",
+  { label: "Nutrition", value: "nutrition" },
+  { label: "Wellness", value: "wellness" },
+  { label: "Healthy Living", value: "healthy_living" },
+  { label: "Diet Tips", value: "diet_tips" },
+  { label: "Community", value: "community" },
+  { label: "Other", value: "other" },
 ];
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -25,8 +25,22 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+function toMediaUrl(value?: string | null) {
+  if (!value) return null;
+  if (value.startsWith("http")) return value;
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const siteBase = apiBase.replace(/\/api\/?$/, "");
+
+  if (value.startsWith("/")) return `${siteBase}${value}`;
+  return `${siteBase}/${value}`;
+}
+
 export default function AddBlogPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const blogId = searchParams.get("blogId");
+  const isEditMode = Boolean(blogId);
   const coverImageRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState("");
@@ -38,6 +52,40 @@ export default function AddBlogPage() {
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(["Admin Stories", "Nutrition", "Wellness Tips"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingBlog, setIsLoadingBlog] = useState(false);
+  const selectedCategoryLabel = CATEGORIES.find((item) => item.value === category)?.label ?? category;
+
+  useEffect(() => {
+    if (!blogId) return;
+
+    let mounted = true;
+
+    const fetchBlog = async () => {
+      setIsLoadingBlog(true);
+      try {
+        const res = await api.get(`/blog/${blogId}/`);
+        if (!mounted) return;
+
+        const data = res.data ?? {};
+        setTitle(String(data.title ?? ""));
+        setExcerpt(String(data.short_excerpt ?? ""));
+        setCategory(String(data.category ?? ""));
+        setContent(String(data.content ?? ""));
+        setCoverPreview(toMediaUrl(String(data.cover_image ?? "")));
+        setCoverImageFile(null);
+      } catch {
+        toast.error("Failed to load blog details.");
+      } finally {
+        if (mounted) setIsLoadingBlog(false);
+      }
+    };
+
+    fetchBlog();
+
+    return () => {
+      mounted = false;
+    };
+  }, [blogId]);
 
   function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -62,24 +110,41 @@ export default function AddBlogPage() {
     if (!category) { toast.error("Please select a category."); return; }
     if (!content.trim()) { toast.error("Blog content is required."); return; }
 
+    const trimmedTitle = title.trim();
+    const trimmedExcerpt = excerpt.trim() || trimmedTitle;
+    const trimmedContent = content.trim();
+
     const fd = new FormData();
-    fd.append("title", title.trim());
-    fd.append("short_excerpt", excerpt.trim());
+    fd.append("title", trimmedTitle);
+    fd.append("short_excerpt", trimmedExcerpt);
     fd.append("category", category);
-    fd.append("content", content.trim());
+    fd.append("content", trimmedContent);
     fd.append("status", status);
+    fd.append("mark_as_featured", "false");
+    fd.append("publish_schedule", "immediate");
+    fd.append("show_in_community_blog", "true");
+    fd.append("allow_comments", "true");
+    fd.append("internal_notes", "");
     if (coverImageFile) fd.append("cover_image", coverImageFile);
     tags.forEach((tag) => fd.append("tags", tag));
 
     setIsSubmitting(true);
     try {
-      await api.post("/blog/create/", fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-      toast.success(status === "draft" ? "Blog saved as draft." : "Blog created successfully! ✅");
+      if (isEditMode && blogId) {
+        await api.patch(`/blog/${blogId}/`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(status === "draft" ? "Blog draft updated." : "Blog updated successfully!");
+      } else {
+        await api.post("/blog/create/", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast.success(status === "draft" ? "Blog saved as draft." : "Blog created successfully!");
+      }
       router.push("/admindashboard/blog");
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      const msg = (err as { response?: { data?: { detail?: string; message?: string } } })?.response?.data?.detail
+        ?? (err as { response?: { data?: { detail?: string; message?: string } } })?.response?.data?.message;
       toast.error(msg ?? "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -91,7 +156,9 @@ export default function AddBlogPage() {
       <div className="mx-auto max-w-[1180px] space-y-3">
         <header className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-[30px] font-semibold leading-tight text-[#0A4833]">Add Blog</h1>
+            <h1 className="text-[30px] font-semibold leading-tight text-[#0A4833]">
+              {isEditMode ? "Edit Blog" : "Add Blog"}
+            </h1>
             <p className="text-[12px] text-[#6B7280]">Create and publish engaging wellness stories for the ZEWADI community.</p>
           </div>
 
@@ -102,7 +169,7 @@ export default function AddBlogPage() {
             </Link>
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoadingBlog}
               onClick={() => submitBlog("draft")}
               className="inline-flex h-9 items-center rounded-md border border-[#D9DEE3] bg-white px-3 text-[12px] text-[#344054] disabled:opacity-50"
             >
@@ -110,6 +177,12 @@ export default function AddBlogPage() {
             </button>
           </div>
         </header>
+
+        {isLoadingBlog && (
+          <div className="rounded-lg border border-[#E4E7EC] bg-white p-4 text-sm text-[#667085]">
+            Loading blog details...
+          </div>
+        )}
 
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-3">
@@ -143,7 +216,7 @@ export default function AddBlogPage() {
                     className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
                   >
                     <option value="">Select category...</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+                    {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                 </label>
               </div>
@@ -192,7 +265,7 @@ export default function AddBlogPage() {
                         onClick={() => removeTag(tag)}
                         className="ml-1 text-[#9CA3AF] hover:text-[#374151]"
                       >
-                        ×
+                        x
                       </button>
                     </span>
                   ))}
@@ -248,20 +321,20 @@ export default function AddBlogPage() {
             <div className="space-y-2 text-[11px] text-[#475467]">
               <p><span className="font-semibold text-[#344054]">Blog Title:</span> {title || "..."}</p>
               <p><span className="font-semibold text-[#344054]">Excerpt:</span> {excerpt || "..."}</p>
-              <p><span className="font-semibold text-[#344054]">Category:</span> {category || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Category:</span> {selectedCategoryLabel || "..."}</p>
               <p><span className="font-semibold text-[#344054]">Tags:</span> {tags.join(", ") || "..."}</p>
-              <p><span className="font-semibold text-[#344054]">Status:</span> Draft</p>
+              <p><span className="font-semibold text-[#344054]">Status:</span> {isEditMode ? "Editing" : "Draft"}</p>
             </div>
           </aside>
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 rounded-lg border border-[#E4E7EC] bg-white p-3">
-          <Link href="/admindashboard/blog" className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054] inline-flex items-center">
+          <Link href="/admindashboard/blog" className="inline-flex h-8 items-center rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054]">
             Cancel
           </Link>
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingBlog}
             onClick={() => submitBlog("draft")}
             className="h-8 rounded-md border border-[#D0D5DD] bg-white px-3 text-[11px] text-[#344054] disabled:opacity-50"
           >
@@ -269,11 +342,11 @@ export default function AddBlogPage() {
           </button>
           <button
             type="button"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingBlog}
             onClick={() => submitBlog("published")}
             className="h-8 rounded-md bg-[#0A4833] px-3 text-[11px] text-white disabled:opacity-50"
           >
-            {isSubmitting ? "Creating..." : "Create Blog"}
+            {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Blog" : "Create Blog")}
           </button>
         </div>
       </div>

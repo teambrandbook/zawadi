@@ -8,10 +8,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from .models import Blog, BlogStatus
 from .serializers import (
     BlogListSerializer,
-    BlogDetailSerializer,
-    BlogCreateSerializer,
+    BlogSerializer
+    
 )
 
+from supperadmin.utils.permissions import has_permission
 
 class IsAdminUser(BasePermission):
     """Allow access only to users whose role is ADMIN."""
@@ -24,109 +25,290 @@ class IsAdminUser(BasePermission):
 # Public views
 # ---------------------------------------------------------------------------
 
-class BlogListView(ListAPIView):
-    """Return all published blogs. Supports ?category= and ?featured=true."""
+class BlogListAPIView(APIView):
 
-    serializer_class = BlogListSerializer
-    permission_classes = [AllowAny]
-
-    def get_queryset(self):
-        qs = Blog.objects.filter(
-            status=BlogStatus.PUBLISHED,
-            show_in_community_blog=True,
-        ).order_by("-published_at")
-
-        category = self.request.query_params.get("category")
-        if category:
-            qs = qs.filter(category=category)
-
-        featured = self.request.query_params.get("featured")
-        if featured and featured.lower() == "true":
-            qs = qs.filter(mark_as_featured=True)
-
-        return qs
-
-
-class BlogDetailView(RetrieveAPIView):
-    """Return a single published blog by slug."""
-
-    serializer_class = BlogDetailSerializer
-    permission_classes = [AllowAny]
-    queryset = Blog.objects.filter(status=BlogStatus.PUBLISHED, show_in_community_blog=True)
-    lookup_field = "slug"
-    lookup_url_kwarg = "slug"
-
-
-# ---------------------------------------------------------------------------
-# Authenticated views
-# ---------------------------------------------------------------------------
-
-class BlogCreateView(CreateAPIView):
-    """Create a new blog post. Author is set to the requesting user; status is forced to DRAFT."""
-
-    serializer_class = BlogCreateSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+    def get(self, request):
 
+        user = request.user
 
-# ---------------------------------------------------------------------------
-# Admin views
-# ---------------------------------------------------------------------------
+        has_blog_permission = has_permission(
+            user,
+            "blog",
+            "view"
+        )
 
-class AdminBlogListView(ListAPIView):
-    """Return all blogs (any status) to admins. Supports ?status= filter."""
+        # permission user -> view all blogs
+        if has_blog_permission:
 
-    serializer_class = BlogListSerializer
-    permission_classes = [IsAdminUser]
-
-    def get_queryset(self):
-        qs = Blog.objects.all().order_by("-created_at")
-
-        status_filter = self.request.query_params.get("status")
-        if status_filter:
-            qs = qs.filter(status=status_filter)
-
-        return qs
-
-
-class AdminBlogStatusUpdateView(APIView):
-    """PATCH a blog's status. Auto-sets published_at when moving to PUBLISHED."""
-
-    permission_classes = [IsAdminUser]
-
-    def patch(self, request, pk):
-        try:
-            blog = Blog.objects.get(pk=pk)
-        except Blog.DoesNotExist:
-            return Response({"detail": "Not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        new_status = request.data.get("status")
-        if not new_status:
-            return Response(
-                {"detail": "status field is required."},
-                status=status.HTTP_400_BAD_REQUEST,
+            blogs = Blog.objects.all().order_by(
+                "-created_at"
             )
 
-        valid_statuses = [choice[0] for choice in BlogStatus.choices]
-        if new_status not in valid_statuses:
-            return Response(
-                {"detail": f"Invalid status. Choose from: {valid_statuses}"},
-                status=status.HTTP_400_BAD_REQUEST,
+        # community user -> only own blogs
+        elif user.role == "COMMUNITY_USER":
+
+            blogs = Blog.objects.filter(
+                author=user
+            ).order_by(
+                "-created_at"
             )
 
-        blog.status = new_status
-        if new_status == BlogStatus.PUBLISHED and blog.published_at is None:
-            blog.published_at = timezone.now()
+        else:
 
-        blog.save(update_fields=["status", "published_at", "updated_at"])
+            return Response(
+                {
+                    "message": "Permission denied"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = BlogListSerializer(
+            blogs,
+            many=True
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+
+
+
+class BlogCreateAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        user = request.user
+
+        # check community user
+        is_community_user = (
+            user.role == "COMMUNITY_USER"
+        )
+
+        # check permission
+        has_blog_permission = has_permission(
+            user,
+            "blog",
+            "create"
+        )
+
+        # deny access
+        if not (
+            is_community_user or
+            has_blog_permission
+        ):
+            return Response(
+                {
+                    "message": "You don't have permission to create blogs"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = BlogSerializer(
+            data=request.data
+        )
+
+        if serializer.is_valid():
+
+            # community user -> pending
+            if is_community_user:
+
+                serializer.save(
+                    author=user,
+                    status=BlogStatus.PENDING
+                )
+
+            # permission user -> can publish/draft
+            else:
+                requested_status = str(request.data.get("status", BlogStatus.DRAFT)).strip().lower()
+                final_status = requested_status if requested_status in {BlogStatus.DRAFT, BlogStatus.PUBLISHED} else BlogStatus.DRAFT
+
+                serializer.save(
+                    author=user,
+                    status=final_status
+                )
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
+
+# Blog edit and delete
+
+
+
+
+class BlogDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, blog_id):
+
+        return Blog.objects.filter(
+            id=blog_id
+        ).first()
+
+    # -----------------------------
+    # GET BLOG DETAILS
+    # -----------------------------
+    def get(self, request, blog_id):
+
+        blog = self.get_object(blog_id)
+
+        if not blog:
+
+            return Response(
+                {
+                    "message": "Blog not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = BlogSerializer(blog, context={"request": request})
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK
+        )
+
+    # -----------------------------
+    # EDIT BLOG
+    # -----------------------------
+    def patch(self, request, blog_id):
+
+        blog = self.get_object(blog_id)
+
+        if not blog:
+
+            return Response(
+                {
+                    "message": "Blog not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        user = request.user
+
+        has_blog_permission = has_permission(
+            user,
+            "blog",
+            "edit"
+        )
+
+        # community user -> only own blog
+        if (
+            user.role == "COMMUNITY_USER" and
+            blog.author != user
+        ):
+
+            return Response(
+                {
+                    "message": "Permission denied"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # admin/permission user
+        elif not (
+            user.role == "COMMUNITY_USER" or
+            has_blog_permission
+        ):
+
+            return Response(
+                {
+                    "message": "Permission denied"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = BlogSerializer(
+            blog,
+            data=request.data,
+            partial=True,
+            context={"request": request}
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # -----------------------------
+    # DELETE BLOG
+    # -----------------------------
+    def delete(self, request, blog_id):
+
+        blog = self.get_object(blog_id)
+
+        if not blog:
+
+            return Response(
+                {
+                    "message": "Blog not found"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        user = request.user
+
+        has_blog_permission = has_permission(
+            user,
+            "blog",
+            "delete"
+        )
+
+        # community user -> only own blog
+        if (
+            user.role == "COMMUNITY_USER" and
+            blog.author != user
+        ):
+
+            return Response(
+                {
+                    "message": "Permission denied"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # admin/permission user
+        elif not (
+            user.role == "COMMUNITY_USER" or
+            has_blog_permission
+        ):
+
+            return Response(
+                {
+                    "message": "Permission denied"
+                },
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        blog.delete()
 
         return Response(
             {
-                "id": blog.pk,
-                "status": blog.status,
-                "published_at": blog.published_at,
+                "message": "Blog deleted successfully"
             },
-            status=status.HTTP_200_OK,
+            status=status.HTTP_200_OK
         )

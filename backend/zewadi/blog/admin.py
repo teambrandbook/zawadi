@@ -26,3 +26,6 @@ class BlogAdmin(admin.ModelAdmin):
     filter_horizontal = ["tags"]
     readonly_fields = ["created_at", "updated_at", "published_at"]
     ordering = ["-created_at"]
+
+
+# admin.site.register(Blog)

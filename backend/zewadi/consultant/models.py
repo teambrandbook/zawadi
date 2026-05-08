@@ -17,6 +17,9 @@ class Consultant(models.Model):
     session_duration = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    rating = models.FloatField(default=0.0)
+    available = models.BooleanField(default=True)
+
     def __str__(self):
         return str(self.user)
 
