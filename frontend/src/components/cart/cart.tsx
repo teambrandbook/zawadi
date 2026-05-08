@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Heart, Minus, Plus, Trash2 } from "lucide-react";
-import { FaCcMastercard, FaCcVisa, FaCcPaypal, FaCcApplePay } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -207,12 +206,9 @@ function OrderSummary({
         <ArrowRight size={17} />
       </Link>
 
-      <div className="mt-6 flex items-center justify-center gap-2 text-[10px] font-bold uppercase text-[#9ca3af]">
-        <FaCcVisa size={20} />
-        <FaCcMastercard size={20} />
-        <FaCcPaypal size={20} />
-        <FaCcApplePay size={20} />
-      </div>
+      <p className="mt-6 text-center text-[10px] font-bold uppercase text-[#9ca3af]">
+        Secure Checkout · COD Available
+      </p>
     </aside>
   );
 }
