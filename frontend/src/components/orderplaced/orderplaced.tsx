@@ -34,13 +34,10 @@ export default function OrderPlaced() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("order_id");
   const [order, setOrder] = useState<OrderDetail | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(orderId));
 
   useEffect(() => {
-    if (!orderId) {
-      setLoading(false);
-      return;
-    }
+    if (!orderId) return;
     api
       .get(`/orders/${orderId}/`)
       .then((res) => setOrder(res.data))

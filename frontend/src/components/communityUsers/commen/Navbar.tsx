@@ -15,10 +15,22 @@ interface NavbarProps {
 interface UserInfo {
   firstName: string;
   lastName: string;
+  fullName: string;
   email: string;
   role: string;
   initials: string;
+  photo: string | null;
 }
+
+const fallbackUserInfo: UserInfo = {
+  firstName: "",
+  lastName: "",
+  fullName: "",
+  email: "",
+  role: "",
+  initials: "",
+  photo: null,
+};
 
 function decodeJwtPayload(token: string): Record<string, string> | null {
   try {
@@ -46,22 +58,6 @@ function getInitials(name: string, email: string): string {
   return nameInitials || email.slice(0, 2).toUpperCase() || "U";
 }
 
-function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
-  const hasProfileName = "full_name" in profile || "user_name" in profile;
-  const profileName = profile.full_name?.trim() || profile.user_name?.trim();
-  const fullName = hasProfileName ? profileName || "" : user.fullName;
-  const email = profile.email || user.email;
-  const role = profile.role || user.role;
-
-  return {
-    ...user,
-    fullName,
-    email,
-    role,
-    initials: getInitials(fullName, email),
-    photo: profile.photo ?? null,
-  };
-}
 
 function getUserFromTokenCookie(): UserInfo {
   if (typeof document === "undefined") {

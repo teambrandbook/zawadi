@@ -127,6 +127,7 @@ function BrowserAuthGuard({
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allowed, allowedKey, userTypesKey, dispatch, pathname, router]);
 
   if (status !== "allowed") {

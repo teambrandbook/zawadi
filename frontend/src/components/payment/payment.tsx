@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   ArrowRight,
   ChevronRight,
-  MapPin,
   Plus,
   Truck,
 } from "lucide-react";

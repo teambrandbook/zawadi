@@ -10,7 +10,6 @@ import {
   Leaf,
   UserRound,
   ReceiptText,
-  Medal,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
