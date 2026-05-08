@@ -5,12 +5,11 @@ import Link from "next/link";
 import {
   ArrowLeft,
   ArrowRight,
+  Banknote,
   ChevronRight,
   Plus,
   Truck,
 } from "lucide-react";
-import { FaMoneyBillTransfer } from "react-icons/fa6";
-import { FaCcMastercard, FaCcVisa, FaCcPaypal, FaCcApplePay } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
@@ -344,7 +343,7 @@ export default function Payment() {
             <section className="rounded-2xl border border-[#f3f4f6] bg-white p-5 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:p-8">
               <h2 className="text-lg font-bold leading-7 text-[#1f4d3a] mb-4">Payment Method</h2>
               <div className="flex h-24 w-full max-w-[200px] flex-col items-center justify-center gap-1 rounded-2xl border-2 border-[#1f4d3a] bg-white px-5 text-center text-[#1f4d3a]">
-                <FaMoneyBillTransfer size={23} />
+                <Banknote size={23} />
                 <span className="mt-2 text-[13px] font-medium leading-[14px]">COD</span>
                 <span className="text-[10px] leading-3 text-[#9ca3af]">Pay on delivery</span>
               </div>
@@ -382,12 +381,9 @@ export default function Payment() {
                 </p>
               </div>
 
-              <div className="mt-6 flex items-center justify-center gap-4 text-[10px] font-bold uppercase text-[#9ca3af]">
-                <FaCcVisa size={20} />
-                <FaCcMastercard size={20} />
-                <FaCcPaypal size={20} />
-                <FaCcApplePay size={20} />
-              </div>
+              <p className="mt-6 text-center text-[10px] font-bold uppercase tracking-widest text-[#9ca3af]">
+                Visa · Mastercard · PayPal · Apple Pay
+              </p>
             </section>
           </aside>
         </div>

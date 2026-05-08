@@ -253,14 +253,20 @@ export default function Cart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [summary, setSummary] = useState<CartSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(false);
 
   async function fetchCart() {
     try {
       const res = await api.get("/orders/cart/");
       setItems(res.data.items ?? []);
       setSummary(res.data.summary ?? null);
-    } catch {
-      toast.error("Could not load cart.");
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status;
+      if (status === 401 || status === 403) {
+        setAuthError(true);
+      } else {
+        toast.error("Could not load cart.");
+      }
     } finally {
       setLoading(false);
     }
@@ -300,6 +306,23 @@ export default function Cart() {
     );
   }
 
+  if (authError) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-lg font-semibold text-[#0A4833]">Please log in to view your cart</p>
+        <Link
+          href="/login?next=/cart"
+          className="rounded-lg bg-[#0A4833] px-6 py-2 text-sm text-white"
+        >
+          Log In
+        </Link>
+        <Link href="/shop" className="text-sm text-[#6b7280] underline">
+          Continue Shopping
+        </Link>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
@@ -313,7 +336,7 @@ export default function Cart() {
 
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
-      <div className="mx-auto max-w-[1280px]">
+      <div className="mx-auto max-w-7xl">
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_350px] xl:gap-10">
           <section>
             <div className="mb-7 flex items-center justify-between gap-4">
@@ -337,14 +360,14 @@ export default function Cart() {
 
             <Link
               href="/products"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1f4d3a] transition hover:text-[#1a4331]"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1f4d3a] transition hover:text-brand-green"
             >
               <ArrowLeft size={16} />
               Continue Shopping
             </Link>
           </section>
 
-          <div className="lg:mt-[64px]">
+          <div className="lg:mt-16">
             {summary && (
               <OrderSummary
                 subtotal={summary.subtotal}
