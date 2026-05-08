@@ -14,6 +14,7 @@ type MeResponse = {
   email?: string;
   role?: string;
   full_name?: string;
+  user_type?: string;
 };
 
 const roleHome: Record<GuardRole, string> = {
@@ -32,23 +33,30 @@ function normalizeRole(role?: string | null): GuardRole | null {
 
 export default function AuthGuard({
   allowedRoles,
+  allowedUserTypes,
   children,
 }: {
   allowedRoles: GuardRole[];
+  allowedUserTypes?: ("guest" | "member")[];
   children: React.ReactNode;
 }) {
   if (typeof window === "undefined") {
     return <>{children}</>;
   }
-
-  return <BrowserAuthGuard allowedRoles={allowedRoles}>{children}</BrowserAuthGuard>;
+  return (
+    <BrowserAuthGuard allowedRoles={allowedRoles} allowedUserTypes={allowedUserTypes}>
+      {children}
+    </BrowserAuthGuard>
+  );
 }
 
 function BrowserAuthGuard({
   allowedRoles,
+  allowedUserTypes,
   children,
 }: {
   allowedRoles: GuardRole[];
+  allowedUserTypes?: ("guest" | "member")[];
   children: React.ReactNode;
 }) {
   const router = useRouter();
@@ -68,12 +76,15 @@ function BrowserAuthGuard({
         if (cancelled) return;
 
         const role = normalizeRole(data.role);
+        const userType = (data.user_type as "guest" | "member") ?? null;
+
         dispatch(
           setCredentials({
             userId: data.user_id,
             role: role ?? data.role,
             email: data.email,
             fullName: data.full_name,
+            userType,
           })
         );
 
@@ -84,8 +95,20 @@ function BrowserAuthGuard({
         }
 
         if (!allowed.has(role)) {
-          router.replace(roleHome[role]);
+          const home =
+            role === "community_user" && userType === "guest"
+              ? "/shop"
+              : roleHome[role];
+          router.replace(home);
           return;
+        }
+
+        // Role is allowed — now check userType restriction if provided
+        if (allowedUserTypes && allowedUserTypes.length > 0) {
+          if (!userType || !allowedUserTypes.includes(userType)) {
+            router.replace("/shop");
+            return;
+          }
         }
 
         setStatus("allowed");
@@ -101,7 +124,7 @@ function BrowserAuthGuard({
     return () => {
       cancelled = true;
     };
-  }, [allowed, allowedKey, dispatch, pathname, router]);
+  }, [allowed, allowedKey, allowedUserTypes, dispatch, pathname, router]);
 
   if (status !== "allowed") {
     return (
