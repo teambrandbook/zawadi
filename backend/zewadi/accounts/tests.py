@@ -80,3 +80,17 @@ class MeSerializerTest(TestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.get("/api/account/me/")
         self.assertEqual(response.data["user_type"], "member")
+
+    def test_me_returns_null_user_type_for_non_community_user(self):
+        admin = User.objects.create_user(
+            email="admin@test.com",
+            password="pass1234",
+            full_name="Admin",
+            user_name="adminuser",
+            phone="9876543210",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data["user_type"])

@@ -32,10 +32,8 @@ class MeSerializer(serializers.ModelSerializer):
         return str(obj.role).lower()
 
     def get_user_type(self, obj):
-        try:
-            return obj.communityuser.user_type
-        except Exception:
-            return None
+        cu = getattr(obj, "communityuser", None)
+        return cu.user_type if cu is not None else None
 
 
 class RegisterSerializer(serializers.Serializer):

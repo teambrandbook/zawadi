@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+from communityuser.models import UserType
 
 
 class IsMemberUser(BasePermission):
@@ -7,7 +8,7 @@ class IsMemberUser(BasePermission):
             request.user
             and request.user.is_authenticated
             and hasattr(request.user, "communityuser")
-            and request.user.communityuser.user_type == "member"
+            and request.user.communityuser.user_type == UserType.MEMBER
         )
 
 
@@ -17,5 +18,5 @@ class IsGuestUser(BasePermission):
             request.user
             and request.user.is_authenticated
             and hasattr(request.user, "communityuser")
-            and request.user.communityuser.user_type == "guest"
+            and request.user.communityuser.user_type == UserType.GUEST
         )
