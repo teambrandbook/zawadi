@@ -6,8 +6,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
-from .models import CommunityUser, UserType
-from .serializers import CommunityProfileSerializer
+from .models import CommunityUser, CommunityUserAddress, UserType
+from .serializers import CommunityProfileSerializer, DeliveryAddressSerializer
 from blog.models import Blog, BlogStatus
 from consultant.models import ConsultationBooking
 from events.models import EventRegistration
@@ -208,3 +208,48 @@ class CommunityDashboardSummaryAPIView(APIView):
         }
 
         return Response(summary, status=status.HTTP_200_OK)
+
+
+class AddressListCreateView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            community_user = request.user.communityuser
+        except CommunityUser.DoesNotExist:
+            return Response([], status=status.HTTP_200_OK)
+        addresses = community_user.addresses.all().order_by("-is_default", "-id")
+        return Response(
+            DeliveryAddressSerializer(addresses, many=True).data,
+            status=status.HTTP_200_OK,
+        )
+
+    def post(self, request):
+        try:
+            community_user = request.user.communityuser
+        except CommunityUser.DoesNotExist:
+            return Response(
+                {"error": "Profile not found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer = DeliveryAddressSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=community_user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AddressDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            community_user = request.user.communityuser
+            address = community_user.addresses.get(pk=pk)
+        except (CommunityUser.DoesNotExist, CommunityUserAddress.DoesNotExist):
+            return Response(
+                {"error": "Address not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        address.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
