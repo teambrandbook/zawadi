@@ -24,3 +24,28 @@ export type EventRow = {
   attendeeAvatars: string[];
 };
 
+export type CreateEventFormData = {
+  title: string;
+  short_description: string;
+  full_description: string;
+  event_type: string;
+  start_date: string;
+  start_time: string;
+  end_date: string;
+  end_time: string;
+  is_online: boolean;
+  location: string;
+  meeting_link: string;
+  max_attendees: string;
+  status: string;
+  show_in_community: boolean;
+  institutional_name: string;
+  host_type: string;
+  timezone: string;
+  agenda_highlights: string;
+  banner_file: File | null;
+  banner_preview_url: string;
+  enable_registration: boolean;
+  waitlist_enabled: boolean;
+  approval_required: boolean;
+};

@@ -115,7 +115,11 @@ class CreateNutritionistAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        if not has_permission(request.user, "users", "create"):
+        can_create_nutritionist = (
+            has_permission(request.user, "nutritionists", "create")
+            or has_permission(request.user, "users", "create")
+        )
+        if not can_create_nutritionist:
             return Response(
                 {"message": "Permission denied"},
                 status=status.HTTP_403_FORBIDDEN,

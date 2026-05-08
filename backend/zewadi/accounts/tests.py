@@ -2,6 +2,8 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from accounts.models import User
+from consultant.models import Consultant
+from supperadmin.models import Role, RolePermission
 
 
 class AccountMeAPITests(APITestCase):
@@ -48,3 +50,49 @@ class RegisterSecurityTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["role"], "COMMUNITY_USER")
+
+
+class CreateNutritionistAPITests(APITestCase):
+    def test_internal_staff_with_nutritionist_create_permission_can_create_nutritionist(self):
+        role = Role.objects.create(role_name="Nutritionist Manager")
+        RolePermission.objects.create(
+            role=role,
+            module="nutritionists",
+            can_create=True,
+        )
+        staff = User.objects.create_user(
+            email="staff@example.com",
+            password="Pass@1234",
+            user_name="staff",
+            full_name="Staff User",
+            phone="+10000000003",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        payload = {
+            "email": "nutritionist@example.com",
+            "password": "Pass@1234",
+            "full_name": "Nutritionist User",
+            "user_name": "nutritionist",
+            "phone": "+10000000004",
+            "date_of_birth": "1990-01-01",
+            "gender": "FEMALE",
+            "years_of_experience": 5,
+            "qualification": "MSc Nutrition",
+            "certifications": "CNS",
+            "short_bio": "Experienced nutritionist",
+            "languages_spoken": "English",
+            "experience_areas": "Wellness",
+            "session_type": "video",
+            "consultation_fee": 75,
+            "session_duration": 30,
+        }
+
+        response = self.client.post("/api/account/nutritionists/create/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        created_user = User.objects.get(email="nutritionist@example.com")
+        self.assertEqual(created_user.role, "CONSULTANT")
+        self.assertTrue(Consultant.objects.filter(user=created_user).exists())
