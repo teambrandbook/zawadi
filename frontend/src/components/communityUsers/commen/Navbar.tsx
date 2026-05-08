@@ -13,12 +13,32 @@ interface NavbarProps {
 }
 
 interface UserInfo {
+  fullName: string;
   firstName: string;
   lastName: string;
   email: string;
   role: string;
   initials: string;
+  photo: string | null;
 }
+
+interface CommunityProfileSummary {
+  full_name?: string | null;
+  user_name?: string | null;
+  email?: string | null;
+  role?: string | null;
+  photo?: string | null;
+}
+
+const fallbackUserInfo: UserInfo = {
+  fullName: "",
+  firstName: "",
+  lastName: "",
+  email: "",
+  role: "",
+  initials: "U",
+  photo: null,
+};
 
 function decodeJwtPayload(token: string): Record<string, string> | null {
   try {
