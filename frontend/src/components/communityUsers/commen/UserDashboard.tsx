@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { 
   Home, 
   UtensilsCrossed, 
+  Package,
   ShoppingBag, 
   UserRound, 
   Calendar, 
@@ -22,6 +23,7 @@ type Props = {
 const menuItems = [
   { name: 'Dashboard', icon: Home, href: '/communityDashBorde' },
   { name: 'My Recipes', icon: UtensilsCrossed, href: '/communityDashBorde/myrecipy' },
+  { name: 'Products', icon: Package, href: '/communityDashBorde/products' },
   { name: 'My Orders', icon: ShoppingBag, href: '/communityDashBorde/myorders' },
   { name: 'Consultation', icon: UserRound, href: '/communityDashBorde/consultation' },
   { name: 'My Events', icon: Calendar, href: '/communityDashBorde/events' },

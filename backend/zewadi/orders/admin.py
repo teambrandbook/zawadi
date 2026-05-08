@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderReview
+from .models import CartItem, Order, OrderReview
 
 
 @admin.register(Order)
@@ -28,3 +28,12 @@ class OrderReviewAdmin(admin.ModelAdmin):
     search_fields = ["order__order_id", "user__email", "title"]
     readonly_fields = ["created_at"]
     ordering = ["-created_at"]
+
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ["user", "product", "variant", "quantity", "updated_at"]
+    list_filter = ["created_at", "updated_at"]
+    search_fields = ["user__email", "product__product_name", "variant__variant_name"]
+    readonly_fields = ["created_at", "updated_at"]
+    ordering = ["-updated_at"]
