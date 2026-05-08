@@ -1,6 +1,7 @@
 "use client";
 
-import { Wallet, Landmark } from "lucide-react";
+import type { ReactNode } from "react";
+import { BadgeCheck, CreditCard, Wallet } from "lucide-react";
 import { PaymentMethod } from "./types";
 
 type Props = {
@@ -13,20 +14,23 @@ function MethodCard({
   title,
   subtitle,
   icon,
+  disabled = false,
   onClick,
 }: {
   active: boolean;
   title: string;
   subtitle: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
+  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`w-full rounded-lg border px-4 py-3 text-left ${
         active ? "border-[#A88751] bg-[#FBF8F1]" : "border-[#DFDFDF] bg-white hover:bg-[#FAFAFA]"
-      }`}
+      } ${disabled ? "cursor-not-allowed opacity-60 hover:bg-white" : ""}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-start gap-2">
@@ -57,14 +61,18 @@ export default function PaymentMethodSection({ selectedMethod, onChangeMethod }:
           onClick={() => onChangeMethod("cod")}
         />
         <MethodCard
-          active={selectedMethod === "upi"}
-          title="UPI / Card / Online Payment"
-          subtitle="Secure payment gateway"
-          icon={<Landmark className="h-4 w-4 text-[#A88751]" />}
-          onClick={() => onChangeMethod("upi")}
+          active={false}
+          title="Online Payment"
+          subtitle="Payment gateway will be available in the next phase"
+          icon={<CreditCard className="h-4 w-4 text-[#A88751]" />}
+          disabled
+          onClick={() => undefined}
         />
       </div>
-      <p className="mt-3 text-xs text-[#6B7280]">Your payment information is secure and encrypted.</p>
+      <p className="mt-3 inline-flex items-center gap-1 text-xs text-[#6B7280]">
+        <BadgeCheck className="h-3.5 w-3.5 text-[#0A4833]" />
+        MVP checkout is cash on delivery only.
+      </p>
     </section>
   );
 }

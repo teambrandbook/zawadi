@@ -16,4 +16,4 @@ export type DeliveryForm = {
   instructions: string;
 };
 
-export type PaymentMethod = "cod" | "upi";
+export type PaymentMethod = "cod";

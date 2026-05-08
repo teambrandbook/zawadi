@@ -17,6 +17,7 @@ export default function LoginComponent() {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
   const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
 
@@ -27,12 +28,17 @@ export default function LoginComponent() {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
       const role = normalizeRole(data.role);
+      const accessToken = res.data.access;
 
       dispatch(setCredentials({
         userId: data.user_id,
         role,
         email: data.email,
       }));
+
+      if (accessToken) {
+        document.cookie = `access_token=${encodeURIComponent(accessToken)}; path=/; max-age=${30 * 60}; SameSite=Lax`;
+      }
 
       if (role === "admin") {
         router.push("/admindashboard");
@@ -47,8 +53,9 @@ export default function LoginComponent() {
     }
   };
 
-
-  
+  const handleGoogleLogin = () => {
+    window.location.href = `${apiBase}/account/google/login/`;
+  };
 
   return (
     <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 py-8 sm:px-6 lg:px-8">
@@ -121,7 +128,7 @@ export default function LoginComponent() {
                     <input
                       required
                       value={email}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                      onChange={(e) => setEmail(e.target.value)}
                       type="email"
                       placeholder="name@company.com"
                       className="h-[42px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
@@ -135,7 +142,7 @@ export default function LoginComponent() {
                     <div className="relative">
                       <input
                         value={password}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                        onChange={(e) => setPassword(e.target.value)}
                         required
                         type={showPassword ? "text" : "password"}
                         placeholder="********"
@@ -144,21 +151,11 @@ export default function LoginComponent() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute right-3 top-1/2 -translate-y-1/2"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px]">
-                    <label className="flex items-center gap-1.5 cursor-pointer text-gray-600">
-                      <input type="checkbox" className="h-3.5 w-3.5 rounded accent-[#0a4833]" />
-                      Remember me
-                    </label>
-                    <button type="button" className="font-bold text-[#9f8151]">
-                      Forgot?
-                    </button>
                   </div>
 
                   <button
@@ -179,6 +176,7 @@ export default function LoginComponent() {
 
                   <button
                     type="button"
+                    onClick={handleGoogleLogin}
                     className="flex h-[42px] w-full items-center justify-center gap-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 transition"
                   >
                     <svg viewBox="0 0 24 24" className="h-4 w-4">

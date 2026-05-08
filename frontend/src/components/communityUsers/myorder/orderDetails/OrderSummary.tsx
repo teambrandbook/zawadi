@@ -11,6 +11,8 @@ type Props = {
   quantity: number;
   deliveryCharge: number;
   isSubmitting?: boolean;
+  actionLabel?: string;
+  submittingLabel?: string;
   onPlaceOrder: () => void;
 };
 
@@ -30,6 +32,8 @@ export default function OrderSummary({
   quantity,
   deliveryCharge,
   isSubmitting = false,
+  actionLabel = "Place Order",
+  submittingLabel = "Placing Order...",
   onPlaceOrder,
 }: Props) {
   const subtotal = selectedPack.price * quantity;
@@ -69,7 +73,7 @@ export default function OrderSummary({
         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0A4833] text-sm font-semibold text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-70"
       >
         <CircleDollarSign className="h-4 w-4" />
-        {isSubmitting ? "Placing Order..." : "Place Order"}
+        {isSubmitting ? submittingLabel : actionLabel}
       </button>
 
       <button className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#DFDFDF] bg-white text-sm font-medium text-[#4B5563]">

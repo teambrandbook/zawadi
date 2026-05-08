@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
-import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
+import { usePathname } from "next/navigation";
+import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
 
 interface NavbarProps {
@@ -32,56 +33,68 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function getInitials(name: string, email: string): string {
+  const nameInitials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return nameInitials || email.slice(0, 2).toUpperCase() || "U";
+}
+
+function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
+  const hasProfileName = "full_name" in profile || "user_name" in profile;
+  const profileName = profile.full_name?.trim() || profile.user_name?.trim();
+  const fullName = hasProfileName ? profileName || "" : user.fullName;
+  const email = profile.email || user.email;
+  const role = profile.role || user.role;
+
+  return {
+    ...user,
+    fullName,
+    email,
+    role,
+    initials: getInitials(fullName, email),
+    photo: profile.photo ?? null,
+  };
+}
+
 function getUserFromTokenCookie(): UserInfo {
   if (typeof document === "undefined") {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
   if (!match) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const token = decodeURIComponent(match.split("=")[1]);
   const payload = decodeJwtPayload(token);
   if (!payload) {
-    return {
-      firstName: "",
-      lastName: "",
-      email: "",
-      role: "",
-      initials: "ZM",
-    };
+    return fallbackUserInfo;
   }
 
   const firstName: string = payload.first_name || "";
   const lastName: string = payload.last_name || "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
   const email: string = payload.email || "";
   const role: string = payload.role || "";
-  const initials =
-    (firstName[0] || "") + (lastName[0] || "") ||
-    email.slice(0, 2).toUpperCase() ||
-    "U";
+  const initials = getInitials(fullName, email);
 
-  return { firstName, lastName, email, role, initials };
+  return { fullName, firstName, lastName, email, role, initials, photo: null };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartCount, setCartCount] = useState(0);
   const [user] = useState<UserInfo>(getUserFromTokenCookie);
+  const pathname = usePathname();
 
   useEffect(() => {
     let isMounted = true;
@@ -94,10 +107,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       .catch(() => {
         // not critical — leave at 0
       });
+    api.get<{ summary: { item_count: number } }>("/orders/cart/")
+      .then(({ data }) => {
+        if (isMounted) {
+          setCartCount(data.summary?.item_count ?? 0);
+        }
+      })
+      .catch(() => {
+        // not critical — leave at 0
+      });
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
@@ -179,6 +201,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           {unreadCount > 0 && (
             <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
               {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </Link>
+
+        <Link
+          href="/communityDashBorde/cart"
+          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          aria-label="Open cart"
+        >
+          <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6" />
+          {cartCount > 0 && (
+            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0A4833] px-1 text-[10px] font-bold text-white">
+              {cartCount > 99 ? "99+" : cartCount}
             </span>
           )}
         </Link>

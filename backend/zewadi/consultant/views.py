@@ -215,31 +215,28 @@ class ConsultantDetailView(APIView):
         )
 
 
-# class ConsultationBookingCreateView(APIView):
-#     permission_classes = [IsAuthenticated]
+class ConsultantProfileView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
 
-#     def post(self, request):
-#         serializer = ConsultationBookingCreateSerializer(
-#             data=request.data, context={"request": request}
-#         )
-#         if serializer.is_valid():
-#             booking = serializer.save()
-#             return Response(
-#                 ConsultationBookingListSerializer(booking).data,
-#                 status=status.HTTP_201_CREATED,
-#             )
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def get(self, request):
+        serializer = ConsultantProfileSerializer(request.user.consultant)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
+    def put(self, request):
+        serializer = ConsultantProfileSerializer(
+            request.user.consultant,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(
+            {"message": "Profile updated successfully", "data": serializer.data},
+            status=status.HTTP_200_OK,
+        )
 
-# class ConsultationBookingListView(APIView):
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         bookings = ConsultationBooking.objects.filter(user=request.user).select_related(
-#             "consultant__user"
-#         ).order_by("-created_at")
-#         serializer = ConsultationBookingListSerializer(bookings, many=True)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+    def patch(self, request):
+        return self.put(request)
 
 
 class ConsultantClientListView(APIView):
@@ -311,6 +308,13 @@ class DietPlanCreateView(APIView):
 
 class SaveAvailabilityView(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        availability = Availability.objects.filter(
+            consultant=request.user.consultant
+        ).order_by("day", "start_time")
+        serializer = AvailabilitySerializer(availability, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @transaction.atomic
     def post(self, request):
