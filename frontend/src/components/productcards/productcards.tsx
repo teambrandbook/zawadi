@@ -5,9 +5,12 @@ import Link from "next/link";
 import { ShoppingBag, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { setCartCount } from "@/redux/userSlice";
+import AddToCartModal from "@/components/shared/AddToCartModal";
 
 type Product = {
   id: number;
@@ -56,8 +59,8 @@ function ProductCard({
 }) {
   const price = product.sale_price || product.base_price;
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-[24px] bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
-      <div className="relative mb-5 aspect-[4/3] w-full overflow-hidden rounded-[16px] bg-[#f8f8f8]">
+    <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
+      <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
         <Image
           src={productImageUrl(product.image)}
           alt={product.product_name}
@@ -92,7 +95,7 @@ function ProductCard({
           <button
             type="button"
             onClick={() => onAddToCart(product.id)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-[#1a4331] active:scale-[0.99] sm:text-[16px]"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] sm:text-[16px]"
           >
             <ShoppingBag size={18} />
             Add to Cart
@@ -110,11 +113,14 @@ function ProductCard({
 }
 
 export default function ProductCards() {
-  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>(["All Products"]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<number | null>(null);
 
   useEffect(() => {
     api
@@ -130,16 +136,17 @@ export default function ProductCards() {
   }, []);
 
   async function handleAddToCart(productId: number) {
+    if (!isAuthenticated) {
+      setPendingProductId(productId);
+      setModalOpen(true);
+      return;
+    }
     try {
-      await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
+      const res = await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
       toast.success("Added to cart!");
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 401 || status === 403) {
-        router.push(`/login?next=/products`);
-      } else {
-        toast.error("Could not add to cart.");
-      }
+      dispatch(setCartCount(res.data.summary?.item_count ?? 0));
+    } catch {
+      toast.error("Could not add to cart.");
     }
   }
 
@@ -151,7 +158,7 @@ export default function ProductCards() {
   if (loading) {
     return (
       <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
-        <div className="flex min-h-[300px] items-center justify-center text-sm text-[#0A4833]">
+        <div className="flex min-h-75 items-center justify-center text-sm text-[#0A4833]">
           Loading products...
         </div>
       </section>
@@ -160,7 +167,7 @@ export default function ProductCards() {
 
   return (
     <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
-      <div className="mx-auto max-w-[1422px]">
+      <div className="mx-auto max-w-355.5">
         <div className="flex justify-center overflow-x-auto pb-2">
           <div className="flex min-w-max items-center gap-2">
             {categories.map((category) => (
@@ -182,7 +189,7 @@ export default function ProductCards() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="mt-9 flex min-h-[200px] items-center justify-center text-sm text-[#6b7280]">
+          <div className="mt-9 flex min-h-50 items-center justify-center text-sm text-[#6b7280]">
             No products found.
           </div>
         ) : (
@@ -191,6 +198,16 @@ export default function ProductCards() {
               <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
             ))}
           </div>
+        )}
+
+        {modalOpen && pendingProductId !== null && (
+          <AddToCartModal
+            isOpen={modalOpen}
+            productId={pendingProductId}
+            quantity={1}
+            onClose={() => { setModalOpen(false); setPendingProductId(null); }}
+            onSuccess={() => { setModalOpen(false); setPendingProductId(null); }}
+          />
         )}
       </div>
     </section>

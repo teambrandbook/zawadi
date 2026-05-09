@@ -5,9 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import AddToCartModal from "@/components/shared/AddToCartModal";
+import { setCartCount } from "@/redux/userSlice";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
 type ProductVariant = {
@@ -43,7 +47,8 @@ function productImageUrl(path: string | null): string {
 
 const ProductDetails = () => {
   const searchParams = useSearchParams();
-  const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
   const productId = searchParams.get("id");
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -51,6 +56,7 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const mainImageRef = useRef<HTMLDivElement>(null);
@@ -107,20 +113,20 @@ const ProductDetails = () => {
 
   async function handleAddToCart() {
     if (!product) return;
+    if (!isAuthenticated) {
+      setModalOpen(true);
+      return;
+    }
     try {
-      await api.post("/orders/cart/items/", {
+      const res = await api.post("/orders/cart/items/", {
         product_id: product.id,
         ...(selectedVariantId ? { variant_id: selectedVariantId } : {}),
         quantity,
       });
       toast.success("Added to cart!");
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 401 || status === 403) {
-        router.push(`/login?next=/products/details?id=${product.id}`);
-      } else {
-        toast.error("Could not add to cart.");
-      }
+      dispatch(setCartCount(res.data.summary?.item_count ?? 0));
+    } catch {
+      toast.error("Could not add to cart.");
     }
   }
 
@@ -279,6 +285,17 @@ const ProductDetails = () => {
               Try Recipes
             </button>
           </div>
+        )}
+
+        {modalOpen && product && (
+          <AddToCartModal
+            isOpen={modalOpen}
+            productId={product.id}
+            variantId={selectedVariantId ?? undefined}
+            quantity={quantity}
+            onClose={() => setModalOpen(false)}
+            onSuccess={() => setModalOpen(false)}
+          />
         )}
       </div>
     </section>
