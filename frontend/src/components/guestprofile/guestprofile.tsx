@@ -80,6 +80,10 @@ export default function GuestProfile() {
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhone, setEditPhone] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -89,6 +93,8 @@ export default function GuestProfile() {
     ])
       .then(([meRes, ordersRes, addrRes]) => {
         setProfile(meRes.data);
+        setEditName(meRes.data.full_name ?? "");
+        setEditPhone(meRes.data.phone ?? "");
         const list = Array.isArray(ordersRes.data)
           ? ordersRes.data
           : (ordersRes.data.results ?? []);
@@ -110,6 +116,25 @@ export default function GuestProfile() {
     } finally {
       setUpgrading(false);
       setShowUpgradeModal(false);
+    }
+  }
+
+  async function handleSaveProfile() {
+    setSaving(true);
+    try {
+      const res = await api.patch("/account/me/", {
+        full_name: editName.trim(),
+        phone: editPhone.trim(),
+      });
+      setProfile((prev) =>
+        prev ? { ...prev, full_name: res.data.full_name, phone: res.data.phone } : prev
+      );
+      setEditOpen(false);
+      toast.success("Profile updated!");
+    } catch {
+      toast.error("Could not save profile.");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -189,6 +214,22 @@ export default function GuestProfile() {
         </aside>
 
         <div className="space-y-8">
+          {/* Complete Profile Banner */}
+          {profile && (!profile.full_name || !profile.phone) && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 flex items-center justify-between gap-4">
+              <p className="text-sm text-blue-800">
+                Add your full name and phone number to complete your profile
+              </p>
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                className="shrink-0 text-sm font-bold text-blue-700 underline hover:text-blue-900 transition"
+              >
+                Complete now
+              </button>
+            </div>
+          )}
+
           {/* Upgrade Banner */}
           <div className="mx-0 rounded-xl border border-[#9f8151]/30 bg-[#fdfaf3] p-4 flex items-center justify-between gap-4">
             <div>
@@ -299,13 +340,14 @@ export default function GuestProfile() {
           </section>
 
           {/* Personal Information */}
-          <section className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+          <section id="personal-info" className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[28px] font-bold leading-[42px] text-[#121414]">
                 Personal Information
               </h2>
               <button
                 type="button"
+                onClick={() => setEditOpen(true)}
                 className="self-start text-base font-bold leading-6 text-[#b47800] underline"
               >
                 Edit Profile
@@ -359,6 +401,52 @@ export default function GuestProfile() {
                 className="flex-1 rounded-lg bg-[#0a4833] py-2 text-sm font-bold text-white hover:bg-[#0c5a40] disabled:opacity-60"
               >
                 {upgrading ? "Upgrading..." : "Confirm Upgrade"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Profile Modal */}
+      {editOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
+            <h2 className="mb-4 text-lg font-bold text-[#0a4833]">Edit Profile</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Full Name</label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
+                  placeholder="Your full name"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">Phone Number</label>
+                <input
+                  type="tel"
+                  value={editPhone}
+                  onChange={(e) => setEditPhone(e.target.value)}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
+                  placeholder="+91 98765 43210"
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setEditOpen(false)}
+                className="flex-1 rounded-lg border border-gray-200 py-2 text-sm text-[#374151] hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveProfile}
+                disabled={saving}
+                className="flex-1 rounded-lg bg-[#0a4833] py-2 text-sm font-bold text-white hover:bg-[#0c5a40] disabled:opacity-60"
+              >
+                {saving ? "Saving…" : "Save"}
               </button>
             </div>
           </div>
