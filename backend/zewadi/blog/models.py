@@ -18,6 +18,7 @@ class BlogCategory(models.TextChoices):
 
 
 class BlogStatus(models.TextChoices):
+    PENDING = "pending", "Pending"
     DRAFT = "draft", "Draft"
     PUBLISHED = "published", "Published"
     ARCHIVED = "archived", "Archived"
@@ -65,6 +66,14 @@ class Blog(models.Model):
     show_in_community_blog = models.BooleanField(default=True)
     allow_comments = models.BooleanField(default=True)
 
+    likes = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name="liked_blogs"
+    )
+
+    views = models.PositiveIntegerField(default=0)
+
     # Internal-only note
     internal_notes = models.TextField(blank=True, null=True)
 
@@ -78,6 +87,14 @@ class Blog(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            base = slugify(self.title)[:200] or "blog"
-            self.slug = f"{base}-{str(uuid.uuid4())[:8]}"
+            base_slug = slugify(self.title) or "blog"
+            candidate = base_slug
+
+            while Blog.objects.filter(slug=candidate).exclude(pk=self.pk).exists():
+                candidate = f"{base_slug}-{uuid.uuid4().hex[:8]}"
+
+            self.slug = candidate
+
         super().save(*args, **kwargs)
+
+    

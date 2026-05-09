@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from communityuser.models import CommunityUser, UserType
-
+from supperadmin.utils.permissions import has_permission
 from .models import User
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
 from .throttles import LoginRateThrottle, RegisterRateThrottle
@@ -110,6 +110,37 @@ class RegisterAPIView(APIView):
                     "user_id": user.user_id,
                     "email": user.email,
                     "role": user.role,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CreateNutritionistAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        can_create_nutritionist = (
+            has_permission(request.user, "nutritionists", "create")
+            or has_permission(request.user, "users", "create")
+        )
+        if not can_create_nutritionist:
+            return Response(
+                {"message": "Permission denied"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        payload = request.data.copy()
+        payload["role"] = "CONSULTANT"
+
+        serializer = RegisterSerializer(data=payload)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(
+                {
+                    "message": "Nutritionist created successfully",
+                    "user_id": user.user_id,
                 },
                 status=status.HTTP_201_CREATED,
             )

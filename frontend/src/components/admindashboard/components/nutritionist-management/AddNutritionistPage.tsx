@@ -1,7 +1,7 @@
 "use client";
 
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
 import AddNutritionistHeader from "./components/add-nutritionist/AddNutritionistHeader";
@@ -65,8 +65,30 @@ function TextareaField({ label, value, onChange, placeholder }: {
 
 // ---
 
+function toImageUrl(imagePath?: string | null) {
+  if (!imagePath) return "";
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
+  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+}
+
+function splitCsv(value: unknown) {
+  return String(value ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeDate(value: unknown) {
+  return String(value ?? "").split("T")[0];
+}
+
 export default function AddNutritionistPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("id");
+  const isEditMode = Boolean(editId);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Basic info
@@ -84,6 +106,7 @@ export default function AddNutritionistPage() {
   const [selectedPhotoName, setSelectedPhotoName] = useState("");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
+  const [existingPhotoUrl, setExistingPhotoUrl] = useState("");
 
   // Professional details
   const [qualification, setQualification] = useState("");
@@ -104,6 +127,7 @@ export default function AddNutritionistPage() {
   const [sessionChat, setSessionChat] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingDetails, setIsLoadingDetails] = useState(false);
 
   const toggleExpertise = (label: string) => {
     setActiveExpertise((prev) => (prev.includes(label) ? prev.filter((item) => item !== label) : [...prev, label]));
@@ -122,6 +146,49 @@ export default function AddNutritionistPage() {
 
     return () => URL.revokeObjectURL(objectUrl);
   }, [photoFile]);
+
+  useEffect(() => {
+    if (!editId) return;
+
+    const fetchNutritionistDetails = async () => {
+      setIsLoadingDetails(true);
+      try {
+        const response = await api.get(`/consultant/consultants/${editId}/`);
+        const data = response.data ?? {};
+        const user = data.user ?? {};
+        const sessionType = String(data.session_type ?? "").toLowerCase();
+
+        setFullName(String(user.full_name ?? data.full_name ?? ""));
+        setUserName(String(user.user_name ?? data.user_name ?? ""));
+        setEmail(String(user.email ?? data.email ?? ""));
+        setPassword("");
+        setPhone(String(user.phone ?? data.phone ?? ""));
+        setDateOfBirth(normalizeDate(user.date_of_birth ?? data.date_of_birth));
+        setYearsExp(String(data.years_of_experience ?? ""));
+        setGender(String(user.gender ?? data.gender ?? "").toLowerCase());
+        setLocation(String(user.location ?? data.location ?? ""));
+        setQualification(String(data.qualification ?? ""));
+        setCertifications(String(data.certifications ?? ""));
+        setShortBio(String(data.short_bio ?? ""));
+        setLanguages(String(data.languages_spoken ?? ""));
+        setActiveExpertise(splitCsv(data.experience_areas));
+        setConsultationFee(String(data.consultation_fee ?? ""));
+        setSessionDuration(String(data.session_duration ?? "30"));
+        setSessionVideo(sessionType.includes("video") || !sessionType);
+        setSessionAudio(sessionType.includes("audio"));
+        setSessionChat(sessionType.includes("chat"));
+        setExistingPhotoUrl(toImageUrl(user.photo ?? data.photo));
+        setSelectedPhotoName(user.photo ? "Current profile photo" : "");
+      } catch {
+        toast.error("Failed to load nutritionist details for editing.");
+        router.push("/admindashboard/nutritionist");
+      } finally {
+        setIsLoadingDetails(false);
+      }
+    };
+
+    fetchNutritionistDetails();
+  }, [editId, router]);
 
   function selectPhotoFile(file: File) {
     if (!file.type.startsWith("image/")) {
@@ -156,11 +223,14 @@ export default function AddNutritionistPage() {
     if (!fullName.trim()) { toast.error("Full name is required."); return; }
     if (!userName.trim()) { toast.error("Username is required."); return; }
     if (!email.trim()) { toast.error("Email is required."); return; }
-    if (!password.trim()) { toast.error("Password is required."); return; }
+    if (!isEditMode && !password.trim()) { toast.error("Password is required."); return; }
+    if (!phone.trim()) { toast.error("Phone number is required."); return; }
     if (!dateOfBirth) { toast.error("Date of birth is required."); return; }
     if (!gender) { toast.error("Gender is required."); return; }
     if (!qualification.trim()) { toast.error("Qualification is required."); return; }
     if (!shortBio.trim()) { toast.error("Short bio is required."); return; }
+    if (!languages.trim()) { toast.error("Languages spoken is required."); return; }
+    if (activeExpertise.length === 0) { toast.error("Select at least one area of expertise."); return; }
 
     const fd = new FormData();
     fd.append("years_of_experience", yearsExp || "0");
@@ -176,30 +246,38 @@ export default function AddNutritionistPage() {
     fd.append("full_name", fullName.trim());
     fd.append("user_name", userName.trim());
     fd.append("email", email.trim());
-    fd.append("password", password);
+    if (password.trim()) fd.append("password", password);
     fd.append("phone", phone.trim());
     fd.append("date_of_birth", dateOfBirth);
     fd.append("gender", gender.toUpperCase());
+    fd.append("location", location.trim());
     fd.append("role", "CONSULTANT");
-    fd.append("user_type", "MEMBER");
-    fd.append("preferred_communication", "email");
-    fd.append("notification_preferences", "all");
     if (photoFile) fd.append("photo", photoFile);
 
     setIsSubmitting(true);
     try {
-      await api.post("/account/register/", fd);
-      toast.success("Nutritionist added successfully! ✅");
+      if (isEditMode && editId) {
+        await api.patch(`/consultant/consultants/${editId}/`, fd);
+        toast.success("Nutritionist updated successfully!");
+      } else {
+        await api.post("/account/nutritionists/create/", fd);
+        toast.success("Nutritionist added successfully!");
+      }
       router.push("/admindashboard/nutritionist");
     } catch (err: unknown) {
-      const responseData = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const responseData = (err as { response?: { data?: Record<string, unknown> | string; status?: number } })?.response?.data;
+      const statusCode = (err as { response?: { status?: number } })?.response?.status;
       const detail =
-        typeof responseData?.detail === "string"
+        typeof responseData === "string"
+          ? statusCode && statusCode >= 500
+            ? "Server error while saving nutritionist. Please try again."
+            : responseData
+          : typeof responseData?.detail === "string"
           ? responseData.detail
           : Object.entries(responseData ?? {})
               .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
               .join(" | ");
-      toast.error(detail || "Failed to add nutritionist. Please try again.");
+      toast.error(detail || `Failed to ${isEditMode ? "update" : "add"} nutritionist. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -215,7 +293,13 @@ export default function AddNutritionistPage() {
   return (
     <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <AddNutritionistHeader />
+        <AddNutritionistHeader isEditMode={isEditMode} />
+
+        {isLoadingDetails && (
+          <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">
+            Loading nutritionist details...
+          </div>
+        )}
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_272px]">
           <div className="space-y-4">
@@ -225,8 +309,14 @@ export default function AddNutritionistPage() {
                 <InputField label="Full Name *" value={fullName} onChange={setFullName} placeholder="Enter full name" />
                 <InputField label="Username *" value={userName} onChange={setUserName} placeholder="Enter username" />
                 <InputField label="Email Address *" value={email} onChange={setEmail} placeholder="nutritionist@email.com" type="email" />
-                <InputField label="Temporary Password *" value={password} onChange={setPassword} placeholder="Enter temporary password" type="password" />
-                <InputField label="Phone Number" value={phone} onChange={setPhone} placeholder="+1 (555) 123-4567" />
+                <InputField
+                  label={isEditMode ? "New Password" : "Temporary Password *"}
+                  value={password}
+                  onChange={setPassword}
+                  placeholder={isEditMode ? "Leave blank to keep current password" : "Enter temporary password"}
+                  type="password"
+                />
+                <InputField label="Phone Number *" value={phone} onChange={setPhone} placeholder="+1 (555) 123-4567" />
                 <InputField label="Date of Birth *" value={dateOfBirth} onChange={setDateOfBirth} type="date" />
                 <InputField label="Years of Experience" value={yearsExp} onChange={setYearsExp} placeholder="5" type="number" />
                 <label className="block space-y-1">
@@ -250,7 +340,7 @@ export default function AddNutritionistPage() {
             <ProfilePhotoSection
               fileInputRef={fileInputRef}
               selectedPhotoName={selectedPhotoName}
-              previewUrl={photoPreviewUrl}
+              previewUrl={photoPreviewUrl || existingPhotoUrl}
               onBrowsePhoto={handleBrowsePhoto}
               onPhotoChange={handlePhotoChange}
               onPhotoDrop={selectPhotoFile}
@@ -262,7 +352,7 @@ export default function AddNutritionistPage() {
                 <InputField label="Qualification *" value={qualification} onChange={setQualification} placeholder="e.g., Master's in Nutrition Science" />
                 <InputField label="Certifications" value={certifications} onChange={setCertifications} placeholder="e.g., Certified Nutrition Specialist" />
                 <TextareaField label="Short Bio *" value={shortBio} onChange={setShortBio} placeholder="Brief professional summary..." />
-                <InputField label="Languages Spoken" value={languages} onChange={setLanguages} placeholder="English, Spanish, French" />
+                <InputField label="Languages Spoken *" value={languages} onChange={setLanguages} placeholder="English, Spanish, French" />
               </div>
             </FormCard>
 
@@ -328,12 +418,20 @@ export default function AddNutritionistPage() {
                 disabled={isSubmitting}
                 className="rounded-lg bg-[#0A4833] px-4 py-2 text-sm font-medium text-white hover:bg-[#083927] disabled:opacity-50"
               >
-                {isSubmitting ? "Creating..." : "Create Nutritionist"}
+                {isSubmitting ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Nutritionist" : "Create Nutritionist")}
               </button>
             </div>
           </div>
 
-          <ProfilePreviewCard activeExpertise={activeExpertise} />
+          <ProfilePreviewCard
+            activeExpertise={activeExpertise}
+            fullName={fullName}
+            qualification={qualification}
+            yearsExp={yearsExp}
+            consultationFee={consultationFee}
+            sessionDuration={sessionDuration}
+            photoPreviewUrl={photoPreviewUrl || existingPhotoUrl}
+          />
         </div>
       </div>
     </section>

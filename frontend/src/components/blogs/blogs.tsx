@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, CalendarDays, ChevronRight, Search } from "lucide-react";
+import { ArrowRight, CalendarDays, ChevronRight, Eye, Heart, Search } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
@@ -19,6 +19,10 @@ type BlogPost = {
   image: string;
   href: string;
   date: string;
+  authorName: string;
+  authorAvatar: string;
+  likes: number;
+  views: number;
 };
 
 type BackendBlog = {
@@ -28,6 +32,9 @@ type BackendBlog = {
   short_excerpt?: string;
   cover_image?: string | null;
   created_at?: string;
+  author_name?: string;
+  likes?: number;
+  views?: number;
 };
 
 function mediaUrl(value?: string | null) {
@@ -48,6 +55,13 @@ function formatDate(value?: string) {
   });
 }
 
+function getInitials(name?: string) {
+  const cleaned = String(name ?? "").trim();
+  if (!cleaned) return "ZW";
+  const parts = cleaned.split(/\s+/).slice(0, 2);
+  return parts.map((part) => part.charAt(0).toUpperCase()).join("");
+}
+
 function mapBackendBlog(blog: BackendBlog): BlogPost {
   const slug = blog.slug || String(blog.id);
   return {
@@ -56,6 +70,10 @@ function mapBackendBlog(blog: BackendBlog): BlogPost {
     image: mediaUrl(blog.cover_image),
     href: `/blogs/${slug}`,
     date: formatDate(blog.created_at),
+    authorName: blog.author_name || "Zewadi Team",
+    authorAvatar: getInitials(blog.author_name),
+    likes: typeof blog.likes === "number" ? blog.likes : 0,
+    views: typeof blog.views === "number" ? blog.views : 0,
   };
 }
 
@@ -67,6 +85,10 @@ const blogPostsFallback: BlogPost[] = [
     image: blogImageOne,
     href: "/blogdetails/detail01",
     date: "October 19, 2022",
+    authorName: "Zewadi Team",
+    authorAvatar: "ZT",
+    likes: 0,
+    views: 0,
   },
   {
     title: "NutriHub for Community & Growth",
@@ -75,6 +97,10 @@ const blogPostsFallback: BlogPost[] = [
     image: blogImageTwo,
     href: "/blogdetails/detail02",
     date: "October 19, 2022",
+    authorName: "Zewadi Team",
+    authorAvatar: "ZT",
+    likes: 0,
+    views: 0,
   },
   {
     title: "ZewTaste for Food & Experience",
@@ -83,6 +109,10 @@ const blogPostsFallback: BlogPost[] = [
     image: blogImageThree,
     href: "/blogdetails/detail03",
     date: "October 19, 2022",
+    authorName: "Zewadi Team",
+    authorAvatar: "ZT",
+    likes: 0,
+    views: 0,
   },
 ];
 
@@ -238,6 +268,29 @@ export default function Blogs() {
                   <div className="blog-animate-text mt-6 flex items-center gap-2 text-xs font-semibold text-[#727272]">
                     <CalendarDays size={14} className="text-[#1a4331]" />
                     <span className="font-sans">{post.date}</span>
+                  </div>
+
+                  <div className="blog-animate-text mt-4 flex flex-wrap items-center justify-between gap-4 rounded-[18px] border border-[#E7EBE7] bg-[#F8FBF8] px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="grid h-11 w-11 place-items-center rounded-full bg-[#1f4d3a] text-sm font-bold text-white">
+                        {post.authorAvatar}
+                      </div>
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.18em] text-[#7B8A7F]">Author</p>
+                        <p className="text-sm font-semibold text-[#1a4331]">{post.authorName}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 text-[#4F5F55]">
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Heart size={16} className="text-[#1f4d3a]" />
+                        <span>{post.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm font-medium">
+                        <Eye size={16} className="text-[#1f4d3a]" />
+                        <span>{post.views}</span>
+                      </div>
+                    </div>
                   </div>
 
                   <h2 className="blog-animate-text mt-4 font-serif font-bold text-[1.8rem] leading-tight text-black sm:text-[2.3rem] sm:leading-[1.2]">

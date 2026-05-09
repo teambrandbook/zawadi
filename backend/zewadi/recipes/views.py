@@ -2,13 +2,15 @@ from rest_framework import generics, status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+from supperadmin.utils.permissions import has_permission
 from .models import Recipe, RecipeStatus
 from .serializers import (
     RecipeListSerializer,
     RecipeDetailSerializer,
     RecipeCreateSerializer,
 )
+from django.utils import timezone
+
 
 
 class IsAdminUser(BasePermission):
@@ -22,73 +24,247 @@ class IsAdminUser(BasePermission):
 # Public / authenticated endpoints
 # ---------------------------------------------------------------------------
 
-class RecipeListView(generics.ListAPIView):
-    """
-    GET /api/recipes/
-    Returns published recipes by default.
-    Query params:
-      ?category=<value>   — filter by category
-      ?featured=true      — only featured recipes
-      ?mine=true          — recipes authored by the authenticated user (auth required)
-    """
-    serializer_class = RecipeListSerializer
-    permission_classes = [AllowAny]
+class RecipeListAPIView(APIView):
 
-    def get_queryset(self):
-        request = self.request
-        params = request.query_params
-
-        mine = params.get("mine", "").lower() == "true"
-        if mine:
-            if not request.user.is_authenticated:
-                return Recipe.objects.none()
-            qs = Recipe.objects.filter(author=request.user)
-        else:
-            qs = Recipe.objects.filter(status=RecipeStatus.PUBLISHED, show_in_community=True)
-
-        category = params.get("category")
-        if category:
-            qs = qs.filter(category=category)
-
-        featured = params.get("featured", "").lower()
-        if featured == "true":
-            qs = qs.filter(is_featured=True)
-
-        return qs
-
-
-class RecipeDetailView(generics.RetrieveAPIView):
-    """
-    GET /api/recipes/<slug>/
-    Returns a single recipe. Non-admin users can only see published recipes.
-    """
-    serializer_class = RecipeDetailSerializer
-    permission_classes = [AllowAny]
-    lookup_field = "slug"
-    lookup_url_kwarg = "slug"
-
-    def get_queryset(self):
-        user = self.request.user
-        if user.is_authenticated and getattr(user, "role", None) == "ADMIN":
-            return Recipe.objects.all()
-        return Recipe.objects.filter(status=RecipeStatus.PUBLISHED, show_in_community=True)
-
-
-class RecipeCreateView(generics.CreateAPIView):
-    """
-    POST /api/recipes/create/
-    Creates a new recipe owned by the authenticated user with status=DRAFT.
-    """
-    serializer_class = RecipeCreateSerializer
     permission_classes = [IsAuthenticated]
 
-    def perform_create(self, serializer):
-        serializer.save(author=self.request.user, status=RecipeStatus.DRAFT)
+    def get(self, request):
+
+       
+        if has_permission(request.user, "recipes", "create"):
+
+            recipes = Recipe.objects.select_related(
+                "author"
+            ).all()
+
+        elif request.user.role == "COMMUNITY_USER":
+
+            recipes = Recipe.objects.select_related(
+                "author"
+            ).filter(author=request.user)
+
+      
+        else:
+
+            return Response(
+                {
+                    "error": "Permission denied."
+                },
+
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = RecipeListSerializer(
+            recipes,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "count": recipes.count(),
+                "data": serializer.data,
+            },
+
+            status=status.HTTP_200_OK
+        )
+
+class RecipeDetailAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    # --------------------------------
+    # GET RECIPE
+    # --------------------------------
+    def get_recipe(self, request, recipe_id):
+
+        # admin
+        if has_permission(request.user, "recipes", "create"):
+
+            return Recipe.objects.filter(
+                id=recipe_id
+            ).first()
+
+        # community user
+        elif request.user.role == "COMMUNITY_USER":
+
+            return Recipe.objects.filter(
+                id=recipe_id,
+                author=request.user
+            ).first()
+
+        return None
+
+    # --------------------------------
+    # GET
+    # --------------------------------
+    def get(self, request, recipe_id):
+
+        recipe = self.get_recipe(request, recipe_id)
+
+        if not recipe:
+
+            return Response(
+                {
+                    "error": "Recipe not found."
+                },
+
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = RecipeDetailSerializer(
+            recipe,
+            context={"request": request},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+
+            status=status.HTTP_200_OK
+        )
+
+    # --------------------------------
+    # PATCH (EDIT)
+    # --------------------------------
+    def patch(self, request, recipe_id):
+
+        recipe = self.get_recipe(request, recipe_id)
+
+        if not recipe:
+
+            return Response(
+                {
+                    "error": "Recipe not found."
+                },
+
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = RecipeCreateSerializer(
+            recipe,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+
+        if serializer.is_valid():
+
+            serializer.save()
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Recipe updated successfully.",
+                    "data": serializer.data,
+                },
+
+                status=status.HTTP_200_OK
+            )
+
+        return Response(
+            {
+                "success": False,
+                "errors": serializer.errors,
+            },
+
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # --------------------------------
+    # DELETE
+    # --------------------------------
+    def delete(self, request, recipe_id):
+
+        recipe = self.get_recipe(request, recipe_id)
+
+        if not recipe:
+
+            return Response(
+                {
+                    "error": "Recipe not found."
+                },
+
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        recipe.delete()
+
+        return Response(
+            {
+                "success": True,
+                "message": "Recipe deleted successfully.",
+            },
+
+            status=status.HTTP_200_OK
+        )
 
 
-# ---------------------------------------------------------------------------
-# Admin endpoints
-# ---------------------------------------------------------------------------
+
+
+class RecipeCreateAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        serializer = RecipeCreateSerializer(data=request.data)
+
+        if serializer.is_valid():
+
+            
+            if has_permission(request.user, "recipes", "create"):
+
+                recipe = serializer.save(
+                    author=request.user,
+                    status=RecipeStatus.PUBLISHED,
+                    published_at=timezone.now(),
+                    approved_by=request.user,
+                    approved_at=timezone.now(),
+                )
+
+     
+            elif request.user.role == "COMMUNITY_USER":
+
+                recipe = serializer.save(
+                    author=request.user,
+                    status=RecipeStatus.PENDING,
+                )
+
+            else:
+
+                return Response(
+                    {
+                        "error": "Permission denied."
+                    },
+
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
+            return Response(
+                {
+                    "success": True,
+                    "message": "Recipe created successfully",
+                    "recipe_status": recipe.status,
+                    "data": serializer.data,
+                },
+
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "success": False,
+                "errors": serializer.errors,
+            },
+
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+
 
 class AdminRecipeListView(generics.ListAPIView):
     """

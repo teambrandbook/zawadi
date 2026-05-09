@@ -1,16 +1,13 @@
 from django.urls import path
 from .views import (
-    BlogListView,
-    BlogDetailView,
-    BlogCreateView,
-    AdminBlogListView,
-    AdminBlogStatusUpdateView,
+    BlogListAPIView,
+    BlogCreateAPIView,
+    BlogDetailAPIView
+    
 )
 
 urlpatterns = [
-    path("", BlogListView.as_view()),
-    path("create/", BlogCreateView.as_view()),
-    path("admin/", AdminBlogListView.as_view()),
-    path("admin/<int:pk>/status/", AdminBlogStatusUpdateView.as_view()),
-    path("<slug:slug>/", BlogDetailView.as_view()),
+    path("", BlogListAPIView.as_view()),
+    path("create/", BlogCreateAPIView.as_view()),
+    path("<int:blog_id>/", BlogDetailAPIView.as_view()),
 ]

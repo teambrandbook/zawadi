@@ -19,7 +19,9 @@ type ProductStats = {
 function calculateStats(rows: ProductRow[]): ProductStats {
   const total = rows.length;
   const active = rows.filter((p) => p.status === "Active").length;
-  const lowStock = rows.filter((p) => p.stockUnits > 0 && p.stockUnits <= 20).length;
+  const lowStock = rows.filter((p) =>
+    p.stockStatus ? p.stockStatus === "low_stock" : p.stockUnits > 0 && p.stockUnits <= (p.lowStockAlert ?? 20)
+  ).length;
   const featured = rows.filter((p) => p.featured).length;
   const outOfStock = rows.filter((p) => p.stockUnits === 0).length;
   const draft = rows.filter((p) => p.status === "Draft").length;

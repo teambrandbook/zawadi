@@ -18,17 +18,28 @@ interface UserInfo {
   fullName: string;
   email: string;
   role: string;
+  userType: string;
   initials: string;
   photo: string | null;
 }
 
+type CommunityProfileSummary = {
+  full_name?: string;
+  user_name?: string;
+  email?: string;
+  role?: string;
+  user_type?: string;
+  photo?: string | null;
+};
+
 const fallbackUserInfo: UserInfo = {
+  fullName: "",
   firstName: "",
   lastName: "",
-  fullName: "",
   email: "",
   role: "",
-  initials: "",
+  userType: "member",
+  initials: "U",
   photo: null,
 };
 
@@ -45,6 +56,10 @@ function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function isCommunityRole(role: string): boolean {
+  return role.toLowerCase() === "community_user";
+}
+
 function getInitials(name: string, email: string): string {
   const nameInitials = name
     .trim()
@@ -58,6 +73,46 @@ function getInitials(name: string, email: string): string {
   return nameInitials || email.slice(0, 2).toUpperCase() || "U";
 }
 
+function toImageUrl(imagePath?: string | null): string | null {
+  if (!imagePath) return null;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    try {
+      const imageUrl = new URL(imagePath);
+      const apiUrl = new URL(apiOrigin);
+      if ((imageUrl.hostname === "localhost" || imageUrl.hostname === "127.0.0.1") && imageUrl.pathname.startsWith("/media/")) {
+        imageUrl.protocol = apiUrl.protocol;
+        imageUrl.hostname = apiUrl.hostname;
+        imageUrl.port = apiUrl.port;
+        return imageUrl.toString();
+      }
+    } catch {
+      return imagePath;
+    }
+    return imagePath;
+  }
+  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+}
+
+function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
+  const hasProfileName = "full_name" in profile || "user_name" in profile;
+  const profileName = profile.full_name?.trim() || profile.user_name?.trim();
+  const fullName = hasProfileName ? profileName || "" : user.fullName;
+  const email = profile.email || user.email;
+  const role = profile.role || user.role;
+  const userType = profile.user_type || user.userType;
+
+  return {
+    ...user,
+    fullName,
+    email,
+    role,
+    userType,
+    initials: getInitials(fullName, email),
+    photo: toImageUrl(profile.photo) ?? user.photo,
+  };
+}
 
 function getUserFromTokenCookie(): UserInfo {
   if (typeof document === "undefined") {
@@ -81,19 +136,56 @@ function getUserFromTokenCookie(): UserInfo {
   const email: string = payload.email || "";
   const role: string = payload.role || "";
   const initials = getInitials(fullName, email);
+  const userType = isCommunityRole(role) ? "member" : "";
 
-  return { fullName, firstName, lastName, email, role, initials, photo: null };
+  return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [cartCount, setCartCount] = useState(0);
-  const [user] = useState<UserInfo>(getUserFromTokenCookie);
+  const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
+  const isCommunityUser = isCommunityRole(user.role);
+
+  useEffect(() => {
+    if (!isCommunityUser) return;
+
+    let isMounted = true;
+
+    async function loadProfile() {
+      try {
+        const { data } = await api.get<CommunityProfileSummary>("/community/profile/");
+        if (isMounted) {
+          setUser((currentUser) => mergeProfileIntoUser(currentUser, data));
+        }
+      } catch {
+        // keep token fallback details
+      }
+    }
+
+    function handleProfileUpdated(event: Event) {
+      const profile = (event as CustomEvent<CommunityProfileSummary>).detail;
+      if (profile) {
+        setUser((currentUser) => mergeProfileIntoUser(currentUser, profile));
+      }
+    }
+
+    void loadProfile();
+    window.addEventListener("community-profile-updated", handleProfileUpdated);
+
+    return () => {
+      isMounted = false;
+      window.removeEventListener("community-profile-updated", handleProfileUpdated);
+    };
+  }, [isCommunityUser]);
 
   useEffect(() => {
     let isMounted = true;
+    if (!isCommunityUser) {
+      return;
+    }
     api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
       .then(({ data }) => {
         if (isMounted) {
@@ -115,7 +207,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     return () => {
       isMounted = false;
     };
-  }, [pathname]);
+  }, [pathname, isCommunityUser]);
 
   const handleLogout = async () => {
     try {
@@ -126,7 +218,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     window.location.href = "/login";
   };
 
-  const displayName = [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
+  const displayName = user.fullName || [user.firstName, user.lastName].filter(Boolean).join(" ") || user.email || "User";
+  const displayRole = user.userType ? formatRole(user.userType) : user.role ? formatRole(user.role) : "Member";
 
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
@@ -223,10 +316,14 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           >
             <div className="text-right hidden lg:block">
               <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
-              <p className="text-xs text-gray-400 mt-1">{user.role ? formatRole(user.role) : "Member"}</p>
+              <p className="text-xs text-gray-400 mt-1">{displayRole}</p>
             </div>
-            <div className="w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 ring-2 ring-[#06402B]/20">
-              <span className="text-xs font-bold text-white">{user.initials}</span>
+            <div className="relative w-8 h-8 lg:w-10 lg:h-10 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden ring-2 ring-[#06402B]/20">
+              {user.photo ? (
+                <Image src={user.photo} alt={displayName} fill unoptimized className="object-cover" />
+              ) : (
+                <span className="text-xs font-bold text-white">{user.initials}</span>
+              )}
             </div>
           </button>
 
@@ -244,17 +341,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
               {/* User Info Header */}
               <div className="flex items-center gap-3 px-4 py-4">
-                <div className="w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-sm font-bold text-white">{user.initials}</span>
+                <div className="relative w-12 h-12 bg-[#06402B] rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {user.photo ? (
+                    <Image src={user.photo} alt={displayName} fill unoptimized className="object-cover" />
+                  ) : (
+                    <span className="text-sm font-bold text-white">{user.initials}</span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
                   <p className="text-xs text-gray-400 truncate mt-0.5">{user.email}</p>
-                  {user.role && (
-                    <span className="inline-block mt-1.5 bg-[#EBE3D1] text-[#06402B] text-[10px] uppercase tracking-widest font-semibold rounded-full px-2 py-0.5">
-                      {formatRole(user.role)}
-                    </span>
-                  )}
+                  <span className="inline-block mt-1.5 bg-[#EBE3D1] text-[#06402B] text-[10px] uppercase tracking-widest font-semibold rounded-full px-2 py-0.5">
+                    {displayRole}
+                  </span>
                 </div>
               </div>
 

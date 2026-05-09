@@ -5,6 +5,7 @@ import api from "@/services/api";
 import BlogManagementFilters from "@/components/admindashboard/components/blog-management/components/BlogManagementFilters";
 import BlogManagementHeaderStats from "@/components/admindashboard/components/blog-management/components/BlogManagementHeaderStats";
 import BlogManagementTable from "@/components/admindashboard/components/blog-management/components/BlogManagementTable";
+import BlogDetailsModal from "@/components/admindashboard/components/blog-management/components/BlogDetailsModal";
 
 type BlogRow = {
   id: string;
@@ -13,49 +14,80 @@ type BlogRow = {
   read: string;
   category: string;
   contributor: string;
+  contributorImage: string | null;
   published: string;
-  engagement: string;
+  likes: number;
+  views: number;
   image: string;
+  excerpt: string;
+  content: string;
 };
+
+function toMediaUrl(value?: string | null) {
+  if (!value) return "/blog/blog-1.webp";
+  if (value.startsWith("http")) return value;
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const siteBase = apiBase.replace(/\/api\/?$/, "");
+
+  if (value.startsWith("/")) return `${siteBase}${value}`;
+  return `${siteBase}/${value}`;
+}
+
+function formatCategory(value?: string) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "—";
+
+  return raw
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiBlog(item: Record<string, any>, index: number): BlogRow {
   const status = String(item.status ?? "pending").toLowerCase();
+
   return {
     id: String(item.id ?? `b-${index}`),
-    title: String(item.title ?? "Untitled Blog"),
-    read: item.reading_time ? `${item.reading_time} min read` : "—",
-    category: String(item.category ?? "—"),
-    contributor: String(item.author ?? item.contributor ?? item.author_name ?? "Unknown"),
     status,
+    title: String(item.title ?? "Untitled Blog"),
+    read: item.reading_time_minutes ? `${item.reading_time_minutes} min read` : "—",
+    category: formatCategory(item.category),
+    contributor: String(item.author_name ?? item.author ?? item.contributor ?? "Unknown"),
+    contributorImage: item.author_image ? toMediaUrl(String(item.author_image)) : null,
     published:
       status === "published" && item.published_at
         ? new Date(item.published_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
         : status === "published" && item.created_at
-        ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-        : "Not Published",
-    engagement: item.views ? `${item.views} | ${item.comments ?? 0}` : "—",
-    image: String(item.cover_image ?? item.image ?? "/blog/blog-1.webp"),
+          ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+          : "Not Published",
+    likes: Number(item.total_likes ?? 0),
+    views: Number(item.views ?? 0),
+    image: toMediaUrl(String(item.cover_image ?? item.image ?? "/blog/blog-1.webp")),
+    excerpt: String(item.short_excerpt ?? ""),
+    content: String(item.content ?? ""),
   };
 }
 
 export default function BlogManagementPage() {
   const [rows, setRows] = useState<BlogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedBlog, setSelectedBlog] = useState<BlogRow | null>(null);
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await api.get("/blog/admin/");
+        const blogsRes = await api.get("/blog/");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const raw: Record<string, any>[] = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.results)
-          ? res.data.results
-          : [];
+        const raw: Record<string, any>[] = Array.isArray(blogsRes.data)
+          ? blogsRes.data
+          : Array.isArray(blogsRes.data?.results)
+            ? blogsRes.data.results
+            : [];
         setRows(raw.map(mapApiBlog));
       } catch {
-        // Silent fail — table handles its own error state
+        // Silent fail - table handles its own error state
       } finally {
         setIsLoading(false);
       }
@@ -73,9 +105,23 @@ export default function BlogManagementPage() {
             Loading blogs...
           </div>
         )}
-        {!isLoading && <BlogManagementTable rows={rows} onStatusChange={(id, newStatus) => {
-          setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
-        }} />}
+        {!isLoading && (
+          <>
+            <BlogManagementTable
+              rows={rows}
+              onView={(blog) => setSelectedBlog(blog)}
+              onStatusChange={(id, newStatus) => {
+                setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));
+                setSelectedBlog((prev) => (prev && prev.id === id ? { ...prev, status: newStatus } : prev));
+              }}
+              onDelete={(id) => {
+                setRows((prev) => prev.filter((r) => r.id !== id));
+                setSelectedBlog((prev) => (prev?.id === id ? null : prev));
+              }}
+            />
+            <BlogDetailsModal blog={selectedBlog} onClose={() => setSelectedBlog(null)} />
+          </>
+        )}
       </div>
     </section>
   );

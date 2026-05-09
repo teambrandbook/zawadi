@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { Eye, Pencil, Star, MoreVertical } from "lucide-react";
+import { Eye, Pencil, Star, Trash2 } from "lucide-react";
 
 export type ProductRow = {
   id: string;
@@ -11,6 +11,8 @@ export type ProductRow = {
   variant: string;
   price: number;
   stockUnits: number;
+  stockStatus?: string;
+  lowStockAlert?: number;
   status: "Active" | "Draft";
   sales: number;
   featured: boolean;
@@ -26,9 +28,24 @@ type Props = {
   onToggleSelectAllPage: () => void;
   onPageChange: (page: number) => void;
   onToggleFeaturedRow: (id: string) => void;
+  onViewRow: (id: string) => void;
+  onEditRow: (id: string) => void;
+  onDeleteRow: (id: string) => void;
 };
 
-export default function ProductsTable({ rows, page, totalPages, selectedIds, onToggleSelect, onToggleSelectAllPage, onPageChange, onToggleFeaturedRow }: Props) {
+export default function ProductsTable({
+  rows,
+  page,
+  totalPages,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAllPage,
+  onPageChange,
+  onToggleFeaturedRow,
+  onViewRow,
+  onEditRow,
+  onDeleteRow,
+}: Props) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="overflow-x-auto">
@@ -78,9 +95,16 @@ export default function ProductsTable({ rows, page, totalPages, selectedIds, onT
                 <td className="px-3 py-4 text-[#4B5563]">{row.sales.toLocaleString()}</td>
                 <td className="px-3 py-4">
                   <div className="flex items-center gap-2 text-[#0A4833]">
-                    <button type="button" aria-label="View"><Eye className="h-4 w-4" /></button>
-                    <button type="button" aria-label="Edit"><Pencil className="h-4 w-4" /></button>
-                    <button type="button" aria-label="More"><MoreVertical className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => onViewRow(row.id)} aria-label="View"><Eye className="h-4 w-4" /></button>
+                    <button type="button" onClick={() => onEditRow(row.id)} aria-label="Edit"><Pencil className="h-4 w-4" /></button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteRow(row.id)}
+                      className="text-[#DC2626] hover:text-[#991B1B] transition-colors"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -90,13 +114,32 @@ export default function ProductsTable({ rows, page, totalPages, selectedIds, onT
       </div>
 
       <div className="flex items-center justify-center gap-2 border-t border-[#DFDFDF] py-3 text-sm">
-        <button type="button" onClick={() => onPageChange(Math.max(1, page - 1))} className="rounded border border-[#DFDFDF] px-3 py-1">Previous</button>
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium"
+        >
+          Previous
+        </button>
+
         {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-          <button key={n} type="button" onClick={() => onPageChange(n)} className={`rounded border px-3 py-1 ${n === page ? "border-[#0A4833] bg-[#0A4833] text-white" : "border-[#DFDFDF]"}`}>
+          <button
+            key={n}
+            type="button"
+            onClick={() => onPageChange(n)}
+            className={`rounded border px-3 py-1 font-medium ${n === page ? "border-[#0A4833] bg-[#0A4833] text-white" : "border-[#DFDFDF] text-black"}`}
+          >
             {n}
           </button>
         ))}
-        <button type="button" onClick={() => onPageChange(Math.min(totalPages, page + 1))} className="rounded border border-[#DFDFDF] px-3 py-1">Next</button>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.min(totalPages, page + 1))}
+          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium"
+        >
+          Next
+        </button>
       </div>
     </section>
   );
