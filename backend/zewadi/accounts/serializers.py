@@ -41,11 +41,11 @@ class RegisterSerializer(serializers.Serializer):
     # 🔹 User fields
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-    full_name = serializers.CharField(max_length=100)
-    user_name = serializers.CharField(max_length=20)
-    phone = serializers.CharField(max_length=15)
-    date_of_birth = serializers.DateField()
-    gender = serializers.CharField(max_length=10)
+    full_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default="")
+    user_name = serializers.CharField(max_length=20, required=False, allow_blank=True, default="")
+    phone = serializers.CharField(max_length=15, required=False, allow_blank=True, default="")
+    date_of_birth = serializers.DateField(required=False, allow_null=True, default=None)
+    gender = serializers.CharField(max_length=10, required=False, allow_blank=True, default="")
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
     photo = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
     # Keep serializer role options in sync with the User model choices.
@@ -106,6 +106,18 @@ class RegisterSerializer(serializers.Serializer):
         return normalized
 
     def create(self, validated_data):
+        import random
+
+        # Auto-generate missing full_name and user_name from email prefix
+        email = validated_data.get("email", "")
+        email_prefix = email.split("@")[0]
+
+        if not validated_data.get("full_name"):
+            validated_data["full_name"] = email_prefix
+
+        if not validated_data.get("user_name"):
+            suffix = random.randint(1000, 9999)
+            validated_data["user_name"] = f"{email_prefix}_{suffix}"
 
         # 🔹 Extract password
         password = validated_data.get("password")
