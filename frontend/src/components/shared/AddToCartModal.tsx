@@ -32,6 +32,16 @@ export default function AddToCartModal({
   const [loading, setLoading] = useState(false);
   const [inlineError, setInlineError] = useState<string | null>(null);
 
+  // Fix 4: Reset state when modal closes (must be before the early return)
+  React.useEffect(() => {
+    if (!isOpen) {
+      setEmail("");
+      setPassword("");
+      setInlineError(null);
+      setTab("guest");
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   function switchTab(next: "guest" | "signin") {
@@ -42,14 +52,16 @@ export default function AddToCartModal({
   async function handleGuest() {
     setLoading(true);
     setInlineError(null);
+    // Fix 3: Trim email before API calls
+    const trimmedEmail = email.trim();
     try {
-      const emailPrefix = email.split("@")[0];
+      const emailPrefix = trimmedEmail.split("@")[0];
       const suffix = Math.floor(1000 + Math.random() * 9000);
 
       // 1. Register
       try {
         await api.post("/account/register/", {
-          email,
+          email: trimmedEmail,
           password,
           user_type: "guest",
           full_name: emailPrefix,
@@ -67,8 +79,9 @@ export default function AddToCartModal({
       }
 
       // 2. Login
-      const loginRes = await api.post("/account/login/", { email, password });
-      const { user_id, role, email: userEmail } = loginRes.data;
+      const loginRes = await api.post("/account/login/", { email: trimmedEmail, password });
+      // Fix 1: Response is nested under .data — { message, data: { user_id, email, role }, access }
+      const { user_id, role, email: userEmail } = loginRes.data.data ?? loginRes.data;
 
       // 3. GET /me/
       const meRes = await api.get<{
@@ -111,10 +124,25 @@ export default function AddToCartModal({
   async function handleSignIn() {
     setLoading(true);
     setInlineError(null);
+    // Fix 3: Trim email before API calls
+    const trimmedEmail = email.trim();
     try {
-      // 1. Login
-      const loginRes = await api.post("/account/login/", { email, password });
-      const { user_id, role, email: userEmail } = loginRes.data;
+      // 1. Login — Fix 2: narrow wrong-password error to this step only
+      let loginData: { user_id: string; role: string; email: string };
+      try {
+        const loginRes = await api.post("/account/login/", { email: trimmedEmail, password });
+        // Fix 1: Response is nested under .data — { message, data: { user_id, email, role }, access }
+        loginData = loginRes.data.data ?? loginRes.data;
+      } catch (err: unknown) {
+        const status = (err as { response?: { status?: number } }).response?.status;
+        if (status === 400 || status === 401) {
+          setInlineError("Incorrect password");
+          setLoading(false);
+          return;
+        }
+        throw err;
+      }
+      const { user_id, role, email: userEmail } = loginData;
 
       // 2. GET /me/
       const meRes = await api.get<{
@@ -147,13 +175,8 @@ export default function AddToCartModal({
       toast.success("Added to cart!");
       onSuccess(count);
       onClose();
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 400 || status === 401) {
-        setInlineError("Incorrect password");
-      } else {
-        toast.error("Something went wrong. Please try again.");
-      }
+    } catch {
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
