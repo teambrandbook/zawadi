@@ -61,7 +61,7 @@ class RegisterSerializer(serializers.Serializer):
     )
 
     # 🔹 Community fields
-    user_type = serializers.CharField()
+    user_type = serializers.CharField(required=False, allow_blank=True)
     wellness_interests = serializers.CharField(required=False, allow_blank=True)
     diet_preference = serializers.CharField(required=False, allow_blank=True)
     preferred_communication = serializers.CharField(default="email", required=False)
@@ -112,12 +112,12 @@ class RegisterSerializer(serializers.Serializer):
         email = validated_data.get("email", "")
         email_prefix = email.split("@")[0]
 
-        if not validated_data.get("full_name"):
+        if not validated_data.get("full_name", "").strip():
             validated_data["full_name"] = email_prefix
 
-        if not validated_data.get("user_name"):
+        if not validated_data.get("user_name", "").strip():
             suffix = random.randint(1000, 9999)
-            validated_data["user_name"] = f"{email_prefix}_{suffix}"
+            validated_data["user_name"] = f"{email_prefix[:15]}_{suffix}"
 
         # 🔹 Extract password
         password = validated_data.get("password")
