@@ -138,7 +138,7 @@ export default function MyRecipy() {
     { label: "Needs Changes", value: String(rejected), Icon: AlertCircle, iconBoxClass: "bg-[#FEF2F2] text-[#DC2626]", valueClass: "text-[#DC2626]" },
   ];
 
-  const featured = recipes.find((r) => r.is_featured) ?? recipes.find((r) => statusKey(r.status) === "PUBLISHED") ?? recipes[0];
+  // const featured = recipes.find((r) => r.is_featured) ?? recipes.find((r) => statusKey(r.status) === "PUBLISHED") ?? recipes[0];
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -175,7 +175,7 @@ export default function MyRecipy() {
           ))}
         </div>
 
-        {/* Featured */}
+        {/* Featured
         {featured && (
           <div className="rounded-xl bg-gradient-to-r from-[#0A4833] to-[#047857] p-6 lg:p-8">
             <div className="flex flex-col items-start gap-6 lg:flex-row lg:items-center">
@@ -199,7 +199,7 @@ export default function MyRecipy() {
               </div>
             </div>
           </div>
-        )}
+        )} */}
 
         {/* Filters */}
         <div className="rounded-xl border border-[#DFDFDF] bg-white p-6">
