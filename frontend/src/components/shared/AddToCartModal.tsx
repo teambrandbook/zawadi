@@ -54,6 +54,11 @@ export default function AddToCartModal({
     setInlineError(null);
     // Fix 3: Trim email before API calls
     const trimmedEmail = email.trim();
+    if (password.trim().length < 8) {
+      setInlineError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
     try {
       const emailPrefix = trimmedEmail.split("@")[0];
       const suffix = Math.floor(1000 + Math.random() * 9000);
@@ -126,6 +131,11 @@ export default function AddToCartModal({
     setInlineError(null);
     // Fix 3: Trim email before API calls
     const trimmedEmail = email.trim();
+    if (password.trim().length < 8) {
+      setInlineError("Password must be at least 8 characters");
+      setLoading(false);
+      return;
+    }
     try {
       // 1. Login — Fix 2: narrow wrong-password error to this step only
       let loginData: { user_id: string; role: string; email: string };
@@ -247,6 +257,7 @@ export default function AddToCartModal({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              minLength={8}
               placeholder="••••••••"
               className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
             />

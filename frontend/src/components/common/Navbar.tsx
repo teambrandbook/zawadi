@@ -46,8 +46,8 @@ const Navbar = () => {
 
   // Refresh cart count on every page navigation
   useEffect(() => {
-    dispatch(fetchCartCount());
-  }, [pathname, dispatch]);
+    if (isAuthenticated) dispatch(fetchCartCount());
+  }, [pathname, isAuthenticated, dispatch]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
