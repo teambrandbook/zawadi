@@ -10,6 +10,7 @@ export interface UserState {
   fullName: string | null;
   userType: "guest" | "member" | null;
   isAuthenticated: boolean;
+  cartCount: number;
   loading: boolean;
   error: string | null;
 }
@@ -21,6 +22,7 @@ const initialState: UserState = {
   fullName: null,
   userType: null,
   isAuthenticated: false,
+  cartCount: 0,
   loading: false,
   error: null,
 };
@@ -57,6 +59,19 @@ export const logoutUser = createAsyncThunk("user/logout", async () => {
   await api.post("/account/logout/");
 });
 
+export const fetchCartCount = createAsyncThunk(
+  "user/fetchCartCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/orders/cart/");
+      return Number(res.data?.summary?.item_count ?? 0);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown } };
+      return rejectWithValue(error.response?.data ?? "Could not load cart count");
+    }
+  }
+);
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const userSlice = createSlice({
@@ -82,6 +97,9 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
     },
+    setCartCount(state, action: PayloadAction<number>) {
+      state.cartCount = action.payload;
+    },
     clearCredentials(state) {
       state.userId = null;
       state.role = null;
@@ -89,6 +107,7 @@ const userSlice = createSlice({
       state.fullName = null;
       state.userType = null;
       state.isAuthenticated = false;
+      state.cartCount = 0;
       state.error = null;
     },
   },
@@ -122,7 +141,16 @@ const userSlice = createSlice({
       state.fullName = null;
       state.userType = null;
       state.isAuthenticated = false;
+      state.cartCount = 0;
     });
+
+    builder
+      .addCase(fetchCartCount.fulfilled, (state, action) => {
+        state.cartCount = action.payload;
+      })
+      .addCase(fetchCartCount.rejected, (state) => {
+        state.cartCount = 0;
+      });
 
     // register (just tracks loading/error; does not auto-login)
     builder
@@ -140,5 +168,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearCredentials } = userSlice.actions;
+export const { setCredentials, setCartCount, clearCredentials } = userSlice.actions;
 export default userSlice.reducer;
