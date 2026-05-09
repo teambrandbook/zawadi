@@ -24,6 +24,7 @@ export default function SignupComponent() {
     confirmPassword: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [accountType, setAccountType] = useState<"guest" | "member">("guest");
 
   const router = useRouter();
 
@@ -49,6 +50,7 @@ export default function SignupComponent() {
         date_of_birth: form.date_of_birth,
         gender: form.gender,
         password: form.password,
+        user_type: accountType,
       });
 
       toast.success("Account created. Please sign in.");
@@ -85,6 +87,37 @@ export default function SignupComponent() {
           <p className="mt-1.5 text-[11px] text-[#6b7280]">
             Start building proposals in minutes
           </p>
+        </div>
+
+        <div className="flex flex-col items-center mt-3 mb-1">
+          <p className="text-[10px] text-[#6b7280] mb-2 uppercase font-bold tracking-widest">
+            Sign up as
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setAccountType("guest")}
+              className={`w-30 h-9 rounded-lg border-2 text-xs font-semibold transition-all ${
+                accountType === "guest"
+                  ? "border-[#9f8151] bg-[#fdfaf3] text-[#9f8151]"
+                  : "border-gray-200 bg-white text-gray-400 opacity-60"
+              }`}
+            >
+              Guest
+            </button>
+            <span className="text-[#0a4833] text-sm font-bold italic">or</span>
+            <button
+              type="button"
+              onClick={() => setAccountType("member")}
+              className={`w-30 h-9 rounded-lg text-xs font-semibold transition-all ${
+                accountType === "member"
+                  ? "bg-[#0a4833] text-white shadow-md"
+                  : "bg-gray-100 text-gray-400 opacity-60"
+              }`}
+            >
+              Member
+            </button>
+          </div>
         </div>
 
         <button

@@ -13,9 +13,9 @@ interface NavbarProps {
 }
 
 interface UserInfo {
-  fullName: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   email: string;
   role: string;
   userType: string;
@@ -184,8 +184,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   useEffect(() => {
     let isMounted = true;
     if (!isCommunityUser) {
-      setUnreadCount(0);
-      setCartCount(0);
       return;
     }
     api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
