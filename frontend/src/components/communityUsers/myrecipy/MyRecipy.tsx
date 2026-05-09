@@ -41,10 +41,10 @@ type StatItem = {
 };
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  PUBLISHED: { label: "Approved", cls: "bg-[#F0FDF4] text-[#16A34A]" },
-  PENDING:   { label: "Pending",  cls: "bg-[#FEFCE8] text-[#CA8A04]" },
-  DRAFT:     { label: "Draft",    cls: "bg-[#F3F4F6] text-[#6B7280]" },
-  REJECTED:  { label: "Rejected", cls: "bg-[#FEF2F2] text-[#DC2626]" },
+  published: { label: "Approved", cls: "bg-[#F0FDF4] text-[#16A34A]" },
+  pending:   { label: "Pending",  cls: "bg-[#FEFCE8] text-[#CA8A04]" },
+  draft:     { label: "Draft",    cls: "bg-[#F3F4F6] text-[#6B7280]" },
+  rejected:  { label: "Rejected", cls: "bg-[#FEF2F2] text-[#DC2626]" },
 };
 
 const filters = ["All Recipes", "Approved", "Pending", "Rejected", "Drafts"];
@@ -67,7 +67,7 @@ export default function MyRecipy() {
 
   useEffect(() => {
     api
-      .get<{ results?: ApiRecipe[] } | ApiRecipe[]>("/recipes/")
+      .get<{ results?: ApiRecipe[] } | ApiRecipe[]>("/recipes/?mine=true")
       .then(({ data }) => {
         const list = Array.isArray(data) ? data : (data.results ?? []);
         setRecipes(list);
@@ -76,9 +76,9 @@ export default function MyRecipy() {
   }, []);
 
   const total     = recipes.length;
-  const approved  = recipes.filter((r) => r.status === "PUBLISHED").length;
-  const pending   = recipes.filter((r) => r.status === "PENDING" || r.status === "DRAFT").length;
-  const rejected  = recipes.filter((r) => r.status === "REJECTED").length;
+  const approved  = recipes.filter((r) => r.status === "published").length;
+  const pending   = recipes.filter((r) => r.status === "pending" || r.status === "draft").length;
+  const rejected  = recipes.filter((r) => r.status === "rejected").length;
 
   const stats: StatItem[] = [
     { label: "Total Recipes",    value: String(total),    Icon: BookOpen,    iconBoxClass: "bg-[#EBE1CF] text-[#0A4833]", valueClass: "text-[#0A4833]" },
@@ -87,7 +87,7 @@ export default function MyRecipy() {
     { label: "Needs Changes",    value: String(rejected), Icon: AlertCircle, iconBoxClass: "bg-[#FEF2F2] text-[#DC2626]", valueClass: "text-[#DC2626]" },
   ];
 
-  const featured = recipes.find((r) => r.status === "PUBLISHED") ?? recipes[0];
+  const featured = recipes.find((r) => r.status === "published") ?? recipes[0];
 
   return (
     <section className="w-full bg-white px-4 py-8 lg:px-8">
@@ -182,7 +182,7 @@ export default function MyRecipy() {
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {recipes.map((recipe) => {
               const badge = STATUS_BADGE[recipe.status] ?? { label: recipe.status, cls: "bg-gray-100 text-gray-600" };
-              const isPublished = recipe.status === "PUBLISHED";
+              const isPublished = recipe.status === "published";
               return (
                 <article key={recipe.id} className="flex flex-col overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
                   <div className="relative h-55 w-full">

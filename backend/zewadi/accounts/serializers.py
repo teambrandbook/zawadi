@@ -36,7 +36,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(max_length=100)
-    user_name = serializers.CharField(max_length=100)
+    user_name = serializers.CharField(max_length=20)
     phone = serializers.CharField(max_length=15)
     date_of_birth = serializers.DateField()
     gender = serializers.CharField(max_length=10)
@@ -46,7 +46,7 @@ class RegisterSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=[choice[0] for choice in ROLE_CHOICES],
         required=False,
-        default="COMMUNITY_USER",
+        default="COMMUNITY_USER",   
     )
     role_obj = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
@@ -83,6 +83,12 @@ class RegisterSerializer(serializers.Serializer):
     session_type = serializers.CharField(required=False)
     consultation_fee = serializers.IntegerField(required=False)
     session_duration = serializers.IntegerField(required=False)
+
+    def validate_email(self, value):
+        email = User.objects.normalize_email(value)
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return email
 
     def validate_user_type(self, value):
         normalized = str(value).strip().lower()
