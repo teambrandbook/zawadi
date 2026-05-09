@@ -12,6 +12,18 @@ from .serializers import (
 from django.utils import timezone
 
 
+def request_bool(value):
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"true", "1", "yes", "on"}
+
+
+def requested_recipe_status(value):
+    cleaned = str(value or "").strip().lower()
+    if cleaned in {RecipeStatus.PENDING, RecipeStatus.DRAFT}:
+        return cleaned
+    return None
+
 
 class IsAdminUser(BasePermission):
     """Allow access only to users whose role is ADMIN."""
@@ -153,7 +165,42 @@ class RecipeDetailAPIView(APIView):
 
         if serializer.is_valid():
 
-            serializer.save()
+            updated_recipe = serializer.save()
+
+            if has_permission(request.user, "recipes", "create") and updated_recipe.is_featured:
+                updated_recipe.status = RecipeStatus.DRAFT
+                updated_recipe.published_at = None
+                updated_recipe.approved_by = None
+                updated_recipe.approved_at = None
+                updated_recipe.save(
+                    update_fields=[
+                        "status",
+                        "published_at",
+                        "approved_by",
+                        "approved_at",
+                        "updated_at",
+                    ]
+                )
+            elif request.user.role == "COMMUNITY_USER":
+                new_status = requested_recipe_status(request.data.get("status"))
+                if new_status:
+                    updated_recipe.status = new_status
+                    updated_recipe.published_at = None
+                    updated_recipe.approved_by = None
+                    updated_recipe.approved_at = None
+                    updated_recipe.rejected_at = None
+                    updated_recipe.rejection_reason = None
+                    updated_recipe.save(
+                        update_fields=[
+                            "status",
+                            "published_at",
+                            "approved_by",
+                            "approved_at",
+                            "rejected_at",
+                            "rejection_reason",
+                            "updated_at",
+                        ]
+                    )
 
             return Response(
                 {
@@ -217,14 +264,24 @@ class RecipeCreateAPIView(APIView):
 
             
             if has_permission(request.user, "recipes", "create"):
+                is_featured = request_bool(request.data.get("is_featured"))
 
-                recipe = serializer.save(
-                    author=request.user,
-                    status=RecipeStatus.PUBLISHED,
-                    published_at=timezone.now(),
-                    approved_by=request.user,
-                    approved_at=timezone.now(),
-                )
+                if is_featured:
+                    recipe = serializer.save(
+                        author=request.user,
+                        status=RecipeStatus.DRAFT,
+                        published_at=None,
+                        approved_by=None,
+                        approved_at=None,
+                    )
+                else:
+                    recipe = serializer.save(
+                        author=request.user,
+                        status=RecipeStatus.PUBLISHED,
+                        published_at=timezone.now(),
+                        approved_by=request.user,
+                        approved_at=timezone.now(),
+                    )
 
      
             elif request.user.role == "COMMUNITY_USER":

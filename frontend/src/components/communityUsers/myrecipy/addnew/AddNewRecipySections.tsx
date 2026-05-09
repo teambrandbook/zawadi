@@ -76,7 +76,7 @@ export function CoverImageSection({
       {imagePreview && (
         <div className="mt-4">
           <div className="relative h-52 w-full overflow-hidden rounded-lg border border-[#DFDFDF]">
-            <Image src={imagePreview} alt={imageFileName ?? "Recipe cover"} fill className="object-cover" />
+            <Image src={imagePreview} alt={imageFileName ?? "Recipe cover"} fill unoptimized className="object-cover" />
           </div>
           <div className="mt-2 flex gap-2">
             <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#EBE1CF] px-4 text-sm font-medium text-[#0A4833] hover:bg-[#E3D7C2]">
@@ -461,12 +461,14 @@ export function ReviewProcessSection({
 export function ActionArea({
   message,
   isSubmitting,
+  isEditMode,
   onSaveDraft,
   onSubmit,
   onCancel,
 }: {
   message: string;
   isSubmitting: boolean;
+  isEditMode?: boolean;
   onSaveDraft: () => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -480,14 +482,15 @@ export function ActionArea({
           disabled={isSubmitting}
           className="inline-flex h-12 min-w-[220px] items-center justify-center rounded-xl bg-[#0A5A3F] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#084A34] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isSubmitting ? "Submitting..." : "Submit for Approval"}
+          {isSubmitting ? "Submitting..." : isEditMode ? "Set for Approval" : "Submit for Approval"}
         </button>
         <button
           type="button"
           onClick={onSaveDraft}
+          disabled={isSubmitting}
           className="inline-flex h-12 min-w-[220px] items-center justify-center rounded-xl bg-[#A88751] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#8E7346]"
         >
-          Save as Draft
+          {isSubmitting ? "Saving..." : "Save as Draft"}
         </button>
       </div>
 
@@ -511,7 +514,7 @@ export function RecipePreviewSection({ draft, ingredientsCount, stepsCount, imag
       <div className="space-y-4 text-sm">
         <div className="relative h-44 w-full overflow-hidden rounded-xl border border-[#E2D8C7] bg-[#E7DECD]">
           {imagePreview ? (
-            <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+            <Image src={imagePreview} alt="Preview" fill unoptimized className="object-cover" />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-[#9CA3AF]">
               <ImagePlus className="h-7 w-7" />

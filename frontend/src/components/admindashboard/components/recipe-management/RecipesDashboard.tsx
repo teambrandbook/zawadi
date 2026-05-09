@@ -117,6 +117,7 @@ function statusBadge(status: string) {
   if (status === "pending") return "bg-[#FFF6D8] text-[#A16207]";
   if (status === "published") return "bg-[#E7F7EC] text-[#15803D]";
   if (status === "draft") return "bg-[#F3F4F6] text-[#4B5563]";
+  if (status === "rejected") return "bg-[#FEE2E2] text-[#DC2626]";
   return "bg-[#FFF6D8] text-[#A16207]";
 }
 
@@ -371,7 +372,7 @@ function RecipeRowActions({
         </button>
         <button
           type="button"
-          onClick={() => onStatusChange(recipeId, "draft")}
+          onClick={() => onStatusChange(recipeId, "rejected")}
           className="grid h-7 w-7 place-items-center rounded-md bg-[#FEE2E2] text-[#DC2626]"
           title="Reject"
         >

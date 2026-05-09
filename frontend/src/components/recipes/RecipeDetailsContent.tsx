@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
-import { Play, Utensils } from "lucide-react";
-import ContentSection from "@/components/common/ContentSection";
+import { Utensils } from "lucide-react";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 
@@ -14,7 +13,12 @@ export default function RecipeDetailsContent({
 }) {
   const ingredients = recipe.ingredients ?? [];
   const steps = recipe.steps ?? [];
-  const nutrition = recipe.nutrition;
+  const nutrition = recipe.nutrition ?? {
+    calories: "—",
+    fat: "—",
+    carbs: "—",
+    protein: "—",
+  };
 
   useEffect(() => {
     imageAnimationtopdown(".recipe-detail-image-topdown");
@@ -22,31 +26,32 @@ export default function RecipeDetailsContent({
   }, []);
 
   return (
-    <main className="bg-white text-[#0e2207] lg:">
-      <ContentSection
+    <main className="bg-white text-[#0e2207]">
+      {/* <ContentSection
         title="Zewadi Recipes"
         subtitle="Delicious Zewadi Buckwheat Recipes"
-      />
+      /> */}
 
       <section className="px-4 pb-12 pt-8 sm:px-6 md:pb-24 md:pt-16 lg:px-0">
         <div className="mx-auto max-w-[1190px]">
-          <div className="grid gap-8 lg:grid-cols-[450px_1fr] lg:items-start lg:gap-[100px]">
-            <div className="recipe-detail-image-topdown relative mx-auto w-full max-w-[450px] overflow-hidden rounded-[12px]">
+          <div className="grid gap-8 lg:grid-cols-[360px_1fr] lg:items-start lg:gap-10 xl:grid-cols-[450px_1fr] xl:gap-[100px]">
+            <div className="recipe-detail-image-topdown relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[12px] xl:max-w-[450px]">
               <div className="relative aspect-[4/5] sm:aspect-[450/540]">
                 <Image
                   src={recipe.image}
                   alt={recipe.title}
                   fill
                   priority
+                  unoptimized
                   className="object-cover"
                 />
               </div>
 
-              <div className="absolute inset-0 flex items-center justify-center">
+              {/* <div className="absolute inset-0 flex items-center justify-center">
                 <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#1f4d3a] shadow-lg transition-transform hover:scale-105 md:h-[62px] md:w-[62px]">
                   <Play className="ml-0.5 h-5 w-5 fill-white text-white md:ml-1 md:h-6 md:w-6" />
                 </div>
-              </div>
+              </div> */}
             </div>
 
             <div className=" pt-1">
@@ -59,29 +64,27 @@ export default function RecipeDetailsContent({
               </p>
 
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-[170px_1fr]">
-                {nutrition ? (
-                  <div className="h-fit rounded-[10px] bg-[#1f4d3a] px-4 py-5">
-                    <h3 className="mb-4 font-['Playfair_Display'] text-[14px] font-semibold text-white">
-                      Nutrition Facts
-                    </h3>
+                <div className="h-fit rounded-[10px] bg-[#1f4d3a] px-4 py-5">
+                  <h3 className="mb-4 font-['Playfair_Display'] text-[14px] font-semibold text-white">
+                    Nutrition Facts
+                  </h3>
 
-                    <div className="grid grid-cols-2 gap-2 sm:grid-cols-1">
-                      {[
-                        { label: "Calories", val: nutrition.calories },
-                        { label: "Fat", val: nutrition.fat },
-                        { label: "Carbs", val: nutrition.carbs },
-                        { label: "Protein", val: nutrition.protein },
-                      ].map((item) => (
-                        <div
-                          key={item.label}
-                          className="rounded-[6px] bg-white px-2 py-3 text-center font-['DM_Sans'] text-[12px] font-bold leading-none text-black"
-                        >
-                          {item.val} {item.label}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-1">
+                    {[
+                      { label: "Calories", val: nutrition.calories },
+                      { label: "Fat", val: nutrition.fat },
+                      { label: "Carbs", val: nutrition.carbs },
+                      { label: "Protein", val: nutrition.protein },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="rounded-[6px] bg-white px-2 py-3 text-center font-['DM_Sans'] text-[12px] font-bold leading-none text-black"
+                      >
+                        {item.val} {item.label}
+                      </div>
+                    ))}
                   </div>
-                ) : null}
+                </div>
 
                 {ingredients.length > 0 ? (
                   <div className="w-full rounded-[4px] border-2 border-dashed border-[#6d8f81] bg-white px-5 py-5 md:min-h-[240px]">

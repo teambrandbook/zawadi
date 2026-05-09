@@ -1,10 +1,8 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { getRecipeById } from "@/lib/recipes";
 import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
-import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
-import { type Recipe } from "@/components/recipes/recipeTypes";
-import ContentSection from "@/components/common/ContentSection";
+import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
 
 type BackendRecipeDetail = {
   slug?: string;
@@ -14,6 +12,11 @@ type BackendRecipeDetail = {
   cover_image?: string | null;
   category?: string;
   health_benefits?: string | null;
+  nutrition?: Partial<RecipeNutrition> | null;
+  calories?: string | number | null;
+  fat?: string | number | null;
+  carbs?: string | number | null;
+  protein?: string | number | null;
   ingredients?: { ingredient_name: string; quantity?: string | null; unit?: string | null }[];
   steps?: { description: string }[];
 };
@@ -34,6 +37,27 @@ function lines(value?: string | null) {
     .filter(Boolean);
 }
 
+function valueWithFallback(value: unknown) {
+  return value === null || value === undefined || value === "" ? "—" : String(value);
+}
+
+function mapNutrition(recipe: BackendRecipeDetail): RecipeNutrition | undefined {
+  const source = recipe.nutrition ?? recipe;
+  const hasNutrition = ["calories", "fat", "carbs", "protein"].some((key) => {
+    const value = source[key as keyof typeof source];
+    return value !== null && value !== undefined && value !== "";
+  });
+
+  if (!hasNutrition) return undefined;
+
+  return {
+    calories: valueWithFallback(source.calories),
+    fat: valueWithFallback(source.fat),
+    carbs: valueWithFallback(source.carbs),
+    protein: valueWithFallback(source.protein),
+  };
+}
+
 function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   return {
     id: recipe.slug || String(recipe.id),
@@ -45,6 +69,7 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
     ingredients: (recipe.ingredients || []).map((item) =>
       [item.quantity, item.unit, item.ingredient_name].filter(Boolean).join(" ")
     ),
+    nutrition: mapNutrition(recipe),
     steps: (recipe.steps || []).map((step) => step.description).filter(Boolean),
   };
 }
@@ -52,7 +77,11 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
 async function getRecipe(id: string): Promise<Recipe | undefined> {
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
   try {
-    const response = await fetch(`${apiBase}/recipes/${id}/`, { cache: "no-store" });
+    const accessToken = (await cookies()).get("access_token")?.value;
+    const response = await fetch(`${apiBase}/recipes/${id}/`, {
+      cache: "no-store",
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
     if (response.ok) {
       const payload = await response.json();
       return mapBackendRecipe((payload?.data ?? payload) as BackendRecipeDetail);
@@ -98,13 +127,7 @@ export default async function RecipeDetailsPage({
 
   return (
     <div>
-      <Navbar/>
-      <ContentSection
-        title="Zewadi Recipes"
-        subtitle="Delicious Zewadi Buckwheat Recipes"
-      />
       <RecipeDetailsContent recipe={recipe} />
-      <Footer/>
     </div>
   );
 }

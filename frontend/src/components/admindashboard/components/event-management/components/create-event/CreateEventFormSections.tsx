@@ -43,7 +43,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
         <h2 className="text-sm font-semibold text-[#0A4833]">Basic Event Information</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <Field label="Event Title" className="md:col-span-2" value={formData.title} onValueChange={set("title")} />
-          <Field label="Start Date" className="md:col-span-2" value={formData.start_date} onValueChange={set("start_date")} />
+          <Field label="Short Subtitle" className="md:col-span-2" value={formData.start_date} onValueChange={set("start_date")} />
           <SelectField label="Event Type" value={formData.event_type} options={eventTypes} onValueChange={set("event_type")} />
           <SelectField label="Publish Status" value={formData.status} options={[{ label: "Published", value: "published" }, { label: "Draft", value: "draft" }]} onValueChange={set("status")} />
           <Field label="Institutional Name" value={formData.institutional_name} onValueChange={set("institutional_name")} />

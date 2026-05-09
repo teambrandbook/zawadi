@@ -41,6 +41,7 @@ type RecipeDetailResponse = {
   is_weight_management?: boolean;
   is_energy_boosting?: boolean;
   is_featured?: boolean;
+  status?: string;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
   steps?: Array<{ description?: string }>;
 };
@@ -73,15 +74,21 @@ function InputRow({ label, value, onChange, placeholder, type = "text" }: {
 
 function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
   return (
-    <label className="flex cursor-pointer items-center justify-between">
+    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2">
       <span className="text-sm text-[#374151]">{label}</span>
       <button
         type="button"
+        role="switch"
+        aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-10 rounded-full transition-colors ${checked ? "bg-[#0A4833]" : "bg-[#D1D5DB]"}`}
+        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A4833]/20 ${
+          checked ? "bg-[#0A4833]" : "bg-[#D1D5DB]"
+        }`}
       >
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? "translate-x-5" : "translate-x-0.5"}`}
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
+            checked ? "translate-x-5" : "translate-x-0"
+          }`}
         />
       </button>
     </label>
@@ -160,7 +167,7 @@ export default function AddRecipePage() {
         setIsHighFiber(Boolean(recipe.is_high_fiber));
         setIsWeightManagement(Boolean(recipe.is_weight_management));
         setIsEnergyBoosting(Boolean(recipe.is_energy_boosting));
-        setIsFeatured(Boolean(recipe.is_featured));
+        setIsFeatured(Boolean(recipe.is_featured) || String(recipe.status ?? "").toLowerCase() === "draft");
         setIngredients(
           Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
             ? recipe.ingredients.map((ingredient) => ({
@@ -238,6 +245,7 @@ export default function AddRecipePage() {
     fd.append("is_weight_management", String(isWeightManagement));
     fd.append("is_energy_boosting", String(isEnergyBoosting));
     fd.append("is_featured", String(isFeatured));
+    if (isFeatured) fd.append("status", "draft");
     if (coverFile) fd.append("cover_image", coverFile);
 
     // Ingredients & steps as JSON strings (backend can parse)
