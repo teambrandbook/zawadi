@@ -120,6 +120,10 @@ export default function GuestProfile() {
   }
 
   async function handleSaveProfile() {
+    if (!editName.trim() && !editPhone.trim()) {
+      toast.error("Please add your name or phone number.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await api.patch("/account/me/", {
@@ -409,7 +413,10 @@ export default function GuestProfile() {
 
       {/* Edit Profile Modal */}
       {editOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={(e) => { if (e.target === e.currentTarget) setEditOpen(false); }}
+        >
           <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl">
             <h2 className="mb-4 text-lg font-bold text-[#0a4833]">Edit Profile</h2>
             <div className="space-y-4">
@@ -419,6 +426,7 @@ export default function GuestProfile() {
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
+                  maxLength={100}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
                   placeholder="Your full name"
                 />
@@ -429,6 +437,7 @@ export default function GuestProfile() {
                   type="tel"
                   value={editPhone}
                   onChange={(e) => setEditPhone(e.target.value)}
+                  maxLength={15}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
                   placeholder="+91 98765 43210"
                 />
