@@ -10,6 +10,7 @@ from supperadmin.models import Role
 
 class MeSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -24,10 +25,15 @@ class MeSerializer(serializers.ModelSerializer):
             "gender",
             "location",
             "photo",
+            "user_type",
         ]
 
     def get_role(self, obj):
         return str(obj.role).lower()
+
+    def get_user_type(self, obj):
+        cu = getattr(obj, "communityuser", None)
+        return cu.user_type if cu is not None else None
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -36,7 +42,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
     full_name = serializers.CharField(max_length=100)
-    user_name = serializers.CharField(max_length=100)
+    user_name = serializers.CharField(max_length=20)
     phone = serializers.CharField(max_length=15)
     date_of_birth = serializers.DateField()
     gender = serializers.CharField(max_length=10)
@@ -83,6 +89,12 @@ class RegisterSerializer(serializers.Serializer):
     session_type = serializers.CharField(required=False)
     consultation_fee = serializers.IntegerField(required=False)
     session_duration = serializers.IntegerField(required=False)
+
+    def validate_email(self, value):
+        email = User.objects.normalize_email(value)
+        if User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError("A user with this email already exists.")
+        return email
 
     def validate_user_type(self, value):
         normalized = str(value).strip().lower()
@@ -154,8 +166,8 @@ class RegisterSerializer(serializers.Serializer):
                 session_duration=validated_data.get("session_duration"),
             )
 
-        return user    
-    
+        return user
+
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -176,5 +188,3 @@ class LoginSerializer(serializers.Serializer):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
-        
-        

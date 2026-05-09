@@ -13,6 +13,20 @@ from .models import Role
 from zewadi.pagination import StandardPagination
 
 
+def format_serializer_errors(errors):
+    messages = []
+
+    for field, detail in errors.items():
+        if isinstance(detail, (list, tuple)):
+            messages.append(f"{field}: {', '.join(str(item) for item in detail)}")
+        elif isinstance(detail, dict):
+            messages.append(f"{field}: {format_serializer_errors(detail)}")
+        else:
+            messages.append(f"{field}: {detail}")
+
+    return " ".join(messages) or "Invalid request data."
+
+
 class AdminReportsAPIView(APIView):
     permission_classes = [IsAdminRole]
 
@@ -226,48 +240,109 @@ class UserDetailAPIView(APIView):
 class RoleAPIView(APIView):
     permission_classes = [IsAdminRole]
     
-    def get_user(self,id):
+    def get_user(self, id):
         try:
             return Role.objects.get(id=id)
         except Role.DoesNotExist:
             return None
 
     def post(self, request):
+
+        user = request.user
+
+        if not user.role == "ADMIN":
+            return Response(
+                {"detail": "You do not have permission to create roles."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         serializer = RoleSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
-            return Response({
-                "message": "Role created successfully",
-                "data": serializer.data
-            }, status=201)
 
-        return Response(serializer.errors, status=400)
+            return Response(
+                {
+                    "message": "Role created successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(
+            {
+                "message": format_serializer_errors(serializer.errors),
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     
     def get(self, request, id=None):
+
+        user = request.user
+
+        if not user.role == "ADMIN":
+            return Response(
+                {"detail": "You do not have permission to view roles."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         if id:
             role = self.get_user(id)
 
             if not role:
-                return Response({"error": "Role not found"}, status=404)
+                return Response(
+                    {"error": "Role not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             serializer = RoleSerializer(role)
+
             return Response(serializer.data)
 
         roles = Role.objects.all()
         serializer = RoleSerializer(roles, many=True)
+
         return Response(serializer.data)
     
     def patch(self, request, id):
+
+        user = request.user
+
+        if not user.role == "ADMIN":
+            return Response(
+                {"detail": "You do not have permission to update roles."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         role = self.get_user(id)
 
         if not role:
-            return Response({"error": "Role not found"}, status=404)
+            return Response(
+                {"error": "Role not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
-        serializer = RoleSerializer(role, data=request.data, partial=True)
+        serializer = RoleSerializer(
+            role,
+            data=request.data,
+            partial=True
+        )
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
 
-        return Response(serializer.errors, status=400)
+            return Response(
+                {
+                    "message": "Role updated successfully",
+                    "data": serializer.data
+                }
+            )
+
+        return Response(
+            {
+                "message": format_serializer_errors(serializer.errors),
+                "errors": serializer.errors,
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )

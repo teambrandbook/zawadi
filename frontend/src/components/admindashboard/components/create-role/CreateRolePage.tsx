@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import BasicRoleInformationCard from "./components/BasicRoleInformationCard";
 import CreateRoleHeader from "./components/CreateRoleHeader";
 import PermissionsMatrixCard from "./components/PermissionsMatrixCard";
@@ -11,21 +12,73 @@ type ApiError = {
   response?: {
     data?: {
       message?: string;
+      error?: string;
+      errors?: Record<string, unknown>;
     };
   };
 };
 
-const defaultPermissions = [
-  { module: "Users",         can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Orders",        can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Products",      can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Recipes",       can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Blogs",         can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Consultations", can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
-  { module: "Nutritionists", can_view: false, can_create: false, can_edit: false, can_delete: false, can_approve: false, can_export: false, full_access: false },
+const permissionFields = [
+  "can_view",
+  "can_create",
+  "can_edit",
+  "can_delete",
+  "can_approve",
+  "can_export",
+] as const;
+
+type PermissionField = (typeof permissionFields)[number];
+
+type Permission = Record<PermissionField, boolean> & {
+  module: string;
+  full_access: boolean;
+};
+
+const moduleNames = [
+  "Dashboard",
+  "Users",
+  "Orders",
+  "Products",
+  "Recipes",
+  "Blogs",
+  "Consultations",
+  "Nutritionists",
+  "Notifications",
+  "Reports",
+  "Events",
 ];
 
+const createDefaultPermission = (module: string): Permission => ({
+  module,
+  can_view: false,
+  can_create: false,
+  can_edit: false,
+  can_delete: false,
+  can_approve: false,
+  can_export: false,
+  full_access: false,
+});
+
+const defaultPermissions = moduleNames.map(createDefaultPermission);
+
+function formatApiErrors(errors: Record<string, unknown>) {
+  return Object.entries(errors)
+    .map(([field, detail]) => {
+      if (Array.isArray(detail)) {
+        return `${field}: ${detail.join(", ")}`;
+      }
+
+      if (detail && typeof detail === "object") {
+        return `${field}: ${formatApiErrors(detail as Record<string, unknown>)}`;
+      }
+
+      return `${field}: ${String(detail)}`;
+    })
+    .join(" ");
+}
+
 export default function CreateRolePage() {
+  const router = useRouter();
 
   const [roleName,    setRoleName]    = useState("");
   const [accessLevel, setAccessLevel] = useState("medium");
@@ -40,18 +93,30 @@ export default function CreateRolePage() {
     if (field === "role_status")  setRoleStatus(value);
   }
 
-  function handlePermissionChange(module: string, field: string, value: boolean) {
+  function handlePermissionChange(module: string, field: keyof Permission, value: boolean) {
     setPermissions((prev) =>
-      prev.map((perm) =>
-        perm.module === module
-          ? { ...perm, [field]: value }
-          : perm
-      )
+      prev.map((perm) => {
+        if (perm.module !== module) return perm;
+
+        if (field === "full_access") {
+          return {
+            ...perm,
+            ...Object.fromEntries(permissionFields.map((permissionField) => [permissionField, value])),
+            full_access: value,
+          };
+        }
+
+        const updated = { ...perm, [field]: value };
+        return {
+          ...updated,
+          full_access: permissionFields.every((permissionField) => updated[permissionField]),
+        };
+      })
     );
   }
 
   async function handleSave() {
-    if (!roleName) {
+    if (!roleName.trim()) {
       setError("Role name is required!");
       return;
     }
@@ -60,7 +125,7 @@ export default function CreateRolePage() {
     setError("");
 
     const payload = {
-      role_name:    roleName,
+      role_name:    roleName.trim(),
       role_status:  roleStatus,
       access_level: accessLevel,
       permissions:  permissions.map((perm) => ({
@@ -85,10 +150,17 @@ export default function CreateRolePage() {
       });
 
       toast.success("Role created successfully.");
+      router.push("/admindashboard/role");
 
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      setError(apiError.response?.data?.message || "Something went wrong!");
+      const errorData = apiError.response?.data;
+      setError(
+        errorData?.message ||
+        errorData?.error ||
+        (errorData?.errors ? formatApiErrors(errorData.errors) : "") ||
+        "Something went wrong!"
+      );
     } finally {
       setLoading(false);
     }

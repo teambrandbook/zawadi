@@ -9,11 +9,50 @@ import CreateEventFormSections from "./components/create-event/CreateEventFormSe
 import CreateEventPreview from "./components/create-event/CreateEventPreview";
 import type { CreateEventFormData } from "./types";
 
-export default function CreateEventsPage() {
+type Props = {
+  eventId?: string;
+};
+
+type ApiEventDetail = {
+  title?: string;
+  short_subtitle?: string;
+  short_description?: string;
+  full_description?: string;
+  event_type?: string;
+  status?: string;
+  cover_image?: string | null;
+  host_speaker_name?: string;
+  timezone?: string;
+  agenda_highlights?: string;
+  event_date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  registration_deadline?: string | null;
+  is_online?: boolean;
+  location?: string;
+  meeting_link?: string;
+  max_attendees?: number | null;
+  show_in_community?: boolean;
+  enable_registration?: boolean;
+  waitlist_enabled?: boolean;
+  approval_required?: boolean;
+};
+
+function asTime(value?: string | null) {
+  return value ? value.slice(0, 5) : "";
+}
+
+function asDate(value?: string | null) {
+  return value ? value.slice(0, 10) : "";
+}
+
+export default function CreateEventsPage({ eventId }: Props) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingEvent, setIsLoadingEvent] = useState(Boolean(eventId));
   const [formData, setFormData] = useState<CreateEventFormData>({
     title: "",
+    short_subtitle: "",
     short_description: "",
     full_description: "",
     event_type: "webinar",
@@ -37,6 +76,56 @@ export default function CreateEventsPage() {
     waitlist_enabled: false,
     approval_required: false,
   });
+  const isEditing = Boolean(eventId);
+
+  useEffect(() => {
+    if (!eventId) return;
+
+    let isMounted = true;
+    async function fetchEvent() {
+      setIsLoadingEvent(true);
+      try {
+        const res = await api.get<ApiEventDetail>(`/events/${eventId}/`);
+        const event = res.data;
+        if (!isMounted) return;
+        setFormData({
+          title: event.title ?? "",
+          short_subtitle: event.short_subtitle ?? "",
+          short_description: event.short_description ?? "",
+          full_description: event.full_description ?? "",
+          event_type: event.event_type ?? "webinar",
+          start_date: asDate(event.event_date),
+          start_time: asTime(event.start_time),
+          end_date: asDate(event.registration_deadline),
+          end_time: asTime(event.end_time),
+          is_online: event.is_online ?? true,
+          location: event.location ?? "",
+          meeting_link: event.meeting_link ?? "",
+          max_attendees: event.max_attendees != null ? String(event.max_attendees) : "",
+          status: event.status ?? "published",
+          show_in_community: event.show_in_community ?? true,
+          institutional_name: event.host_speaker_name ?? "",
+          host_type: "Individual",
+          timezone: event.timezone ?? "UTC",
+          agenda_highlights: event.agenda_highlights ?? "",
+          banner_file: null,
+          banner_preview_url: event.cover_image ?? "",
+          enable_registration: event.enable_registration ?? true,
+          waitlist_enabled: event.waitlist_enabled ?? false,
+          approval_required: event.approval_required ?? false,
+        });
+      } catch {
+        toast.error("Failed to load event details.");
+      } finally {
+        if (isMounted) setIsLoadingEvent(false);
+      }
+    }
+
+    fetchEvent();
+    return () => {
+      isMounted = false;
+    };
+  }, [eventId]);
 
   useEffect(() => {
     return () => {
@@ -46,58 +135,83 @@ export default function CreateEventsPage() {
     };
   }, [formData.banner_preview_url]);
 
-  async function submitEvent(status: "draft" | "published" = formData.status as "draft" | "published") {
-    if (!formData.title) {
+  async function submitEvent(status: "draft" | "published" = formData.status as "draft" | "published", data = formData) {
+    if (!data.title) {
       toast.error("Event title is required.");
       return;
     }
-    if (!formData.short_description.trim()) {
+    if (!data.short_description.trim()) {
       toast.error("Short description is required.");
       return;
     }
-    if (!formData.start_date || !formData.start_time || !formData.end_date || !formData.end_time) {
-      toast.error("Start and end date/time are required.");
+    if (!data.start_date || !data.start_time || !data.end_time) {
+      toast.error("Event date, start time, and end time are required.");
       return;
     }
 
-    const start = new Date(`${formData.start_date}T${formData.start_time}`);
-    const end = new Date(`${formData.end_date}T${formData.end_time}`);
+    const start = new Date(`${data.start_date}T${data.start_time}`);
+    const end = new Date(`${data.start_date}T${data.end_time}`);
     if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
-      toast.error("End date/time must be after start date/time.");
+      toast.error("End time must be after start time.");
       return;
     }
 
     setIsSubmitting(true);
     try {
+      const registrationDeadline = data.end_date ? new Date(`${data.end_date}T00:00:00`).toISOString() : undefined;
       const payload = {
-        title: formData.title,
-        short_description: formData.short_description,
-        full_description: formData.full_description,
-        event_type: formData.event_type,
-        start_datetime: start.toISOString(),
-        end_datetime: end.toISOString(),
-        is_online: formData.is_online,
-        location: formData.location,
-        meeting_link: formData.meeting_link,
-        max_attendees: formData.max_attendees ? parseInt(formData.max_attendees, 10) : undefined,
+        title: data.title,
+        short_subtitle: data.short_subtitle,
+        short_description: data.short_description,
+        full_description: data.full_description,
+        event_type: data.event_type,
+        host_speaker_name: data.institutional_name,
+        event_date: data.start_date,
+        start_time: data.start_time,
+        end_time: data.end_time,
+        is_online: data.is_online,
+        location: data.location,
+        meeting_link: data.meeting_link,
+        max_attendees: data.max_attendees ? parseInt(data.max_attendees, 10) : undefined,
+        timezone: data.timezone,
+        agenda_highlights: data.agenda_highlights,
+        registration_deadline: registrationDeadline,
+        enable_registration: data.enable_registration,
+        waitlist_enabled: data.waitlist_enabled,
+        approval_required: data.approval_required,
         status,
-        show_in_community: formData.show_in_community,
+        show_in_community: data.show_in_community,
       };
 
-      if (formData.banner_file) {
+      if (data.banner_file) {
         const fd = new FormData();
         Object.entries(payload).forEach(([key, value]) => {
           if (value !== undefined) fd.append(key, String(value));
         });
-        fd.append("cover_image", formData.banner_file);
-        await api.post("/events/", fd, {
+        fd.append("cover_image", data.banner_file);
+        const request = isEditing ? api.patch(`/events/${eventId}/`, fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        }) : api.post("/events/", fd, {
           headers: { "Content-Type": "multipart/form-data" },
         });
+        await request;
       } else {
-        await api.post("/events/", payload);
+        if (isEditing) {
+          await api.patch(`/events/${eventId}/`, payload);
+        } else {
+          await api.post("/events/", payload);
+        }
       }
 
-      toast.success(status === "draft" ? "Event saved as draft." : "Event created successfully.");
+      toast.success(
+        isEditing
+          ? status === "draft"
+            ? "Event updated as draft."
+            : "Event updated successfully."
+          : status === "draft"
+            ? "Event saved as draft."
+            : "Event created successfully."
+      );
       router.push("/admindashboard/events");
     } catch (err: unknown) {
       const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
@@ -110,18 +224,30 @@ export default function CreateEventsPage() {
     }
   }
 
+  function saveDraft() {
+    const draftData = { ...formData, status: "draft" };
+    setFormData(draftData);
+    submitEvent("draft", draftData);
+  }
+
   return (
-    <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
+    <section className="w-full bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1180px]">
-        <h1 className="text-2xl font-semibold text-[#0A4833]">Create Events</h1>
+        <h1 className="text-2xl font-bold text-[#0A4833]">{isEditing ? "Update Event" : "Create Events"}</h1>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_280px]">
           <div className="space-y-4">
-            <CreateEventFormSections formData={formData} onChange={setFormData} />
+            {isLoadingEvent ? (
+              <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">Loading event details...</div>
+            ) : (
+              <CreateEventFormSections formData={formData} onChange={setFormData} />
+            )}
             <CreateEventActions
               onSubmit={() => submitEvent("published")}
-              onSaveDraft={() => submitEvent("draft")}
+              onSaveDraft={saveDraft}
               isSubmitting={isSubmitting}
+              submitLabel={isEditing ? "Update Event" : "Create Event"}
+              draftLabel={isEditing ? "Update as Draft" : "Save as Draft"}
             />
           </div>
           <CreateEventPreview formData={formData} />

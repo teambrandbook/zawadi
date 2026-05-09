@@ -19,17 +19,28 @@ class Event(models.Model):
 
     title = models.CharField(max_length=255)
     slug = models.SlugField(max_length=280, unique=True, blank=True)
+    short_subtitle = models.CharField(max_length=255, blank=True)
     short_description = models.CharField(max_length=300)
     full_description = models.TextField(blank=True)
     event_type = models.CharField(max_length=20, choices=EventType.choices, default=EventType.OTHER)
     status = models.CharField(max_length=20, choices=EventStatus.choices, default=EventStatus.DRAFT)
     cover_image = models.ImageField(upload_to="events/covers/", blank=True, null=True)
-    start_datetime = models.DateTimeField()
-    end_datetime = models.DateTimeField()
+    host_speaker_name = models.CharField(max_length=255, blank=True)
+    timezone = models.CharField(max_length=50, default="UTC")
+    agenda_highlights = models.TextField(blank=True)
+    event_date = models.DateField(null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+    registration_deadline = models.DateTimeField(null=True, blank=True)
+    repeat_event = models.BooleanField(default=False)
     is_online = models.BooleanField(default=False)
     location = models.CharField(max_length=500, blank=True)
     meeting_link = models.URLField(blank=True)
     max_attendees = models.PositiveIntegerField(null=True, blank=True)
+    enable_registration = models.BooleanField(default=True)
+    waitlist_enabled = models.BooleanField(default=False)
+    approval_required = models.BooleanField(default=False)
+    event_tags = models.JSONField(default=list, blank=True)
     is_free = models.BooleanField(default=True)
     ticket_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     is_featured = models.BooleanField(default=False)
@@ -45,7 +56,7 @@ class Event(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ["-start_datetime"]
+        ordering = ["-event_date", "-start_time"]
 
     def save(self, *args, **kwargs):
         if not self.slug:

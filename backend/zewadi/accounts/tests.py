@@ -2,6 +2,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from accounts.models import User
+from communityuser.models import CommunityUser, UserType
 from consultant.models import Consultant
 from supperadmin.models import Role, RolePermission
 
@@ -50,6 +51,101 @@ class RegisterSecurityTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["role"], "COMMUNITY_USER")
+
+
+class MeSerializerTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="guest@test.com",
+            password="pass1234",
+            full_name="Guest User",
+            user_name="guestuser",
+            phone="1234567890",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.GUEST)
+
+    def test_me_returns_user_type(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_type"], "guest")
+
+    def test_me_returns_member_user_type(self):
+        self.user.communityuser.user_type = UserType.MEMBER
+        self.user.communityuser.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.data["user_type"], "member")
+
+    def test_me_returns_null_user_type_for_non_community_user(self):
+        admin = User.objects.create_user(
+            email="admin@test.com",
+            password="pass1234",
+            full_name="Admin",
+            user_name="adminuser",
+            phone="9876543210",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+        response = self.client.get("/api/account/me/")
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNone(response.data["user_type"])
+
+
+class UpgradeAPIViewTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="upgrade@test.com",
+            password="pass1234",
+            full_name="Upgrade User",
+            user_name="upgradeuser",
+            phone="1234567890",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.GUEST)
+
+    def test_guest_can_upgrade_to_member(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["user_type"], "member")
+        self.user.communityuser.refresh_from_db()
+        self.assertEqual(self.user.communityuser.user_type, "member")
+
+    def test_unauthenticated_cannot_upgrade(self):
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_already_member_cannot_upgrade_again(self):
+        self.user.communityuser.user_type = UserType.MEMBER
+        self.user.communityuser.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch("/api/account/upgrade/")
+        self.assertEqual(response.status_code, 400)
+
+
+class MePatchTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="patch@test.com",
+            password="pass1234",
+            full_name="Old Name",
+            user_name="patchuser",
+            phone="0000000000",
+            role="COMMUNITY_USER",
+        )
+
+    def test_patch_me_updates_full_name(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(
+            "/api/account/me/",
+            {"full_name": "New Name"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.full_name, "New Name")
 
 
 class CreateNutritionistAPITests(APITestCase):

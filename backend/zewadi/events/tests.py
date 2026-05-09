@@ -27,8 +27,9 @@ class MyEventRegistrationsAPITests(APITestCase):
             full_description="Session full description",
             event_type=Event.EventType.WORKSHOP,
             status=Event.EventStatus.PUBLISHED,
-            start_datetime=timezone.now() + timedelta(days=3),
-            end_datetime=timezone.now() + timedelta(days=3, hours=1),
+            event_date=(timezone.now() + timedelta(days=3)).date(),
+            start_time=timezone.now().time(),
+            end_time=(timezone.now() + timedelta(hours=1)).time(),
             is_online=True,
             location="",
             show_in_community=True,
@@ -95,8 +96,10 @@ class EventManagementAPITests(APITestCase):
                 "full_description": "A practical workshop for the community.",
                 "event_type": "workshop",
                 "status": "published",
-                "start_datetime": start.isoformat(),
-                "end_datetime": end.isoformat(),
+                "host_speaker_name": "Dr. Zara Mehak",
+                "event_date": start.date().isoformat(),
+                "start_time": start.time().isoformat(),
+                "end_time": end.time().isoformat(),
                 "is_online": True,
                 "meeting_link": "https://example.com/session",
                 "show_in_community": True,
@@ -106,6 +109,7 @@ class EventManagementAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["status"], "published")
+        self.assertEqual(response.data["host_speaker_name"], "Dr. Zara Mehak")
         self.assertTrue(response.data["slug"])
 
     def test_community_user_cannot_create_event(self):
@@ -118,8 +122,9 @@ class EventManagementAPITests(APITestCase):
             {
                 "title": "Blocked Event",
                 "short_description": "Should not create.",
-                "start_datetime": start.isoformat(),
-                "end_datetime": end.isoformat(),
+                "event_date": start.date().isoformat(),
+                "start_time": start.time().isoformat(),
+                "end_time": end.time().isoformat(),
             },
             format="json",
         )

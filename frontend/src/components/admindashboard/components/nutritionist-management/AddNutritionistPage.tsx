@@ -265,9 +265,14 @@ export default function AddNutritionistPage() {
       }
       router.push("/admindashboard/nutritionist");
     } catch (err: unknown) {
-      const responseData = (err as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const responseData = (err as { response?: { data?: Record<string, unknown> | string; status?: number } })?.response?.data;
+      const statusCode = (err as { response?: { status?: number } })?.response?.status;
       const detail =
-        typeof responseData?.detail === "string"
+        typeof responseData === "string"
+          ? statusCode && statusCode >= 500
+            ? "Server error while saving nutritionist. Please try again."
+            : responseData
+          : typeof responseData?.detail === "string"
           ? responseData.detail
           : Object.entries(responseData ?? {})
               .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)

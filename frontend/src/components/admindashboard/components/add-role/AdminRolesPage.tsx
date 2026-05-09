@@ -34,17 +34,23 @@ export default function AdminRolesPage() {
   const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (roles.length === 0) {
-      dispatch(fetchRoles());
-    }
-  }, [dispatch, roles.length]);
+    dispatch(fetchRoles());
+  }, [dispatch]);
 
   const filteredRoles = useMemo(() => {
+    const searchTerm = search.trim().toLowerCase();
     let data = [...roles];
 
-    if (search) {
+    if (searchTerm) {
       data = data.filter((role) =>
-        role.role_name.toLowerCase().includes(search.toLowerCase())
+        [
+          role.role_name,
+          role.description,
+          role.access_level,
+          role.role_status,
+        ]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(searchTerm))
       );
     }
 
@@ -59,7 +65,18 @@ export default function AdminRolesPage() {
     return data;
   }, [accessFilter, roles, search, status]);
 
-  const selectedRole = roles.find((role) => role.id === selectedRoleId) ?? roles[0] ?? null;
+  const selectedRole =
+    filteredRoles.find((role) => role.id === selectedRoleId) ??
+    filteredRoles[0] ??
+    null;
+
+  const hasActiveFilters = Boolean(search.trim()) || status !== "all" || accessFilter !== "all";
+
+  function clearFilters() {
+    setSearch("");
+    setStatus("all");
+    setAccessFilter("all");
+  }
 
   return (
     <div className="px-6 lg:px-10 space-y-6">
@@ -112,6 +129,9 @@ export default function AdminRolesPage() {
             setStatus={setStatus}
             accessFilter={accessFilter}
             setAccessFilter={setAccessFilter}
+            resultCount={filteredRoles.length}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={clearFilters}
           />
 
           <RolesTable

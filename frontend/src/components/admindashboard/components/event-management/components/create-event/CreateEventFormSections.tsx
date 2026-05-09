@@ -40,7 +40,7 @@ const eventCategories = [
 const timezones = ["UTC", "GMT", "EST", "IST"];
 
 const inputClass =
-  "h-[50px] w-full rounded-[8px] border border-[#D1D5DB] bg-[#DFDFDF] px-4 text-[16px] font-normal tracking-[-0.5px] text-black outline-none";
+  "h-[46px] w-full rounded-[8px] border border-[#D1D5DB] bg-[#DFDFDF] px-4 text-[15px] font-normal tracking-[-0.5px] text-black outline-none";
 const labelClass = "mb-2 block text-[14px] font-medium leading-[17px] tracking-[-0.5px] text-[#0A4833]";
 
 function TextInput({ label, value, placeholder = "", className = "", onValueChange }: TextInputProps) {
@@ -88,7 +88,7 @@ function TextAreaInput({ label, rows, value, onValueChange }: TextAreaInputProps
         rows={rows}
         value={value ?? ""}
         onChange={onValueChange ? (event) => onValueChange(event.target.value) : undefined}
-        className="w-full resize-none rounded-[8px] border border-[#D1D5DB] bg-[#DFDFDF] px-4 py-3 text-[16px] font-normal tracking-[-0.5px] text-black outline-none"
+        className="w-full resize-none rounded-[8px] border border-[#D1D5DB] bg-[#DFDFDF] px-4 py-3 text-[15px] font-normal tracking-[-0.5px] text-black outline-none"
       />
     </label>
   );
@@ -144,8 +144,8 @@ function CheckboxInput({ label, checked, onCheckedChange }: { label: string; che
 
 function Section({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
   return (
-    <article className={`rounded-[12px] border border-[#DFDFDF] bg-white p-6 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] ${className}`}>
-      <h2 className="text-[20px] font-semibold leading-7 tracking-[-0.5px] text-[#0A4833]">{title}</h2>
+    <article className={`rounded-[12px] border border-[#DFDFDF] bg-white p-5 shadow-[0px_1px_1px_rgba(0,0,0,0.05)] ${className}`}>
+      <h2 className="text-[20px] font-bold leading-7 tracking-[-0.5px] text-[#0A4833]">{title}</h2>
       {children}
     </article>
   );
@@ -171,11 +171,11 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-6 font-['Inter',sans-serif]">
+    <div className="space-y-5 font-['Inter',sans-serif]">
       <Section title="Basic Event Information">
-        <div className="mt-6 grid gap-x-6 gap-y-5 md:grid-cols-2">
+        <div className="mt-5 grid gap-x-5 gap-y-4 md:grid-cols-2">
           <TextInput label="Event Title" className="md:col-span-2" value={formData.title} onValueChange={set("title")} />
-          <TextInput label="Short Subtitle" className="md:col-span-2" value={formData.short_description} onValueChange={set("short_description")} />
+          <TextInput label="Short Subtitle" className="md:col-span-2" value={formData.short_subtitle} onValueChange={set("short_subtitle")} />
           <SelectInput label="Event Category" value={formData.event_type} options={eventCategories} onValueChange={set("event_type")} />
           <SelectInput
             label="Event Type"
@@ -200,7 +200,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       </Section>
 
       <Section title="Event Banner">
-        <div className="mt-6 flex h-[216px] flex-col items-center justify-center rounded-[8px] border border-dashed border-[#D1D5DB] bg-[#F7F6F2] px-4 text-center">
+        <div className="mt-5 flex h-[200px] flex-col items-center justify-center rounded-[8px] border border-dashed border-[#D1D5DB] bg-[#F7F6F2] px-4 text-center">
           <input id="event-banner-upload" type="file" accept="image/*" className="hidden" onChange={handleBannerChange} />
           {formData.banner_preview_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -222,7 +222,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       </Section>
 
       <Section title="Event Description">
-        <div className="mt-6 space-y-6">
+        <div className="mt-5 space-y-5">
           <TextAreaInput label="Short Description" rows={3} value={formData.short_description} onValueChange={set("short_description")} />
           <TextAreaInput label="Full Event Description" rows={5} value={formData.full_description} onValueChange={set("full_description")} />
           <TextAreaInput label="Event Agenda/Highlights" rows={4} value={formData.agenda_highlights} onValueChange={set("agenda_highlights")} />
@@ -230,7 +230,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       </Section>
 
       <Section title="Date &amp; Time Scheduling">
-        <div className="mt-6 grid gap-x-6 gap-y-6 md:grid-cols-3">
+        <div className="mt-5 grid gap-x-5 gap-y-5 md:grid-cols-3">
           <DateInput label="Event Date" value={formData.start_date} onValueChange={set("start_date")} />
           <TimeInput label="Start Time" value={formData.start_time} onValueChange={set("start_time")} />
           <TimeInput label="End Time" value={formData.end_time} onValueChange={set("end_time")} />
@@ -243,7 +243,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       </Section>
 
       <Section title="Registration Settings">
-        <div className="mt-6 grid gap-x-6 gap-y-5 md:grid-cols-2">
+        <div className="mt-5 grid gap-x-5 gap-y-4 md:grid-cols-2">
           <TextInput label="Maximum Attendees" value={formData.max_attendees} onValueChange={set("max_attendees")} />
           <div className="space-y-4 pt-0 md:pt-1">
             <CheckboxInput label="Enable Registration" checked={formData.enable_registration} onCheckedChange={setBoolean("enable_registration")} />
@@ -254,12 +254,23 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
       </Section>
 
       <Section title="Event Tags">
-        <div className="mt-7 grid max-w-[720px] grid-cols-2 gap-x-8 gap-y-7 text-[14px] font-normal leading-5 tracking-[-0.5px] text-[#374151] sm:grid-cols-3">
-          {["Nutrition Session", "Wellness Workshop", "Community Meetup", "Healthy Eating", "Buckwheat Awareness"].map((tag) => (
-            <span key={tag} className="whitespace-nowrap">
-              {tag}
-            </span>
-          ))}
+        <div className="mt-6 grid max-w-[720px] grid-cols-2 gap-x-8 gap-y-6 text-[14px] font-normal leading-5 tracking-[-0.5px] text-[#374151] sm:grid-cols-3">
+          {eventCategories.map((tag) => {
+            const isSelected = formData.event_type === tag.value;
+            return (
+              <button
+                key={tag.value}
+                type="button"
+                onClick={() => onChange({ ...formData, event_type: tag.value })}
+                className={`w-fit whitespace-nowrap rounded-[6px] px-2 py-1 text-left transition ${
+                  isSelected ? "bg-[#0A4833] font-semibold text-white" : "text-[#374151] hover:bg-[#F3F0EA]"
+                }`}
+                aria-pressed={isSelected}
+              >
+                {tag.label}
+              </button>
+            );
+          })}
         </div>
       </Section>
     </div>

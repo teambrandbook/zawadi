@@ -1,0 +1,43 @@
+<h2>Question 2 of 5: Guest signup — same form or separate?</h2>
+<p class="subtitle">How does a guest create their account?</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="toggle" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:14px;">
+        <div style="display:flex;background:#f0f0f0;border-radius:20px;padding:3px;margin-bottom:12px;width:fit-content;margin-left:auto;margin-right:auto;">
+          <div style="background:#5c7a45;color:#fff;border-radius:18px;padding:5px 18px;font-size:11px;font-weight:700;">Guest</div>
+          <div style="color:#888;padding:5px 18px;font-size:11px;cursor:pointer;">Member</div>
+        </div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Full Name</div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Email</div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Password</div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Phone</div>
+        <button class="mock-button" style="width:100%;font-size:11px;margin-top:4px">Create Guest Account</button>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Same form with Guest / Member toggle</h3>
+      <p>One signup page. User picks Guest or Member at the top. Same fields, same endpoint — user_type is sent based on the toggle. Matches the existing login toggle pattern.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="short" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="padding:14px;">
+        <div style="text-align:center;font-size:11px;font-weight:700;margin-bottom:10px;color:#5c7a45">Quick Guest Signup</div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Full Name</div>
+        <div class="mock-input" style="margin-bottom:6px;font-size:11px">Email</div>
+        <div class="mock-input" style="margin-bottom:10px;font-size:11px">Password</div>
+        <button class="mock-button" style="width:100%;font-size:11px">Get Started</button>
+        <div style="text-align:center;margin-top:8px;font-size:10px;color:#888">Want full community access? <span style="color:#5c7a45;cursor:pointer">Sign up as Member →</span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Shorter, separate guest signup</h3>
+      <p>Minimal form: name, email, password only. No date of birth, gender, location. Separate page/route from member signup. Faster checkout-style onboarding.</p>
+    </div>
+  </div>
+
+</div>

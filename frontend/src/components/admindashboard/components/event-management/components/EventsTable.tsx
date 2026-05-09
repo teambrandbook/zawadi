@@ -1,12 +1,14 @@
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Wifi } from "lucide-react";
 import type { EventRow } from "../types";
 
 type EventsTableProps = {
   rows: EventRow[];
+  onView?: (id: string) => void;
+  onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 };
 
-export default function EventsTable({ rows, onDelete }: EventsTableProps) {
+export default function EventsTable({ rows, onView, onEdit, onDelete }: EventsTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="overflow-x-auto">
@@ -39,7 +41,7 @@ export default function EventsTable({ rows, onDelete }: EventsTableProps) {
                     <img src={row.coverImage} alt={row.title} className="h-12 w-12 rounded-md object-cover" />
                     <div>
                       <p className="text-sm font-semibold text-[#0A4833]">{row.title}</p>
-                      <p className="mt-1 text-xs text-[#8AA49B]">{row.subtitle}</p>
+                      <p className="mt-1 text-xs text-[#8AA49B]">{row.subtitle || "No subtitle"}</p>
                     </div>
                   </div>
                 </td>
@@ -47,13 +49,7 @@ export default function EventsTable({ rows, onDelete }: EventsTableProps) {
                 <td className="px-3 py-4 text-xs text-[#9F8151]">{row.category}</td>
 
                 <td className="px-3 py-4">
-                  <div className="flex items-start gap-2">
-                    <img src={row.hostAvatar} alt={row.hostName} className="h-8 w-8 rounded-full object-cover" />
-                    <div>
-                      <p className="text-sm font-medium text-[#0A4833]">{row.hostName}</p>
-                      <p className="text-xs text-[#8AA49B]">{row.hostRole}</p>
-                    </div>
-                  </div>
+                  <p className="text-sm font-medium text-[#0A4833]">{row.hostName}</p>
                 </td>
 
                 <td className="px-3 py-4">
@@ -69,6 +65,7 @@ export default function EventsTable({ rows, onDelete }: EventsTableProps) {
                         : "rounded-full bg-[#EEF3FF] px-3 py-1 text-xs text-[#1D4ED8]"
                     }
                   >
+                    {row.type === "Online" && <Wifi size={12} className="mr-1 inline-block" />}
                     {row.type}
                   </span>
                 </td>
@@ -105,10 +102,20 @@ export default function EventsTable({ rows, onDelete }: EventsTableProps) {
 
                 <td className="px-3 py-4">
                   <div className="flex items-center gap-2 text-[#0A4833]">
-                    <button className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]">
+                    <button
+                      type="button"
+                      onClick={() => onView?.(row.id)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]"
+                      title="View event details"
+                    >
                       <Eye size={14} />
                     </button>
-                    <button className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]">
+                    <button
+                      type="button"
+                      onClick={() => onEdit?.(row.id)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]"
+                      title="Edit event"
+                    >
                       <Pencil size={14} />
                     </button>
                     {onDelete && (
