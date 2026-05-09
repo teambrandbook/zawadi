@@ -118,16 +118,16 @@ const ProductDetails = () => {
               </ul>
             </div>
 
-            <div className="product-info-stagger opacity-0 flex flex-wrap items-center gap-6 pt-4">
+            <div className="product-info-stagger opacity-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 pt-4">
               {/* Quantity Selector */}
-              <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between sm:justify-start border border-gray-200 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="p-3 hover:bg-gray-50 transition-colors group"
                 >
                   <Minus size={18} strokeWidth={3} className="text-[#1A4331] group-hover:scale-110 transition-transform" />
                 </button>
-                <div className="px-6 py-2 font-semibold text-gray-900 border-x border-gray-200">
+                <div className="px-6 py-2 flex-1 text-center font-semibold text-gray-900 border-x border-gray-200">
                   {quantity}
                 </div>
                 <button
@@ -139,13 +139,15 @@ const ProductDetails = () => {
               </div>
 
               {/* Action Buttons */}
-              <Link href="/cart" className="flex-1 flex items-center justify-center bg-[#1A4331] text-white font-bold py-3.5 px-10 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-[0.98]">
-                Add To Cart
-              </Link>
+              <div className="flex items-center gap-4 flex-1">
+                <Link href="/cart" className="flex-1 flex items-center justify-center bg-[#1A4331] text-white font-bold py-3.5 px-10 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-[0.98] whitespace-nowrap">
+                  Add To Cart
+                </Link>
 
-              <button className="p-3.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-[#1A4331]">
-                <Heart size={20} />
-              </button>
+                <button className="p-3.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-[#1A4331] shrink-0">
+                  <Heart size={20} />
+                </button>
+              </div>
             </div>
           </div>
         </div>
