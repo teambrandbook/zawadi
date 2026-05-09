@@ -13,9 +13,9 @@ interface NavbarProps {
 }
 
 interface UserInfo {
-  fullName: string;
   firstName: string;
   lastName: string;
+  fullName: string;
   email: string;
   role: string;
   userType: string;
@@ -102,10 +102,13 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
   const email = profile.email || user.email;
   const role = profile.role || user.role;
   const userType = profile.user_type || user.userType;
+  const [firstName = "", ...restName] = fullName.trim().split(/\s+/).filter(Boolean);
 
   return {
     ...user,
     fullName,
+    firstName: firstName || user.firstName,
+    lastName: restName.join(" ") || user.lastName,
     email,
     role,
     userType,
@@ -150,15 +153,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const isCommunityUser = isCommunityRole(user.role);
 
   useEffect(() => {
-    if (!isCommunityUser) return;
-
     let isMounted = true;
 
     async function loadProfile() {
       try {
-        const { data } = await api.get<CommunityProfileSummary>("/community/profile/");
+        const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {
-          setUser((currentUser) => mergeProfileIntoUser(currentUser, data));
+          setUser((currentUser) => mergeProfileIntoUser(currentUser, me));
+        }
+
+        if (isCommunityRole(me.role || "")) {
+          const { data: profile } = await api.get<CommunityProfileSummary>("/community/profile/");
+          if (isMounted) {
+            setUser((currentUser) => mergeProfileIntoUser(currentUser, profile));
+          }
         }
       } catch {
         // keep token fallback details
@@ -179,13 +187,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       isMounted = false;
       window.removeEventListener("community-profile-updated", handleProfileUpdated);
     };
-  }, [isCommunityUser]);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
     if (!isCommunityUser) {
-      setUnreadCount(0);
-      setCartCount(0);
       return;
     }
     api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")

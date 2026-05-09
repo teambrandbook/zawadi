@@ -39,16 +39,23 @@ class CommunityUser(models.Model):
 
 
 class CommunityUserAddress(models.Model):
-    user = models.OneToOneField(CommunityUser, on_delete=models.CASCADE, related_name="address")
-
+    user = models.ForeignKey(
+        CommunityUser,
+        on_delete=models.CASCADE,
+        related_name="addresses",
+    )
+    label = models.CharField(max_length=50, blank=True, default="")
+    is_default = models.BooleanField(default=False)
+    full_name = models.CharField(max_length=255, blank=True, default="")
+    phone = models.CharField(max_length=20, blank=True, default="")
     address_line = models.CharField(max_length=255)
     city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
-    country = models.CharField(max_length=100)
+    state = models.CharField(max_length=100, blank=True, default="")
+    country = models.CharField(max_length=100, blank=True, default="")
     postal_code = models.CharField(max_length=20)
 
     def __str__(self):
-        return f"{self.user.user.email} - Address"
+        return f"{self.user.user.email} — {self.label or self.address_line}"
 
 
 

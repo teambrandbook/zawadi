@@ -5,11 +5,13 @@ from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from communityuser.models import CommunityUser, UserType
 from supperadmin.utils.permissions import has_permission
 from .models import User
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
@@ -321,7 +323,44 @@ class LogoutAPIView(APIView):
 
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
         serializer = MeSerializer(request.user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def patch(self, request):
+        user = request.user
+        changed = []
+        for field in ("full_name", "phone"):
+            if field in request.data:
+                setattr(user, field, request.data[field])
+                changed.append(field)
+        if "photo" in request.FILES:
+            user.photo = request.FILES["photo"]
+            changed.append("photo")
+        if changed:
+            user.save(update_fields=changed)
+        serializer = MeSerializer(user, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UpgradeAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request):
+        try:
+            community_user = request.user.communityuser
+        except CommunityUser.DoesNotExist:
+            return Response(
+                {"error": "No community profile found."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if community_user.user_type == UserType.MEMBER:
+            return Response(
+                {"error": "Already a community member."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        community_user.user_type = UserType.MEMBER
+        community_user.save(update_fields=["user_type"])
+        return Response({"user_type": community_user.user_type}, status=status.HTTP_200_OK)

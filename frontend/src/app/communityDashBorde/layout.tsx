@@ -13,7 +13,7 @@ export default function CommunityLayout({ children }: Props) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <AuthGuard allowedRoles={["community_user"]}>
+    <AuthGuard allowedRoles={["community_user"]} allowedUserTypes={["guest", "member"]}>
     <div className="min-h-screen">
 
       {/* Navbar */}

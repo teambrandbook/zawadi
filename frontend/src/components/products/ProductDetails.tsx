@@ -5,14 +5,53 @@ import Image from "next/image";
 import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import productsData from "@/data/products.json";
+import { useSearchParams, useRouter } from "next/navigation";
+import api from "@/services/api";
+import { toast } from "sonner";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
+type ProductVariant = {
+  id: number;
+  variant_name: string;
+  sku: string;
+  price: string;
+  stock: number;
+};
+
+type Product = {
+  id: number;
+  product_name: string;
+  product_subtitle: string;
+  short_description: string;
+  full_description: string;
+  health_benefits: string;
+  base_price: string;
+  sale_price: string | null;
+  currency: string;
+  image: string | null;
+  stock_status: string;
+  variants: ProductVariant[];
+};
+
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "");
+
+function productImageUrl(path: string | null): string {
+  if (!path) return "/product/buckwheat.webp";
+  if (path.startsWith("http")) return path;
+  return `${API_BASE}${path}`;
+}
+
 const ProductDetails = () => {
-  const { details } = productsData;
-  const [quantity, setQuantity] = useState(3);
-  const [activeThumb, setActiveThumb] = useState(0);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const productId = searchParams.get("id");
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
   const [mounted, setMounted] = useState(false);
+
   const sectionRef = useRef<HTMLDivElement>(null);
   const mainImageRef = useRef<HTMLDivElement>(null);
 
@@ -21,150 +60,226 @@ const ProductDetails = () => {
   }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!productId) {
+      setLoading(false);
+      return;
+    }
+    api
+      .get(`/products/${productId}/`)
+      .then((res) => {
+        setProduct(res.data);
+        if (res.data.variants?.length > 0) {
+          setSelectedVariantId(res.data.variants[0].id);
+        }
+      })
+      .catch(() => {
+        toast.error("Could not load product.");
+        setProduct(null);
+      })
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  useEffect(() => {
+    if (!mounted || !product) return;
 
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sectionRef.current,
           start: "top 80%",
-        }
+        },
       });
 
-      // Main image swipe steal
       tl.set(mainImageRef.current, { opacity: 1 });
       animateSwipeReveal(mainImageRef.current, {}, tl);
-
-      // Thumbnails fade in from right
-      tl.fromTo(".product-thumb-stagger",
-        { x: 30, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.8, stagger: 0.1, ease: "power2.out" },
-        "-=0.6"
-      );
-
       animateFadeInLeft(".product-info-stagger", {}, tl, "-=1");
 
-      // Bottom description reveal
       animateFadeInLeft(".description-stagger", {
         scrollTrigger: {
           trigger: ".description-section",
           start: "top 85%",
-        }
+        },
       });
     }, sectionRef);
 
     return () => ctx.revert();
-  }, [mounted]);
+  }, [mounted, product]);
 
-  if (!mounted) return null;
+  async function handleAddToCart() {
+    if (!product) return;
+    try {
+      await api.post("/orders/cart/items/", {
+        product_id: product.id,
+        ...(selectedVariantId ? { variant_id: selectedVariantId } : {}),
+        quantity,
+      });
+      toast.success("Added to cart!");
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } }).response?.status;
+      if (status === 401 || status === 403) {
+        router.push(`/login?next=/products/details?id=${product.id}`);
+      } else {
+        toast.error("Could not add to cart.");
+      }
+    }
+  }
+
+  if (!mounted || loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
+        Loading product...
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+        <p className="text-sm text-[#6b7280]">Product not found.</p>
+        <Link href="/products" className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white">
+          Back to Products
+        </Link>
+      </div>
+    );
+  }
+
+  const displayPrice = product.sale_price || product.base_price;
+  const benefits = product.health_benefits
+    ? product.health_benefits.split("\n").filter(Boolean)
+    : [];
 
   return (
     <section ref={sectionRef} className="py-20 lg:py-32">
       <div className="container mx-auto px-6 lg:px-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-
-          {/* Left: Product Images */}
+        <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-2">
+          {/* Left: Product Image */}
           <div className="space-y-6">
             <div
               ref={mainImageRef}
-              className="opacity-0 relative aspect-[4/3] rounded-[1rem] overflow-hidden bg-gray-100 shadow-sm transition-all duration-700 hover:shadow-2xl"
+              className="relative aspect-4/3 overflow-hidden rounded-2xl bg-gray-100 opacity-0 shadow-sm transition-all duration-700 hover:shadow-2xl"
             >
               <Image
-                src={details.images[activeThumb]}
-                alt={details.title}
+                src={productImageUrl(product.image)}
+                alt={product.product_name}
                 fill
                 className="object-cover"
               />
-            </div>
-
-            <div className="grid grid-cols-4 gap-4">
-              {details.images.map((thumb, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveThumb(index)}
-                  className={cn(
-                    "product-thumb-stagger opacity-0 relative aspect-square rounded-[1.2rem] overflow-hidden border-2 transition-all duration-300",
-                    activeThumb === index ? "border-[#1A4331]" : "border-transparent opacity-70 hover:opacity-100"
-                  )}
-                >
-                  <Image src={thumb} alt={`Thumbnail ${index}`} fill className="object-cover" />
-                </button>
-              ))}
             </div>
           </div>
 
           {/* Right: Product Info */}
           <div className="space-y-8">
             <div className="product-info-stagger opacity-0">
-              <h1 className="text-4xl md:text-5xl font-playfair font-bold text-black mb-4">
-                {details.title}
+              <h1 className="mb-4 font-playfair text-4xl font-bold text-black md:text-5xl">
+                {product.product_name}
               </h1>
-              <p className="text-xl font-bold text-gray-900">{details.price}</p>
+              {product.product_subtitle && (
+                <p className="text-base text-[#6b7280]">{product.product_subtitle}</p>
+              )}
+              <p className="mt-2 text-xl font-bold text-gray-900">₹{displayPrice}</p>
             </div>
 
-            <p className="product-info-stagger opacity-0 text-[#1A4331] text-sm leading-relaxed max-w-lg font-inter">
-              {details.description}
-            </p>
+            {product.short_description && (
+              <p className="product-info-stagger max-w-lg font-inter text-sm leading-relaxed text-[#1A4331] opacity-0">
+                {product.short_description}
+              </p>
+            )}
 
-            <div className="product-info-stagger opacity-0 space-y-4">
-              <h3 className="font-bold text-black">Benefits</h3>
-              <ul className="space-y-2">
-                {details.benefits.map((benefit, i) => (
-                  <li key={i} className="flex items-start gap-3 text-sm text-[#1A4331] font-inter">
-                    <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#1A4331] shrink-0" />
-                    {benefit}
-                  </li>
-                ))}
-              </ul>
-            </div>
+            {benefits.length > 0 && (
+              <div className="product-info-stagger space-y-4 opacity-0">
+                <h3 className="font-bold text-black">Benefits</h3>
+                <ul className="space-y-2">
+                  {benefits.map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-3 font-inter text-sm text-[#1A4331]">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#1A4331]" />
+                      {benefit}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-            <div className="product-info-stagger opacity-0 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 sm:gap-6 pt-4">
+            {/* Variant selector */}
+            {product.variants.length > 0 && (
+              <div className="product-info-stagger space-y-2 opacity-0">
+                <h3 className="font-bold text-black">Variant</h3>
+                <div className="flex flex-wrap gap-2">
+                  {product.variants.map((v) => (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => setSelectedVariantId(v.id)}
+                      className={cn(
+                        "rounded-lg border px-4 py-2 text-sm font-medium transition",
+                        selectedVariantId === v.id
+                          ? "border-[#1A4331] bg-[#1A4331] text-white"
+                          : "border-gray-200 text-[#1A4331] hover:border-[#1A4331]"
+                      )}
+                    >
+                      {v.variant_name} — ₹{v.price}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="product-info-stagger flex flex-wrap items-center gap-6 pt-4 opacity-0">
               {/* Quantity Selector */}
-              <div className="flex items-center justify-between sm:justify-start border border-gray-200 rounded-lg overflow-hidden">
+              <div className="flex items-center overflow-hidden rounded-lg border border-gray-200">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="p-3 hover:bg-gray-50 transition-colors group"
+                  className="p-3 transition-colors hover:bg-gray-50"
                 >
-                  <Minus size={18} strokeWidth={3} className="text-[#1A4331] group-hover:scale-110 transition-transform" />
+                  <Minus size={18} strokeWidth={3} className="text-[#1A4331]" />
                 </button>
-                <div className="px-6 py-2 flex-1 text-center font-semibold text-gray-900 border-x border-gray-200">
+                <div className="border-x border-gray-200 px-6 py-2 font-semibold text-gray-900">
                   {quantity}
                 </div>
                 <button
                   onClick={() => setQuantity(quantity + 1)}
-                  className="p-3 hover:bg-gray-50 transition-colors group"
+                  className="p-3 transition-colors hover:bg-gray-50"
                 >
-                  <Plus size={18} strokeWidth={3} className="text-[#1A4331] group-hover:scale-110 transition-transform" />
+                  <Plus size={18} strokeWidth={3} className="text-[#1A4331]" />
                 </button>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-4 flex-1">
-                <Link href="/cart" className="flex-1 flex items-center justify-center bg-[#1A4331] text-white font-bold py-3.5 px-10 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-[0.98] whitespace-nowrap">
-                  Add To Cart
-                </Link>
+              <button
+                type="button"
+                onClick={handleAddToCart}
+                className="flex flex-1 items-center justify-center rounded-lg bg-[#1A4331] px-10 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+              >
+                Add To Cart
+              </button>
 
-                <button className="p-3.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition-all text-[#1A4331] shrink-0">
-                  <Heart size={20} />
-                </button>
-              </div>
+              <button
+                type="button"
+                aria-label="Save to wishlist"
+                className="rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
+              >
+                <Heart size={20} />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Bottom: Description Section */}
-        <div className="description-section mt-24 space-y-8">
-          <div className="description-stagger opacity-0 space-y-4">
-            <h2 className="text-xl font-bold text-black border-b border-gray-200 pb-4">Description</h2>
-            <p className="text-[#1A4331] text-sm leading-relaxed max-w-4xl font-inter">
-              {details.fullDescription}
-            </p>
-          </div>
+        {/* Bottom: Full Description */}
+        {product.full_description && (
+          <div className="description-section mt-24 space-y-8">
+            <div className="description-stagger space-y-4 opacity-0">
+              <h2 className="border-b border-gray-200 pb-4 text-xl font-bold text-black">
+                Description
+              </h2>
+              <p className="max-w-4xl font-inter text-sm leading-relaxed text-[#1A4331]">
+                {product.full_description}
+              </p>
+            </div>
 
-          <button className="description-stagger opacity-0 bg-[#1A4331] text-white font-bold py-3.5 px-8 rounded-lg hover:bg-[#1A4331]/90 transition-all shadow-md active:scale-[0.98]">
-            Try Recipes
-          </button>
-        </div>
+            <button className="description-stagger rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]">
+              Try Recipes
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );

@@ -10,6 +10,7 @@ from supperadmin.models import Role
 
 class MeSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -24,10 +25,15 @@ class MeSerializer(serializers.ModelSerializer):
             "gender",
             "location",
             "photo",
+            "user_type",
         ]
 
     def get_role(self, obj):
         return str(obj.role).lower()
+
+    def get_user_type(self, obj):
+        cu = getattr(obj, "communityuser", None)
+        return cu.user_type if cu is not None else None
 
 
 class RegisterSerializer(serializers.Serializer):
@@ -46,7 +52,7 @@ class RegisterSerializer(serializers.Serializer):
     role = serializers.ChoiceField(
         choices=[choice[0] for choice in ROLE_CHOICES],
         required=False,
-        default="COMMUNITY_USER",   
+        default="COMMUNITY_USER",
     )
     role_obj = serializers.PrimaryKeyRelatedField(
         queryset=Role.objects.all(),
@@ -160,8 +166,8 @@ class RegisterSerializer(serializers.Serializer):
                 session_duration=validated_data.get("session_duration"),
             )
 
-        return user    
-    
+        return user
+
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -182,5 +188,3 @@ class LoginSerializer(serializers.Serializer):
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
-        
-        

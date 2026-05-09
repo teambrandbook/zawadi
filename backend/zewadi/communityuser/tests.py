@@ -1,12 +1,13 @@
 from datetime import timedelta
 
+from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from accounts.models import User
 from blog.models import Blog
-from communityuser.models import CommunityUser, CommunityUserAddress
+from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import ConsultationBooking, Consultant
 from events.models import Event, EventRegistration
 from orders.models import Order
@@ -33,19 +34,12 @@ class CommunityProfileAPITests(APITestCase):
         self.assertEqual(response.data["user_type"], "guest")
         self.assertEqual(CommunityUser.objects.filter(user=self.user).count(), 1)
 
-    def test_patch_profile_updates_user_and_address(self):
+    def test_patch_profile_updates_user(self):
         CommunityUser.objects.create(user=self.user, user_type="guest")
         payload = {
             "full_name": "Updated Member",
             "phone": "+10000000099",
             "user_type": "member",
-            "address": {
-                "address_line": "221B Baker Street",
-                "city": "London",
-                "state": "Greater London",
-                "country": "UK",
-                "postal_code": "NW1",
-            },
         }
 
         response = self.client.patch("/api/community/profile/", payload, format="json")
@@ -53,12 +47,10 @@ class CommunityProfileAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.user.refresh_from_db()
         profile = CommunityUser.objects.get(user=self.user)
-        address = CommunityUserAddress.objects.get(user=profile)
 
         self.assertEqual(self.user.full_name, "Updated Member")
         self.assertEqual(self.user.phone, "+10000000099")
         self.assertEqual(profile.user_type, "member")
-        self.assertEqual(address.city, "London")
 
     def test_non_community_user_cannot_access_profile(self):
         admin_user = User.objects.create_user(
@@ -85,6 +77,7 @@ class CommunityDashboardSummaryAPITests(APITestCase):
             phone="+10000000005",
             role="COMMUNITY_USER",
         )
+        CommunityUser.objects.create(user=self.user, user_type=UserType.MEMBER)
         self.client.force_authenticate(user=self.user)
 
     def test_summary_requires_community_user(self):
@@ -195,3 +188,83 @@ class CommunityDashboardSummaryAPITests(APITestCase):
         self.assertEqual(response.data["stats"]["submitted_recipes"], 1)
         self.assertEqual(response.data["stats"]["published_blogs"], 1)
         self.assertEqual(len(response.data["recent_orders"]), 1)
+
+
+class DashboardSummaryPermissionTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.guest_user = User.objects.create_user(
+            email="guestdash@test.com",
+            password="pass1234",
+            full_name="Guest Dash",
+            user_name="guestdash",
+            phone="1111111111",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.guest_user, user_type=UserType.GUEST)
+
+        self.member_user = User.objects.create_user(
+            email="memberdash@test.com",
+            password="pass1234",
+            full_name="Member Dash",
+            user_name="memberdash",
+            phone="2222222222",
+            role="COMMUNITY_USER",
+        )
+        CommunityUser.objects.create(user=self.member_user, user_type=UserType.MEMBER)
+
+    def test_guest_cannot_access_dashboard_summary(self):
+        self.client.force_authenticate(user=self.guest_user)
+        response = self.client.get("/api/community/dashboard/summary/")
+        self.assertEqual(response.status_code, 403)
+
+    def test_member_can_access_dashboard_summary(self):
+        self.client.force_authenticate(user=self.member_user)
+        response = self.client.get("/api/community/dashboard/summary/")
+        self.assertEqual(response.status_code, 200)
+
+
+class AddressAPITest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = User.objects.create_user(
+            email="addr@test.com",
+            password="pass1234",
+            full_name="Addr User",
+            user_name="addruser",
+            phone="1234567890",
+            role="COMMUNITY_USER",
+        )
+        self.community_user = CommunityUser.objects.create(
+            user=self.user, user_type=UserType.GUEST
+        )
+        self.client.force_authenticate(user=self.user)
+
+    def test_list_addresses_empty(self):
+        response = self.client.get("/api/community/addresses/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, [])
+
+    def test_create_address(self):
+        payload = {
+            "label": "Home",
+            "full_name": "Addr User",
+            "phone": "9876543210",
+            "address_line": "123 Main St",
+            "city": "Mumbai",
+            "postal_code": "400001",
+        }
+        response = self.client.post("/api/community/addresses/", payload, format="json")
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(CommunityUserAddress.objects.count(), 1)
+
+    def test_delete_address(self):
+        addr = CommunityUserAddress.objects.create(
+            user=self.community_user,
+            address_line="123 Test",
+            city="Mumbai",
+            postal_code="400001",
+        )
+        response = self.client.delete(f"/api/community/addresses/{addr.pk}/")
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(CommunityUserAddress.objects.count(), 0)
