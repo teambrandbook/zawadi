@@ -9,6 +9,7 @@ export interface UserState {
   email: string | null;
   fullName: string | null;
   userType: "guest" | "member" | null;
+  cartCount: number;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -20,6 +21,7 @@ const initialState: UserState = {
   email: null,
   fullName: null,
   userType: null,
+  cartCount: 0,
   isAuthenticated: false,
   loading: false,
   error: null,
@@ -57,6 +59,19 @@ export const logoutUser = createAsyncThunk("user/logout", async () => {
   await api.post("/account/logout/");
 });
 
+export const fetchCartCount = createAsyncThunk(
+  "user/fetchCartCount",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/orders/cart/");
+      return Number(res.data?.summary?.item_count ?? 0);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown } };
+      return rejectWithValue(error.response?.data ?? "Failed to load cart count");
+    }
+  }
+);
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const userSlice = createSlice({
@@ -88,8 +103,12 @@ const userSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userType = null;
+      state.cartCount = 0;
       state.isAuthenticated = false;
       state.error = null;
+    },
+    setCartCount(state, action: PayloadAction<number>) {
+      state.cartCount = Math.max(0, Number(action.payload) || 0);
     },
   },
   extraReducers: (builder) => {
@@ -121,7 +140,12 @@ const userSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userType = null;
+      state.cartCount = 0;
       state.isAuthenticated = false;
+    });
+
+    builder.addCase(fetchCartCount.fulfilled, (state, action) => {
+      state.cartCount = action.payload;
     });
 
     // register (just tracks loading/error; does not auto-login)
@@ -140,5 +164,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearCredentials } = userSlice.actions;
+export const { setCredentials, clearCredentials, setCartCount } = userSlice.actions;
 export default userSlice.reducer;

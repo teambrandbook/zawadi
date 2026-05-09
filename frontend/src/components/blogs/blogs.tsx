@@ -7,11 +7,12 @@ import { ArrowRight, CalendarDays, ChevronRight, Eye, Heart, Search } from "luci
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
-import api from "@/services/api";
+import axios from "axios";
 
 const blogImageOne = "/blogs/blog-1.webp";
 const blogImageTwo = "/blogs/blog-2.webp";
 const blogImageThree = "/blogs/blog-3.webp";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 type BlogPost = {
   title: string;
@@ -229,7 +230,7 @@ export default function Blogs() {
 
   useEffect(() => {
     let mounted = true;
-    api.get("/blog/")
+    axios.get(`${API_BASE}/blog/`)
       .then(({ data }) => {
         const raw = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
         if (mounted && raw.length > 0) {
