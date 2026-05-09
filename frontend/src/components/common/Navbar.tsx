@@ -373,6 +373,17 @@ const Navbar = () => {
           ))}
         </div>
 
+        {!isAuthenticated && (
+          <Link
+            href="/login"
+            onClick={handleCloseMenu}
+            className="mobile-link opacity-0 relative z-10 flex items-center justify-between rounded-2xl border border-white/20 bg-white/10 px-6 py-4 mb-4 text-white font-bold text-lg hover:bg-white/20 transition"
+          >
+            Login
+            <ArrowRight size={20} className="text-brand-primary/40" />
+          </Link>
+        )}
+
         <div className="mt-auto mb-10 mobile-link opacity-0 relative z-10">
           <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl px-6 py-4 cursor-pointer hover:bg-white/10 transition-all">
             <Globe className="text-brand-primary mr-3" size={20} />
