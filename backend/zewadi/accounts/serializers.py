@@ -61,7 +61,7 @@ class RegisterSerializer(serializers.Serializer):
     )
 
     # 🔹 Community fields
-    user_type = serializers.CharField(required=False, allow_blank=True)
+    user_type = serializers.CharField()
     wellness_interests = serializers.CharField(required=False, allow_blank=True)
     diet_preference = serializers.CharField(required=False, allow_blank=True)
     preferred_communication = serializers.CharField(default="email", required=False)
