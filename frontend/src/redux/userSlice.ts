@@ -140,10 +140,6 @@ const userSlice = createSlice({
       state.isAuthenticated = false;
     });
 
-    builder.addCase(fetchCartCount.fulfilled, (state, action) => {
-      state.cartCount = action.payload;
-    });
-
     // register (just tracks loading/error; does not auto-login)
     builder
       .addCase(registerUser.pending, (state) => {

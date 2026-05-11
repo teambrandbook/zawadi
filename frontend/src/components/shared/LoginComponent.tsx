@@ -177,7 +177,12 @@ export default function LoginComponent() {
                       <span className="w-full border-t border-gray-100"></span>
                     </div>
                     <div className="relative flex justify-center text-[10px] uppercase">
-                      <span className="bg-white px-2 text-gray-400">Create an Account</span>
+                      <Link
+                        href="/signup"
+                        className="bg-white px-2 font-bold text-[#0a4833] transition hover:text-[#9f8151] hover:underline"
+                      >
+                        Create an Account
+                      </Link>
                     </div>
                   </div>
 
@@ -196,9 +201,9 @@ export default function LoginComponent() {
                   </button>
 
                   <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
-                    <Link href="#" className="hover:underline">Privacy Policy</Link>
-                    <Link href="#" className="hover:underline">Terms & Conditions</Link>
-                    <Link href="#" className="hover:underline">Help & Support</Link>
+                    <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
+                    <Link href="/terms" className="hover:underline">Terms & Conditions</Link>
+                    <Link href="/helpandsupport" className="hover:underline">Help & Support</Link>
                   </div>
                 </form>
               </div>
