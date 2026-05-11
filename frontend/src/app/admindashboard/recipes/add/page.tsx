@@ -35,12 +35,11 @@ type RecipeDetailResponse = {
   cooking_time_minutes?: number | string;
   servings?: number | string;
   health_benefits?: string;
+  calories?: string | number | null;
+  fat?: string | number | null;
+  carbs?: string | number | null;
+  protein?: string | number | null;
   cover_image?: string | null;
-  is_gluten_free?: boolean;
-  is_high_fiber?: boolean;
-  is_weight_management?: boolean;
-  is_energy_boosting?: boolean;
-  is_featured?: boolean;
   status?: string;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
   steps?: Array<{ description?: string }>;
@@ -72,43 +71,6 @@ function InputRow({ label, value, onChange, placeholder, type = "text" }: {
   );
 }
 
-function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex cursor-pointer items-center justify-between gap-4 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2">
-      <span className="text-sm text-[#374151]">{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#0A4833]/20 ${
-          checked ? "bg-[#0A4833]" : "bg-[#D1D5DB]"
-        }`}
-      >
-        <span
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-5" : "translate-x-0"
-          }`}
-        />
-      </button>
-    </label>
-  );
-}
-
-function Checkbox({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <label className="flex cursor-pointer items-center gap-2">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 rounded accent-[#0A4833]"
-      />
-      <span className="text-sm text-[#374151]">{label}</span>
-    </label>
-  );
-}
-
 export default function AddRecipePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -124,15 +86,12 @@ export default function AddRecipePage() {
   const [cookingTime, setCookingTime] = useState("");
   const [servings, setServings] = useState("");
   const [healthBenefits, setHealthBenefits] = useState("");
+  const [calories, setCalories] = useState("");
+  const [fat, setFat] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [protein, setProtein] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-
-  // Flags
-  const [isGlutenFree, setIsGlutenFree] = useState(false);
-  const [isHighFiber, setIsHighFiber] = useState(false);
-  const [isWeightManagement, setIsWeightManagement] = useState(false);
-  const [isEnergyBoosting, setIsEnergyBoosting] = useState(false);
-  const [isFeatured, setIsFeatured] = useState(false);
 
   // Ingredients
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -161,13 +120,12 @@ export default function AddRecipePage() {
         setCookingTime(recipe.cooking_time_minutes ? String(recipe.cooking_time_minutes) : "");
         setServings(recipe.servings ? String(recipe.servings) : "");
         setHealthBenefits(recipe.health_benefits ?? "");
+        setCalories(recipe.calories ? String(recipe.calories) : "");
+        setFat(recipe.fat ? String(recipe.fat) : "");
+        setCarbs(recipe.carbs ? String(recipe.carbs) : "");
+        setProtein(recipe.protein ? String(recipe.protein) : "");
         setCoverFile(null);
         setCoverPreview(recipe.cover_image ?? null);
-        setIsGlutenFree(Boolean(recipe.is_gluten_free));
-        setIsHighFiber(Boolean(recipe.is_high_fiber));
-        setIsWeightManagement(Boolean(recipe.is_weight_management));
-        setIsEnergyBoosting(Boolean(recipe.is_energy_boosting));
-        setIsFeatured(Boolean(recipe.is_featured) || String(recipe.status ?? "").toLowerCase() === "draft");
         setIngredients(
           Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
             ? recipe.ingredients.map((ingredient) => ({
@@ -231,6 +189,7 @@ export default function AddRecipePage() {
     if (!prepTime || Number(prepTime) < 1) { toast.error("Prep time must be at least 1 minute."); return; }
     if (!cookingTime || Number(cookingTime) < 1) { toast.error("Cooking time must be at least 1 minute."); return; }
     if (!servings || Number(servings) < 1) { toast.error("Servings must be at least 1."); return; }
+    if (!calories.trim() || !fat.trim() || !carbs.trim() || !protein.trim()) { toast.error("Nutrition facts are required."); return; }
     const fd = new FormData();
     fd.append("title", title.trim());
     fd.append("short_description", shortDescription.trim());
@@ -240,12 +199,10 @@ export default function AddRecipePage() {
     if (cookingTime) fd.append("cooking_time_minutes", cookingTime);
     if (servings) fd.append("servings", servings);
     fd.append("health_benefits", healthBenefits.trim());
-    fd.append("is_gluten_free", String(isGlutenFree));
-    fd.append("is_high_fiber", String(isHighFiber));
-    fd.append("is_weight_management", String(isWeightManagement));
-    fd.append("is_energy_boosting", String(isEnergyBoosting));
-    fd.append("is_featured", String(isFeatured));
-    if (isFeatured) fd.append("status", "draft");
+    fd.append("calories", calories.trim());
+    fd.append("fat", fat.trim());
+    fd.append("carbs", carbs.trim());
+    fd.append("protein", protein.trim());
     if (coverFile) fd.append("cover_image", coverFile);
 
     // Ingredients & steps as JSON strings (backend can parse)
@@ -261,13 +218,9 @@ export default function AddRecipePage() {
     setIsSubmitting(true);
     try {
       if (isEditMode && recipeId) {
-        await api.patch(`/recipes/${recipeId}/`, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.patch(`/recipes/${recipeId}/`, fd);
       } else {
-        await api.post("/recipes/create/", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post("/recipes/create/", fd);
       }
       toast.success(isEditMode ? "Recipe updated successfully!" : "Recipe created successfully! ✅");
       router.push("/admindashboard/recipes");
@@ -396,19 +349,6 @@ export default function AddRecipePage() {
               </label>
             </FormCard>
 
-            {/* Tags */}
-            <FormCard title="Dietary Tags">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Checkbox label="Gluten Free" checked={isGlutenFree} onChange={setIsGlutenFree} />
-                <Checkbox label="High Fiber" checked={isHighFiber} onChange={setIsHighFiber} />
-                <Checkbox label="Weight Management" checked={isWeightManagement} onChange={setIsWeightManagement} />
-                <Checkbox label="Energy Boosting" checked={isEnergyBoosting} onChange={setIsEnergyBoosting} />
-              </div>
-              <div className="mt-4 border-t border-[#E4E7EC] pt-4">
-                <Toggle label="Featured Recipe" checked={isFeatured} onChange={setIsFeatured} />
-              </div>
-            </FormCard>
-
             {/* Ingredients */}
             <FormCard title="Ingredients">
               <div className="space-y-2">
@@ -488,6 +428,15 @@ export default function AddRecipePage() {
                 <Plus className="h-3.5 w-3.5" />
                 Add Step
               </button>
+            </FormCard>
+
+            <FormCard title="Nutrition fact">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <InputRow label="Calories *" value={calories} onChange={setCalories} placeholder="Enter the calories..." />
+                <InputRow label="Fat *" value={fat} onChange={setFat} placeholder="Enter the fat..." />
+                <InputRow label="Carbs *" value={carbs} onChange={setCarbs} placeholder="Enter the carbs..." />
+                <InputRow label="Protein *" value={protein} onChange={setProtein} placeholder="Enter the protein..." />
+              </div>
             </FormCard>
           </div>
 

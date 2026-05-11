@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
-import { Utensils } from "lucide-react";
+import { Play, Utensils } from "lucide-react";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 
@@ -47,11 +47,19 @@ export default function RecipeDetailsContent({
                 />
               </div>
 
-              {/* <div className="absolute inset-0 flex items-center justify-center">
-                <div className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#1f4d3a] shadow-lg transition-transform hover:scale-105 md:h-[62px] md:w-[62px]">
+              {recipe.videoUrl ? (
+                <a
+                  href={recipe.videoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Watch video for ${recipe.title}`}
+                  className="absolute inset-0 flex items-center justify-center"
+                >
+                  <span className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#1f4d3a] shadow-lg transition-transform hover:scale-105 md:h-[62px] md:w-[62px]">
                   <Play className="ml-0.5 h-5 w-5 fill-white text-white md:ml-1 md:h-6 md:w-6" />
-                </div>
-              </div> */}
+                  </span>
+                </a>
+              ) : null}
             </div>
 
             <div className=" pt-1">

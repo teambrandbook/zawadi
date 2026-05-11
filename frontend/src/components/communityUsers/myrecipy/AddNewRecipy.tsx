@@ -9,17 +9,18 @@ import {
   BasicInformationSection,
   ChooseDishCountrySection,
   CoverImageSection,
-  HealthWellnessSection,
   IngredientsSection,
+  NutritionFactsSection,
   PreparationStepsSection,
   RecipePreviewSection,
-  RecipeTagsSection,
   ReviewProcessSection,
   type DraftModel,
+  type IngredientDraft,
   type ReviewChecklist,
 } from "./addnew/AddNewRecipySections";
 
 const DRAFT_KEY = "myrecipy-add-draft-v2";
+const EMPTY_INGREDIENT: IngredientDraft = { ingredient_name: "", quantity: "", unit: "piece" };
 
 type RecipeDetailResponse = {
   id: number | string;
@@ -31,12 +32,11 @@ type RecipeDetailResponse = {
   cooking_time_minutes?: number | string | null;
   servings?: number | string | null;
   cover_image?: string | null;
-  health_benefits?: string | null;
-  buckwheat_wellness_value?: string | null;
-  is_gluten_free?: boolean;
-  is_high_fiber?: boolean;
-  is_weight_management?: boolean;
-  is_energy_boosting?: boolean;
+  calories?: string | number | null;
+  fat?: string | number | null;
+  carbs?: string | number | null;
+  protein?: string | number | null;
+  video_url?: string | null;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
   steps?: Array<{ description?: string }>;
 };
@@ -50,20 +50,39 @@ function emptyDraft(): DraftModel {
     cookTime: "",
     servings: "",
     difficulty: "Easy",
-    ingredients: [""],
+    ingredients: [{ ...EMPTY_INGREDIENT }],
     steps: [""],
     calories: "",
     protein: "",
     carbs: "",
     fat: "",
-    wellnessNotes: "",
-    nutritionNotes: "",
-    dietFriendlyTags: [],
-    tags: [],
     videoUrl: "",
     sourceUrl: "",
     country: "India",
   };
+}
+
+function normalizeIngredients(value: unknown): IngredientDraft[] {
+  if (!Array.isArray(value)) return [{ ...EMPTY_INGREDIENT }];
+
+  const ingredients = value
+    .map((item) => {
+      if (typeof item === "string") {
+        return { ...EMPTY_INGREDIENT, ingredient_name: item };
+      }
+      if (item && typeof item === "object") {
+        const ingredient = item as Partial<IngredientDraft>;
+        return {
+          ingredient_name: ingredient.ingredient_name ?? "",
+          quantity: ingredient.quantity ?? "",
+          unit: ingredient.unit ?? "piece",
+        };
+      }
+      return { ...EMPTY_INGREDIENT };
+    })
+    .filter((item) => item.ingredient_name.trim() || item.quantity.trim());
+
+  return ingredients.length ? ingredients : [{ ...EMPTY_INGREDIENT }];
 }
 
 function toSelectLabel(value: string | undefined, fallback: string) {
@@ -94,7 +113,6 @@ export default function AddNewRecipy() {
   const recipeId = searchParams.get("id");
   const isEditMode = Boolean(recipeId);
   const [draft, setDraft] = useState<DraftModel>(emptyDraft);
-  const [tagInput, setTagInput] = useState("");
   const [checklist, setChecklist] = useState<ReviewChecklist>({
     isOriginal: false,
     hasExactMeasurements: false,
@@ -112,15 +130,14 @@ export default function AddNewRecipy() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return;
     try {
-      const parsed = JSON.parse(raw) as { draft: DraftModel; checklist: ReviewChecklist; tagInput: string };
+      const parsed = JSON.parse(raw) as { draft: DraftModel; checklist: ReviewChecklist };
       setDraft({
         ...emptyDraft(),
         ...parsed.draft,
-        ingredients: parsed.draft?.ingredients?.length ? parsed.draft.ingredients : [""],
+        ingredients: normalizeIngredients(parsed.draft?.ingredients),
         steps: parsed.draft?.steps?.length ? parsed.draft.steps : [""],
       });
       if (parsed.checklist) setChecklist(parsed.checklist);
-      setTagInput(parsed.tagInput ?? "");
       setMessage("Draft loaded.");
     } catch {
       setMessage("Could not load draft.");
@@ -140,13 +157,6 @@ export default function AddNewRecipy() {
         const recipe: RecipeDetailResponse = response.data?.data ?? response.data;
         if (!isMounted) return;
 
-        const dietFriendlyTags = [
-          recipe.is_gluten_free ? "Gluten-Free" : null,
-          recipe.is_high_fiber ? "High Fiber" : null,
-          recipe.is_weight_management ? "Weight Management" : null,
-          recipe.is_energy_boosting ? "Energy Boosting" : null,
-        ].filter(Boolean) as string[];
-
         setDraft({
           ...emptyDraft(),
           title: recipe.title ?? "",
@@ -156,12 +166,18 @@ export default function AddNewRecipy() {
           cookTime: recipe.cooking_time_minutes ? String(recipe.cooking_time_minutes) : "",
           servings: recipe.servings ? String(recipe.servings) : "",
           difficulty: toSelectLabel(recipe.difficulty_level, "Easy"),
-          wellnessNotes: recipe.health_benefits ?? "",
-          nutritionNotes: recipe.buckwheat_wellness_value ?? "",
-          dietFriendlyTags,
+          calories: recipe.calories ? String(recipe.calories) : "",
+          fat: recipe.fat ? String(recipe.fat) : "",
+          carbs: recipe.carbs ? String(recipe.carbs) : "",
+          protein: recipe.protein ? String(recipe.protein) : "",
+          videoUrl: recipe.video_url ?? "",
           ingredients: recipe.ingredients?.length
-            ? recipe.ingredients.map((ingredient) => ingredient.ingredient_name ?? "").filter(Boolean)
-            : [""],
+            ? recipe.ingredients.map((ingredient) => ({
+                ingredient_name: ingredient.ingredient_name ?? "",
+                quantity: ingredient.quantity ?? "",
+                unit: ingredient.unit ?? "piece",
+              }))
+            : [{ ...EMPTY_INGREDIENT }],
           steps: recipe.steps?.length
             ? recipe.steps.map((step) => step.description ?? "").filter(Boolean)
             : [""],
@@ -193,7 +209,14 @@ export default function AddNewRecipy() {
   }, [imagePreview]);
 
   const cleanedIngredients = useMemo(
-    () => draft.ingredients.map((item) => item.trim()).filter(Boolean),
+    () =>
+      draft.ingredients
+        .map((item) => ({
+          ingredient_name: item.ingredient_name.trim(),
+          quantity: item.quantity.trim(),
+          unit: item.unit.trim() || "piece",
+        }))
+        .filter((item) => item.ingredient_name),
     [draft.ingredients]
   );
 
@@ -239,16 +262,16 @@ export default function AddNewRecipy() {
     setMessage("Image removed.");
   }
 
-  function updateIngredient(index: number, value: string) {
+  function updateIngredient(index: number, field: keyof IngredientDraft, value: string) {
     setDraft((prev) => {
       const next = [...prev.ingredients];
-      next[index] = value;
+      next[index] = { ...next[index], [field]: value };
       return { ...prev, ingredients: next };
     });
   }
 
   function addIngredient() {
-    setDraft((prev) => ({ ...prev, ingredients: [...prev.ingredients, ""] }));
+    setDraft((prev) => ({ ...prev, ingredients: [...prev.ingredients, { ...EMPTY_INGREDIENT }] }));
     setMessage("Ingredient row added.");
   }
 
@@ -281,23 +304,6 @@ export default function AddNewRecipy() {
     setMessage("Step removed.");
   }
 
-  function addTag() {
-    const normalized = tagInput.trim().replace(/\s+/g, "-");
-    if (!normalized) return;
-    if (draft.tags.includes(normalized)) {
-      setMessage("Tag already added.");
-      return;
-    }
-    setDraft((prev) => ({ ...prev, tags: [...prev.tags, normalized] }));
-    setTagInput("");
-    setMessage("Tag added.");
-  }
-
-  function removeTag(tag: string) {
-    setDraft((prev) => ({ ...prev, tags: prev.tags.filter((t) => t !== tag) }));
-    setMessage("Tag removed.");
-  }
-
   function toggleChecklist(field: keyof ReviewChecklist) {
     setChecklist((prev) => ({ ...prev, [field]: !prev[field] }));
   }
@@ -307,20 +313,8 @@ export default function AddNewRecipy() {
       void saveRecipe("draft");
       return;
     }
-    localStorage.setItem(DRAFT_KEY, JSON.stringify({ draft, checklist, tagInput }));
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ draft, checklist }));
     setMessage("Draft saved.");
-  }
-
-  function resetForm() {
-    setDraft(emptyDraft());
-    setTagInput("");
-    setChecklist({
-      isOriginal: false,
-      hasExactMeasurements: false,
-      hasClearSteps: false,
-    });
-    removeImage();
-    setMessage("Form cleared.");
   }
 
   function buildRecipeFormData(status: "pending" | "draft") {
@@ -332,21 +326,20 @@ export default function AddNewRecipy() {
     formData.append("prep_time_minutes", String(parseInt(draft.prepTime, 10) || 1));
     formData.append("cooking_time_minutes", String(parseInt(draft.cookTime, 10) || 1));
     formData.append("servings", String(parseInt(draft.servings, 10) || 1));
-    formData.append("health_benefits", draft.wellnessNotes.trim());
-    formData.append("buckwheat_wellness_value", draft.nutritionNotes.trim());
-    formData.append("is_gluten_free", String(draft.dietFriendlyTags.includes("Gluten-Free")));
-    formData.append("is_high_fiber", String(draft.dietFriendlyTags.includes("High Fiber")));
-    formData.append("is_weight_management", String(draft.dietFriendlyTags.includes("Weight Management")));
-    formData.append("is_energy_boosting", String(draft.dietFriendlyTags.includes("Energy Boosting")));
+    formData.append("calories", draft.calories.trim());
+    formData.append("fat", draft.fat.trim());
+    formData.append("carbs", draft.carbs.trim());
+    formData.append("protein", draft.protein.trim());
+    formData.append("video_url", draft.videoUrl.trim());
     formData.append("status", status);
     if (imageFile) formData.append("cover_image", imageFile);
     formData.append(
       "ingredients",
       JSON.stringify(
         cleanedIngredients.map((ingredient) => ({
-          ingredient_name: ingredient,
-          quantity: "1",
-          unit: "piece",
+          ingredient_name: ingredient.ingredient_name,
+          quantity: ingredient.quantity,
+          unit: ingredient.unit,
         }))
       )
     );
@@ -370,8 +363,16 @@ export default function AddNewRecipy() {
       setMessage("Please add at least one ingredient.");
       return;
     }
+    if (cleanedIngredients.some((ingredient) => !ingredient.quantity)) {
+      setMessage("Each ingredient needs a quantity.");
+      return;
+    }
     if (cleanedSteps.length === 0) {
       setMessage("Please add at least one preparation step.");
+      return;
+    }
+    if (!draft.calories.trim() || !draft.fat.trim() || !draft.carbs.trim() || !draft.protein.trim()) {
+      setMessage("Nutrition facts are required.");
       return;
     }
     setIsSubmitting(true);
@@ -380,20 +381,20 @@ export default function AddNewRecipy() {
 
     try {
       if (isEditMode && recipeId) {
-        await api.patch(`/recipes/${recipeId}/`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.patch(`/recipes/${recipeId}/`, formData);
       } else {
-        await api.post("/recipes/create/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post("/recipes/create/", formData);
       }
       localStorage.removeItem(DRAFT_KEY);
       setMessage(status === "pending" ? "Recipe submitted for approval." : "Recipe saved as draft.");
       router.push("/communityDashBorde/myrecipy");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
-      const detail = Object.entries(data ?? {})
+      const errors =
+        data?.errors && typeof data.errors === "object"
+          ? (data.errors as Record<string, unknown>)
+          : data ?? {};
+      const detail = Object.entries(errors)
         .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
         .join(" | ");
       setMessage(detail || "Recipe submission failed.");
@@ -433,14 +434,7 @@ export default function AddNewRecipy() {
               onRemove={removeIngredient}
             />
             <PreparationStepsSection steps={draft.steps} onAdd={addStep} onUpdate={updateStep} onRemove={removeStep} />
-            <HealthWellnessSection draft={draft} updateField={updateField} />
-            <RecipeTagsSection
-              tags={draft.tags}
-              tagInput={tagInput}
-              onTagInputChange={setTagInput}
-              onAddTag={addTag}
-              onRemoveTag={removeTag}
-            />
+            <NutritionFactsSection draft={draft} updateField={updateField} />
             <AddLinkSection draft={draft} updateField={updateField} />
             <ReviewProcessSection checklist={checklist} onToggle={toggleChecklist} />
             <ActionArea

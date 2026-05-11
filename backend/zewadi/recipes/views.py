@@ -26,10 +26,10 @@ def requested_recipe_status(value):
 
 
 class IsAdminUser(BasePermission):
-    """Allow access only to users whose role is ADMIN."""
+    """Allow users who can manage recipes in the admin dashboard."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "ADMIN"
+        return has_permission(request.user, "recipes", "create")
 
 
 # ---------------------------------------------------------------------------
@@ -206,7 +206,10 @@ class RecipeDetailAPIView(APIView):
                 {
                     "success": True,
                     "message": "Recipe updated successfully.",
-                    "data": serializer.data,
+                    "data": RecipeDetailSerializer(
+                        updated_recipe,
+                        context={"request": request},
+                    ).data,
                 },
 
                 status=status.HTTP_200_OK
@@ -306,7 +309,10 @@ class RecipeCreateAPIView(APIView):
                     "success": True,
                     "message": "Recipe created successfully",
                     "recipe_status": recipe.status,
-                    "data": serializer.data,
+                    "data": RecipeDetailSerializer(
+                        recipe,
+                        context={"request": request},
+                    ).data,
                 },
 
                 status=status.HTTP_201_CREATED
@@ -369,4 +375,40 @@ class AdminRecipeStatusUpdateView(APIView):
         return Response(
             {"id": recipe.id, "status": recipe.status},
             status=status.HTTP_200_OK,
+        )
+
+
+# in website
+
+class PublishedRecipeListAPIView(APIView):
+    """
+    GET /api/recipes/published/
+
+    Public API:
+    Returns all published recipes.
+    Authentication is not required.
+    """
+
+    permission_classes = [AllowAny]  # No authentication required
+
+    def get(self, request):
+
+        recipes = Recipe.objects.select_related(
+            "author"
+        ).filter(status=RecipeStatus.PUBLISHED)
+
+        serializer = RecipeDetailSerializer(
+            recipes,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "count": recipes.count(),
+                "data": serializer.data,
+            },
+
+            status=status.HTTP_200_OK
         )

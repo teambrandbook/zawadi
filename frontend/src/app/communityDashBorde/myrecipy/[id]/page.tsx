@@ -17,6 +17,7 @@ type BackendRecipeDetail = {
   fat?: string | number | null;
   carbs?: string | number | null;
   protein?: string | number | null;
+  video_url?: string | null;
   ingredients?: { ingredient_name: string; quantity?: string | null; unit?: string | null }[];
   steps?: { description: string }[];
 };
@@ -70,6 +71,7 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
       [item.quantity, item.unit, item.ingredient_name].filter(Boolean).join(" ")
     ),
     nutrition: mapNutrition(recipe),
+    videoUrl: recipe.video_url ?? null,
     steps: (recipe.steps || []).map((step) => step.description).filter(Boolean),
   };
 }

@@ -63,10 +63,11 @@ class Recipe(models.Model):
     health_benefits = models.TextField(blank=True, null=True)
     buckwheat_wellness_value = models.TextField(blank=True, null=True)
 
-    is_gluten_free = models.BooleanField(default=False)
-    is_high_fiber = models.BooleanField(default=False)
-    is_weight_management = models.BooleanField(default=False)
-    is_energy_boosting = models.BooleanField(default=False)
+    calories = models.CharField(max_length=50, blank=True, null=True)
+    fat = models.CharField(max_length=50, blank=True, null=True)
+    carbs = models.CharField(max_length=50, blank=True, null=True)
+    protein = models.CharField(max_length=50, blank=True, null=True)
+    video_url = models.URLField(max_length=500, blank=True, null=True)
 
     is_featured = models.BooleanField(default=False)
     show_in_community = models.BooleanField(default=True)

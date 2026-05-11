@@ -62,10 +62,10 @@ type RecipeDetail = {
   cover_image: string;
   health_benefits: string;
   buckwheat_wellness_value: string;
-  is_gluten_free: boolean;
-  is_high_fiber: boolean;
-  is_weight_management: boolean;
-  is_energy_boosting: boolean;
+  calories: string;
+  fat: string;
+  carbs: string;
+  protein: string;
   is_featured: boolean;
   show_in_community: boolean;
   status: string;
@@ -79,6 +79,8 @@ type RecipeDetail = {
   ingredients: Array<{ id?: string | number; ingredient_name: string; quantity: string; unit: string; note?: string | null }>;
   steps: Array<{ id?: string | number; step_no: number | string; description: string }>;
 };
+
+type ApiRecipePayload = Record<string, unknown>;
 
 type DeleteTarget = {
   id: string;
@@ -95,8 +97,12 @@ function toImageUrl(value?: string | null) {
   return `${apiOrigin}/${value.replace(/^\/+/, "")}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapApiRecipe(item: Record<string, any>, index: number): RecipeRow {
+function mapApiRecipe(item: ApiRecipePayload, index: number): RecipeRow {
+  const createdAt =
+    typeof item.created_at === "string" || typeof item.created_at === "number"
+      ? item.created_at
+      : "";
+
   return {
     id: String(item.id ?? `r-${index}`),
     image: toImageUrl(String(item.image ?? item.cover_image ?? "")) || "/recipe/recipe-2.webp",
@@ -105,8 +111,8 @@ function mapApiRecipe(item: Record<string, any>, index: number): RecipeRow {
     user: String(item.author_name ?? item.author ?? item.submitted_by ?? item.user ?? "Unknown"),
     userPhoto: toImageUrl(String(item.author_photo ?? "")),
     category: String(item.category ?? "—"),
-    date: item.created_at
-      ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    date: createdAt
+      ? new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
       : String(item.date ?? ""),
     status: String(item.status ?? "Pending"),
     featured: Boolean(item.is_featured ?? false),
@@ -121,8 +127,48 @@ function statusBadge(status: string) {
   return "bg-[#FFF6D8] text-[#A16207]";
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapApiRecipeDetail(item: Record<string, any>): RecipeDetail {
+function getRecipeArray(payload: unknown): ApiRecipePayload[] {
+  if (!payload || typeof payload !== "object") return [];
+
+  const value = payload as {
+    data?: unknown;
+    results?: unknown;
+  };
+  if (Array.isArray(payload)) return payload as ApiRecipePayload[];
+  if (Array.isArray(value.data)) return value.data as ApiRecipePayload[];
+  if (Array.isArray(value.results)) return value.results as ApiRecipePayload[];
+
+  const nestedData =
+    value.data && typeof value.data === "object"
+      ? (value.data as { data?: unknown; results?: unknown })
+      : undefined;
+  if (Array.isArray(nestedData?.results)) return nestedData.results as ApiRecipePayload[];
+  if (Array.isArray(nestedData?.data)) return nestedData.data as ApiRecipePayload[];
+  return [];
+}
+
+function mapApiRecipeDetail(item: ApiRecipePayload): RecipeDetail {
+  const nutrition =
+    item.nutrition && typeof item.nutrition === "object"
+      ? (item.nutrition as Record<string, unknown>)
+      : {};
+  const prepTime =
+    typeof item.prep_time_minutes === "string" || typeof item.prep_time_minutes === "number"
+      ? item.prep_time_minutes
+      : "";
+  const cookingTime =
+    typeof item.cooking_time_minutes === "string" || typeof item.cooking_time_minutes === "number"
+      ? item.cooking_time_minutes
+      : "";
+  const servings =
+    typeof item.servings === "string" || typeof item.servings === "number"
+      ? item.servings
+      : "";
+  const authorId =
+    typeof item.author_id === "string" || typeof item.author_id === "number"
+      ? item.author_id
+      : "";
+
   return {
     id: String(item.id ?? ""),
     slug: String(item.slug ?? ""),
@@ -130,28 +176,28 @@ function mapApiRecipeDetail(item: Record<string, any>): RecipeDetail {
     short_description: String(item.short_description ?? ""),
     category: String(item.category ?? ""),
     difficulty_level: String(item.difficulty_level ?? ""),
-    prep_time_minutes: item.prep_time_minutes ?? "",
-    cooking_time_minutes: item.cooking_time_minutes ?? "",
-    servings: item.servings ?? "",
+    prep_time_minutes: prepTime,
+    cooking_time_minutes: cookingTime,
+    servings,
     cover_image: toImageUrl(String(item.cover_image ?? "")) || "/recipe/recipe-2.webp",
     health_benefits: String(item.health_benefits ?? ""),
     buckwheat_wellness_value: String(item.buckwheat_wellness_value ?? ""),
-    is_gluten_free: Boolean(item.is_gluten_free),
-    is_high_fiber: Boolean(item.is_high_fiber),
-    is_weight_management: Boolean(item.is_weight_management),
-    is_energy_boosting: Boolean(item.is_energy_boosting),
+    calories: String(item.calories ?? nutrition.calories ?? ""),
+    fat: String(item.fat ?? nutrition.fat ?? ""),
+    carbs: String(item.carbs ?? nutrition.carbs ?? ""),
+    protein: String(item.protein ?? nutrition.protein ?? ""),
     is_featured: Boolean(item.is_featured),
     show_in_community: Boolean(item.show_in_community),
     status: String(item.status ?? ""),
     published_at: String(item.published_at ?? ""),
     created_at: String(item.created_at ?? ""),
     updated_at: String(item.updated_at ?? ""),
-    author_id: item.author_id ?? "",
+    author_id: authorId,
     author_name: String(item.author_name ?? "Unknown"),
     author_email: String(item.author_email ?? ""),
     author_photo: toImageUrl(String(item.author_photo ?? "")),
-    ingredients: Array.isArray(item.ingredients) ? item.ingredients : [],
-    steps: Array.isArray(item.steps) ? item.steps : [],
+    ingredients: Array.isArray(item.ingredients) ? (item.ingredients as RecipeDetail["ingredients"]) : [],
+    steps: Array.isArray(item.steps) ? (item.steps as RecipeDetail["steps"]) : [],
   };
 }
 
@@ -234,6 +280,15 @@ function RecipeDetailModal({
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-lg border border-[#E5E7EB] bg-[#FCFCFD] p-4 sm:col-span-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#98A2B3]">Nutrition Facts</p>
+                <div className="mt-2 grid gap-2 text-sm text-[#0A4833] sm:grid-cols-4">
+                  <span>Calories: {recipe.calories || "—"}</span>
+                  <span>Fat: {recipe.fat || "—"}</span>
+                  <span>Carbs: {recipe.carbs || "—"}</span>
+                  <span>Protein: {recipe.protein || "—"}</span>
+                </div>
+              </div>
+              <div className="rounded-lg border border-[#E5E7EB] bg-[#FCFCFD] p-4 sm:col-span-2">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#98A2B3]">Short Description</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-[#0A4833]">{recipe.short_description || "—"}</p>
               </div>
@@ -244,18 +299,6 @@ function RecipeDetailModal({
               <div className="rounded-lg border border-[#E5E7EB] bg-[#FCFCFD] p-4">
                 <p className="text-xs font-medium uppercase tracking-wide text-[#98A2B3]">Buckwheat Wellness Value</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-[#0A4833]">{recipe.buckwheat_wellness_value || "—"}</p>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-[#E5E7EB] bg-[#FCFCFD] p-4">
-              <p className="text-xs font-medium uppercase tracking-wide text-[#98A2B3]">Dietary Flags</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-xs">
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">Gluten Free: {recipe.is_gluten_free ? "Yes" : "No"}</span>
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">High Fiber: {recipe.is_high_fiber ? "Yes" : "No"}</span>
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">Weight Management: {recipe.is_weight_management ? "Yes" : "No"}</span>
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">Energy Boosting: {recipe.is_energy_boosting ? "Yes" : "No"}</span>
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">Featured: {recipe.is_featured ? "Yes" : "No"}</span>
-                <span className="rounded-full bg-[#F3F4F6] px-3 py-1 text-[#475467]">Show in Community: {recipe.show_in_community ? "Yes" : "No"}</span>
               </div>
             </div>
 
@@ -428,15 +471,14 @@ export default function RecipesDashboard() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const res = await api.get("/recipes/");
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const raw: Record<string, any>[] = Array.isArray(res.data)
-          ? res.data
-          : Array.isArray(res.data?.data)
-            ? res.data.data
-            : Array.isArray(res.data?.results)
-              ? res.data.results
-              : [];
+        let raw: ApiRecipePayload[] = [];
+        try {
+          const adminRes = await api.get("/recipes/admin/");
+          raw = getRecipeArray(adminRes.data);
+        } catch {
+          const fallbackRes = await api.get("/recipes/");
+          raw = getRecipeArray(fallbackRes.data);
+        }
         setRows(raw.map(mapApiRecipe));
       } catch {
         setFetchError("Failed to load recipes");

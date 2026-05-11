@@ -13,6 +13,7 @@ export type Recipe = {
   image: string;
   categories: string[];
   nutrition?: RecipeNutrition;
+  videoUrl?: string | null;
   ingredients?: string[];
   optional?: string[];
   steps?: string[];

@@ -16,6 +16,7 @@ import {
   Plus,
   Search,
   Star,
+  PlayCircle,
 } from "lucide-react";
 
 type ApiRecipe = {
@@ -28,6 +29,7 @@ type ApiRecipe = {
   prep_time_minutes: number | null;
   created_at: string;
   category?: string;
+  video_url?: string | null;
 };
 
 type RecipesResponse = ApiRecipe[] | {
@@ -260,6 +262,17 @@ export default function MyRecipy() {
                       unoptimized
                       className="object-cover"
                     />
+                    {recipe.video_url ? (
+                      <a
+                        href={recipe.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Watch video for ${recipe.title}`}
+                        className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0A4833] text-white shadow-lg transition hover:bg-[#083B2A]"
+                      >
+                        <PlayCircle className="h-5 w-5" />
+                      </a>
+                    ) : null}
                   </div>
 
                   {/* Changed: Removed h-full to stop the forced expansion */}
