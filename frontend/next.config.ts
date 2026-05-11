@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
+if (!process.env.NEXT_PUBLIC_API_URL) {
+  throw new Error(
+    "NEXT_PUBLIC_API_URL is required. Add it to your .env.local file.\n" +
+    "Example: NEXT_PUBLIC_API_URL=http://localhost:8000/api"
+  );
+}
+
 const nextConfig: NextConfig = {
-  // Enable standalone output for Docker deployment
   output: "standalone",
   images: {
     remotePatterns: [
