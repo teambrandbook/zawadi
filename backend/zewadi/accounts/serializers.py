@@ -107,78 +107,80 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         import random
+        from django.db import transaction
 
-        # Auto-generate missing full_name and user_name from email prefix
-        email = validated_data.get("email", "")
-        email_prefix = email.split("@")[0]
+        with transaction.atomic():
+            # Auto-generate missing full_name and user_name from email prefix
+            email = validated_data.get("email", "")
+            email_prefix = email.split("@")[0]
 
-        if not validated_data.get("full_name", "").strip():
-            validated_data["full_name"] = email_prefix
+            if not validated_data.get("full_name", "").strip():
+                validated_data["full_name"] = email_prefix
 
-        if not validated_data.get("user_name", "").strip():
-            suffix = random.randint(1000, 9999)
-            validated_data["user_name"] = f"{email_prefix[:15]}_{suffix}"
+            if not validated_data.get("user_name", "").strip():
+                suffix = random.randint(1000, 9999)
+                validated_data["user_name"] = f"{email_prefix[:15]}_{suffix}"
 
-        # 🔹 Extract password
-        password = validated_data.get("password")
+            # 🔹 Extract password
+            password = validated_data.get("password")
 
-        # 🔹 Create User (ONLY pass required fields)
-        user = User.objects.create_user(
-            email=validated_data.get("email"),
-            password=password,
-            full_name=validated_data.get("full_name"),
-            user_name=validated_data.get("user_name"),
-            phone=validated_data.get("phone"),
-            date_of_birth=validated_data.get("date_of_birth"),
-            gender=validated_data.get("gender"),
-            location=validated_data.get("location"),
-            photo=validated_data.get("photo"),
-            role=validated_data.get("role"),
-            role_obj=validated_data.get("role_obj"),
-        )
-
-        # 🔹 COMMUNITY USER
-        if user.role == "COMMUNITY_USER":
-            c_user = CommunityUser.objects.create(
-                user=user,
-                user_type=validated_data.get("user_type", UserType.GUEST),
-                wellness_interests=validated_data.get("wellness_interests", ""),
-                diet_preference=validated_data.get("diet_preference", ""),
-                preferred_communication=validated_data.get("preferred_communication", "email"),
-                notification_preferences=validated_data.get("notification_preferences", "all"),
-                activate_immediately=validated_data.get("activate_immediately", False),
-                send_welcome_email=validated_data.get("send_welcome_email", True),
-                send_password_setup=validated_data.get("send_password_setup", False),
-                allow_notifications=validated_data.get("allow_notifications", True),
+            # 🔹 Create User (ONLY pass required fields)
+            user = User.objects.create_user(
+                email=validated_data.get("email"),
+                password=password,
+                full_name=validated_data.get("full_name"),
+                user_name=validated_data.get("user_name"),
+                phone=validated_data.get("phone"),
+                date_of_birth=validated_data.get("date_of_birth"),
+                gender=validated_data.get("gender"),
+                location=validated_data.get("location"),
+                photo=validated_data.get("photo"),
+                role=validated_data.get("role"),
+                role_obj=validated_data.get("role_obj"),
             )
 
-            # Address
-            if validated_data.get("address_line"):
-                CommunityUserAddress.objects.create(
-                    user=c_user,
-                    address_line=validated_data.get("address_line"),
-                    city=validated_data.get("city"),
-                    state=validated_data.get("state"),
-                    country=validated_data.get("country"),
-                    postal_code=validated_data.get("postal_code"),
+            # 🔹 COMMUNITY USER
+            if user.role == "COMMUNITY_USER":
+                c_user = CommunityUser.objects.create(
+                    user=user,
+                    user_type=validated_data.get("user_type", UserType.GUEST),
+                    wellness_interests=validated_data.get("wellness_interests", ""),
+                    diet_preference=validated_data.get("diet_preference", ""),
+                    preferred_communication=validated_data.get("preferred_communication", "email"),
+                    notification_preferences=validated_data.get("notification_preferences", "all"),
+                    activate_immediately=validated_data.get("activate_immediately", False),
+                    send_welcome_email=validated_data.get("send_welcome_email", True),
+                    send_password_setup=validated_data.get("send_password_setup", False),
+                    allow_notifications=validated_data.get("allow_notifications", True),
                 )
 
-        # 🔹 CONSULTANT
-        elif user.role == "CONSULTANT":
-            Consultant.objects.create(
-                user=user,
-                years_of_experience=validated_data.get("years_of_experience"),
-                qualification=validated_data.get("qualification"),
-                certifications=validated_data.get("certifications"),
-                short_bio=validated_data.get("short_bio"),
-                languages_spoken=validated_data.get("languages_spoken"),
-                experience_areas=validated_data.get("experience_areas"),
-                session_type=validated_data.get("session_type"),
-                consultation_fee=validated_data.get("consultation_fee"),
-                session_duration=validated_data.get("session_duration"),
-            )
+                # Address
+                if validated_data.get("address_line"):
+                    CommunityUserAddress.objects.create(
+                        user=c_user,
+                        address_line=validated_data.get("address_line"),
+                        city=validated_data.get("city"),
+                        state=validated_data.get("state"),
+                        country=validated_data.get("country"),
+                        postal_code=validated_data.get("postal_code"),
+                    )
 
-        return user
+            # 🔹 CONSULTANT
+            elif user.role == "CONSULTANT":
+                Consultant.objects.create(
+                    user=user,
+                    years_of_experience=validated_data.get("years_of_experience"),
+                    qualification=validated_data.get("qualification"),
+                    certifications=validated_data.get("certifications"),
+                    short_bio=validated_data.get("short_bio"),
+                    languages_spoken=validated_data.get("languages_spoken"),
+                    experience_areas=validated_data.get("experience_areas"),
+                    session_type=validated_data.get("session_type"),
+                    consultation_fee=validated_data.get("consultation_fee"),
+                    session_duration=validated_data.get("session_duration"),
+                )
+
+            return user
 
 
 class LoginSerializer(serializers.Serializer):
