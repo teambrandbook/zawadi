@@ -107,7 +107,7 @@ export default function OrderPlaced() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-sm text-[#6b7280]">Order not found.</p>
         <Link
-          href="/shop"
+          href="/products"
           className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white"
         >
           Back to Shop
@@ -163,7 +163,7 @@ export default function OrderPlaced() {
         </div>
 
         <Link
-          href="/trackorder"
+          href={`/trackorder?highlight=${order.order_id}`}
           className="mt-8 inline-flex h-[60px] w-full max-w-[280px] items-center justify-center gap-2 rounded-2xl bg-[#b47800] px-6 text-base font-bold leading-6 text-white transition hover:bg-[#9c6900] active:scale-[0.99]"
         >
           Track Order
