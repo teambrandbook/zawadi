@@ -361,6 +361,7 @@ class MeAPIView(APIView):
             user.photo = request.FILES["photo"]
             changed.append("photo")
         if changed:
+            changed.append("updated_at")
             user.save(update_fields=changed)
 
         serializer = MeSerializer(user, context={"request": request})

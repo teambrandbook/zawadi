@@ -76,12 +76,21 @@ class Order(models.Model):
         if not self.order_id:
             with transaction.atomic():
                 year = timezone.now().year
-                count = (
+                last = (
                     Order.objects.select_for_update()
                     .filter(order_id__startswith=f"ZW-{year}-")
-                    .count()
+                    .order_by("-order_id")
+                    .first()
                 )
-                self.order_id = f"ZW-{year}-{str(count + 1).zfill(3)}"
+                if last:
+                    try:
+                        last_num = int(last.order_id.split("-")[-1])
+                        num = last_num + 1
+                    except (ValueError, IndexError):
+                        raise ValueError(f"Cannot parse order_id '{last.order_id}' — suffix must be numeric.")
+                else:
+                    num = 1
+                self.order_id = f"ZW-{year}-{str(num).zfill(3)}"
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)

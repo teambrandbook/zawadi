@@ -54,9 +54,14 @@ export default function CheckoutPage() {
         }
         setSummary(s);
       })
-      .catch(() => {
-        toast.error("Could not load cart.");
-        router.replace("/cart");
+      .catch((err: unknown) => {
+        const status = (err as { response?: { status?: number } }).response?.status;
+        if (status === 401 || status === 403) {
+          router.replace("/login?next=/checkout");
+        } else {
+          toast.error("Could not load cart.");
+          router.replace("/cart");
+        }
       })
       .finally(() => setLoadingCart(false));
   }, [router]);
