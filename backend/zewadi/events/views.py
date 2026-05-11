@@ -173,6 +173,14 @@ class EventRegistrationAPIView(APIView):
         return get_object_or_404(Event, pk=pk)
 
     def post(self, request, pk):
+
+        # Allow only COMMUNITY_USER
+        if request.user.role != "COMMUNITY_USER":
+            return Response(
+                {"detail": "Only community users can register for events."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         event = self._get_event(pk)
 
         if event.status != Event.EventStatus.PUBLISHED:
@@ -192,6 +200,7 @@ class EventRegistrationAPIView(APIView):
             confirmed_count = event.registrations.exclude(
                 status=EventRegistration.RegistrationStatus.CANCELLED
             ).count()
+
             if confirmed_count >= event.max_attendees:
                 return Response(
                     {"detail": "This event has reached its maximum capacity."},
@@ -203,12 +212,29 @@ class EventRegistrationAPIView(APIView):
             user=request.user,
             status=EventRegistration.RegistrationStatus.CONFIRMED,
         )
-        serializer = EventRegistrationSerializer(registration, context={"request": request})
+
+        serializer = EventRegistrationSerializer(
+            registration,
+            context={"request": request}
+        )
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
+
+        # Allow only COMMUNITY_USER
+        if request.user.role != "COMMUNITY_USER":
+            return Response(
+                {"detail": "Only community users can cancel registrations."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         event = self._get_event(pk)
-        registration = EventRegistration.objects.filter(event=event, user=request.user).first()
+
+        registration = EventRegistration.objects.filter(
+            event=event,
+            user=request.user
+        ).first()
 
         if not registration:
             return Response(
@@ -218,12 +244,11 @@ class EventRegistrationAPIView(APIView):
 
         registration.status = EventRegistration.RegistrationStatus.CANCELLED
         registration.save()
+
         return Response(
             {"detail": "Your registration has been cancelled."},
             status=status.HTTP_200_OK,
         )
-
-
 class MyEventRegistrationsAPIView(APIView):
     """
     GET /api/events/my-registrations/  — Returns all registrations for the authenticated user.

@@ -67,7 +67,7 @@ export default function TrackOrder() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-lg font-semibold text-[#0A4833]">No orders yet</p>
-        <Link href="/shop" className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white">
+        <Link href="/products" className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white">
           Shop Now
         </Link>
       </div>

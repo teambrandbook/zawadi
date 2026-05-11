@@ -49,8 +49,15 @@ export default function LoginComponent() {
         router.push("/admindashboard");
       } else if (role === "consultant") {
         router.push("/consultant");
-      } else if (role === "community_user" && userType === "guest") {
-        router.push("/shop");
+      } else if (role === "community_user") {
+        if (loginType === "member" && userType === "guest") {
+          toast.error("You are currently a Guest. Please upgrade to Member from your profile to access the dashboard.");
+          router.push("/guestprofile");
+        } else if (loginType === "guest") {
+          router.push("/guestprofile");
+        } else {
+          router.push("/communityDashBorde");
+        }
       } else {
         router.push("/communityDashBorde");
       }

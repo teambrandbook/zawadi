@@ -156,7 +156,7 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
     return (v: string) => onChange({ ...formData, [field]: v });
   }
 
-  function setBoolean(field: "is_online" | "show_in_community" | "enable_registration" | "waitlist_enabled" | "approval_required") {
+  function setBoolean(field: "is_online" | "show_in_community") {
     return (checked: boolean) => onChange({ ...formData, [field]: checked });
   }
 
@@ -236,20 +236,20 @@ export default function CreateEventFormSections({ formData, onChange }: Props) {
           <TimeInput label="End Time" value={formData.end_time} onValueChange={set("end_time")} />
           <SelectInput label="Timezone" value={formData.timezone} options={timezones} onValueChange={set("timezone")} />
           <DateInput label="Registration Deadline" value={formData.end_date} onValueChange={set("end_date")} />
-          <div className="flex items-center pt-7">
+          {/* <div className="flex items-center pt-7">
             <CheckboxInput label="Repeat Event" checked={formData.show_in_community} onCheckedChange={setBoolean("show_in_community")} />
-          </div>
+          </div> */}
         </div>
       </Section>
 
       <Section title="Registration Settings">
         <div className="mt-5 grid gap-x-5 gap-y-4 md:grid-cols-2">
           <TextInput label="Maximum Attendees" value={formData.max_attendees} onValueChange={set("max_attendees")} />
-          <div className="space-y-4 pt-0 md:pt-1">
+          {/* <div className="space-y-4 pt-0 md:pt-1">
             <CheckboxInput label="Enable Registration" checked={formData.enable_registration} onCheckedChange={setBoolean("enable_registration")} />
             <CheckboxInput label="Enable Waitlist" checked={formData.waitlist_enabled} onCheckedChange={setBoolean("waitlist_enabled")} />
             <CheckboxInput label="Approval Required" checked={formData.approval_required} onCheckedChange={setBoolean("approval_required")} />
-          </div>
+          </div> */}
         </div>
       </Section>
 

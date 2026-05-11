@@ -1,9 +1,72 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CompactEventCard, UpcomingCard } from "@/components/events/EventPrimitives";
-import { upcomingPrimary, upcomingSecondary } from "@/components/events/eventsData";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
+
+type EventListItem = {
+  id: number;
+  title: string;
+  slug: string;
+  short_description: string;
+  event_type: string;
+  event_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  is_online: boolean;
+  location: string;
+  registration_count: number;
+  status: string;
+  cover_image: string | null;
+};
+
+function toMediaUrl(value?: string | null) {
+  if (!value) return "/event/event_organic_farming.webp";
+  if (value.startsWith("http") || value.startsWith("blob:")) return value;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return `${apiBase.replace(/\/api\/?$/, "")}${value.startsWith("/") ? "" : "/"}${value}`;
+}
 
 export default function UpcomingEvents() {
+  const [events, setEvents] = useState<EventListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEvents() {
+      try {
+        const response = await api.get<EventListItem[]>("/events/");
+        const now = Date.now();
+        
+        // Filter upcoming events
+        const upcoming = response.data.filter((event) => {
+          if (!event.event_date) return false;
+          const dateTimeStr = event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date;
+          const startsAt = new Date(dateTimeStr).getTime();
+          return !Number.isNaN(startsAt) && startsAt >= now;
+        });
+        
+        // Sort by date ascending
+        upcoming.sort((a, b) => {
+          const aDate = new Date(a.start_time ? `${a.event_date}T${a.start_time}` : a.event_date!);
+          const bDate = new Date(b.start_time ? `${b.event_date}T${b.start_time}` : b.event_date!);
+          return aDate.getTime() - bDate.getTime();
+        });
+
+        setEvents(upcoming);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchEvents();
+  }, []);
+
+  const primaryEvents = events.slice(0, 2);
+  const secondaryEvents = events.slice(2, 4);
+
   return (
     <section className="px-4 py-14 sm:px-6 lg:px-0">
       <div className="mx-auto max-w-[1200px]">
@@ -32,15 +95,54 @@ export default function UpcomingEvents() {
         </div>
 
         <div className="mt-10 grid gap-6 xl:grid-cols-[1fr_1fr_424px]">
-          {upcomingPrimary.map((event) => (
-            <UpcomingCard key={event.title} {...event} />
-          ))}
-          <div className=" grid gap-6">
-            {upcomingSecondary.map((event) => (
-              <CompactEventCard key={event.title} {...event} />
-            ))}
+          {primaryEvents.map((event) => {
+            let day = "-";
+            let month = "-";
+            if (event.event_date) {
+              const dateObj = new Date(event.event_date);
+              day = dateObj.getDate().toString().padStart(2, "0");
+              month = dateObj.toLocaleString("en-US", { month: "long" });
+            }
+
+            return (
+              <UpcomingCard
+                key={event.id}
+                title={event.title}
+                date={day}
+                month={month}
+                image={toMediaUrl(event.cover_image)}
+                description={event.short_description}
+              />
+            );
+          })}
+
+          <div className="grid gap-6">
+            {secondaryEvents.map((event) => {
+              let day = "-";
+              let month = "-";
+              if (event.event_date) {
+                const dateObj = new Date(event.event_date);
+                day = dateObj.getDate().toString().padStart(2, "0");
+                month = dateObj.toLocaleString("en-US", { month: "long" });
+              }
+
+              return (
+                <CompactEventCard
+                  key={event.id}
+                  title={event.title}
+                  date={day}
+                  month={month}
+                />
+              );
+            })}
           </div>
         </div>
+        
+        {!isLoading && events.length === 0 && (
+          <div className="mt-10 py-10 text-center text-gray-500">
+            No upcoming events at the moment. Please check back later!
+          </div>
+        )}
       </div>
     </section>
   );

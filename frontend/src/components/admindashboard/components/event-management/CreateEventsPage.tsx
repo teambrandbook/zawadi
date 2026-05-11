@@ -33,9 +33,6 @@ type ApiEventDetail = {
   meeting_link?: string;
   max_attendees?: number | null;
   show_in_community?: boolean;
-  enable_registration?: boolean;
-  waitlist_enabled?: boolean;
-  approval_required?: boolean;
 };
 
 function asTime(value?: string | null) {
@@ -72,9 +69,6 @@ export default function CreateEventsPage({ eventId }: Props) {
     agenda_highlights: "",
     banner_file: null,
     banner_preview_url: "",
-    enable_registration: true,
-    waitlist_enabled: false,
-    approval_required: false,
   });
   const isEditing = Boolean(eventId);
 
@@ -110,9 +104,6 @@ export default function CreateEventsPage({ eventId }: Props) {
           agenda_highlights: event.agenda_highlights ?? "",
           banner_file: null,
           banner_preview_url: event.cover_image ?? "",
-          enable_registration: event.enable_registration ?? true,
-          waitlist_enabled: event.waitlist_enabled ?? false,
-          approval_required: event.approval_required ?? false,
         });
       } catch {
         toast.error("Failed to load event details.");
@@ -176,9 +167,6 @@ export default function CreateEventsPage({ eventId }: Props) {
         timezone: data.timezone,
         agenda_highlights: data.agenda_highlights,
         registration_deadline: registrationDeadline,
-        enable_registration: data.enable_registration,
-        waitlist_enabled: data.waitlist_enabled,
-        approval_required: data.approval_required,
         status,
         show_in_community: data.show_in_community,
       };

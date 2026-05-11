@@ -48,9 +48,6 @@ export type EventDetail = {
   location?: string;
   meeting_link?: string;
   max_attendees?: number | null;
-  enable_registration?: boolean;
-  waitlist_enabled?: boolean;
-  approval_required?: boolean;
   event_tags?: string[];
   is_free?: boolean;
   ticket_price?: string | null;
@@ -84,7 +81,4 @@ export type CreateEventFormData = {
   agenda_highlights: string;
   banner_file: File | null;
   banner_preview_url: string;
-  enable_registration: boolean;
-  waitlist_enabled: boolean;
-  approval_required: boolean;
 };

@@ -100,7 +100,7 @@ function BrowserAuthGuard({
         if (!allowed.has(role)) {
           const home =
             role === "community_user" && userType === "guest"
-              ? "/shop"
+              ? "/guestprofile"
               : roleHome[role];
           router.replace(home);
           return;
@@ -109,7 +109,7 @@ function BrowserAuthGuard({
         // Role is allowed — now check userType restriction if provided
         if (allowedUserTypes && allowedUserTypes.length > 0) {
           if (!userType || !allowedUserTypes.includes(userType)) {
-            router.replace("/shop");
+            router.replace("/guestprofile");
             return;
           }
         }

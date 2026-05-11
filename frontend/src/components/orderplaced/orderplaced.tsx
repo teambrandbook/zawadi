@@ -107,7 +107,7 @@ export default function OrderPlaced() {
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-sm text-[#6b7280]">Order not found.</p>
         <Link
-          href="/shop"
+          href="/products"
           className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white"
         >
           Back to Shop
