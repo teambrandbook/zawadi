@@ -6,6 +6,7 @@ from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import Consultant
 from zewadi.validators import validate_image_upload
 from supperadmin.models import Role
+from django.db import transaction
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -107,7 +108,6 @@ class RegisterSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         import random
-        from django.db import transaction
 
         with transaction.atomic():
             # Auto-generate missing full_name and user_name from email prefix
