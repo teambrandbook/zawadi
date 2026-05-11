@@ -41,7 +41,7 @@ export default function AuthGuard({
   children: React.ReactNode;
 }) {
   if (typeof window === "undefined") {
-    return <>{children}</>;
+    return null;
   }
   return (
     <BrowserAuthGuard allowedRoles={allowedRoles} allowedUserTypes={allowedUserTypes}>
