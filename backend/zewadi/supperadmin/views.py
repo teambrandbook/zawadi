@@ -36,7 +36,7 @@ class AdminReportsAPIView(APIView):
 
         def revenue_trend():
             qs = (
-                Order.objects.filter(payment_status="paid", created_at__gte=six_months_ago)
+                Order.objects.filter(status__in=["confirmed", "processing", "shipped", "delivered"], created_at__gte=six_months_ago)
                 .annotate(month=TruncMonth("created_at"))
                 .values("month")
                 .annotate(value=Sum("total_amount"))
@@ -88,7 +88,9 @@ class AdminReportsAPIView(APIView):
         def report_rows():
             orders_count = Order.objects.count()
             total_rev = float(
-                Order.objects.filter(payment_status="paid").aggregate(t=Sum("total_amount"))["t"] or 0
+                Order.objects.filter(
+                    status__in=["confirmed", "processing", "shipped", "delivered"]
+                ).aggregate(t=Sum("total_amount"))["t"] or 0
             )
             date_str = now.strftime("%b %d, %Y")
             return [
@@ -136,7 +138,11 @@ class AdminStatsAPIView(APIView):
         total_events = safe_query(lambda: Event.objects.count())
         total_consultations = safe_query(lambda: ConsultationBooking.objects.count())
         total_revenue = safe_query(
-            lambda: sum(o.total_amount for o in Order.objects.filter(payment_status="paid")) or 0
+            lambda: float(
+                Order.objects.filter(
+                    status__in=["confirmed", "processing", "shipped", "delivered"]
+                ).aggregate(t=Sum("total_amount"))["t"] or 0
+            )
         )
 
         return Response({
