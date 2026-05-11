@@ -49,6 +49,8 @@ export default function LoginComponent() {
         router.push("/admindashboard");
       } else if (role === "consultant") {
         router.push("/consultant");
+      } else if (role === "community_user" && userType === "guest") {
+        router.push("/products");
       } else {
         router.push("/communityDashBorde");
       }

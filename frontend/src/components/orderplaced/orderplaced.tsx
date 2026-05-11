@@ -176,7 +176,7 @@ export default function OrderPlaced() {
         </div>
 
         <Link
-          href="/trackorder"
+          href={`/trackorder?highlight=${order.order_id}`}
           className="mt-8 inline-flex h-[60px] w-full max-w-[280px] items-center justify-center gap-2 rounded-2xl bg-[#b47800] px-6 text-base font-bold leading-6 text-white transition hover:bg-[#9c6900] active:scale-[0.99]"
         >
           Track Order

@@ -59,18 +59,14 @@ export const logoutUser = createAsyncThunk("user/logout", async () => {
   await api.post("/account/logout/");
 });
 
-export const fetchCartCount = createAsyncThunk(
-  "user/fetchCartCount",
-  async (_, { rejectWithValue }) => {
-    try {
-      const res = await api.get("/orders/cart/");
-      return Number(res.data?.summary?.item_count ?? 0);
-    } catch (err: unknown) {
-      const error = err as { response?: { data?: unknown } };
-      return rejectWithValue(error.response?.data ?? "Failed to load cart count");
-    }
+export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () => {
+  try {
+    const res = await api.get<{ summary: { item_count: number } }>("/orders/cart/");
+    return Number(res.data.summary?.item_count ?? 0);
+  } catch {
+    return 0;
   }
-);
+});
 
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
@@ -161,6 +157,11 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) ?? "Registration failed";
       });
+
+    // fetchCartCount
+    builder.addCase(fetchCartCount.fulfilled, (state, action) => {
+      state.cartCount = action.payload;
+    });
   },
 });
 

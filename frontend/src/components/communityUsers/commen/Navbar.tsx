@@ -6,6 +6,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { fetchCartCount } from "@/redux/userSlice";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -147,9 +150,10 @@ function getUserFromTokenCookie(): UserInfo {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [cartCount, setCartCount] = useState(0);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
+  const dispatch = useDispatch<AppDispatch>();
+  const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
 
   useEffect(() => {
@@ -203,19 +207,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       .catch(() => {
         // not critical — leave at 0
       });
-    api.get<{ summary: { item_count: number } }>("/orders/cart/")
-      .then(({ data }) => {
-        if (isMounted) {
-          setCartCount(data.summary?.item_count ?? 0);
-        }
-      })
-      .catch(() => {
-        // not critical — leave at 0
-      });
+    dispatch(fetchCartCount());
     return () => {
       isMounted = false;
     };
-  }, [pathname, isCommunityUser]);
+  }, [pathname, isCommunityUser, dispatch]);
 
   const handleLogout = async () => {
     try {

@@ -1,5 +1,5 @@
 import uuid
-from django.db import models
+from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
 from supperadmin.models import Role
@@ -77,10 +77,21 @@ class User(AbstractUser):
 
     def save(self, *args, **kwargs):
         if not self.user_id:
-            last = User.objects.filter(user_id__startswith="Z").order_by('-id').first()
-            num = int(last.user_id[1:]) + 1 if last else 1
-            self.user_id = f"Z{num:04d}"
-        super().save(*args, **kwargs)
+            with transaction.atomic():
+                last = (
+                    User.objects.select_for_update()
+                    .filter(user_id__startswith="Z")
+                    .order_by("-user_id")
+                    .first()
+                )
+                try:
+                    num = int(last.user_id[1:]) + 1 if last else 1
+                except (ValueError, TypeError):
+                    raise ValueError(f"Cannot parse user_id '{last.user_id}' — suffix must be numeric.")
+                self.user_id = f"Z{num:04d}"
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.email} ({self.role})"
