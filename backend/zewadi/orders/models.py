@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -74,12 +74,17 @@ class Order(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.order_id:
-            year = timezone.now().year
-            count = Order.objects.filter(
-                order_id__startswith=f"ZW-{year}-"
-            ).count()
-            self.order_id = f"ZW-{year}-{str(count + 1).zfill(3)}"
-        super().save(*args, **kwargs)
+            with transaction.atomic():
+                year = timezone.now().year
+                count = (
+                    Order.objects.select_for_update()
+                    .filter(order_id__startswith=f"ZW-{year}-")
+                    .count()
+                )
+                self.order_id = f"ZW-{year}-{str(count + 1).zfill(3)}"
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.order_id} — {self.user}"
