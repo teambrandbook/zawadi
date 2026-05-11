@@ -1,6 +1,7 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from django.db import OperationalError, ProgrammingError
 from django.db.models import Sum, Count
 from django.db.models.functions import TruncMonth, TruncWeek
@@ -149,6 +150,7 @@ class AdminStatsAPIView(APIView):
 
 
 class UserListAPIView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         user = request.user
@@ -180,6 +182,7 @@ class UserDetailAPIView(APIView):
     """GET /supperadmin/users/{id}/ — single user detail
     PATCH /supperadmin/users/{id}/ — partial update (admin only)
     """
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, user_id):
         try:
