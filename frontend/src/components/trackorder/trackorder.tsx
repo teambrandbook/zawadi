@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
 
@@ -38,6 +39,10 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default function TrackOrder() {
+  const searchParams = useSearchParams();
+  const highlight = searchParams.get("highlight");
+  const highlightRef = useRef<HTMLDivElement>(null);
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +60,12 @@ export default function TrackOrder() {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (!loading && highlight && highlightRef.current) {
+      highlightRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [loading, highlight]);
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
@@ -67,7 +78,7 @@ export default function TrackOrder() {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
         <p className="text-lg font-semibold text-[#0A4833]">No orders yet</p>
-        <Link href="/shop" className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white">
+        <Link href="/products" className="rounded-lg bg-[#0a4833] px-6 py-2 text-sm text-white">
           Shop Now
         </Link>
       </div>
@@ -78,49 +89,62 @@ export default function TrackOrder() {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold text-[#0a4833]">My Orders</h1>
       <div className="space-y-4">
-        {orders.map((order) => (
-          <div
-            key={order.order_id}
-            className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
-          >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-sm font-semibold text-[#111827]">{order.product_name}</p>
-                <p className="text-xs text-[#6b7280]">
-                  {order.pack_name} · Qty {order.quantity}
+        {orders.map((order) => {
+          const isHighlighted = order.order_id === highlight;
+          return (
+            <div
+              key={order.order_id}
+              ref={isHighlighted ? highlightRef : undefined}
+              className={`rounded-xl border bg-white p-4 shadow-sm transition-all ${
+                isHighlighted
+                  ? "border-[#1f4d3a] ring-2 ring-[#1f4d3a]/30"
+                  : "border-gray-200"
+              }`}
+            >
+              {isHighlighted && (
+                <p className="mb-2 text-xs font-semibold text-[#1f4d3a]">
+                  ✓ Just placed
                 </p>
-                <p className="mt-1 text-xs text-[#6b7280]">
-                  {new Date(order.created_at).toLocaleDateString("en-IN", {
-                    day: "numeric",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
+              )}
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-[#111827]">{order.product_name}</p>
+                  <p className="text-xs text-[#6b7280]">
+                    {order.pack_name} · Qty {order.quantity}
+                  </p>
+                  <p className="mt-1 text-xs text-[#6b7280]">
+                    {new Date(order.created_at).toLocaleDateString("en-IN", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-[#0a4833]">₹{order.total_amount}</p>
+                  <StatusBadge status={order.status} />
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-[#0a4833]">₹{order.total_amount}</p>
-                <StatusBadge status={order.status} />
+              <div className="mt-4 flex items-center gap-1">
+                {STATUS_STEPS.map((step, i) => {
+                  const currentIndex = STATUS_STEPS.indexOf(order.status);
+                  const done = i <= currentIndex && order.status !== "cancelled";
+                  return (
+                    <div key={step} className="flex flex-1 flex-col items-center">
+                      <div
+                        className={`h-2 w-full rounded-full ${done ? "bg-[#0a4833]" : "bg-gray-200"}`}
+                      />
+                      <span className="mt-1 text-[8px] capitalize text-[#9ca3af]">{step}</span>
+                    </div>
+                  );
+                })}
               </div>
+              <p className="mt-3 text-right text-xs font-semibold uppercase text-[#6b7280]">
+                Order # {order.order_id}
+              </p>
             </div>
-            <div className="mt-4 flex items-center gap-1">
-              {STATUS_STEPS.map((step, i) => {
-                const currentIndex = STATUS_STEPS.indexOf(order.status);
-                const done = i <= currentIndex && order.status !== "cancelled";
-                return (
-                  <div key={step} className="flex flex-1 flex-col items-center">
-                    <div
-                      className={`h-2 w-full rounded-full ${done ? "bg-[#0a4833]" : "bg-gray-200"}`}
-                    />
-                    <span className="mt-1 text-[8px] capitalize text-[#9ca3af]">{step}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-right text-xs font-semibold uppercase text-[#6b7280]">
-              Order # {order.order_id}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

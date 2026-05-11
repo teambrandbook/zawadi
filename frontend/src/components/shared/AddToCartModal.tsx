@@ -60,7 +60,8 @@ export default function AddToCartModal({
       return;
     }
     try {
-      const emailPrefix = trimmedEmail.split("@")[0];
+      const rawPrefix = trimmedEmail.split("@")[0];
+      const emailPrefix = rawPrefix.replace(/[^a-zA-Z0-9\s]/g, "").trim() || "User";
       const suffix = Math.floor(1000 + Math.random() * 9000);
 
       // 1. Register
@@ -246,7 +247,7 @@ export default function AddToCartModal({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
             />
           </div>
           <div>
@@ -259,7 +260,7 @@ export default function AddToCartModal({
               onChange={(e) => setPassword(e.target.value)}
               minLength={8}
               placeholder="••••••••"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
+              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30"
             />
           </div>
 

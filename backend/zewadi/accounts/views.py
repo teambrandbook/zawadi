@@ -1,3 +1,4 @@
+import os
 import requests
 from urllib.parse import urlencode
 
@@ -73,11 +74,12 @@ def get_or_create_google_user(email, name):
 
 
 def set_auth_cookies(response, refresh, access):
+    secure = os.getenv("DJANGO_SECURE_COOKIES", "False") == "True"
     response.set_cookie(
         key="refresh_token",
         value=str(refresh),
         httponly=True,
-        secure=False,
+        secure=secure,
         samesite="Lax",
         max_age=7 * 24 * 60 * 60,
     )
@@ -85,7 +87,7 @@ def set_auth_cookies(response, refresh, access):
         key="access_token",
         value=access,
         httponly=False,
-        secure=False,
+        secure=secure,
         samesite="Lax",
         max_age=30 * 60,
     )
@@ -331,16 +333,37 @@ class MeAPIView(APIView):
 
     def patch(self, request):
         user = request.user
-        changed = []
-        for field in ("full_name", "phone"):
-            if field in request.data:
-                setattr(user, field, request.data[field])
-                changed.append(field)
+        errors = {}
+
+        full_name = request.data.get("full_name")
+        if full_name is not None:
+            full_name = str(full_name).strip()
+            if len(full_name) == 0:
+                errors["full_name"] = "Full name cannot be blank."
+            elif len(full_name) > 120:
+                errors["full_name"] = "Full name must be 120 characters or fewer."
+            else:
+                user.full_name = full_name
+
+        phone = request.data.get("phone")
+        if phone is not None:
+            phone = str(phone).strip()
+            if len(phone) > 20:
+                errors["phone"] = "Phone must be 20 characters or fewer."
+            else:
+                user.phone = phone
+
+        if errors:
+            return Response(errors, status=status.HTTP_400_BAD_REQUEST)
+
+        changed = [f for f in ("full_name", "phone") if f in request.data]
         if "photo" in request.FILES:
             user.photo = request.FILES["photo"]
             changed.append("photo")
         if changed:
+            changed.append("updated_at")
             user.save(update_fields=changed)
+
         serializer = MeSerializer(user, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 

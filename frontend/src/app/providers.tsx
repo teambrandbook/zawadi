@@ -3,6 +3,49 @@
 import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import { Toaster } from "sonner";
+import { useEffect } from "react";
+import api from "@/services/api";
+import { getAccessToken } from "@/services/api";
+import { setCredentials, fetchCartCount } from "@/redux/userSlice";
+import { useDispatch } from "react-redux";
+import type { AppDispatch } from "@/redux/store";
+
+// Restores auth state from cookies on every page load.
+// AuthGuard only runs on protected pages — this covers public pages like /products.
+function AuthRehydrator() {
+  const dispatch = useDispatch<AppDispatch>();
+
+  useEffect(() => {
+    if (!getAccessToken()) return;
+
+    api
+      .get<{
+        user_id?: string;
+        email?: string;
+        role?: string;
+        full_name?: string;
+        user_type?: string;
+      }>("/account/me/")
+      .then(({ data }) => {
+        dispatch(
+          setCredentials({
+            userId: data.user_id,
+            role: data.role,
+            email: data.email,
+            fullName: data.full_name,
+            userType: (data.user_type as "guest" | "member") ?? null,
+          })
+        );
+        dispatch(fetchCartCount());
+      })
+      .catch(() => {
+        // Cookie expired or invalid — stay logged out, no action needed
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return null;
+}
 
 export default function Providers({
   children,
@@ -11,8 +54,9 @@ export default function Providers({
 }) {
   return (
     <Provider store={store}>
+      <AuthRehydrator />
       {children}
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position="bottom-right" richColors closeButton />
     </Provider>
   );
 }

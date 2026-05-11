@@ -9,6 +9,7 @@ export interface UserState {
   email: string | null;
   fullName: string | null;
   userType: "guest" | "member" | null;
+  cartCount: number;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
@@ -20,6 +21,7 @@ const initialState: UserState = {
   email: null,
   fullName: null,
   userType: null,
+  cartCount: 0,
   isAuthenticated: false,
   loading: false,
   error: null,
@@ -57,6 +59,15 @@ export const logoutUser = createAsyncThunk("user/logout", async () => {
   await api.post("/account/logout/");
 });
 
+export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () => {
+  try {
+    const res = await api.get<{ summary: { item_count: number } }>("/orders/cart/");
+    return res.data.summary?.item_count ?? 0;
+  } catch {
+    return 0;
+  }
+});
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const userSlice = createSlice({
@@ -88,8 +99,12 @@ const userSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userType = null;
+      state.cartCount = 0;
       state.isAuthenticated = false;
       state.error = null;
+    },
+    setCartCount(state, action: PayloadAction<number>) {
+      state.cartCount = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -121,6 +136,7 @@ const userSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userType = null;
+      state.cartCount = 0;
       state.isAuthenticated = false;
     });
 
@@ -137,8 +153,13 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) ?? "Registration failed";
       });
+
+    // fetchCartCount
+    builder.addCase(fetchCartCount.fulfilled, (state, action) => {
+      state.cartCount = action.payload;
+    });
   },
 });
 
-export const { setCredentials, clearCredentials } = userSlice.actions;
+export const { setCredentials, clearCredentials, setCartCount } = userSlice.actions;
 export default userSlice.reducer;
