@@ -267,7 +267,7 @@ export default function AddNewRecipy() {
       });
       localStorage.removeItem(DRAFT_KEY);
       setMessage("Recipe submitted successfully.");
-      router.push("/communityDashBorde/myrecipy");
+      router.push("/communityDashBoard/myrecipy");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const detail = Object.entries(data ?? {})
@@ -316,7 +316,7 @@ export default function AddNewRecipy() {
               isSubmitting={isSubmitting}
               onSaveDraft={saveDraft}
               onSubmit={submitRecipe}
-              onCancel={() => router.push("/communityDashBorde/myrecipy")}
+              onCancel={() => router.push("/communityDashBoard/myrecipy")}
             />
           </div>
 

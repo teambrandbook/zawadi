@@ -180,7 +180,7 @@ export default function CommunityProductsPage() {
         variant_id: product.variants?.[0]?.id,
         quantity: 1,
       });
-      router.push("/communityDashBorde/cart");
+      router.push("/communityDashBoard/cart");
     } catch {
       setStatusMessage("Unable to add this product to your cart.");
     } finally {
@@ -189,7 +189,7 @@ export default function CommunityProductsPage() {
   }
 
   function goToCheckout(productId: number) {
-    router.push(`/communityDashBorde/myorders/order?productId=${productId}&quantity=1`);
+    router.push(`/communityDashBoard/myorders/order?productId=${productId}&quantity=1`);
   }
 
   return (

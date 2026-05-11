@@ -144,7 +144,7 @@ function getUserFromTokenCookie(): UserInfo {
   return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
@@ -278,7 +278,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
         {/* Notification Icon */}
         <Link
-          href="/communityDashBorde/notifications"
+          href="/communityDashBoard/notifications"
           className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open notifications"
         >
@@ -291,7 +291,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         </Link>
 
         <Link
-          href="/communityDashBorde/cart"
+          href="/communityDashBoard/cart"
           className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open cart"
         >

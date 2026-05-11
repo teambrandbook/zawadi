@@ -191,7 +191,7 @@ function toEventViewModel(event: ApiEventDetail, isRegistered: boolean): EventRe
       title: "Join Our Community",
       description: "Connect with fellow members and continue the discussion after the event.",
       ctaLabel: "Join Discussion",
-      ctaHref: "/communityDashBorde",
+      ctaHref: "/communityDashBoard",
     },
   };
 }

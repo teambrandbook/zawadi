@@ -424,7 +424,7 @@ export default function EventsDashboard() {
                           <span className="whitespace-nowrap text-xs text-gray-500">{formatted.full}</span>
                           <div className="flex justify-end space-x-2">
                             <Link
-                              href={`/communityDashBorde/events/${event.id}`}
+                              href={`/communityDashBoard/events/${event.id}`}
                               className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
                             >
                               View Details
@@ -496,7 +496,7 @@ export default function EventsDashboard() {
                           <p className="text-xs text-gray-500">{when.time}</p>
                         </div>
                         <Link
-                          href={`/communityDashBorde/events/${eventId}`}
+                          href={`/communityDashBoard/events/${eventId}`}
                           className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
                         >
                           <ExternalLink size={14} />

@@ -206,7 +206,7 @@ export default function CommunityCartPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => router.push("/communityDashBorde/products")}
+                  onClick={() => router.push("/communityDashBoard/products")}
                   className="mt-5 rounded-lg bg-[#0A4833] px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Continue Shopping
@@ -354,7 +354,7 @@ export default function CommunityCartPage() {
           <div className="mt-5 space-y-3">
             <button
               type="button"
-              onClick={() => router.push("/communityDashBorde/myorders/order?cart=1")}
+              onClick={() => router.push("/communityDashBoard/myorders/order?cart=1")}
               disabled={items.length === 0}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0A4833] text-sm font-semibold text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
             >
@@ -363,7 +363,7 @@ export default function CommunityCartPage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/communityDashBorde/products")}
+              onClick={() => router.push("/communityDashBoard/products")}
               className="h-12 w-full rounded-xl border border-[#DFDFDF] text-sm font-medium text-[#374151] transition hover:bg-[#F9FAFB]"
             >
               Continue Shopping

@@ -281,7 +281,7 @@ class GoogleCallbackAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
-        response = redirect(f"{get_frontend_url()}/communityDashBorde")
+        response = redirect(f"{get_frontend_url()}/communityDashBoard")
         set_auth_cookies(response, refresh, access)
         return response
 

@@ -258,7 +258,7 @@ export default function CustomGiftsPage() {
       await api.post("/orders/create/", payload);
       setSubmitSuccess(true);
       setTimeout(() => {
-        router.push("/communityDashBorde/myorders");
+        router.push("/communityDashBoard/myorders");
       }, 2000);
     } catch (err: unknown) {
       const error = err as {
@@ -673,7 +673,7 @@ export default function CustomGiftsPage() {
                     )}
                   </button>
                   <button
-                    onClick={() => router.push("/communityDashBorde")}
+                    onClick={() => router.push("/communityDashBoard")}
                     className="h-12 w-full rounded-lg border border-[#A88751] text-sm text-[#A88751] hover:bg-[#FBF8F1] transition-all font-bold"
                   >
                     Cancel

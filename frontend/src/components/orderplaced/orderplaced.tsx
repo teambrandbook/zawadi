@@ -49,6 +49,8 @@ export default function OrderPlaced() {
   }, [orderId]);
 
   useEffect(() => {
+    if (loading || !order) return;
+
     const tl = gsap.timeline({ delay: 0.2 });
 
     // Tick mark drawing animation (opposite direction)
@@ -92,7 +94,7 @@ export default function OrderPlaced() {
       { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
       "-=0.5"
     );
-  }, [loading]);
+  }, [loading, order]);
 
   if (loading) {
     return (
@@ -177,7 +179,7 @@ export default function OrderPlaced() {
           </Link>
           <span className="hidden h-6 w-px bg-[#d8c29a] sm:block" />
           <Link
-            href="/communityDashBorde/myorders"
+            href="/communityDashBoard/myorders"
             className="transition hover:text-[#1a4331]"
           >
             View All Orders

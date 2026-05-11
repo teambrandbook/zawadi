@@ -283,7 +283,7 @@ export default function OrderPage() {
       };
       setIsSubmitting(true);
       sessionStorage.setItem("zewadi_checkout", JSON.stringify(payload));
-      router.push("/communityDashBorde/payment-method");
+      router.push("/communityDashBoard/payment-method");
       return;
     }
 
@@ -330,7 +330,7 @@ export default function OrderPage() {
     };
     setIsSubmitting(true);
     sessionStorage.setItem("zewadi_checkout", JSON.stringify(payload));
-    router.push("/communityDashBorde/payment-method");
+    router.push("/communityDashBoard/payment-method");
   }
 
   return (
@@ -522,7 +522,7 @@ function CartCheckoutSummary({
 
       <button
         type="button"
-        onClick={() => window.location.assign("/communityDashBorde/cart")}
+        onClick={() => window.location.assign("/communityDashBoard/cart")}
         className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#DFDFDF] bg-white text-sm font-medium text-[#4B5563]"
       >
         Back to Cart

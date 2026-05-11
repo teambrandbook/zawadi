@@ -52,7 +52,7 @@ export default function LoginComponent() {
       } else if (role === "community_user" && userType === "guest") {
         router.push("/products");
       } else {
-        router.push("/communityDashBorde");
+        router.push("/communityDashBoard");
       }
     } catch (error: unknown) {
       console.log("Login error:", error);

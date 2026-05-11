@@ -256,11 +256,11 @@ export default function MyOrder() {
   }
 
   function goToTracking(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
+    router.push(`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
   }
 
   function goToOrderDetails(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
+    router.push(`/communityDashBoard/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
   }
 
   function onActionClick(orderId: string, actionLabel: string) {
@@ -273,11 +273,11 @@ export default function MyOrder() {
       return;
     }
     if (actionLabel === "Write Review") {
-      router.push(`/communityDashBorde/myorders/review/${encodeURIComponent(orderId)}`);
+      router.push(`/communityDashBoard/myorders/review/${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "Reorder") {
-      router.push("/communityDashBorde/products");
+      router.push("/communityDashBoard/products");
       return;
     }
     setStatusMessage("Invoice download is not available in the MVP.");
