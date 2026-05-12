@@ -9,6 +9,12 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +29,12 @@ export default function LoginComponent() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
 
     try {
       const res = await api.post("/account/login/", { email, password });

@@ -6,6 +6,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  full_name: z.string().min(1, "Name is required"),
+  user_name: z.string().min(1, "Username is required"),
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  phone: z.string().min(1, "Phone is required"),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+  gender: z.string().min(1, "Please select a gender"),
+});
 
 const SIGNUP_BACKGROUND =
   "https://www.figma.com/api/mcp/asset/4804ac51-5a50-48be-b3c6-1a9b2f636148";
@@ -34,6 +45,20 @@ export default function SignupComponent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const result = registerSchema.safeParse({
+      full_name: form.full_name,
+      user_name: form.user_name,
+      email: form.email,
+      password: form.password,
+      phone: form.phone,
+      date_of_birth: form.date_of_birth,
+      gender: form.gender,
+    });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
 
     if (form.password !== form.confirmPassword) {
       toast.error("Passwords do not match.");

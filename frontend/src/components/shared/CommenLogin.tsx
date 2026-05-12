@@ -6,6 +6,16 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  full_name: z.string().min(1, "Name is required"),
+  user_name: z.string().min(1, "Username is required"),
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  phone: z.string().min(1, "Phone is required"),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+});
 
 export default function CommenLogin() {
   const router = useRouter();
@@ -29,12 +39,22 @@ export default function CommenLogin() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (form.password !== form.confirmPassword) {
-      toast.error("Passwords do not match.");
+
+    const result = registerSchema.safeParse({
+      full_name: form.full_name,
+      user_name: form.user_name,
+      email: form.email,
+      password: form.password,
+      phone: form.phone,
+      date_of_birth: form.date_of_birth,
+    });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
       return;
     }
-    if (!form.full_name || !form.user_name || !form.email || !form.phone || !form.date_of_birth || !form.gender) {
-      toast.error("Please complete all required fields.");
+
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match.");
       return;
     }
 
