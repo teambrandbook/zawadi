@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.filters import OrderingFilter, SearchFilter
 
 from .models import Product, ProductStatus, ProductVariant
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
@@ -43,9 +44,35 @@ class ProductListCreateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        products = Product.objects.prefetch_related("variants").order_by("id")
+        products = Product.objects.prefetch_related("variants")
         if not can_manage:
             products = products.filter(product_status=ProductStatus.ACTIVE)
+
+        # Category filter
+        category = request.query_params.get("category")
+        if category:
+            products = products.filter(category__iexact=category)
+
+        # Search filter (product_name, short_description, full_description)
+        search = request.query_params.get("search")
+        if search:
+            from django.db.models import Q
+            products = products.filter(
+                Q(product_name__icontains=search) | Q(short_description__icontains=search) | Q(full_description__icontains=search)
+            )
+
+        # Ordering
+        ordering = request.query_params.get("ordering", "-created_at")
+        allowed_orderings = {
+            "base_price", "-base_price",
+            "product_name", "-product_name",
+            "created_at", "-created_at",
+        }
+        if ordering in allowed_orderings:
+            products = products.order_by(ordering)
+        else:
+            products = products.order_by("-created_at")
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:
