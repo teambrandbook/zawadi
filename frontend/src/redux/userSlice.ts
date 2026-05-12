@@ -62,7 +62,7 @@ export const logoutUser = createAsyncThunk("user/logout", async () => {
 export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () => {
   try {
     const res = await api.get<{ summary: { item_count: number } }>("/orders/cart/");
-    return res.data.summary?.item_count ?? 0;
+    return Number(res.data.summary?.item_count ?? 0);
   } catch {
     return 0;
   }
@@ -104,7 +104,7 @@ const userSlice = createSlice({
       state.error = null;
     },
     setCartCount(state, action: PayloadAction<number>) {
-      state.cartCount = action.payload;
+      state.cartCount = Math.max(0, Number(action.payload) || 0);
     },
   },
   extraReducers: (builder) => {

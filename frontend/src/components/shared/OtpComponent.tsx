@@ -275,9 +275,9 @@ export default function OtpComponent({
                 </button>
 
                 <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-center text-[10px] text-[#0a4833]/70">
-                  <Link href="#" className="hover:text-[#0a4833]">Privacy Policy</Link>
-                  <Link href="#" className="hover:text-[#0a4833]">Terms</Link>
-                  <Link href="#" className="hover:text-[#0a4833]">Help</Link>
+                  <Link href="/privacy-policy" className="hover:text-[#0a4833]">Privacy Policy</Link>
+                  <Link href="/terms" className="hover:text-[#0a4833]">Terms</Link>
+                  <Link href="/helpandsupport" className="hover:text-[#0a4833]">Help</Link>
                 </div>
               </div>
             </div>

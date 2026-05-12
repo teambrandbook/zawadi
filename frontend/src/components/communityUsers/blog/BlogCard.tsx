@@ -12,7 +12,7 @@ export default function BlogCard({ post }: Props) {
   return (
     <article className="overflow-hidden rounded-lg border border-[#DFDFDF] bg-white">
       <div className="relative h-40">
-        <Image src={post.image} alt={post.title} fill sizes="360px" className="object-cover" />
+        <Image src={post.image} alt={post.title} fill unoptimized sizes="360px" className="object-cover" />
       </div>
       <div className="p-4">
         <div className="flex items-center justify-between text-[11px]">

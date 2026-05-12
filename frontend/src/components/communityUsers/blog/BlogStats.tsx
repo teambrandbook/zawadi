@@ -1,13 +1,18 @@
 import { CheckCircle2, Clock, Edit3, SquarePen } from "lucide-react";
+import type { BlogPost } from "./blogTypes";
 
-const statCards = [
-  { label: "Total Blogs", value: "12", Icon: SquarePen, iconWrap: "bg-[#E9DFCC]", iconColor: "text-[#06402B]" },
-  { label: "Published", value: "8", Icon: CheckCircle2, iconWrap: "bg-[#DDF7E8]", iconColor: "text-[#16A34A]" },
-  { label: "Drafts", value: "3", Icon: Edit3, iconWrap: "bg-[#FEF3C7]", iconColor: "text-[#A88751]" },
-  { label: "Pending Review", value: "1", Icon: Clock, iconWrap: "bg-[#DBEAFE]", iconColor: "text-[#2563EB]" },
-];
+type Props = {
+  posts: BlogPost[];
+};
 
-export default function BlogStats() {
+export default function BlogStats({ posts }: Props) {
+  const statCards = [
+    { label: "Total Blogs", value: String(posts.length), Icon: SquarePen, iconWrap: "bg-[#E9DFCC]", iconColor: "text-[#06402B]" },
+    { label: "Published", value: String(posts.filter((post) => post.status === "completed").length), Icon: CheckCircle2, iconWrap: "bg-[#DDF7E8]", iconColor: "text-[#16A34A]" },
+    { label: "Drafts", value: String(posts.filter((post) => post.status === "continue_writing").length), Icon: Edit3, iconWrap: "bg-[#FEF3C7]", iconColor: "text-[#A88751]" },
+    { label: "Pending Review", value: String(posts.filter((post) => post.status === "waiting_review").length), Icon: Clock, iconWrap: "bg-[#DBEAFE]", iconColor: "text-[#2563EB]" },
+  ];
+
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {statCards.map((card) => (

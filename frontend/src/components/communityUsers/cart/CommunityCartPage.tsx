@@ -60,6 +60,10 @@ const fallbackImages = [
   "/product/p-4.webp",
   "/product/p-main.webp",
 ];
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
+  /\/api\/?$/,
+  ""
+);
 
 function toNumber(value: string | number | null | undefined): number {
   const amount = Number(value);
@@ -81,10 +85,22 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    try {
+      const imageUrl = new URL(imagePath);
+      if (imageUrl.pathname.startsWith("/media/")) {
+        const apiUrl = new URL(API_BASE);
+        imageUrl.protocol = apiUrl.protocol;
+        imageUrl.hostname = apiUrl.hostname;
+        imageUrl.port = apiUrl.port;
+        return imageUrl.toString();
+      }
+    } catch {
+      return imagePath;
+    }
+    return imagePath;
+  }
+  return `${API_BASE}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
 }
 
 function stockLabel(item: CartItem): { text: string; className: string } {
@@ -226,6 +242,7 @@ export default function CommunityCartPage() {
                           src={toImageUrl(item.image, index)}
                           alt={item.product_name}
                           fill
+                          unoptimized
                           className="object-cover"
                           sizes="96px"
                         />

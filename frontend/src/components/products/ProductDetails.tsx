@@ -41,7 +41,21 @@ const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api"
 
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
-  if (path.startsWith("http")) return path;
+  if (path.startsWith("http")) {
+    try {
+      const imageUrl = new URL(path);
+      if (imageUrl.pathname.startsWith("/media/")) {
+        const apiUrl = new URL(API_BASE);
+        imageUrl.protocol = apiUrl.protocol;
+        imageUrl.hostname = apiUrl.hostname;
+        imageUrl.port = apiUrl.port;
+        return imageUrl.toString();
+      }
+    } catch {
+      return path;
+    }
+    return path;
+  }
   return `${API_BASE}${path}`;
 }
 
@@ -168,6 +182,7 @@ const ProductDetails = () => {
                 src={productImageUrl(product.image)}
                 alt={product.product_name}
                 fill
+                unoptimized
                 className="object-cover"
               />
             </div>

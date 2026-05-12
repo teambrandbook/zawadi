@@ -83,10 +83,25 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
   const apiOrigin = apiBase.replace(/\/api\/?$/, "");
+
+  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+    try {
+      const imageUrl = new URL(imagePath);
+      if (imageUrl.pathname.startsWith("/media/")) {
+        const apiUrl = new URL(apiOrigin);
+        imageUrl.protocol = apiUrl.protocol;
+        imageUrl.hostname = apiUrl.hostname;
+        imageUrl.port = apiUrl.port;
+        return imageUrl.toString();
+      }
+    } catch {
+      return imagePath;
+    }
+    return imagePath;
+  }
+
   return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
 }
 
@@ -319,6 +334,7 @@ export default function CommunityProductsPage() {
                       src={toImageUrl(product.image, index)}
                       alt={product.product_name}
                       fill
+                      unoptimized
                       className="object-cover"
                       sizes="(min-width: 1280px) 266px, (min-width: 640px) 50vw, 100vw"
                     />
