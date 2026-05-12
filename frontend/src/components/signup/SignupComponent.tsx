@@ -42,7 +42,7 @@ export default function SignupComponent() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/account/register/", {
+      const { data } = await api.post("/account/register/", {
         full_name: form.full_name.trim(),
         user_name: form.user_name.trim(),
         email: form.email.trim(),
@@ -53,8 +53,12 @@ export default function SignupComponent() {
         user_type: accountType,
       });
 
-      toast.success("Account created. Please sign in.");
-      router.push("/login");
+      if (data.requires_otp) {
+        router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=EMAIL_VERIFICATION`);
+      } else {
+        toast.success("Account created. Please sign in.");
+        router.push("/login");
+      }
     } catch (error: unknown) {
       const detail =
         typeof error === "object" &&

@@ -40,7 +40,7 @@ export default function CommenLogin() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/account/register/", {
+      const { data } = await api.post("/account/register/", {
         full_name: form.full_name,
         user_name: form.user_name,
         email: form.email,
@@ -49,8 +49,13 @@ export default function CommenLogin() {
         date_of_birth: form.date_of_birth,
         gender: form.gender,
       });
-      toast.success("Account created. Please sign in.");
-      router.push("/communitLogin");
+
+      if (data.requires_otp) {
+        router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=EMAIL_VERIFICATION`);
+      } else {
+        toast.success("Account created. Please sign in.");
+        router.push("/communitLogin");
+      }
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const detail = Object.entries(data ?? {})
