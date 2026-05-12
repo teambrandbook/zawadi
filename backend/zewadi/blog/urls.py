@@ -9,5 +9,5 @@ from .views import (
 urlpatterns = [
     path("", BlogListAPIView.as_view()),
     path("create/", BlogCreateAPIView.as_view()),
-    path("<int:blog_id>/", BlogDetailAPIView.as_view()),
+    path("<str:blog_id>/", BlogDetailAPIView.as_view()),
 ]
