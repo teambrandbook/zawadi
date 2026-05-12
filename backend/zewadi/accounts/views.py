@@ -1,5 +1,7 @@
 import os
+import uuid as _uuid
 import requests
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -292,9 +294,6 @@ class PasswordResetConfirmAPIView(APIView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
-        import uuid as _uuid
-        from datetime import timedelta
-
         reset_token = request.data.get("reset_token", "").strip()
         new_password = request.data.get("new_password", "")
 
