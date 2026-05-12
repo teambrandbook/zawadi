@@ -75,7 +75,7 @@ class BlogListAPIView(APIView):
         # --- tag filter (?tag=) ---
         tag = request.query_params.get("tag", "").strip()
         if tag:
-            qs = qs.filter(tags__name__icontains=tag)
+            qs = qs.filter(tags__name__icontains=tag).distinct()
 
         # --- ordering (?ordering=) ---
         ordering = request.query_params.get("ordering", "-created_at").strip()
