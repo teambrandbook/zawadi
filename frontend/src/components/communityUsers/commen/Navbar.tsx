@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -264,6 +265,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         </div>
 
         {/* Notification bell */}
+        <ErrorBoundary fallback={null}>
         <div className="relative" ref={_bellRef}>
           <button
             onClick={() => {
@@ -284,6 +286,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
             <NotificationDropdown onClose={() => setShowNotifications(false)} />
           )}
         </div>
+        </ErrorBoundary>
 
         <Link
           href="/communityDashBoard/cart"

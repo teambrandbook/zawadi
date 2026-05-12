@@ -23,6 +23,7 @@ import {
   Truck,
 } from "lucide-react";
 import api from "@/services/api";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 type ApiOrderListItem = {
   order_id: string;
@@ -403,6 +404,7 @@ export default function MyOrder() {
           <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">{loadError}</div>
         ) : null}
 
+        <ErrorBoundary>
         <div className="space-y-4">
           {!isLoading &&
             paginatedOrders.map((order) => {
@@ -522,6 +524,7 @@ export default function MyOrder() {
             </div>
           ) : null}
         </div>
+        </ErrorBoundary>
 
         {!isLoading && filteredOrders.length > 0 ? (
           <div className="flex items-center justify-center gap-2 pt-2">
