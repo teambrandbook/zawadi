@@ -1,15 +1,23 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import communityData from "@/data/community.json";
 import { Diamond, Users, Lightbulb } from "lucide-react";
 import gsap from "@/lib/gsap";
 
-const iconMap: any = {
-  Diamond: Diamond,
-  Users: Users,
-  Lightbulb: Lightbulb,
+type OverviewCard = {
+  icon: string;
+  id: string;
+  title: string;
+  description: string;
+};
+
+const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  Diamond,
+  Users,
+  Lightbulb,
 };
 
 const WavyArrow = ({ className }: { className?: string }) => (
@@ -130,7 +138,7 @@ const CommunityOverview = () => {
           {/* Floating Cards (Outside the Wiped Container boundaries) */}
           <div className="absolute -bottom-64 md:bottom-20 left-0 w-full px-6 md:px-12 z-20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 lg:gap-12 max-w-[95%] md:max-w-6xl mx-auto">
-              {overviewSection.cards.map((card: any, idx: number) => {
+              {overviewSection.cards.map((card: OverviewCard, idx: number) => {
                 const Icon = iconMap[card.icon];
                 return (
                   <div

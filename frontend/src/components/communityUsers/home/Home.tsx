@@ -242,7 +242,7 @@ function Home() {
           <section>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-[#0A4834]">My Recipes</h2>
-              <Link href="/communityDashBorde/myrecipy/add" className="flex items-center gap-2 bg-[#A68966] text-white px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm hover:opacity-90">
+              <Link href="/communityDashBoard/myrecipy/add" className="flex items-center gap-2 bg-[#A68966] text-white px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm hover:opacity-90">
                 <Plus size={16} /> Add Recipe
               </Link>
             </div>

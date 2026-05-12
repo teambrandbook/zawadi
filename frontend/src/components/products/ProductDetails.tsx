@@ -259,6 +259,7 @@ const ProductDetails = () => {
               <button
                 type="button"
                 aria-label="Save to wishlist"
+                onClick={() => toast.info("Wishlist coming soon!")}
                 className="rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
               >
                 <Heart size={20} />
@@ -279,9 +280,12 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            <button className="description-stagger rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]">
+            <Link
+              href="/recipes"
+              className="description-stagger inline-block rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+            >
               Try Recipes
-            </button>
+            </Link>
           </div>
         )}
 
