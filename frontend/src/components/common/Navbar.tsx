@@ -86,7 +86,7 @@ const Navbar = () => {
     if (role === "admin") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
     if (role === "consultant") return { profile: "/consultant/profile", orders: "/consultant/appointments" };
     if (userType === "guest") return { profile: "/guestprofile", orders: "/guestprofile/history" };
-    return { profile: "/communityDashBorde", orders: "/communityDashBorde/myorders" };
+    return { profile: "/communityDashBoard", orders: "/communityDashBoard/myorders" };
   }
 
   async function handleLogout() {

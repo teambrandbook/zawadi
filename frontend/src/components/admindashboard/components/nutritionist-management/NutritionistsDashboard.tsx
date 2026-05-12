@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import NutritionistStatsGrid from "./components/NutritionistStatsGrid";
 import NutritionistsDataTable from "./components/NutritionistsDataTable";
 import NutritionistsHeader from "./components/NutritionistsHeader";
@@ -41,10 +42,7 @@ type NutritionistDetail = {
 
 function toImageUrl(imagePath?: string | null) {
   if (!imagePath) return "https://i.pravatar.cc/100?img=1";
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function pickDisplayName(...candidates: Array<unknown>) {

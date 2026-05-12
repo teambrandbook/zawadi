@@ -14,6 +14,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// address field is named "address" (not "address_line") in the local form state
+const checkoutSchema = z.object({
+  full_name: z.string().min(1, "Name is required"),
+  phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
+  address: z.string().min(5, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+});
 
 type SavedAddress = {
   id: number;
@@ -127,16 +137,40 @@ export default function Payment() {
   }
 
   async function handlePlaceOrder() {
+    // Validate the new-address form only when the user is entering a new address
+    if (showForm) {
+      const result = checkoutSchema.safeParse({
+        full_name: form.full_name,
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        postal_code: form.postal_code,
+      });
+      if (!result.success) {
+        toast.error(result.error.errors[0].message);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
+      const cartRes = await api.get("/orders/cart/");
+      const cartItems = cartRes.data?.items ?? [];
+      if (cartItems.length === 0) {
+        toast.error("Your cart is empty. Add products before checkout.");
+        router.push("/cart");
+        return;
+      }
+
+      const meRes = await api.get("/account/me/");
       let addressPayload = form;
 
       if (selectedAddressId && !showForm) {
         const addr = savedAddresses.find((a) => a.id === selectedAddressId);
         if (addr) {
           addressPayload = {
-            full_name: addr.full_name,
-            phone: addr.phone,
+            full_name: addr.full_name || meRes.data.full_name || "",
+            phone: addr.phone || meRes.data.phone || "",
             address: addr.address_line,
             city: addr.city,
             postal_code: addr.postal_code,
@@ -153,7 +187,19 @@ export default function Payment() {
         });
       }
 
-      const meRes = await api.get("/account/me/");
+      const requiredDeliveryFields = [
+        addressPayload.full_name,
+        addressPayload.phone,
+        addressPayload.address,
+        addressPayload.city,
+        addressPayload.postal_code,
+      ];
+      if (requiredDeliveryFields.some((value) => !String(value ?? "").trim())) {
+        toast.error("Please complete all delivery details before placing the order.");
+        setShowForm(true);
+        return;
+      }
+
       const res = await api.post("/orders/cart/checkout/", {
         full_name: addressPayload.full_name,
         phone: addressPayload.phone,
@@ -165,12 +211,19 @@ export default function Payment() {
         payment_method: "cod",
       });
 
-      router.push(`/orderplaced?order_id=${res.data.primary_order_id}`);
+      const createdOrderId = res.data?.primary_order_id ?? res.data?.order_id ?? res.data?.order_ids?.[0];
+      if (!createdOrderId) {
+        toast.error("Order was created, but confirmation details were not returned.");
+        return;
+      }
+
+      router.replace(`/orderplaced?order_id=${encodeURIComponent(createdOrderId)}`);
     } catch (err: unknown) {
-      const msg =
+      const data =
         typeof err === "object" && err !== null && "response" in err
-          ? JSON.stringify((err as { response?: { data?: unknown } }).response?.data)
-          : "Checkout failed.";
+          ? (err as { response?: { data?: { detail?: string } } }).response?.data
+          : null;
+      const msg = data?.detail || "Checkout failed.";
       toast.error(msg);
     } finally {
       setSubmitting(false);

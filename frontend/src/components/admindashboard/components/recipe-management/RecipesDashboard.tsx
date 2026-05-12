@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type StatCardDef = {
   title: string;
@@ -89,12 +90,7 @@ type DeleteTarget = {
 
 function toImageUrl(value?: string | null) {
   if (!value) return "";
-  if (value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")) {
-    return value;
-  }
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}/${value.replace(/^\/+/, "")}`;
+  return getImageUrl(value);
 }
 
 function mapApiRecipe(item: ApiRecipePayload, index: number): RecipeRow {

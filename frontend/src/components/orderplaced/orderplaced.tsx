@@ -32,7 +32,7 @@ export default function OrderPlaced() {
   const middleCircleRef = useRef<HTMLDivElement>(null);
 
   const searchParams = useSearchParams();
-  const orderId = searchParams.get("order_id");
+  const orderId = searchParams.get("order_id") ?? searchParams.get("orderId");
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [loading, setLoading] = useState(Boolean(orderId));
 
@@ -49,6 +49,8 @@ export default function OrderPlaced() {
   }, [orderId]);
 
   useEffect(() => {
+    if (loading || !order) return;
+
     const tl = gsap.timeline({ delay: 0.2 });
 
     // Tick mark drawing animation (opposite direction)
@@ -71,28 +73,39 @@ export default function OrderPlaced() {
     }
 
     // Shadow circles expanding from behind the main center circle
-    tl.fromTo(
-      [middleCircleRef.current, outerCircleRef.current],
-      { scale: 0.5, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.2)", stagger: 0.15 },
-      "-=0.6"
-    );
+    const circleElements = [middleCircleRef.current, outerCircleRef.current].filter(Boolean);
+    if (circleElements.length > 0) {
+      tl.fromTo(
+        circleElements,
+        { scale: 0.5, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.8, ease: "back.out(1.2)", stagger: 0.15 },
+        "-=0.6"
+      );
+    }
 
     // Small rounds from center (behind the big round)
-    tl.fromTo(
-      yellowRef.current,
-      { scale: 0.5, x: -70, y: 70, opacity: 0 },
-      { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
-      "-=0.4"
-    );
+    if (yellowRef.current) {
+      tl.fromTo(
+        yellowRef.current,
+        { scale: 0.5, x: -70, y: 70, opacity: 0 },
+        { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
+        "-=0.4"
+      );
+    }
 
-    tl.fromTo(
-      greenRef.current,
-      { scale: 0.5, x: 70, y: -50, opacity: 0 },
-      { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
-      "-=0.5"
-    );
-  }, [loading]);
+    if (greenRef.current) {
+      tl.fromTo(
+        greenRef.current,
+        { scale: 0.5, x: 70, y: -50, opacity: 0 },
+        { scale: 1, x: 0, y: 0, opacity: 1, duration: 0.7, ease: "back.out(1.5)" },
+        "-=0.5"
+      );
+    }
+
+    return () => {
+      tl.kill();
+    };
+  }, [loading, order]);
 
   if (loading) {
     return (
@@ -177,7 +190,7 @@ export default function OrderPlaced() {
           </Link>
           <span className="hidden h-6 w-px bg-[#d8c29a] sm:block" />
           <Link
-            href="/communityDashBorde/myorders"
+            href="/communityDashBoard/myorders"
             className="transition hover:text-[#1a4331]"
           >
             View All Orders

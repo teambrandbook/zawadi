@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function ConsultationDietPlanPage() {
-  redirect("/communityDashBorde/diet-plan");
+  redirect("/communityDashBoard/diet-plan");
 }

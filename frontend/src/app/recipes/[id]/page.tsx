@@ -4,6 +4,8 @@ import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
+import { getImageUrl } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
 import ContentSection from "@/components/common/ContentSection";
 
 type BackendRecipeDetail = {
@@ -26,11 +28,7 @@ type BackendRecipeDetail = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-1.webp";
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}/${value.replace(/^\/+/, "")}`;
+  return getImageUrl(value);
 }
 
 function lines(value?: string | null) {
@@ -78,10 +76,22 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   };
 }
 
+async function getRecipe(id: string): Promise<Recipe | undefined> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/recipes/${id}/`, { cache: "no-store" });
+    if (response.ok) {
+      return mapBackendRecipe((await response.json()) as BackendRecipeDetail);
+    }
+  } catch {
+    // Fall back to bundled design data.
+  }
+
+  return getRecipeById(id);
+}
+
 // Fetch all published recipes from the API and map them to frontend types
 async function getAllRecipes(): Promise<Recipe[]> {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const response = await fetch(`${apiBase}/recipes/published/`, { cache: "no-store" });
+  const response = await fetch(`${API_BASE_URL}/recipes/published/`, { cache: "no-store" });
   const payload = await response.json();
   const raw = Array.isArray(payload)
     ? payload

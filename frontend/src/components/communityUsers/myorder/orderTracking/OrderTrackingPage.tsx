@@ -237,7 +237,7 @@ export default function OrderTrackingPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/communityDashBorde/myorders")}
+            onClick={() => router.push("/communityDashBoard/myorders")}
             className="mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#0A4833] px-6 text-sm font-medium text-white"
           >
             View My Orders
@@ -385,7 +385,7 @@ export default function OrderTrackingPage() {
                 <HelpButton Icon={Headset} label="Contact Support" onClick={() => setStatusMessage("Support contact flow is not available in the MVP.")} />
                 <HelpButton Icon={AlertTriangle} label="Report Issue" onClick={() => setStatusMessage("Issue reporting is not available in the MVP.")} />
                 <HelpButton Icon={Download} label="Download Invoice" onClick={() => setStatusMessage("Invoice download is not available in the MVP.")} />
-                <HelpButton Icon={RefreshCw} label="Reorder" onClick={() => router.push("/communityDashBorde/products")} />
+                <HelpButton Icon={RefreshCw} label="Reorder" onClick={() => router.push("/communityDashBoard/products")} />
               </div>
             </section>
 

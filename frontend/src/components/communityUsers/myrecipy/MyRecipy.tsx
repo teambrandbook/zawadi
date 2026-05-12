@@ -154,7 +154,7 @@ export default function MyRecipy() {
             </p>
           </div>
           <button
-            onClick={() => router.push("/communityDashBorde/myrecipy/add")}
+            onClick={() => router.push("/communityDashBoard/myrecipy/add")}
             className="inline-flex h-12 items-center gap-2 rounded-lg bg-[#0A4833] px-6 text-sm font-semibold text-white hover:bg-[#083B2A]"
           >
             <Plus className="h-4 w-4" />

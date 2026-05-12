@@ -215,7 +215,7 @@ export default function OrderPlacedPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/communityDashBorde/myorders")}
+            onClick={() => router.push("/communityDashBoard/myorders")}
             className="mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#0A4833] px-6 text-sm font-medium text-white"
           >
             View My Orders
@@ -335,9 +335,9 @@ export default function OrderPlacedPage() {
             <section className={cardClass}>
               <h2 className="text-lg font-semibold tracking-[-0.02em] text-[#0A4833]">Quick Actions</h2>
               <div className="mt-4 space-y-3">
-                <ActionLink href={`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(selectedOrderId)}`} label="Track Order" Icon={Truck} tone="primary" />
-                <ActionLink href="/communityDashBorde/myorders" label="View My Orders" Icon={Receipt} tone="gold" />
-                <ActionLink href="/communityDashBorde/products" label="Continue Shopping" Icon={ShoppingBag} tone="outline" />
+                <ActionLink href={`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(selectedOrderId)}`} label="Track Order" Icon={Truck} tone="primary" />
+                <ActionLink href="/communityDashBoard/myorders" label="View My Orders" Icon={Receipt} tone="gold" />
+                <ActionLink href="/communityDashBoard/products" label="Continue Shopping" Icon={ShoppingBag} tone="outline" />
               </div>
             </section>
 

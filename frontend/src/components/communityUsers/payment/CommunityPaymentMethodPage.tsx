@@ -15,6 +15,7 @@ import {
   Truck,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type DeliveryPayload = {
   full_name: string;
@@ -113,10 +114,7 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath?: string | null): string {
   if (!imagePath) return fallbackImage;
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function readCheckoutSession(): CheckoutSession | null {
@@ -240,8 +238,8 @@ export default function CommunityPaymentMethodPage() {
         sessionStorage.removeItem("zewadi_checkout");
         router.push(
           createdOrderId
-            ? `/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(createdOrderId)}`
-            : "/communityDashBorde/myorders/order-placed"
+            ? `/communityDashBoard/myorders/order-placed?orderId=${encodeURIComponent(createdOrderId)}`
+            : "/communityDashBoard/myorders/order-placed"
         );
         return;
       }
@@ -253,8 +251,8 @@ export default function CommunityPaymentMethodPage() {
       sessionStorage.removeItem("zewadi_checkout");
       router.push(
         response.data?.order_id
-          ? `/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(response.data.order_id)}`
-          : "/communityDashBorde/myorders/order-placed"
+          ? `/communityDashBoard/myorders/order-placed?orderId=${encodeURIComponent(response.data.order_id)}`
+          : "/communityDashBoard/myorders/order-placed"
       );
     } catch (error: unknown) {
       const detail =
@@ -290,7 +288,7 @@ export default function CommunityPaymentMethodPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/communityDashBorde/cart")}
+            onClick={() => router.push("/communityDashBoard/cart")}
             className="mt-6 rounded-xl bg-[#0A4833] px-5 py-3 text-sm font-semibold text-white"
           >
             Go to Cart

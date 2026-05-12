@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import BlogManagementFilters from "@/components/admindashboard/components/blog-management/components/BlogManagementFilters";
 import BlogManagementHeaderStats from "@/components/admindashboard/components/blog-management/components/BlogManagementHeaderStats";
 import BlogManagementTable from "@/components/admindashboard/components/blog-management/components/BlogManagementTable";
@@ -25,13 +26,7 @@ type BlogRow = {
 
 function toMediaUrl(value?: string | null) {
   if (!value) return "/blog/blog-1.webp";
-  if (value.startsWith("http")) return value;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const siteBase = apiBase.replace(/\/api\/?$/, "");
-
-  if (value.startsWith("/")) return `${siteBase}${value}`;
-  return `${siteBase}/${value}`;
+  return getImageUrl(value);
 }
 
 function formatCategory(value?: string) {

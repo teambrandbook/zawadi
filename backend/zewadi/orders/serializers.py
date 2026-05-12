@@ -212,7 +212,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     category = serializers.CharField(source="product.category", read_only=True)
     short_description = serializers.CharField(source="product.short_description", read_only=True)
     health_benefits = serializers.CharField(source="product.health_benefits", read_only=True)
-    image = serializers.ImageField(source="product.image", read_only=True)
+    image = serializers.SerializerMethodField()
     currency = serializers.CharField(source="product.currency", read_only=True)
     stock_quantity = serializers.IntegerField(source="product.stock_quantity", read_only=True)
     stock_status = serializers.CharField(source="product.stock_status", read_only=True)
@@ -252,3 +252,10 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def get_line_total(self, obj):
         return f"{Decimal(obj.line_total):.2f}"
+
+    def get_image(self, obj):
+        if not obj.product.image:
+            return None
+        request = self.context.get("request")
+        image_url = obj.product.image.url
+        return request.build_absolute_uri(image_url) if request else image_url

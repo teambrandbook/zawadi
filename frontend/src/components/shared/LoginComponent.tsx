@@ -9,6 +9,13 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
+import { z } from "zod";
+import { API_BASE_URL } from "@/lib/config";
+
+const loginSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,12 +24,16 @@ export default function LoginComponent() {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
   const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.errors[0].message);
+      return;
+    }
 
     try {
       const res = await api.post("/account/login/", { email, password });
@@ -52,7 +63,7 @@ export default function LoginComponent() {
       } else if (role === "community_user" && userType === "guest") {
         router.push("/products");
       } else {
-        router.push("/communityDashBorde");
+        router.push("/communityDashBoard");
       }
     } catch (error: unknown) {
       console.log("Login error:", error);
@@ -61,7 +72,7 @@ export default function LoginComponent() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${apiBase}/account/google/login/`;
+    window.location.href = `${API_BASE_URL}/account/google/login/`;
   };
 
   return (
@@ -80,14 +91,14 @@ export default function LoginComponent() {
         </video>
       </div>
 
-      <div className="mx-auto w-full max-w-[1300px]">
-        <div className="overflow-hidden rounded-[34px] border-[4px] border-white/95 bg-transparent shadow-2xl">
+      <div className="mx-auto w-full max-w-[1000px]">
+        <div className="overflow-hidden rounded-[34px] bg-transparent shadow-2xl">
           <div className="grid min-h-[550px] grid-cols-1 lg:grid-cols-2">
-            <div className="relative hidden lg:block">
-              <div className="absolute inset-y-0 left-0 w-[110%] rounded-[34px] bg-transparent z-10" />
+            <div className="relative hidden lg:block overflow-hidden">
+              <div className="absolute inset-[4px] rounded-[30px] shadow-[0_0_0_1000px_white] z-10 pointer-events-none" />
             </div>
 
-            <div className="relative flex items-center justify-center bg-white px-6 py-8 sm:px-8 lg:px-12">
+            <div className="relative flex items-center justify-center bg-white px-6 py-8 sm:px-8 lg:px-12 z-20">
               <div className="w-full max-w-[360px]">
                 <div className="text-center mb-4">
                   <h1 className="text-[24px] font-bold tracking-tight text-[#0a4833]">
@@ -165,6 +176,10 @@ export default function LoginComponent() {
                     </div>
                   </div>
 
+                  <a href="/forgot-password" className="text-sm text-green-800 hover:underline block text-right">
+                    Forgot password?
+                  </a>
+
                   <button
                     type="submit"
                     className="flex h-[44px] w-full items-center justify-center rounded-lg bg-[#0a4833] text-sm font-bold text-white shadow-lg hover:bg-[#0c5a40] transition active:scale-[0.98]"
@@ -177,7 +192,12 @@ export default function LoginComponent() {
                       <span className="w-full border-t border-gray-100"></span>
                     </div>
                     <div className="relative flex justify-center text-[10px] uppercase">
-                      <span className="bg-white px-2 text-gray-400">Social Login</span>
+                      <Link
+                        href="/signup"
+                        className="bg-white px-2 font-bold text-[#0a4833] transition hover:text-[#9f8151] hover:underline"
+                      >
+                        Create an Account
+                      </Link>
                     </div>
                   </div>
 
@@ -196,10 +216,9 @@ export default function LoginComponent() {
                   </button>
 
                   <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
-                    <Link href="/signup" className="hover:underline">Create Account</Link>
-                    <Link href="#" className="hover:underline">Privacy</Link>
-                    <Link href="#" className="hover:underline">Terms</Link>
-                    <Link href="#" className="hover:underline">Support</Link>
+                    <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
+                    <Link href="/terms" className="hover:underline">Terms & Conditions</Link>
+                    <Link href="/helpandsupport" className="hover:underline">Help & Support</Link>
                   </div>
                 </form>
               </div>

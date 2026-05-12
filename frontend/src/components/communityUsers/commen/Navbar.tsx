@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -76,27 +79,6 @@ function getInitials(name: string, email: string): string {
   return nameInitials || email.slice(0, 2).toUpperCase() || "U";
 }
 
-function toImageUrl(imagePath?: string | null): string | null {
-  if (!imagePath) return null;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      const apiUrl = new URL(apiOrigin);
-      if ((imageUrl.hostname === "localhost" || imageUrl.hostname === "127.0.0.1") && imageUrl.pathname.startsWith("/media/")) {
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
-}
 
 function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
   const hasProfileName = "full_name" in profile || "user_name" in profile;
@@ -105,15 +87,18 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
   const email = profile.email || user.email;
   const role = profile.role || user.role;
   const userType = profile.user_type || user.userType;
+  const [firstName = "", ...restName] = fullName.trim().split(/\s+/).filter(Boolean);
 
   return {
     ...user,
     fullName,
+    firstName: firstName || user.firstName,
+    lastName: restName.join(" ") || user.lastName,
     email,
     role,
     userType,
     initials: getInitials(fullName, email),
-    photo: toImageUrl(profile.photo) ?? user.photo,
+    photo: profile.photo ? getImageUrl(profile.photo) : user.photo,
   };
 }
 
@@ -144,25 +129,49 @@ function getUserFromTokenCookie(): UserInfo {
   return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
+  // ref kept for future use (e.g. click-outside on bell area)
+  const _bellRef = useRef<HTMLDivElement>(null);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isCommunityUser) return;
+    try {
+      const { data } = await api.get<{ count: number }>("/notifications/inbox/unread-count/");
+      setUnreadCount(data.count ?? 0);
+    } catch {
+      // silently ignore
+    }
+  }, [isCommunityUser]);
 
   useEffect(() => {
-    if (!isCommunityUser) return;
+    void fetchUnreadCount();
+    const interval = setInterval(() => { void fetchUnreadCount(); }, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
+  useEffect(() => {
     let isMounted = true;
 
     async function loadProfile() {
       try {
-        const { data } = await api.get<CommunityProfileSummary>("/community/profile/");
+        const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {
-          setUser((currentUser) => mergeProfileIntoUser(currentUser, data));
+          setUser((currentUser) => mergeProfileIntoUser(currentUser, me));
+        }
+
+        if (isCommunityRole(me.role || "")) {
+          const { data: profile } = await api.get<CommunityProfileSummary>("/community/profile/");
+          if (isMounted) {
+            setUser((currentUser) => mergeProfileIntoUser(currentUser, profile));
+          }
         }
       } catch {
         // keep token fallback details
@@ -183,26 +192,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       isMounted = false;
       window.removeEventListener("community-profile-updated", handleProfileUpdated);
     };
-  }, [isCommunityUser]);
+  }, []);
 
   useEffect(() => {
-    let isMounted = true;
     if (!isCommunityUser) {
       return;
     }
-    api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
-      .then(({ data }) => {
-        if (isMounted) {
-          setUnreadCount(data.stats?.unread_notifications ?? 0);
-        }
-      })
-      .catch(() => {
-        // not critical — leave at 0
-      });
     dispatch(fetchCartCount());
-    return () => {
-      isMounted = false;
-    };
   }, [pathname, isCommunityUser, dispatch]);
 
   const handleLogout = async () => {
@@ -276,22 +272,32 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           />
         </div>
 
-        {/* Notification Icon */}
-        <Link
-          href="/communityDashBorde/notifications"
-          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
-          aria-label="Open notifications"
-        >
-          <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-          {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
+        {/* Notification bell */}
+        <ErrorBoundary fallback={null}>
+        <div className="relative" ref={_bellRef}>
+          <button
+            onClick={() => {
+              setShowNotifications((v) => !v);
+              if (!showNotifications) setUnreadCount(0);
+            }}
+            className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <NotificationDropdown onClose={() => setShowNotifications(false)} />
           )}
-        </Link>
+        </div>
+        </ErrorBoundary>
 
         <Link
-          href="/communityDashBorde/cart"
+          href="/communityDashBoard/cart"
           className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open cart"
         >

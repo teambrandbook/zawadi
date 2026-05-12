@@ -17,6 +17,7 @@ import {
 import type { AppDispatch } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ProductVariant = {
   id: number;
@@ -87,11 +88,7 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function toCategoryLabel(category: string): string {
@@ -215,7 +212,7 @@ export default function CommunityProductsPage() {
   }
 
   function goToCheckout(productId: number) {
-    router.push(`/communityDashBorde/myorders/order?productId=${productId}&quantity=1`);
+    router.push(`/communityDashBoard/myorders/order?productId=${productId}&quantity=1`);
   }
 
   return (
@@ -345,6 +342,7 @@ export default function CommunityProductsPage() {
                       src={toImageUrl(product.image, index)}
                       alt={product.product_name}
                       fill
+                      unoptimized
                       className="object-cover"
                       sizes="(min-width: 1280px) 266px, (min-width: 640px) 50vw, 100vw"
                     />
