@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PlayCircle } from "lucide-react";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 
 export default function RecipeCard({
@@ -14,41 +14,55 @@ export default function RecipeCard({
 
   return (
     <article
-      className={`pt-10 recipe-card min-h-screen origin-top px-4 sm:px-5 lg:pt-20 grid items-start gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[200px] lg:pl-30
-      ${reverse ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1" : ""}`}
+      className={`recipe-card grid min-h-screen origin-top items-start gap-10 px-4 pt-10 sm:px-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
+      ${
+        reverse
+          ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
+          : ""
+      }`}
     >
-      {/* Image */}
-      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[12px] sm:h-[320px] lg:h-[420px]">
+      {/* Image Section */}
+      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[16px] sm:h-[420px]">
         <Image
           src={recipe.image}
           alt={recipe.title}
           fill
           className="object-cover"
         />
+
+        {recipe.videoUrl ? (
+          <a
+            href={recipe.videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Watch video for ${recipe.title}`}
+            className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#1f4d3a] text-white shadow-lg transition hover:scale-105 hover:bg-[#163a2b]"
+          >
+            <PlayCircle className="h-5 w-5" />
+          </a>
+        ) : null}
       </div>
 
-      {/* Content */}
-      <div className="max-w-[450px] ">
-
-        {/* Heading (INCREASED SIZE) */}
-        <h2 className="text-black font-[600] text-[26px] leading-[34px] md:text-[36px] md:leading-[42px] [font-family:'Playfair_Display']">
+      {/* Content Section */}
+      <div className="max-w-[500px]">
+        {/* Title */}
+        <h2 className="font-[600] text-[28px] leading-[36px] text-black md:text-[40px] md:leading-[48px] [font-family:'Playfair_Display']">
           {recipe.title}
         </h2>
 
         {/* Description */}
-        <p className="mt-3 text-[#1F4D3A] font-[600] text-[12px] md:text-[14px] leading-[1.5] [font-family:'Inter']">
+        <p className="mt-4 text-[13px] font-[500] leading-[1.7] text-[#1F4D3A] md:text-[15px] [font-family:'Inter']">
           {recipe.description}
         </p>
 
-        {/* Benefits Title */}
+        {/* Benefits */}
         {benefits.length > 0 && (
           <>
-            <h3 className="mt-3 text-black font-[800] text-[14px] md:text-[16px] leading-normal [font-family:'Inter']">
+            <h3 className="mt-5 text-[15px] font-[800] text-black md:text-[17px] [font-family:'Inter']">
               Benefits
             </h3>
 
-            {/* Benefits List */}
-            <ul className="mt-1 list-disc space-y-1 pl-5 text-[#1F4D3A] font-[600] text-[12px] md:text-[14px] leading-[1.5] [font-family:'Inter']">
+            <ul className="mt-2 list-disc space-y-2 pl-5 text-[13px] font-[500] leading-[1.6] text-[#1F4D3A] md:text-[15px] [font-family:'Inter']">
               {benefits.map((benefit: string) => (
                 <li key={benefit}>{benefit}</li>
               ))}
@@ -56,19 +70,17 @@ export default function RecipeCard({
           </>
         )}
 
-        {/* Button (INCREASED SIZE) */}
+        {/* Learn More Button */}
         <Link
           href={`/recipes/${recipe.id}`}
-          className="mt-4 relative inline-flex items-center rounded-full bg-[#1f4d3a] pl-6 pr-14 py-4 text-[10px] md:text-[12px] font-medium uppercase tracking-[0.08em] text-white"
+          className="relative mt-6 inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
         >
           <span>Learn More</span>
 
-          {/* Arrow Circle */}
-          <span className="absolute right-[-18px] flex h-[45px] w-[45px] items-center justify-center rounded-full bg-[#1f4d3a] border-2 border-white">
+          <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
             <ArrowRight className="h-4 w-4 text-white" />
           </span>
         </Link>
-
       </div>
     </article>
   );

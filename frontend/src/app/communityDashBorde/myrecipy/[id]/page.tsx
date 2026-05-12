@@ -1,10 +1,8 @@
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { getRecipeById } from "@/lib/recipes";
 import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
-import Navbar from "@/components/common/Navbar";
-import Footer from "@/components/common/Footer";
 import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
-import ContentSection from "@/components/common/ContentSection";
 
 type BackendRecipeDetail = {
   slug?: string;
@@ -41,7 +39,7 @@ function lines(value?: string | null) {
 }
 
 function valueWithFallback(value: unknown) {
-  return value === null || value === undefined || value === "" ? "-" : String(value);
+  return value === null || value === undefined || value === "" ? "—" : String(value);
 }
 
 function mapNutrition(recipe: BackendRecipeDetail): RecipeNutrition | undefined {
@@ -78,19 +76,23 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   };
 }
 
-// Fetch all published recipes from the API and map them to frontend types
-async function getAllRecipes(): Promise<Recipe[]> {
+async function getRecipe(id: string): Promise<Recipe | undefined> {
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const response = await fetch(`${apiBase}/recipes/published/`, { cache: "no-store" });
-  const payload = await response.json();
-  const raw = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.data)
-    ? payload.data
-    : Array.isArray(payload?.results)
-    ? payload.results
-    : [];
-  return raw.map(mapBackendRecipe);
+  try {
+    const accessToken = (await cookies()).get("access_token")?.value;
+    const response = await fetch(`${apiBase}/recipes/${id}/`, {
+      cache: "no-store",
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      return mapBackendRecipe((payload?.data ?? payload) as BackendRecipeDetail);
+    }
+  } catch {
+    // Fall back to bundled design data.
+  }
+
+  return getRecipeById(id);
 }
 
 export async function generateMetadata({
@@ -99,8 +101,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const allRecipes = await getAllRecipes();
-  const recipe = allRecipes.find((r) => r.id === id);
+  const recipe = await getRecipe(id);
 
   if (!recipe) {
     return {
@@ -120,8 +121,7 @@ export default async function RecipeDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const allRecipes = await getAllRecipes();
-  const recipe = allRecipes.find((r) => r.id === id);
+  const recipe = await getRecipe(id);
 
   if (!recipe) {
     notFound();
@@ -129,13 +129,7 @@ export default async function RecipeDetailsPage({
 
   return (
     <div>
-      <Navbar/>
-      <ContentSection
-        title="Zewadi Recipes"
-        subtitle="Delicious Zewadi Buckwheat Recipes"
-      />
       <RecipeDetailsContent recipe={recipe} />
-      <Footer/>
     </div>
   );
 }

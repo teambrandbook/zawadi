@@ -4,7 +4,6 @@ import ContentSection from "@/components/common/ContentSection";
 import Footer from "@/components/common/Footer";
 import Navbar from "@/components/common/Navbar";
 import RecipeList from "@/components/recipes/RecipeList";
-import { recipes } from "@/lib/recipes";
 
 // export const metadata = {
 //   title: "Zewadi Recipes | Delicious Zewadi Buckwheat Recipes",
@@ -17,7 +16,7 @@ export default function RecipesPage() {
     <main className="bg-white text-[#0e2207]">
       <Navbar/>
      <ContentSection title="Zewadi Recipes" subtitle="Delicious Zewadi Buckwheat Recipes"/> 
-      <RecipeList recipes={recipes} />
+      <RecipeList recipes={[]} />
       <Footer/>
     </main>
   );

@@ -25,6 +25,7 @@ class PermissionModule(models.TextChoices):
     NUTRITIONISTS = "nutritionists", "Nutritionists"
     NOTIFICATIONS = "notifications", "Notifications"
     REPORTS = "reports", "Reports"
+    EVENTS = "events", "Events"
 
 
 class AccessLevel(models.TextChoices):

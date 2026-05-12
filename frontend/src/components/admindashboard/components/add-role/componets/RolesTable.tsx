@@ -49,40 +49,50 @@ export default function RolesTable({
         </thead>
 
         <tbody className="divide-y divide-gray-100">
-          {roles.map((role) => (
-            <tr
-              key={role.id}
-              onClick={() => onSelectRole(role)}
-              className="cursor-pointer transition-colors hover:bg-gray-50"
-            >
-              {/* Role */}
-              <td className="px-6 py-5 text-left">
-                <div className="flex flex-col">
-                  <span className="font-semibold text-gray-800">
-                    {role.role_name}
-                  </span>
-                  <span className="text-sm text-gray-400">
-                    {role.description}
-                  </span>
-                </div>
-              </td>
+          {roles.length > 0 ? (
+            roles.map((role) => (
+              <tr
+                key={role.id}
+                onClick={() => onSelectRole(role)}
+                className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                  selectedRole?.id === role.id ? "bg-[#F2F7F5]" : ""
+                }`}
+              >
+                {/* Role */}
+                <td className="px-6 py-5 text-left">
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-gray-800">
+                      {role.role_name}
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      {role.description || "No description"}
+                    </span>
+                  </div>
+                </td>
 
-              {/* Assigned */}
-              <td className="px-6 py-5 text-center text-gray-600">
-                {role.member_count}
-              </td>
+                {/* Assigned */}
+                <td className="px-6 py-5 text-center text-gray-600">
+                  {role.member_count ?? 0}
+                </td>
 
-              {/* Access Level */}
-              <td className="px-6 py-5 text-center text-gray-600 font-medium">
-                {role.access_level}
-              </td>
+                {/* Access Level */}
+                <td className="px-6 py-5 text-center font-medium text-gray-600 capitalize">
+                  {role.access_level}
+                </td>
 
-              {/* Status */}
-              <td className="px-6 py-5 text-right font-semibold text-green-600 text-sm">
-                {role.role_status}
+                {/* Status */}
+                <td className="px-6 py-5 text-right text-sm font-semibold text-green-600 capitalize">
+                  {role.role_status}
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500">
+                No roles match the selected filters.
               </td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>

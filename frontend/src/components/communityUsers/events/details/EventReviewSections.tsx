@@ -44,15 +44,8 @@ export default function EventReviewSections({ event }: Props) {
 
       <section className={sectionClass}>
         <h2 className="text-2xl font-semibold text-[#0A4833]">Your Host</h2>
-        <div className="mt-5 flex flex-col gap-4 sm:flex-row">
-          <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
-            <Image src={event.host.image} alt={event.host.name} fill className="object-cover" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-[#0A4833]">{event.host.name}</h3>
-            <p className="mt-1 text-sm font-medium text-[#9F8151]">{event.host.role}</p>
-            <p className="mt-3 text-sm leading-7 text-[#4B5563]">{event.host.bio}</p>
-          </div>
+        <div className="mt-5">
+          <h3 className="text-lg font-semibold text-[#0A4833]">{event.host.name}</h3>
         </div>
       </section>
 

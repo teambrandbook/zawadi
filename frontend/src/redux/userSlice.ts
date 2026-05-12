@@ -93,6 +93,9 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
     },
+    setCartCount(state, action: PayloadAction<number>) {
+      state.cartCount = action.payload;
+    },
     clearCredentials(state) {
       state.userId = null;
       state.role = null;
@@ -138,7 +141,16 @@ const userSlice = createSlice({
       state.userType = null;
       state.cartCount = 0;
       state.isAuthenticated = false;
+      state.cartCount = 0;
     });
+
+    builder
+      .addCase(fetchCartCount.fulfilled, (state, action) => {
+        state.cartCount = action.payload;
+      })
+      .addCase(fetchCartCount.rejected, (state) => {
+        state.cartCount = 0;
+      });
 
     // register (just tracks loading/error; does not auto-login)
     builder
@@ -153,11 +165,6 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = (action.payload as string) ?? "Registration failed";
       });
-
-    // fetchCartCount
-    builder.addCase(fetchCartCount.fulfilled, (state, action) => {
-      state.cartCount = action.payload;
-    });
   },
 });
 

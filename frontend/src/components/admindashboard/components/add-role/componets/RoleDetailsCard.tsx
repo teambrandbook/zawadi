@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 type Member = {
   id: number;
   src: string;
@@ -79,9 +81,12 @@ export default function RoleDetailsCard({ role }: Props) {
         <p className="text-[15px] font-medium text-gray-800">{formattedDate}</p>
       </div>
 
-      <button className="w-full rounded-xl bg-[#064e3b] py-3 font-semibold text-white transition-colors hover:bg-[#053e2f]">
+      <Link
+        href={`/admindashboard/role/create?id=${encodeURIComponent(role.id)}`}
+        className="block w-full rounded-xl bg-[#064e3b] py-3 text-center font-semibold text-white transition-colors hover:bg-[#053e2f]"
+      >
         Edit Role
-      </button>
+      </Link>
     </div>
   );
 }

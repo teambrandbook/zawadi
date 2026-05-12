@@ -18,14 +18,50 @@ export type EventRow = {
   hostAvatar: string;
   dateText: string;
   timeText: string;
+  eventDate: string;
   type: "Online" | "Offline";
   registrations: string;
   status: "Published" | "Draft" | "Cancelled";
+  isFeatured: boolean;
   attendeeAvatars: string[];
+};
+
+export type EventDetail = {
+  id: string | number;
+  title: string;
+  slug?: string;
+  short_subtitle?: string;
+  short_description?: string;
+  full_description?: string;
+  event_type?: string;
+  status?: string;
+  cover_image?: string | null;
+  host_speaker_name?: string;
+  timezone?: string;
+  agenda_highlights?: string;
+  event_date?: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  registration_deadline?: string | null;
+  repeat_event?: boolean;
+  is_online?: boolean;
+  location?: string;
+  meeting_link?: string;
+  max_attendees?: number | null;
+  event_tags?: string[];
+  is_free?: boolean;
+  ticket_price?: string | null;
+  is_featured?: boolean;
+  show_in_community?: boolean;
+  created_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  registration_count?: number;
 };
 
 export type CreateEventFormData = {
   title: string;
+  short_subtitle: string;
   short_description: string;
   full_description: string;
   event_type: string;
@@ -45,7 +81,4 @@ export type CreateEventFormData = {
   agenda_highlights: string;
   banner_file: File | null;
   banner_preview_url: string;
-  enable_registration: boolean;
-  waitlist_enabled: boolean;
-  approval_required: boolean;
 };

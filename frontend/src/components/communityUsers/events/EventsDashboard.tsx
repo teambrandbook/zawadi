@@ -28,8 +28,9 @@ type EventListItem = {
   slug: string;
   short_description: string;
   event_type: string;
-  start_datetime: string;
-  end_datetime: string;
+  event_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
   is_online: boolean;
   location: string;
   registration_count: number;
@@ -43,8 +44,9 @@ type RegistrationItem = {
   event_detail?: {
     id: number;
     title: string;
-    start_datetime: string;
-    end_datetime: string;
+    event_date: string | null;
+    start_time: string | null;
+    end_time: string | null;
     is_online: boolean;
     location: string;
     status: string;
@@ -88,23 +90,23 @@ function eventTypeIcon(type: string): LucideIcon {
   return map[type] || Calendar;
 }
 
-function formatDayAndTime(value: string): { day: string; time: string; full: string } {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return { day: "-", time: "-", full: "-" };
+function formatDayAndTime(dateStr: string | null, timeStr?: string | null): { day: string; time: string; full: string } {
+  if (!dateStr) return { day: "-", time: "-", full: "-" };
+  const dateObj = timeStr ? new Date(`${dateStr}T${timeStr}`) : new Date(dateStr);
+  if (Number.isNaN(dateObj.getTime())) return { day: "-", time: "-", full: "-" };
   const now = new Date();
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
-  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+  const isTomorrow = dateObj.toDateString() === tomorrow.toDateString();
   const day = isTomorrow
     ? "Tomorrow"
-    : date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-  const time = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-  const full = date.toLocaleString("en-US", {
+    : dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const time = timeStr ? dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "-";
+  const full = dateObj.toLocaleString("en-US", {
     month: "short",
     day: "numeric",
     year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+    ...(timeStr ? { hour: "numeric", minute: "2-digit" } : {}),
   });
   return { day, time, full };
 }
@@ -182,27 +184,34 @@ export default function EventsDashboard() {
   const upcomingEvents = useMemo(() => {
     const now = Date.now();
     return events.filter((event) => {
-      const startsAt = new Date(event.start_datetime).getTime();
+      if (!event.event_date) return false;
+      const dateTimeStr = event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date;
+      const startsAt = new Date(dateTimeStr).getTime();
       return !Number.isNaN(startsAt) && startsAt >= now;
     });
   }, [events]);
 
-  const filteredUpcomingEvents = useMemo(() => {
-    return upcomingEvents.filter((event) => {
+  const filteredEvents = useMemo(() => {
+    const now = Date.now();
+    return events.filter((event) => {
       const searchMatch =
         searchTerm.trim().length === 0 ||
         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        event.short_description.toLowerCase().includes(searchTerm.toLowerCase());
+        (event.short_description || "").toLowerCase().includes(searchTerm.toLowerCase());
       const typeMatch = activeType === "all" || event.event_type === activeType;
       const joined = registeredEventIds.has(event.id);
 
+      const dateTimeStr = event.event_date ? (event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date) : "";
+      const startsAt = dateTimeStr ? new Date(dateTimeStr).getTime() : NaN;
+      const isUpcoming = Number.isNaN(startsAt) || startsAt >= now;
+
       if (activeTab === "Joined") return joined && searchMatch && typeMatch;
-      if (activeTab === "Upcoming") return !joined && searchMatch && typeMatch;
+      if (activeTab === "Upcoming") return !joined && searchMatch && typeMatch && isUpcoming;
       if (activeTab === "Completed") return false;
       if (activeTab === "Invitations") return false;
       return searchMatch && typeMatch;
     });
-  }, [activeTab, activeType, registeredEventIds, searchTerm, upcomingEvents]);
+  }, [activeTab, activeType, registeredEventIds, searchTerm, events]);
 
   const joinedEvents = useMemo(() => {
     return activeRegistrations
@@ -213,10 +222,11 @@ export default function EventsDashboard() {
         status: item.status,
         event: item.event_detail!,
       }))
-      .sort(
-        (a, b) =>
-          new Date(a.event.start_datetime).getTime() - new Date(b.event.start_datetime).getTime()
-      );
+      .sort((a, b) => {
+        const aStr = a.event.start_time ? `${a.event.event_date}T${a.event.start_time}` : a.event.event_date || "";
+        const bStr = b.event.start_time ? `${b.event.event_date}T${b.event.start_time}` : b.event.event_date || "";
+        return new Date(aStr).getTime() - new Date(bStr).getTime();
+      });
   }, [activeRegistrations]);
 
   const eventTypeOptions = useMemo(() => {
@@ -382,12 +392,14 @@ export default function EventsDashboard() {
         <div className="flex gap-8">
           <div className="flex-1 space-y-8">
             <section>
-              <h2 className="mb-4 text-lg font-bold text-[#06402B]">Upcoming Events</h2>
+              <h2 className="mb-4 text-lg font-bold text-[#06402B]">
+                {activeTab === "Upcoming" ? "Upcoming Events" : "Events"}
+              </h2>
               <div className="space-y-4">
-                {filteredUpcomingEvents.map((event) => {
+                {filteredEvents.map((event) => {
                   const Icon = eventTypeIcon(event.event_type);
                   const joined = registeredEventIds.has(event.id);
-                  const formatted = formatDayAndTime(event.start_datetime);
+                  const formatted = formatDayAndTime(event.event_date, event.start_time);
                   return (
                     <div
                       key={event.id}
@@ -453,7 +465,7 @@ export default function EventsDashboard() {
                   );
                 })}
 
-                {filteredUpcomingEvents.length === 0 ? (
+                {filteredEvents.length === 0 ? (
                   <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-600">
                     No events found for current filters.
                   </div>
@@ -465,7 +477,7 @@ export default function EventsDashboard() {
               <h2 className="mb-4 text-lg font-bold text-[#06402B]">My Joined Events</h2>
               <div className="space-y-4">
                 {joinedEvents.map(({ eventId, event, status }) => {
-                  const when = formatDayAndTime(event.start_datetime);
+                  const when = formatDayAndTime(event.event_date, event.start_time);
                   const statusClass =
                     status === "confirmed" ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800";
                   return (
@@ -521,7 +533,7 @@ export default function EventsDashboard() {
               <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Calendar</h3>
               <div className="relative space-y-4 before:absolute before:inset-0 before:mx-auto before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent before:translate-x-0">
                 {upcomingEvents.slice(0, 3).map((event, index) => {
-                  const when = formatDayAndTime(event.start_datetime);
+                  const when = formatDayAndTime(event.event_date, event.start_time);
                   const dotClass =
                     index === 0 ? "bg-[#06402B]" : index === 1 ? "bg-purple-500" : "bg-blue-500";
                   return (

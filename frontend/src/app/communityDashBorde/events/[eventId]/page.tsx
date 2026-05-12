@@ -15,12 +15,15 @@ type ApiEventDetail = {
   event_type: string;
   status: string;
   cover_image?: string | null;
-  start_datetime: string;
-  end_datetime: string;
+  event_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
   is_online: boolean;
   location: string;
   meeting_link: string;
   registration_count: number;
+  host_speaker_name?: string;
+  agenda_highlights?: string;
 };
 
 type RegistrationItem = {
@@ -28,16 +31,17 @@ type RegistrationItem = {
   status: string;
 };
 
-function toUtcIcsDateTime(value: string): string {
-  const date = new Date(value);
+function toUtcIcsDateTime(dateStr: string | null, timeStr: string | null): string {
+  if (!dateStr) return "";
+  const date = timeStr ? new Date(`${dateStr}T${timeStr}`) : new Date(dateStr);
   if (Number.isNaN(date.getTime())) return "";
   return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 }
 
 function buildIcsDataUri(event: ApiEventDetail): string {
-  const start = toUtcIcsDateTime(event.start_datetime);
-  const end = toUtcIcsDateTime(event.end_datetime);
-  const now = toUtcIcsDateTime(new Date().toISOString());
+  const start = toUtcIcsDateTime(event.event_date, event.start_time);
+  const end = toUtcIcsDateTime(event.event_date, event.end_time);
+  const now = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
   const location = event.is_online ? event.meeting_link || "Online" : event.location || "TBD";
   const description = (event.full_description || event.short_description || "")
     .replace(/\n/g, "\\n")
@@ -87,8 +91,9 @@ function toStatusLabel(status: string): string {
   return "Upcoming";
 }
 
-function toDateLabel(value: string): string {
-  const date = new Date(value);
+function toDateLabel(dateStr: string | null): string {
+  if (!dateStr) return "-";
+  const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return "-";
   return date.toLocaleDateString("en-US", {
     month: "long",
@@ -97,18 +102,20 @@ function toDateLabel(value: string): string {
   });
 }
 
-function toTimeLabel(start: string, end: string): string {
-  const from = new Date(start);
-  const to = new Date(end);
+function toTimeLabel(dateStr: string | null, startStr: string | null, endStr: string | null): string {
+  if (!dateStr || !startStr || !endStr) return "-";
+  const from = new Date(`${dateStr}T${startStr}`);
+  const to = new Date(`${dateStr}T${endStr}`);
   if (Number.isNaN(from.getTime()) || Number.isNaN(to.getTime())) return "-";
   const startText = from.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const endText = to.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   return `${startText} - ${endText}`;
 }
 
-function toDuration(start: string, end: string): string {
-  const from = new Date(start).getTime();
-  const to = new Date(end).getTime();
+function toDuration(dateStr: string | null, startStr: string | null, endStr: string | null): string {
+  if (!dateStr || !startStr || !endStr) return "-";
+  const from = new Date(`${dateStr}T${startStr}`).getTime();
+  const to = new Date(`${dateStr}T${endStr}`).getTime();
   if (Number.isNaN(from) || Number.isNaN(to) || to <= from) return "-";
   const minutes = Math.round((to - from) / (1000 * 60));
   if (minutes < 60) return `${minutes} minutes`;
@@ -118,8 +125,9 @@ function toDuration(start: string, end: string): string {
   return `${h}h ${m}m`;
 }
 
-function toCountdown(start: string): string {
-  const startsAt = new Date(start).getTime();
+function toCountdown(dateStr: string | null, startStr: string | null): string {
+  if (!dateStr) return "Schedule will be shared soon";
+  const startsAt = startStr ? new Date(`${dateStr}T${startStr}`).getTime() : new Date(dateStr).getTime();
   if (Number.isNaN(startsAt)) return "Schedule will be shared soon";
   const now = Date.now();
   const diff = startsAt - now;
@@ -131,7 +139,7 @@ function toCountdown(start: string): string {
 }
 
 function toEventViewModel(event: ApiEventDetail, isRegistered: boolean): EventReviewData {
-  const duration = toDuration(event.start_datetime, event.end_datetime);
+  const duration = toDuration(event.event_date, event.start_time, event.end_time);
   const calendarHref = buildIcsDataUri(event);
   return {
     eventId: event.id,
@@ -140,26 +148,34 @@ function toEventViewModel(event: ApiEventDetail, isRegistered: boolean): EventRe
     category: toCategory(event.event_type),
     status: toStatusLabel(event.status),
     registrationLabel: isRegistered ? "You are Registered" : "You are not registered yet",
-    countdown: toCountdown(event.start_datetime),
+    countdown: toCountdown(event.event_date, event.start_time),
     title: event.title,
     summary: event.short_description,
-    date: toDateLabel(event.start_datetime),
-    time: toTimeLabel(event.start_datetime, event.end_datetime),
+    date: toDateLabel(event.event_date),
+    time: toTimeLabel(event.event_date, event.start_time, event.end_time),
     mode: event.is_online ? "Online Event" : "In-person Event",
     heroImage: toImageUrl(event.cover_image),
     about: [event.full_description || event.short_description],
-    agenda: [
-      {
-        title: event.title,
-        duration,
-        description: event.short_description,
-      },
-    ],
+    agenda: event.agenda_highlights
+      ? [
+          {
+            title: "Event Highlights",
+            duration,
+            description: event.agenda_highlights,
+          },
+        ]
+      : [
+          {
+            title: event.title,
+            duration,
+            description: event.short_description,
+          },
+        ],
     host: {
-      name: "ZEWADI Team",
-      role: "Community Wellness Host",
-      bio: "This session is hosted by our wellness team and invited experts.",
-      image: "/community/community-2.webp",
+      name: event.host_speaker_name || "ZEWADI Team",
+      role: "",
+      bio: "",
+      image: "",
     },
     joinInfo: {
       title: event.is_online ? "Online Session" : "In-person Session",
