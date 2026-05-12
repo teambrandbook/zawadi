@@ -508,6 +508,21 @@ class LogoutAPIView(APIView):
         return response
 
 
+class LogoutAllAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        tokens = OutstandingToken.objects.filter(user=request.user)
+        for token in tokens:
+            BlacklistedToken.objects.get_or_create(token=token)
+
+        response = Response({"message": "All sessions logged out."}, status=status.HTTP_200_OK)
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return response
+
+
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
