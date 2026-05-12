@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -29,6 +30,9 @@ class BlogListAPIView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    # Safe fields that can be used for ordering
+    ORDERING_WHITELIST = {"title", "created_at", "-title", "-created_at"}
+
     def get(self, request):
 
         user = request.user
@@ -42,18 +46,12 @@ class BlogListAPIView(APIView):
         # permission user -> view all blogs
         if has_blog_permission:
 
-            blogs = Blog.objects.all().order_by(
-                "-created_at"
-            )
+            qs = Blog.objects.all()
 
         # community user -> only own blogs
         elif user.role == "COMMUNITY_USER":
 
-            blogs = Blog.objects.filter(
-                author=user
-            ).order_by(
-                "-created_at"
-            )
+            qs = Blog.objects.filter(author=user)
 
         else:
 
@@ -64,8 +62,29 @@ class BlogListAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN
             )
 
+        # --- search filter (?search=) ---
+        search = request.query_params.get("search", "").strip()
+        if search:
+            qs = qs.filter(
+                Q(title__icontains=search) |
+                Q(content__icontains=search) |
+                Q(author__first_name__icontains=search) |
+                Q(author__last_name__icontains=search)
+            )
+
+        # --- tag filter (?tag=) ---
+        tag = request.query_params.get("tag", "").strip()
+        if tag:
+            qs = qs.filter(tags__name__icontains=tag)
+
+        # --- ordering (?ordering=) ---
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+        if ordering not in self.ORDERING_WHITELIST:
+            ordering = "-created_at"
+        qs = qs.order_by(ordering)
+
         serializer = BlogListSerializer(
-            blogs,
+            qs,
             many=True
         )
 
