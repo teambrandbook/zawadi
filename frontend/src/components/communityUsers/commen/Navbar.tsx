@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -9,6 +9,7 @@ import api from "@/services/api";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -147,11 +148,30 @@ function getUserFromTokenCookie(): UserInfo {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
+  // ref kept for future use (e.g. click-outside on bell area)
+  const _bellRef = useRef<HTMLDivElement>(null);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isCommunityUser) return;
+    try {
+      const { data } = await api.get<{ count: number }>("/notifications/inbox/unread-count/");
+      setUnreadCount(data.count ?? 0);
+    } catch {
+      // silently ignore
+    }
+  }, [isCommunityUser]);
+
+  useEffect(() => {
+    void fetchUnreadCount();
+    const interval = setInterval(() => { void fetchUnreadCount(); }, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   useEffect(() => {
     if (!isCommunityUser) return;
@@ -186,23 +206,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   }, [isCommunityUser]);
 
   useEffect(() => {
-    let isMounted = true;
     if (!isCommunityUser) {
       return;
     }
-    api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
-      .then(({ data }) => {
-        if (isMounted) {
-          setUnreadCount(data.stats?.unread_notifications ?? 0);
-        }
-      })
-      .catch(() => {
-        // not critical — leave at 0
-      });
     dispatch(fetchCartCount());
-    return () => {
-      isMounted = false;
-    };
   }, [pathname, isCommunityUser, dispatch]);
 
   const handleLogout = async () => {
@@ -276,19 +283,27 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           />
         </div>
 
-        {/* Notification Icon */}
-        <Link
-          href="/communityDashBoard/notifications"
-          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
-          aria-label="Open notifications"
-        >
-          <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-          {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
+        {/* Notification bell */}
+        <div className="relative" ref={_bellRef}>
+          <button
+            onClick={() => {
+              setShowNotifications((v) => !v);
+              if (!showNotifications) setUnreadCount(0);
+            }}
+            className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <NotificationDropdown onClose={() => setShowNotifications(false)} />
           )}
-        </Link>
+        </div>
 
         <Link
           href="/communityDashBoard/cart"
