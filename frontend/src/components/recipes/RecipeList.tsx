@@ -6,6 +6,7 @@ import RecipeFilter from "@/components/recipes/RecipeFilter";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 import { stackRecipeCards } from "@/utils/animations";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 const ALL_CATEGORY = "SHOW ALL";
 const DEFAULT_CATEGORY = "BREAKFAST";
@@ -21,11 +22,7 @@ type BackendRecipe = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-1.webp";
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  return getImageUrl(value);
 }
 
 function mapBackendRecipe(recipe: BackendRecipe): Recipe {

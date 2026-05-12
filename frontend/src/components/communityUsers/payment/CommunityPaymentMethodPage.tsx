@@ -15,6 +15,7 @@ import {
   Truck,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type DeliveryPayload = {
   full_name: string;
@@ -113,10 +114,7 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath?: string | null): string {
   if (!imagePath) return fallbackImage;
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function readCheckoutSession(): CheckoutSession | null {

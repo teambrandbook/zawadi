@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Star } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -23,12 +23,9 @@ type Product = {
   stock_status: string;
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "");
-
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
-  if (path.startsWith("http")) return path;
-  return `${API_BASE}${path}`;
+  return getImageUrl(path);
 }
 
 function Rating() {

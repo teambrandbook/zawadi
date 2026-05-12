@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
@@ -77,27 +78,6 @@ function getInitials(name: string, email: string): string {
   return nameInitials || email.slice(0, 2).toUpperCase() || "U";
 }
 
-function toImageUrl(imagePath?: string | null): string | null {
-  if (!imagePath) return null;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      const apiUrl = new URL(apiOrigin);
-      if ((imageUrl.hostname === "localhost" || imageUrl.hostname === "127.0.0.1") && imageUrl.pathname.startsWith("/media/")) {
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
-}
 
 function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
   const hasProfileName = "full_name" in profile || "user_name" in profile;
@@ -114,7 +94,7 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
     role,
     userType,
     initials: getInitials(fullName, email),
-    photo: toImageUrl(profile.photo) ?? user.photo,
+    photo: profile.photo ? getImageUrl(profile.photo) : user.photo,
   };
 }
 

@@ -8,6 +8,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 const blogImageOne = "/blogs/blog-1.webp";
 const blogImageTwo = "/blogs/blog-2.webp";
@@ -39,11 +40,7 @@ type BackendBlog = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return blogImageOne;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  return getImageUrl(value);
 }
 
 function formatDate(value?: string) {

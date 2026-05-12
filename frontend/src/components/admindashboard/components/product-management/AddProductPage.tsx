@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import AddProductActions from "./components/AddProductActions";
 import AddProductForm, { ProductFormData } from "./components/AddProductForm";
 import AddProductHeader from "./components/AddProductHeader";
@@ -50,10 +51,7 @@ const initialFormData: ProductFormData = {
 
 function toProductImageUrl(imagePath?: string | null) {
   if (!imagePath) return null;
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 export default function AddProductPage() {

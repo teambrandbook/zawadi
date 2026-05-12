@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import EventReviewPage from "@/components/communityUsers/events/details/EventReviewPage";
 import type { EventReviewData } from "@/components/communityUsers/events/details/types";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiEventDetail = {
   id: number;
@@ -63,10 +64,7 @@ function buildIcsDataUri(event: ApiEventDetail): string {
 
 function toImageUrl(imagePath?: string | null): string {
   if (!imagePath) return "/events/event-1.webp";
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function toCategory(type: string): string {

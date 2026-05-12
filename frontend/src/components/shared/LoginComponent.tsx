@@ -10,6 +10,7 @@ import type { AppDispatch } from "@/redux/store";
 import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
 import { z } from "zod";
+import { API_BASE_URL } from "@/lib/config";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -23,8 +24,6 @@ export default function LoginComponent() {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
   const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,7 +72,7 @@ export default function LoginComponent() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${apiBase}/account/google/login/`;
+    window.location.href = `${API_BASE_URL}/account/google/login/`;
   };
 
   return (

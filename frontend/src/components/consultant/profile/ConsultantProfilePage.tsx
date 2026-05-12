@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import AvailabilityCard from "./AvailabilityCard";
 import BasicDetailsCard from "./BasicDetailsCard";
 import ProfessionalDetailsCard from "./ProfessionalDetailsCard";
@@ -158,16 +159,9 @@ function formatDateRange(fromDate: string, toDate: string) {
   return `${formatter.format(from)} - ${formatter.format(to)}`;
 }
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function normalizePhotoUrl(photo: string | null) {
   if (!photo) return fallbackProfile.imageSrc;
-  if (photo.startsWith("http")) return photo;
-  if (photo.startsWith("/")) return `${getApiOrigin()}${photo}`;
-  return photo;
+  return getImageUrl(photo);
 }
 
 function mapProfile(profile: ConsultantProfileApiResponse): ConsultantProfileData {

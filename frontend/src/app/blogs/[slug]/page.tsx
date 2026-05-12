@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import ContentSection from "@/components/common/ContentSection";
+import { getImageUrl } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
 
 type BackendBlogDetail = {
   title: string;
@@ -14,15 +16,11 @@ type BackendBlogDetail = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/blogs/blog-1.webp";
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  return getImageUrl(value);
 }
 
 async function getBlog(slug: string) {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const apiBase = API_BASE_URL;
   try {
     const response = await fetch(`${apiBase}/blog/${slug}/`, { cache: "no-store" });
     if (response.ok) return (await response.json()) as BackendBlogDetail;

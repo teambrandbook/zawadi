@@ -4,6 +4,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import AddNutritionistHeader from "./components/add-nutritionist/AddNutritionistHeader";
 import { expertiseChips } from "./components/add-nutritionist/addNutritionistData";
 import ExpertiseSection from "./components/add-nutritionist/ExpertiseSection";
@@ -67,10 +68,7 @@ function TextareaField({ label, value, onChange, placeholder }: {
 
 function toImageUrl(imagePath?: string | null) {
   if (!imagePath) return "";
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function splitCsv(value: unknown) {

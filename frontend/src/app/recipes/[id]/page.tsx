@@ -4,6 +4,8 @@ import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+import { getImageUrl } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
 
 type BackendRecipeDetail = {
   slug?: string;
@@ -19,11 +21,7 @@ type BackendRecipeDetail = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-1.webp";
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  return getImageUrl(value);
 }
 
 function lines(value?: string | null) {
@@ -49,7 +47,7 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
 }
 
 async function getRecipe(id: string): Promise<Recipe | undefined> {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  const apiBase = API_BASE_URL;
   try {
     const response = await fetch(`${apiBase}/recipes/${id}/`, { cache: "no-store" });
     if (response.ok) {
