@@ -38,6 +38,8 @@ class AccountMeAPITests(APITestCase):
 
 class RegisterSecurityTests(APITestCase):
     def test_public_register_forces_community_user_role(self):
+        from unittest.mock import patch
+
         payload = {
             "email": "new-user@example.com",
             "password": "Pass@1234",
@@ -49,10 +51,15 @@ class RegisterSecurityTests(APITestCase):
             "role": "ADMIN",
         }
 
-        response = self.client.post("/api/account/register/", payload, format="json")
+        with patch("accounts.views.send_otp_email"):
+            response = self.client.post("/api/account/register/", payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["role"], "COMMUNITY_USER")
+        self.assertTrue(response.data["requires_otp"])
+        # Confirm the DB user has the forced community_user role
+        from accounts.models import User as UserModel
+        user = UserModel.objects.get(email="new-user@example.com")
+        self.assertEqual(user.role, "COMMUNITY_USER")
 
 
 class MeSerializerTest(APITestCase):

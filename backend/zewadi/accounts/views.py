@@ -14,7 +14,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from communityuser.models import CommunityUser, UserType
 from supperadmin.utils.permissions import has_permission
-from .models import User
+from django.utils import timezone
+from .models import OTP, User
+from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
 from .throttles import LoginRateThrottle, RegisterRateThrottle
 
@@ -106,12 +108,14 @@ class RegisterAPIView(APIView):
         serializer = RegisterSerializer(data=payload)
         if serializer.is_valid():
             user = serializer.save()
+            otp = OTP.generate(user, OTP.PURPOSE_EMAIL_VERIFICATION)
+            send_otp_email(user.email, otp.code, OTP.PURPOSE_EMAIL_VERIFICATION)
             return Response(
                 {
-                    "message": "User registered successfully",
+                    "message": "Registration successful. Check your email for a verification code.",
                     "user_id": user.user_id,
                     "email": user.email,
-                    "role": user.role,
+                    "requires_otp": True,
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -139,6 +143,8 @@ class CreateNutritionistAPIView(APIView):
         serializer = RegisterSerializer(data=payload)
         if serializer.is_valid():
             user = serializer.save()
+            user.is_active = True
+            user.save(update_fields=["is_active"])
             return Response(
                 {
                     "message": "Nutritionist created successfully",

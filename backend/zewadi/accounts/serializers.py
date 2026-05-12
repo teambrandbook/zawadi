@@ -137,6 +137,7 @@ class RegisterSerializer(serializers.Serializer):
                 photo=validated_data.get("photo"),
                 role=validated_data.get("role"),
                 role_obj=validated_data.get("role_obj"),
+                is_active=False,
             )
 
             # 🔹 COMMUNITY USER
@@ -188,17 +189,25 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(email=data["email"], password=data["password"])
+        try:
+            user_obj = User.objects.get(email__iexact=data["email"])
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid credentials")
 
+        if not user_obj.is_active:
+            raise serializers.ValidationError(
+                "Please verify your email before logging in. Check your inbox for a verification code."
+            )
+
+        user = authenticate(email=data["email"], password=data["password"])
         if not user:
             raise serializers.ValidationError("Invalid credentials")
 
         refresh = RefreshToken.for_user(user)
-
         return {
             "user_id": user.user_id,
             "email": user.email,
-            "role": user.role.lower(),  # Frontend checks lowercase: "admin", "community_user"
+            "role": user.role.lower(),
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
