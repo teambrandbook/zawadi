@@ -23,6 +23,7 @@ import {
   Truck,
 } from "lucide-react";
 import api from "@/services/api";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 type ApiOrderListItem = {
   order_id: string;
@@ -256,11 +257,11 @@ export default function MyOrder() {
   }
 
   function goToTracking(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
+    router.push(`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
   }
 
   function goToOrderDetails(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
+    router.push(`/communityDashBoard/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
   }
 
   function onActionClick(orderId: string, actionLabel: string) {
@@ -273,11 +274,11 @@ export default function MyOrder() {
       return;
     }
     if (actionLabel === "Write Review") {
-      router.push(`/communityDashBorde/myorders/review/${encodeURIComponent(orderId)}`);
+      router.push(`/communityDashBoard/myorders/review/${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "Reorder") {
-      router.push("/communityDashBorde/products");
+      router.push("/communityDashBoard/products");
       return;
     }
     setStatusMessage("Invoice download is not available in the MVP.");
@@ -403,6 +404,7 @@ export default function MyOrder() {
           <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">{loadError}</div>
         ) : null}
 
+        <ErrorBoundary>
         <div className="space-y-4">
           {!isLoading &&
             paginatedOrders.map((order) => {
@@ -522,6 +524,7 @@ export default function MyOrder() {
             </div>
           ) : null}
         </div>
+        </ErrorBoundary>
 
         {!isLoading && filteredOrders.length > 0 ? (
           <div className="flex items-center justify-center gap-2 pt-2">

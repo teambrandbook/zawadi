@@ -10,6 +10,7 @@ from .serializers import (
     RecipeCreateSerializer,
 )
 from django.utils import timezone
+from django.db.models import Q
 
 
 def request_bool(value):
@@ -42,7 +43,7 @@ class RecipeListAPIView(APIView):
 
     def get(self, request):
 
-       
+
         if has_permission(request.user, "recipes", "create"):
 
             recipes = Recipe.objects.select_related(
@@ -55,7 +56,7 @@ class RecipeListAPIView(APIView):
                 "author"
             ).filter(author=request.user)
 
-      
+
         else:
 
             return Response(
@@ -65,6 +66,28 @@ class RecipeListAPIView(APIView):
 
                 status=status.HTTP_403_FORBIDDEN
             )
+
+        # --- Search ---
+        search = request.query_params.get("search")
+        if search:
+            recipes = recipes.filter(
+                Q(title__icontains=search) | Q(short_description__icontains=search)
+            )
+
+        # --- Category filter ---
+        category = request.query_params.get("category")
+        if category:
+            recipes = recipes.filter(category__iexact=category)
+
+        # --- Ordering ---
+        _SAFE_ORDER_FIELDS = {
+            "title", "-title",
+            "created_at", "-created_at",
+        }
+        ordering = request.query_params.get("ordering", "-created_at")
+        if ordering not in _SAFE_ORDER_FIELDS:
+            ordering = "-created_at"
+        recipes = recipes.order_by(ordering)
 
         serializer = RecipeListSerializer(
             recipes,

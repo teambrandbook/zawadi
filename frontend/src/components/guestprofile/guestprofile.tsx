@@ -110,7 +110,7 @@ export default function GuestProfile() {
     try {
       await api.patch("/account/upgrade/");
       toast.success("Welcome to the community!");
-      router.replace("/communityDashBorde");
+      router.replace("/communityDashBoard");
     } catch {
       toast.error("Upgrade failed. Please try again.");
     } finally {

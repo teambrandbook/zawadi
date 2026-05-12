@@ -1,53 +1,44 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from notifications.utils import send_user_notification
+from notifications.email import send_notification_email
 
-BOOKING_MESSAGES = {
+BOOKING_STATUS_MESSAGES = {
     "confirmed": (
-        "Consultation Confirmed",
-        "Your consultation has been confirmed. Check your schedule for the details.",
+        "Consultation confirmed",
+        "Your consultation on {date} has been confirmed. We look forward to seeing you!",
     ),
     "cancelled": (
-        "Consultation Cancelled",
-        "Your consultation has been cancelled. Please rebook if you'd like to reschedule.",
+        "Consultation cancelled",
+        "Your consultation scheduled for {date} has been cancelled. Contact support if you have questions.",
     ),
     "completed": (
-        "Consultation Completed",
-        "Your consultation is marked as completed. Check your diet plan for updates.",
+        "Consultation completed",
+        "Your consultation on {date} has been marked as completed. We hope it was helpful!",
     ),
 }
 
 
-@receiver(pre_save, sender="consultant.ConsultationBooking")
-def _track_booking_prev_status(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            instance._prev_status = sender.objects.get(pk=instance.pk).status
-        except sender.DoesNotExist:
-            instance._prev_status = None
-    else:
-        instance._prev_status = None
-
-
 @receiver(post_save, sender="consultant.ConsultationBooking")
-def _notify_booking_status_change(sender, instance, created, **kwargs):
-    prev = getattr(instance, "_prev_status", None)
-    current = instance.status
-
+def handle_booking_status_change(sender, instance, created, **kwargs):
     if created:
-        # Notify the client that their booking was received.
-        from notifications.utils import send_user_notification
-        send_user_notification(
-            instance.user,
-            "Booking Received",
-            "Your consultation booking has been received and is pending confirmation.",
-        )
+        return  # No notification on booking creation (pending state)
+
+    old_status = getattr(instance, "_status_before_save", None)
+    if old_status is None or old_status == instance.status:
         return
 
-    if prev == current:
+    title, body_template = BOOKING_STATUS_MESSAGES.get(instance.status, (None, None))
+    if title is None:
         return
 
-    if current in BOOKING_MESSAGES:
-        from notifications.utils import send_user_notification
-        title, body = BOOKING_MESSAGES[current]
-        send_user_notification(instance.user, title, body)
+    date_str = instance.booked_date.strftime("%d %b %Y") if instance.booked_date else "your scheduled date"
+    body = body_template.format(date=date_str)
+
+    send_user_notification(instance.user, title, body, "REMINDER")
+    send_notification_email(
+        instance.user.email,
+        f"{title} — Zawadi",
+        body,
+    )

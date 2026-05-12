@@ -235,7 +235,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
             We could not find a matching order for ID: {orderDataId}
           </p>
           <button
-            onClick={() => router.push("/communityDashBorde/myorders")}
+            onClick={() => router.push("/communityDashBoard/myorders")}
             className="mt-5 inline-flex h-10 items-center rounded-lg bg-[#0A4833] px-4 text-sm font-medium text-white hover:bg-[#083B2A]"
           >
             Back to My Orders
@@ -251,7 +251,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
     <section className="mx-auto max-w-[1120px] px-4 py-8 lg:px-6">
       <div className="mb-5">
         {/* <button
-          onClick={() => router.push("/communityDashBorde/myorders")}
+          onClick={() => router.push("/communityDashBoard/myorders")}
           className="inline-flex items-center gap-2 text-sm font-medium text-[#0A4833] hover:text-[#083B2A]"
         >
           <ArrowLeft className="h-4 w-4" />

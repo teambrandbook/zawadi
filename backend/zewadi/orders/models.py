@@ -72,6 +72,10 @@ class Order(models.Model):
     class Meta:
         ordering = ["-created_at"]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._status_before_save = self.status
+
     def save(self, *args, **kwargs):
         if not self.order_id:
             with transaction.atomic():

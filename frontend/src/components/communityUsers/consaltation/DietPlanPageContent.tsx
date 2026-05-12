@@ -170,7 +170,7 @@ export default function DietPlanPageContent() {
           Your nutritionist will create a personalised plan after your consultation.
         </p>
         <button
-          onClick={() => router.push("/communityDashBorde/addconsaltation")}
+          onClick={() => router.push("/communityDashBoard/addconsaltation")}
           className="mt-6 rounded-xl bg-[#0A4833] px-6 py-2 text-sm font-bold text-white hover:bg-[#083627]"
         >
           Book a Consultation
@@ -186,7 +186,7 @@ export default function DietPlanPageContent() {
         dailyTargets={buildTargets(plan)}
         weeklySummary={buildSummary(plan)}
         nutritionGuidance={buildGuidance(plan)}
-        onBookFollowUp={() => router.push("/communityDashBorde/addconsaltation")}
+        onBookFollowUp={() => router.push("/communityDashBoard/addconsaltation")}
         onDownloadPlan={() => setMessage("Diet plan download requested.")}
         onViewNotes={() => setMessage("Opening nutritionist notes.")}
         onMarkComplete={() => setMessage("Meal marked as complete.")}

@@ -12,6 +12,7 @@ type CartItem = {
   product_id: number;
   product_name: string;
   product_subtitle: string;
+  category: string;
   image: string;
   unit_price: string;
   line_total: string;
@@ -30,50 +31,35 @@ type CartSummary = {
 };
 
 type SuggestedProduct = {
-  name: string;
-  variant: string;
-  image: string;
-  price: number;
+  id: number;
+  product_name: string;
+  product_subtitle: string;
+  category: string;
+  image: string | null;
+  base_price: string;
+  sale_price: string | null;
+  currency: string;
 };
 
-const suggestions: SuggestedProduct[] = [
-  {
-    name: "Organic Dates",
-    variant: "Sandstone",
-    image: "/product/p-4.webp",
-    price: 349.99,
-  },
-  {
-    name: "Red Quinoa",
-    variant: "Space Gray",
-    image: "/product/quinoa.webp",
-    price: 549,
-  },
-  {
-    name: "Broken wheat",
-    variant: "Sandstone",
-    image: "/product/broken wheet.webp",
-    price: 349.99,
-  },
-  {
-    name: "Chia Seed",
-    variant: "Space Gray",
-    image: "/product/chia.webp",
-    price: 549,
-  },
-  {
-    name: "White Quinoa",
-    variant: "Space Gray",
-    image: "/product/quinoa.webp",
-    price: 549,
-  },
-];
+type ProductListResponse = SuggestedProduct[] | { results?: SuggestedProduct[] };
 
 const money = new Intl.NumberFormat("en-IN", {
   style: "currency",
   currency: "INR",
   minimumFractionDigits: 2,
 });
+
+const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
+  /\/api\/?$/,
+  ""
+);
+
+function resolveProductImage(image?: string | null) {
+  if (!image) return "/product/buckwheat.webp";
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  if (image.startsWith("/media/")) return `${apiOrigin}${image}`;
+  return image;
+}
 
 function QuantityControl({
   value,
@@ -122,9 +108,10 @@ function CartRow({
     <article className="grid gap-4 rounded-2xl border border-[#f3f4f6] bg-white p-4 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:grid-cols-[108px_1fr] sm:p-6 lg:grid-cols-[108px_1fr_128px]">
       <div className="relative h-32 w-full overflow-hidden rounded-xl bg-[#f9fafb] sm:w-[108px]">
         <Image
-          src={item.image || "/product/buckwheat.webp"}
+          src={resolveProductImage(item.image)}
           alt={item.product_name}
           fill
+          unoptimized
           sizes="108px"
           className="object-cover mix-blend-multiply"
         />
@@ -213,33 +200,51 @@ function OrderSummary({
   );
 }
 
-function SuggestedCard({ product }: { product: SuggestedProduct }) {
+function SuggestedCard({
+  product,
+  onAddToCart,
+}: {
+  product: SuggestedProduct;
+  onAddToCart: () => void;
+}) {
+  const displayPrice = parseFloat(product.sale_price || product.base_price || "0");
+
   return (
     <article className="rounded-2xl border border-[#f3f4f6] bg-white p-4 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">
       <div className="relative h-48 overflow-hidden rounded-xl bg-[#f9fafb]">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(min-width: 1280px) 255px, (min-width: 768px) 30vw, 90vw"
-          className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
-        />
+        <Link href={`/products/details?id=${product.id}`} className="block h-full w-full">
+          <Image
+            src={resolveProductImage(product.image)}
+            alt={product.product_name}
+            fill
+            unoptimized
+            sizes="(min-width: 1280px) 255px, (min-width: 768px) 30vw, 90vw"
+            className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
+          />
+        </Link>
         <button
           type="button"
-          aria-label={`Add ${product.name} to wishlist`}
+          aria-label={`Add ${product.product_name} to wishlist`}
           className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-white text-[#9ca3af] shadow-sm transition hover:text-[#1f4d3a]"
         >
           <Heart size={16} />
         </button>
       </div>
 
-      <h3 className="mt-4 text-base font-bold leading-6 text-[#1f4d3a]">{product.name}</h3>
-      <p className="mt-1 text-sm leading-5 text-[#6b7280]">{product.variant}</p>
+      <Link href={`/products/details?id=${product.id}`}>
+        <h3 className="mt-4 text-base font-bold leading-6 text-[#1f4d3a]">
+          {product.product_name}
+        </h3>
+      </Link>
+      <p className="mt-1 text-sm leading-5 text-[#6b7280]">
+        {product.product_subtitle || product.category}
+      </p>
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-lg font-bold leading-7 text-[#1f4d3a]">{money.format(product.price)}</p>
+        <p className="text-lg font-bold leading-7 text-[#1f4d3a]">{money.format(displayPrice)}</p>
         <button
           type="button"
-          aria-label={`Add ${product.name} to cart`}
+          onClick={onAddToCart}
+          aria-label={`Add ${product.product_name} to cart`}
           className="flex size-10 items-center justify-center rounded-full border border-[#e5e7eb] text-[#1f4d3a] transition hover:border-[#1f4d3a] hover:bg-[#1f4d3a] hover:text-white"
         >
           <Plus size={16} strokeWidth={2.8} />
@@ -252,14 +257,46 @@ function SuggestedCard({ product }: { product: SuggestedProduct }) {
 export default function Cart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [summary, setSummary] = useState<CartSummary | null>(null);
+  const [relatedProducts, setRelatedProducts] = useState<SuggestedProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(false);
+
+  function updateCartState(data: { items?: CartItem[]; summary?: CartSummary | null }) {
+    setItems(data.items ?? []);
+    setSummary(data.summary ?? null);
+  }
+
+  async function fetchRelatedProducts(cartItems: CartItem[]) {
+    const cartProductIds = new Set(cartItems.map((item) => item.product_id));
+    const cartCategories = new Set(
+      cartItems.map((item) => item.category).filter(Boolean).map((category) => category.toLowerCase())
+    );
+
+    if (cartCategories.size === 0) {
+      setRelatedProducts([]);
+      return;
+    }
+
+    try {
+      const res = await api.get<ProductListResponse>("/products/");
+      const products = Array.isArray(res.data) ? res.data : res.data.results ?? [];
+      const related = products
+        .filter((product) => !cartProductIds.has(product.id))
+        .filter((product) => cartCategories.has(String(product.category ?? "").toLowerCase()))
+        .slice(0, 5);
+
+      setRelatedProducts(related);
+    } catch {
+      setRelatedProducts([]);
+    }
+  }
 
   async function fetchCart() {
     try {
       const res = await api.get("/orders/cart/");
-      setItems(res.data.items ?? []);
-      setSummary(res.data.summary ?? null);
+      const nextItems = res.data.items ?? [];
+      updateCartState(res.data);
+      await fetchRelatedProducts(nextItems);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } }).response?.status;
       if (status === 401 || status === 403) {
@@ -280,8 +317,9 @@ export default function Cart() {
     if (newQty < 1) return;
     try {
       const res = await api.patch(`/orders/cart/items/${itemId}/`, { quantity: newQty });
-      setItems(res.data.items ?? []);
-      setSummary(res.data.summary ?? null);
+      const nextItems = res.data.items ?? [];
+      updateCartState(res.data);
+      await fetchRelatedProducts(nextItems);
     } catch {
       toast.error("Could not update quantity.");
     }
@@ -290,11 +328,24 @@ export default function Cart() {
   async function handleRemove(itemId: number) {
     try {
       const res = await api.delete(`/orders/cart/items/${itemId}/`);
-      setItems(res.data.items ?? []);
-      setSummary(res.data.summary ?? null);
+      const nextItems = res.data.items ?? [];
+      updateCartState(res.data);
+      await fetchRelatedProducts(nextItems);
       toast.success("Item removed.");
     } catch {
       toast.error("Could not remove item.");
+    }
+  }
+
+  async function handleAddRelatedProduct(productId: number) {
+    try {
+      const res = await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
+      const nextItems = res.data.items ?? [];
+      updateCartState(res.data);
+      await fetchRelatedProducts(nextItems);
+      toast.success("Added to cart.");
+    } catch {
+      toast.error("Could not add product to cart.");
     }
   }
 
@@ -379,14 +430,20 @@ export default function Cart() {
           </div>
         </div>
 
-        <section className="mt-10 lg:mt-14">
-          <h2 className="text-2xl font-bold leading-8 text-[#1f4d3a]">You might also like</h2>
-          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {suggestions.map((product) => (
-              <SuggestedCard key={product.name} product={product} />
-            ))}
-          </div>
-        </section>
+        {relatedProducts.length > 0 && (
+          <section className="mt-10 lg:mt-14">
+            <h2 className="text-2xl font-bold leading-8 text-[#1f4d3a]">You might also like</h2>
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+              {relatedProducts.map((product) => (
+                <SuggestedCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={() => handleAddRelatedProduct(product.id)}
+                />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

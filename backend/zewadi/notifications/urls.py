@@ -1,19 +1,18 @@
 from django.urls import path
 from .views import (
-    NotificationListCreateView,
     NotificationDetailView,
+    NotificationListCreateView,
     UserNotificationListView,
     UserNotificationMarkAllReadView,
     UserNotificationMarkReadView,
+    UserNotificationUnreadCountView,
 )
 
 urlpatterns = [
-    # Admin endpoints
-    path("", NotificationListCreateView.as_view(), name="notifications-list-create"),
-    path("<int:pk>/", NotificationDetailView.as_view(), name="notifications-detail"),
-
-    # Community-user inbox endpoints
-    path("inbox/", UserNotificationListView.as_view(), name="notifications-inbox"),
-    path("inbox/mark-all-read/", UserNotificationMarkAllReadView.as_view(), name="notifications-mark-all-read"),
-    path("inbox/<int:pk>/read/", UserNotificationMarkReadView.as_view(), name="notifications-mark-read"),
+    path("", NotificationListCreateView.as_view()),
+    path("<int:pk>/", NotificationDetailView.as_view()),
+    path("inbox/", UserNotificationListView.as_view()),
+    path("inbox/unread-count/", UserNotificationUnreadCountView.as_view()),
+    path("inbox/mark-all-read/", UserNotificationMarkAllReadView.as_view()),
+    path("inbox/<int:pk>/read/", UserNotificationMarkReadView.as_view()),
 ]
