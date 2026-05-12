@@ -101,7 +101,7 @@ const CommunityValues = () => {
                   className="value-card bg-white hover:bg-[#1A4331] p-10 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] flex flex-col items-start aspect-square relative z-30 transition-colors duration-500 group cursor-default"
                 >
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#1A4331]/20 group-hover:border-white/30 flex items-center justify-center text-[#1A4331] group-hover:text-white mb-8 transition-colors duration-500">
-                    <Icon size={28} className="stroke-[1.5px]" />
+                    {Icon && <Icon size={28} className="stroke-[1.5px]" />}
                   </div>
 
                   <h4 className="text-xl md:text-2xl font-bold text-[#1A4331] group-hover:text-white mb-4 leading-tight font-inter transition-colors duration-500">
