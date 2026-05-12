@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import ProductDetails, { ProductDetailsCard } from "./ProductDetails";
 import PackSelector from "./PackSelector";
 import QuantitySelector from "./QuantitySelector";
@@ -182,7 +183,7 @@ export default function OrderPage() {
           setSelectedProductId(String((requestedProduct ?? productList[0]).id));
         }
       } catch {
-        if (isMounted) setStatusMessage("Unable to load products.");
+        if (isMounted) showStatus("Unable to load products.");
       } finally {
         if (isMounted) setIsLoadingProducts(false);
       }
@@ -211,7 +212,7 @@ export default function OrderPage() {
         setCartItems(response.data.items);
         setCartSummary(response.data.summary);
       } catch {
-        if (isMounted) setStatusMessage("Unable to load cart checkout.");
+        if (isMounted) showStatus("Unable to load cart checkout.");
       } finally {
         if (isMounted) setIsLoadingCart(false);
       }
@@ -248,6 +249,11 @@ export default function OrderPage() {
     setDeliveryForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function showStatus(message: string) {
+    setStatusMessage(message);
+    toast.error(message);
+  }
+
   async function placeOrder() {
     const requiredFields: Array<keyof DeliveryForm> = [
       "fullName",
@@ -259,13 +265,13 @@ export default function OrderPage() {
     ];
     const missing = requiredFields.find((field) => !deliveryForm[field].trim());
     if (missing) {
-      setStatusMessage("Please complete all required delivery fields.");
+      showStatus("Please complete all required delivery fields.");
       return;
     }
 
     if (isCartCheckout) {
       if (!cartItems.length) {
-        setStatusMessage("Your cart is empty.");
+        showStatus("Your cart is empty.");
         return;
       }
 
@@ -288,7 +294,7 @@ export default function OrderPage() {
     }
 
     if (!selectedProduct || !selectedPack) {
-      setStatusMessage("Please select a product and pack.");
+      showStatus("Please select a product and pack.");
       return;
     }
     const selectedVariant = selectedProduct.variants?.find(

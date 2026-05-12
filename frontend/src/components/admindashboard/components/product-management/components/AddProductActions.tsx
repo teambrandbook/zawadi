@@ -2,11 +2,12 @@ import { Eye, Plus } from "lucide-react";
 
 type Props = {
   onSubmit: () => void;
+  onDraft: () => void;
   isSubmitting: boolean;
   submitLabel?: string;
 };
 
-export default function AddProductActions({ onSubmit, isSubmitting, submitLabel = "Create Product" }: Props) {
+export default function AddProductActions({ onSubmit, onDraft, isSubmitting, submitLabel = "Create Product" }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <button
@@ -18,7 +19,12 @@ export default function AddProductActions({ onSubmit, isSubmitting, submitLabel 
         <Plus className="h-3.5 w-3.5" />
         {isSubmitting ? `${submitLabel === "Create Product" ? "Creating" : "Updating"}...` : submitLabel}
       </button>
-      <button type="button" className="inline-flex h-9 items-center rounded-md bg-[#A1844F] px-4 text-[12px] font-medium text-white">
+      <button
+        type="button"
+        onClick={onDraft}
+        disabled={isSubmitting}
+        className="inline-flex h-9 items-center rounded-md bg-[#A1844F] px-4 text-[12px] font-medium text-white disabled:opacity-60"
+      >
         Save as Draft
       </button>
       <button type="button" className="inline-flex h-9 items-center gap-1.5 rounded-md border border-[#D0D5DD] bg-white px-4 text-[12px] font-medium text-[#344054]">

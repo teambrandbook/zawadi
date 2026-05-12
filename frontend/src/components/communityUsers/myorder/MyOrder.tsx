@@ -27,6 +27,7 @@ import api from "@/services/api";
 type ApiOrderListItem = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   pack_name?: string;
   quantity?: number;
   total_amount: string | number;
@@ -190,7 +191,7 @@ export default function MyOrder() {
             id: item.order_id,
             title: toOrderTitle(item.product_name),
             orderId: item.order_id,
-            image: fallbackImages[index % fallbackImages.length],
+            image: item.product_image || fallbackImages[index % fallbackImages.length],
             orderDate: toDateLabel(item.created_at),
             quantity: `${item.quantity ?? 1} x ${item.pack_name || "pack"}`,
             totalAmount: toCurrency(item.total_amount),
@@ -203,6 +204,7 @@ export default function MyOrder() {
         });
 
         setOrders(mapped);
+        // Initially expand orders that are out for delivery
         setExpandedOrderId(mapped.find((item) => item.lifecycleStatus === "Out for Delivery")?.id ?? null);
       } catch {
         if (isMounted) setLoadError("Failed to load orders.");
@@ -255,21 +257,20 @@ export default function MyOrder() {
     setCurrentPage(1);
   }
 
-  function goToTracking(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
+  function toggleOrderExpansion(orderId: string) {
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   }
 
-  function goToOrderDetails(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
-  }
+  function onActionClick(e: React.MouseEvent, orderId: string, actionLabel: string) {
+    // Prevent the card's click event from triggering
+    e.stopPropagation();
 
-  function onActionClick(orderId: string, actionLabel: string) {
     if (actionLabel === "Track Order") {
-      goToTracking(orderId);
+      router.push(`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "View Details") {
-      goToOrderDetails(orderId);
+      router.push(`/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "Write Review") {
@@ -321,6 +322,7 @@ export default function MyOrder() {
           </p>
         </header>
 
+        {/* Stats Section */}
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
           {stats.map(({ label, value, tag, valueClass, Icon }) => (
             <article
@@ -339,6 +341,7 @@ export default function MyOrder() {
           ))}
         </div>
 
+        {/* Filter Section */}
         <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 shadow-[0_1px_1px_rgba(0,0,0,0.04)]">
           <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-wrap gap-2">
@@ -403,19 +406,24 @@ export default function MyOrder() {
           <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">{loadError}</div>
         ) : null}
 
+        {/* Order List */}
         <div className="space-y-4">
           {!isLoading &&
             paginatedOrders.map((order) => {
               const badge = getBadgeData(order.lifecycleStatus);
               const actions = getActions(order.lifecycleStatus);
               const dateMeta = getDateMeta(order);
-              const showTrackingSection = expandedOrderId === order.id && order.lifecycleStatus !== "Delivered" && order.lifecycleStatus !== "Cancelled";
+              const isExpanded = expandedOrderId === order.id;
+              const showTrackingSection = isExpanded && order.lifecycleStatus !== "Delivered" && order.lifecycleStatus !== "Cancelled";
               const currentStageIndex = getCompletedStageIndex(order.lifecycleStatus);
 
               return (
                 <article
                   key={order.orderId}
-                  className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                  onClick={() => toggleOrderExpansion(order.id)}
+                  className={`overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer transition-all ${
+                    isExpanded ? "ring-1 ring-[#0A4833]" : "hover:border-[#0A4833]"
+                  }`}
                 >
                   <div className="p-5 lg:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
@@ -451,7 +459,7 @@ export default function MyOrder() {
                             <button
                               key={action.label}
                               type="button"
-                              onClick={() => onActionClick(order.id, action.label)}
+                              onClick={(e) => onActionClick(e, order.id, action.label)}
                               className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
                                 action.variant === "primary"
                                   ? "bg-[#0A4833] text-white hover:bg-[#083B2A]"
@@ -467,6 +475,7 @@ export default function MyOrder() {
                     </div>
                   </div>
 
+                  {/* Tracking Section */}
                   {showTrackingSection ? (
                     <div className="border-t border-[#DFDFDF] bg-[#EBE1CF] px-5 py-4 lg:px-6">
                       <div className="mb-4 flex items-center justify-between text-xs tracking-[-0.02em] text-[#9F8151]">
@@ -523,6 +532,7 @@ export default function MyOrder() {
           ) : null}
         </div>
 
+        {/* Pagination */}
         {!isLoading && filteredOrders.length > 0 ? (
           <div className="flex items-center justify-center gap-2 pt-2">
             <PaginationButton label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>
@@ -552,6 +562,7 @@ export default function MyOrder() {
   );
 }
 
+// Sub-components
 function OrderMeta({ label, value }: { label: string; value: string }) {
   return (
     <div>

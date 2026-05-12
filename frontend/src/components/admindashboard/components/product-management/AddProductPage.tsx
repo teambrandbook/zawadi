@@ -123,7 +123,7 @@ export default function AddProductPage() {
     };
   }, [formData.image, previewImageUrl]);
 
-  async function handleSubmit() {
+  async function handleSubmit(overrideStatus?: string) {
     if (!formData.product_name.trim()) { toast.error("Product name is required."); return; }
     if (!formData.product_code.trim()) { toast.error("SKU / Product Code is required."); return; }
     if (!formData.base_price) { toast.error("Base price is required."); return; }
@@ -134,7 +134,7 @@ export default function AddProductPage() {
     fd.append("product_name", formData.product_name.trim());
     fd.append("product_code", formData.product_code.trim());
     fd.append("category", formData.category);
-    fd.append("product_status", formData.product_status);
+    fd.append("product_status", overrideStatus || formData.product_status);
     fd.append("short_description", formData.short_description.trim());
     fd.append("base_price", formData.base_price);
     fd.append("stock_quantity", formData.stock_quantity || "0");
@@ -152,10 +152,10 @@ export default function AddProductPage() {
     try {
       if (isEditMode && productId) {
         await api.patch(`/products/${productId}/`, fd);
-        toast.success("Product updated successfully.");
+        toast.success(`Product updated successfully${overrideStatus === "draft" ? " as draft" : ""}.`);
       } else {
         await api.post("/products/", fd);
-        toast.success("Product created successfully.");
+        toast.success(`Product created successfully${overrideStatus === "draft" ? " as draft" : ""}.`);
       }
       router.push("/admindashboard/products");
     } catch (err: unknown) {
@@ -199,7 +199,8 @@ export default function AddProductPage() {
         </div>
 
         <AddProductActions
-          onSubmit={handleSubmit}
+          onSubmit={() => handleSubmit("active")}
+          onDraft={() => handleSubmit("draft")}
           isSubmitting={isSubmitting}
           submitLabel={isEditMode ? "Update Product" : "Create Product"}
         />

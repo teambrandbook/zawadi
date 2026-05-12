@@ -7,28 +7,48 @@ type Props = {
   onSave: (status: string) => void;
 };
 
-const options = ["Packed", "Shipped", "Out for Delivery", "Delivered"];
+const options = [
+  { label: "Confirmed", value: "confirmed" },
+  { label: "Processing", value: "processing" },
+  { label: "Shipped", value: "shipped" },
+  { label: "Out for Delivery", value: "out_for_delivery" },
+  { label: "Delivered", value: "delivered" },
+  { label: "Cancelled", value: "cancelled" },
+];
+
+function toTitleCase(value: string) {
+  return value
+    .replace(/_/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}`)
+    .join(" ");
+}
 
 export default function OrderStatusModal({ open, currentStatus, onClose, onSave }: Props) {
   if (!open) return null;
+
+  const normalizedCurrentStatus = currentStatus.toLowerCase();
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
       <div className="w-full max-w-md rounded-xl border border-[#DFDFDF] bg-white p-5 shadow-lg">
         <h3 className="text-xl font-semibold text-[#0A4833]">Update Order Status</h3>
-        <p className="mt-1 text-sm text-[#6B7280]">Choose current delivery stage.</p>
+        <p className="mt-1 text-sm text-[#6B7280]">
+          Current status: <span className="font-medium text-[#0A4833]">{toTitleCase(currentStatus || "pending")}</span>
+        </p>
 
         <div className="mt-4 space-y-2">
           {options.map((status) => (
             <button
-              key={status}
+              key={status.value}
               type="button"
-              onClick={() => onSave(status)}
+              onClick={() => onSave(status.value)}
               className={`w-full rounded-md border px-3 py-2 text-left text-sm ${
-                currentStatus === status ? "border-[#0A4833] bg-[#ECF8F2] text-[#0A4833]" : "border-[#DFDFDF] bg-white text-[#374151]"
+                normalizedCurrentStatus === status.value ? "border-[#0A4833] bg-[#ECF8F2] text-[#0A4833]" : "border-[#DFDFDF] bg-white text-[#374151]"
               }`}
             >
-              {status}
+              {status.label}
             </button>
           ))}
         </div>

@@ -14,6 +14,7 @@ import {
   PackageCheck,
   RefreshCw,
   Truck,
+  Package,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import api from "@/services/api";
@@ -108,14 +109,17 @@ function toTitleCase(value: string): string {
     .join(" ");
 }
 
+/**
+ * Updated to match: confirmed, processing, shipped, out_for_delivery, delivered
+ */
 function activeStepIndex(status?: string): number {
-  const normalized = (status || "pending").toLowerCase();
-  if (normalized === "delivered") return 6;
-  if (normalized === "shipped") return 4;
-  if (normalized === "processing") return 2;
-  if (normalized === "confirmed") return 1;
-  if (normalized === "pending") return 0;
-  if (normalized === "cancelled") return 1;
+  const normalized = (status || "confirmed").toLowerCase();
+  if (normalized === "delivered") return 4;
+  if (normalized === "out_for_delivery") return 3;
+  if (normalized === "shipped") return 2;
+  if (normalized === "processing") return 1;
+  if (normalized === "confirmed") return 0;
+  if (normalized === "cancelled") return 0;
   return 0;
 }
 
@@ -127,8 +131,6 @@ function getStepState(index: number, activeIndex: number): StepState {
 
 function getStatusLabel(order?: ApiOrderDetail | null): string {
   if (!order) return "Loading";
-  if (order.status === "pending") return "Order Placed";
-  if (order.status === "shipped") return "In Transit";
   return toTitleCase(order.status);
 }
 
@@ -138,37 +140,28 @@ function getPaymentLabel(order?: ApiOrderDetail | null): string {
   return toTitleCase(order.payment_status);
 }
 
+/**
+ * Updated Timeline to match the 5 main status steps
+ */
 function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
   const createdAt = order?.created_at;
+  const updatedAt = order?.updated_at;
+  
   return [
     {
-      title: "Order Placed",
-      description: "Your order has been successfully placed",
+      title: "Confirmed",
+      description: "Your order has been confirmed",
       date: toShortDateTime(createdAt),
-      Icon: Check,
-    },
-    {
-      title: "Order Confirmed",
-      description: order?.payment_method === "cod" ? "Cash on delivery order confirmed" : "Payment verified and order confirmed",
-      date: toShortDateTime(addDays(createdAt, 0)),
       Icon: Check,
     },
     {
       title: "Processing",
       description: "Your wellness essentials are being prepared",
-      date: toShortDateTime(addDays(createdAt, 1)),
-      Icon: Check,
+      Icon: Package,
     },
     {
-      title: "Packed",
-      description: "Order securely packed and ready for shipment",
-      date: toShortDateTime(addDays(createdAt, 1)),
-      Icon: Check,
-    },
-    {
-      title: "In Transit",
+      title: "Shipped",
       description: "Your package is on the way to you",
-      date: toShortDateTime(addDays(createdAt, 2)),
       Icon: Truck,
     },
     {
@@ -179,6 +172,7 @@ function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
     {
       title: "Delivered",
       description: "Package successfully delivered",
+      date: order?.status === "delivered" ? toShortDateTime(updatedAt) : undefined,
       Icon: Home,
     },
   ];
@@ -447,4 +441,4 @@ function HelpButton({ Icon, label, onClick }: { Icon: LucideIcon; label: string;
       {label}
     </button>
   );
-}
+} 
