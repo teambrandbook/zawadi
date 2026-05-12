@@ -156,6 +156,86 @@ class CreateNutritionistAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class OTPVerifyAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        code = request.data.get("code", "").strip()
+        purpose = request.data.get("purpose", "")
+
+        if not email or not code or not purpose:
+            return Response(
+                {"error": "email, code, and purpose are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = OTP.verify(user, code, purpose)
+        if otp is None:
+            return Response(
+                {"error": "Invalid or expired code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if purpose == OTP.PURPOSE_EMAIL_VERIFICATION:
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+            response = Response(
+                {
+                    "message": "Email verified. You are now logged in.",
+                    "data": {
+                        "user_id": user.user_id,
+                        "email": user.email,
+                        "role": user.role.lower(),
+                    },
+                    "access": access,
+                },
+                status=status.HTTP_200_OK,
+            )
+            set_auth_cookies(response, refresh, access)
+            return response
+
+        return Response(
+            {
+                "message": "Code verified.",
+                "reset_token": str(otp.reset_token),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class OTPResendAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        purpose = request.data.get("purpose", "")
+
+        if not email or not purpose:
+            return Response(
+                {"error": "email and purpose are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"message": "If that email is registered, a new code has been sent."}, status=status.HTTP_200_OK)
+
+        otp = OTP.generate(user, purpose)
+        send_otp_email(user.email, otp.code, purpose)
+        return Response({"message": "A new code has been sent to your email."}, status=status.HTTP_200_OK)
+
+
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
