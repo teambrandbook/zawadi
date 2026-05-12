@@ -236,6 +236,105 @@ class OTPResendAPIView(APIView):
         return Response({"message": "A new code has been sent to your email."}, status=status.HTTP_200_OK)
 
 
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        if not email:
+            return Response({"error": "email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {"message": "If that email is registered, a reset code has been sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        otp = OTP.generate(user, OTP.PURPOSE_PASSWORD_RESET)
+        send_otp_email(user.email, otp.code, OTP.PURPOSE_PASSWORD_RESET)
+        return Response(
+            {"message": "A reset code has been sent to your email."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetVerifyAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        code = request.data.get("code", "").strip()
+
+        if not email or not code:
+            return Response({"error": "email and code are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = OTP.verify(user, code, OTP.PURPOSE_PASSWORD_RESET)
+        if otp is None:
+            return Response({"error": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"message": "Code verified.", "reset_token": str(otp.reset_token)},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        import uuid as _uuid
+        from datetime import timedelta
+
+        reset_token = request.data.get("reset_token", "").strip()
+        new_password = request.data.get("new_password", "")
+
+        if not reset_token or not new_password:
+            return Response(
+                {"error": "reset_token and new_password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 8:
+            return Response(
+                {"error": "Password must be at least 8 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            token_uuid = _uuid.UUID(reset_token)
+        except ValueError:
+            return Response({"error": "Invalid reset token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        cutoff = timezone.now() - timedelta(minutes=15)
+        try:
+            otp = OTP.objects.get(
+                reset_token=token_uuid,
+                purpose=OTP.PURPOSE_PASSWORD_RESET,
+                is_used=True,
+                created_at__gte=cutoff,
+            )
+        except OTP.DoesNotExist:
+            return Response({"error": "Reset token is invalid or expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = otp.user
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        otp.reset_token = None
+        otp.save(update_fields=["reset_token"])
+
+        return Response({"message": "Password reset successful. You can now log in."}, status=status.HTTP_200_OK)
+
+
 class LoginAPIView(APIView):
     permission_classes = [AllowAny]
     throttle_classes = [LoginRateThrottle]
