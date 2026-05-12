@@ -18,13 +18,13 @@ class Order(models.Model):
     ]
 
     STATUS_CHOICES = [
-        ("pending", "Pending"),
-        ("confirmed", "Confirmed"),
-        ("processing", "Processing"),
-        ("shipped", "Shipped"),
-        ("delivered", "Delivered"),
-        ("cancelled", "Cancelled"),
-    ]
+    ("confirmed", "Confirmed"),
+    ("processing", "Processing"),
+    ("shipped", "Shipped"),
+    ("out_for_delivery", "Out for Delivery"),
+    ("delivered", "Delivered"),
+    ("cancelled", "Cancelled"),
+]
 
     order_id = models.CharField(max_length=20, unique=True, blank=True)
     user = models.ForeignKey(
@@ -63,7 +63,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
-        default="pending",
+        default="confirmed",
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

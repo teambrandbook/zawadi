@@ -3,6 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from .models import CartItem, Order, OrderReview
+from product.models import Product
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -54,31 +55,108 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
-    """Compact representation for listing a user's orders."""
+    product_image = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
+            "id",
             "order_id",
             "product_name",
+            "product_image",
+            "user_image",
             "pack_name",
+            "pack_price",
             "quantity",
+            "subtotal",
+            "delivery_charge",
             "total_amount",
-            "status",
+            "full_name",
+            "phone",
+            "email",
+            "city",
+            "postal_code",
+            "address",
+            "instructions",
             "payment_method",
             "payment_status",
+            "status",
             "created_at",
             "updated_at",
+            "user",
         ]
+        read_only_fields = [field.name for field in Order._meta.fields]
+
+    def get_product_image(self, obj):
+        product = Product.objects.filter(product_name=obj.product_name).only("image").first()
+        if not product or not product.image:
+            return None
+
+        request = self.context.get("request")
+        image_url = product.image.url
+        return request.build_absolute_uri(image_url) if request else image_url
+
+    def get_user_image(self, obj):
+        if not obj.user or not obj.user.photo:
+            return None
+
+        request = self.context.get("request")
+        image_url = obj.user.photo.url
+        return request.build_absolute_uri(image_url) if request else image_url
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     """Full read-only representation of a single order."""
+    product_image = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = "__all__"
-        read_only_fields = fields
+        fields = [
+            "id",
+            "order_id",
+            "product_name",
+            "product_image",
+            "user_image",
+            "pack_name",
+            "pack_price",
+            "quantity",
+            "subtotal",
+            "delivery_charge",
+            "total_amount",
+            "full_name",
+            "phone",
+            "email",
+            "city",
+            "postal_code",
+            "address",
+            "instructions",
+            "payment_method",
+            "payment_status",
+            "status",
+            "created_at",
+            "updated_at",
+            "user",
+        ]
+        read_only_fields = [field.name for field in Order._meta.fields]
+
+    def get_product_image(self, obj):
+        product = Product.objects.filter(product_name=obj.product_name).only("image").first()
+        if not product or not product.image:
+            return None
+
+        request = self.context.get("request")
+        image_url = product.image.url
+        return request.build_absolute_uri(image_url) if request else image_url
+
+    def get_user_image(self, obj):
+        if not obj.user or not obj.user.photo:
+            return None
+
+        request = self.context.get("request")
+        image_url = obj.user.photo.url
+        return request.build_absolute_uri(image_url) if request else image_url
 
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
