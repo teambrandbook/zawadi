@@ -30,8 +30,6 @@ ORDER_STATUS_MESSAGES = {
 
 @receiver(post_save, sender="orders.Order")
 def handle_order_status_change(sender, instance, created, **kwargs):
-    from orders.models import Order  # local import to avoid circular
-
     if created:
         # New order placed notification
         send_user_notification(
