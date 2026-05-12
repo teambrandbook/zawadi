@@ -1,47 +1,64 @@
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from notifications.utils import send_user_notification
+from notifications.email import send_notification_email
 
-ORDER_MESSAGES = {
+ORDER_STATUS_MESSAGES = {
+    "confirmed": (
+        "Order confirmed",
+        "Great news! Your order {order_id} has been confirmed and is being processed.",
+    ),
     "processing": (
-        "Order Being Processed",
-        "Your order is now being processed. We'll notify you when it ships.",
+        "Order is being prepared",
+        "Your order {order_id} is now being prepared for shipment.",
     ),
     "shipped": (
-        "Order Shipped",
-        "Great news! Your order has been shipped and is on its way.",
+        "Order shipped",
+        "Your order {order_id} has been shipped and is on its way to you.",
     ),
     "delivered": (
-        "Order Delivered",
-        "Your order has been delivered. Enjoy your purchase!",
+        "Order delivered",
+        "Your order {order_id} has been delivered. Enjoy your purchase!",
     ),
     "cancelled": (
-        "Order Cancelled",
-        "Your order has been cancelled. Contact support if this was unexpected.",
+        "Order cancelled",
+        "Your order {order_id} has been cancelled. Contact support if you have questions.",
     ),
 }
 
 
-@receiver(pre_save, sender="orders.Order")
-def _track_order_prev_status(sender, instance, **kwargs):
-    if instance.pk:
-        try:
-            instance._prev_status = sender.objects.get(pk=instance.pk).status
-        except sender.DoesNotExist:
-            instance._prev_status = None
-    else:
-        instance._prev_status = None
-
-
 @receiver(post_save, sender="orders.Order")
-def _notify_order_status_change(sender, instance, created, **kwargs):
-    prev = getattr(instance, "_prev_status", None)
-    current = instance.status
+def handle_order_status_change(sender, instance, created, **kwargs):
+    from orders.models import Order  # local import to avoid circular
 
-    if created or prev == current:
+    if created:
+        # New order placed notification
+        send_user_notification(
+            instance.user,
+            "Order placed",
+            f"Your order {instance.order_id} has been placed successfully.",
+            "ALERT",
+        )
+        send_notification_email(
+            instance.user.email,
+            "Order placed — Zawadi",
+            f"Your order {instance.order_id} has been placed successfully.\n\nThank you for shopping with Zawadi!",
+        )
         return
 
-    if current in ORDER_MESSAGES:
-        from notifications.utils import send_user_notification
-        title, body = ORDER_MESSAGES[current]
-        send_user_notification(instance.user, title, body)
+    old_status = getattr(instance, "_status_before_save", None)
+    if old_status is None or old_status == instance.status:
+        return
+
+    title, body_template = ORDER_STATUS_MESSAGES.get(instance.status, (None, None))
+    if title is None:
+        return
+
+    body = body_template.format(order_id=instance.order_id)
+    send_user_notification(instance.user, title, body, "ALERT")
+    send_notification_email(
+        instance.user.email,
+        f"{title} — Zawadi",
+        body,
+    )
