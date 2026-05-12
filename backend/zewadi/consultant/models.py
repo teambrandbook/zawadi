@@ -54,6 +54,10 @@ class ConsultationBooking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._status_before_save = self.status
+
     def __str__(self):
         return f"{self.user} -> {self.consultant} on {self.booked_date}"
 
