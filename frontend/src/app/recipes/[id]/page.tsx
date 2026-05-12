@@ -3,9 +3,10 @@ import { getRecipeById } from "@/lib/recipes";
 import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
-import { type Recipe } from "@/components/recipes/recipeTypes";
+import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
 import { getImageUrl } from "@/lib/utils";
 import { API_BASE_URL } from "@/lib/config";
+import ContentSection from "@/components/common/ContentSection";
 
 type BackendRecipeDetail = {
   slug?: string;
@@ -15,6 +16,12 @@ type BackendRecipeDetail = {
   cover_image?: string | null;
   category?: string;
   health_benefits?: string | null;
+  nutrition?: Partial<RecipeNutrition> | null;
+  calories?: string | number | null;
+  fat?: string | number | null;
+  carbs?: string | number | null;
+  protein?: string | number | null;
+  video_url?: string | null;
   ingredients?: { ingredient_name: string; quantity?: string | null; unit?: string | null }[];
   steps?: { description: string }[];
 };
@@ -31,6 +38,27 @@ function lines(value?: string | null) {
     .filter(Boolean);
 }
 
+function valueWithFallback(value: unknown) {
+  return value === null || value === undefined || value === "" ? "-" : String(value);
+}
+
+function mapNutrition(recipe: BackendRecipeDetail): RecipeNutrition | undefined {
+  const source = recipe.nutrition ?? recipe;
+  const hasNutrition = ["calories", "fat", "carbs", "protein"].some((key) => {
+    const value = source[key as keyof typeof source];
+    return value !== null && value !== undefined && value !== "";
+  });
+
+  if (!hasNutrition) return undefined;
+
+  return {
+    calories: valueWithFallback(source.calories),
+    fat: valueWithFallback(source.fat),
+    carbs: valueWithFallback(source.carbs),
+    protein: valueWithFallback(source.protein),
+  };
+}
+
 function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   return {
     id: recipe.slug || String(recipe.id),
@@ -42,14 +70,15 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
     ingredients: (recipe.ingredients || []).map((item) =>
       [item.quantity, item.unit, item.ingredient_name].filter(Boolean).join(" ")
     ),
+    nutrition: mapNutrition(recipe),
+    videoUrl: recipe.video_url ?? null,
     steps: (recipe.steps || []).map((step) => step.description).filter(Boolean),
   };
 }
 
 async function getRecipe(id: string): Promise<Recipe | undefined> {
-  const apiBase = API_BASE_URL;
   try {
-    const response = await fetch(`${apiBase}/recipes/${id}/`, { cache: "no-store" });
+    const response = await fetch(`${API_BASE_URL}/recipes/${id}/`, { cache: "no-store" });
     if (response.ok) {
       return mapBackendRecipe((await response.json()) as BackendRecipeDetail);
     }
@@ -60,13 +89,28 @@ async function getRecipe(id: string): Promise<Recipe | undefined> {
   return getRecipeById(id);
 }
 
+// Fetch all published recipes from the API and map them to frontend types
+async function getAllRecipes(): Promise<Recipe[]> {
+  const response = await fetch(`${API_BASE_URL}/recipes/published/`, { cache: "no-store" });
+  const payload = await response.json();
+  const raw = Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload?.data)
+    ? payload.data
+    : Array.isArray(payload?.results)
+    ? payload.results
+    : [];
+  return raw.map(mapBackendRecipe);
+}
+
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const allRecipes = await getAllRecipes();
+  const recipe = allRecipes.find((r) => r.id === id);
 
   if (!recipe) {
     return {
@@ -86,7 +130,8 @@ export default async function RecipeDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const allRecipes = await getAllRecipes();
+  const recipe = allRecipes.find((r) => r.id === id);
 
   if (!recipe) {
     notFound();
@@ -95,6 +140,10 @@ export default async function RecipeDetailsPage({
   return (
     <div>
       <Navbar/>
+      <ContentSection
+        title="Zewadi Recipes"
+        subtitle="Delicious Zewadi Buckwheat Recipes"
+      />
       <RecipeDetailsContent recipe={recipe} />
       <Footer/>
     </div>

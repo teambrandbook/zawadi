@@ -11,16 +11,18 @@ from .serializers import (
     EventCreateUpdateSerializer,
     EventRegistrationSerializer,
 )
+from supperadmin.utils.permissions import has_permission
+
 
 ADMIN_ROLES = {"ADMIN", "INTERNAL_STAFF"}
 
 
-def _is_admin(user):
-    """Return True if the user holds an admin or internal-staff role."""
-    role = getattr(user, "role", None)
-    if role is None:
-        return False
-    return str(role).upper() in ADMIN_ROLES
+# def _is_admin(user):
+#     """Return True if the user holds an admin or internal-staff role."""
+#     role = getattr(user, "role", None)
+#     if role is None:
+#         return False
+#     return str(role).upper() in ADMIN_ROLES
 
 
 class EventListCreateAPIView(APIView):
@@ -35,31 +37,61 @@ class EventListCreateAPIView(APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
-        events = Event.objects.filter(
-            status=Event.EventStatus.PUBLISHED,
-            show_in_community=True,
+
+        if (
+            request.user.is_authenticated
+            and has_permission(request.user, "events", "view")
+        ):
+            events = Event.objects.all()
+
+        else:
+            events = Event.objects.filter(
+                status=Event.EventStatus.PUBLISHED,
+                show_in_community=True,
+            )
+
+        serializer = EventListSerializer(
+            events,
+            many=True,
+            context={"request": request},
         )
-        serializer = EventListSerializer(events, many=True, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
     def post(self, request):
-        if not _is_admin(request.user):
+
+        if not has_permission(request.user, "events", "create"):
             return Response(
                 {"detail": "You do not have permission to create events."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        serializer = EventCreateUpdateSerializer(data=request.data, context={"request": request})
+
+        serializer = EventCreateUpdateSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+
         if serializer.is_valid():
             serializer.save(created_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+            return Response(
+                serializer.data,
+                status=status.HTTP_201_CREATED,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 class EventDetailAPIView(APIView):
     """
     GET    /api/events/<pk>/   — Public. Returns full event detail.
-    PATCH  /api/events/<pk>/   — Admin only. Partial update.
-    DELETE /api/events/<pk>/   — Admin only. Deletes the event.
+    PATCH  /api/events/<pk>/   — Users with update permission can update events.
+    DELETE /api/events/<pk>/   — Users with delete permission can delete events.
     """
 
     def get_permissions(self):
@@ -72,34 +104,62 @@ class EventDetailAPIView(APIView):
 
     def get(self, request, pk):
         event = self._get_event(pk)
-        serializer = EventDetailSerializer(event, context={"request": request})
-        return Response(serializer.data, status=status.HTTP_200_OK)
+
+        serializer = EventDetailSerializer(
+            event,
+            context={"request": request},
+        )
+
+        return Response(
+            serializer.data,
+            status=status.HTTP_200_OK,
+        )
 
     def patch(self, request, pk):
-        if not _is_admin(request.user):
+
+        if not has_permission(request.user, "events", "update"):
             return Response(
                 {"detail": "You do not have permission to update events."},
                 status=status.HTTP_403_FORBIDDEN,
             )
+
         event = self._get_event(pk)
+
         serializer = EventCreateUpdateSerializer(
-            event, data=request.data, partial=True, context={"request": request}
+            event,
+            data=request.data,
+            partial=True,
+            context={"request": request},
         )
+
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK,
+            )
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     def delete(self, request, pk):
-        if not _is_admin(request.user):
+
+        if not has_permission(request.user, "events", "delete"):
             return Response(
                 {"detail": "You do not have permission to delete events."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        event = self._get_event(pk)
-        event.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 
+        event = self._get_event(pk)
+
+        event.delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT,
+        )
 
 class EventRegistrationAPIView(APIView):
     """
@@ -113,6 +173,14 @@ class EventRegistrationAPIView(APIView):
         return get_object_or_404(Event, pk=pk)
 
     def post(self, request, pk):
+
+        # Allow only COMMUNITY_USER
+        if request.user.role != "COMMUNITY_USER":
+            return Response(
+                {"detail": "Only community users can register for events."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         event = self._get_event(pk)
 
         if event.status != Event.EventStatus.PUBLISHED:
@@ -132,6 +200,7 @@ class EventRegistrationAPIView(APIView):
             confirmed_count = event.registrations.exclude(
                 status=EventRegistration.RegistrationStatus.CANCELLED
             ).count()
+
             if confirmed_count >= event.max_attendees:
                 return Response(
                     {"detail": "This event has reached its maximum capacity."},
@@ -143,12 +212,29 @@ class EventRegistrationAPIView(APIView):
             user=request.user,
             status=EventRegistration.RegistrationStatus.CONFIRMED,
         )
-        serializer = EventRegistrationSerializer(registration, context={"request": request})
+
+        serializer = EventRegistrationSerializer(
+            registration,
+            context={"request": request}
+        )
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete(self, request, pk):
+
+        # Allow only COMMUNITY_USER
+        if request.user.role != "COMMUNITY_USER":
+            return Response(
+                {"detail": "Only community users can cancel registrations."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         event = self._get_event(pk)
-        registration = EventRegistration.objects.filter(event=event, user=request.user).first()
+
+        registration = EventRegistration.objects.filter(
+            event=event,
+            user=request.user
+        ).first()
 
         if not registration:
             return Response(
@@ -158,12 +244,11 @@ class EventRegistrationAPIView(APIView):
 
         registration.status = EventRegistration.RegistrationStatus.CANCELLED
         registration.save()
+
         return Response(
             {"detail": "Your registration has been cancelled."},
             status=status.HTTP_200_OK,
         )
-
-
 class MyEventRegistrationsAPIView(APIView):
     """
     GET /api/events/my-registrations/  — Returns all registrations for the authenticated user.

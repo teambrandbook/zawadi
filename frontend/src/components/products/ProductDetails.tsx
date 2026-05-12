@@ -165,6 +165,7 @@ const ProductDetails = () => {
                 src={productImageUrl(product.image)}
                 alt={product.product_name}
                 fill
+                unoptimized
                 className="object-cover"
               />
             </div>

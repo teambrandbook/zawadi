@@ -2,7 +2,13 @@
 
 import Image from "next/image";
 import { ChangeEvent, ReactNode } from "react";
-import { Clock3, ImagePlus, Info, Plus, Trash2, Upload, Users, X } from "lucide-react";
+import { ImagePlus, Info, Plus, Trash2, Upload } from "lucide-react";
+
+type IngredientDraft = {
+  ingredient_name: string;
+  quantity: string;
+  unit: string;
+};
 
 type DraftModel = {
   title: string;
@@ -12,16 +18,12 @@ type DraftModel = {
   cookTime: string;
   servings: string;
   difficulty: string;
-  ingredients: string[];
+  ingredients: IngredientDraft[];
   steps: string[];
   calories: string;
   protein: string;
   carbs: string;
   fat: string;
-  wellnessNotes: string;
-  nutritionNotes: string;
-  dietFriendlyTags: string[];
-  tags: string[];
   videoUrl: string;
   sourceUrl: string;
   country: string;
@@ -37,6 +39,7 @@ const inputClass =
   "h-11 w-full rounded-lg border border-[#DFDFDF] bg-white px-3 text-sm text-[#0A4833] placeholder:text-[#9CA3AF] outline-none focus:border-[#0A4833]";
 const textareaClass =
   "w-full rounded-lg border border-[#DFDFDF] bg-white p-3 text-sm text-[#0A4833] placeholder:text-[#9CA3AF] outline-none focus:border-[#0A4833]";
+const ingredientUnits = ["cups", "tbsp", "tsp", "g", "kg", "ml", "l", "piece"];
 
 export function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -76,7 +79,7 @@ export function CoverImageSection({
       {imagePreview && (
         <div className="mt-4">
           <div className="relative h-52 w-full overflow-hidden rounded-lg border border-[#DFDFDF]">
-            <Image src={imagePreview} alt={imageFileName ?? "Recipe cover"} fill className="object-cover" />
+            <Image src={imagePreview} alt={imageFileName ?? "Recipe cover"} fill unoptimized className="object-cover" />
           </div>
           <div className="mt-2 flex gap-2">
             <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-lg bg-[#EBE1CF] px-4 text-sm font-medium text-[#0A4833] hover:bg-[#E3D7C2]">
@@ -191,9 +194,9 @@ export function IngredientsSection({
   onUpdate,
   onRemove,
 }: {
-  ingredients: string[];
+  ingredients: IngredientDraft[];
   onAdd: () => void;
-  onUpdate: (index: number, value: string) => void;
+  onUpdate: (index: number, field: keyof IngredientDraft, value: string) => void;
   onRemove: (index: number) => void;
 }) {
   return (
@@ -209,14 +212,29 @@ export function IngredientsSection({
         </button>
       </div>
       <div className="space-y-3">
-        {ingredients.map((value, index) => (
-          <div key={`ingredient-${index}`} className="flex gap-2">
+        {ingredients.map((ingredient, index) => (
+          <div key={`ingredient-${index}`} className="grid gap-2 md:grid-cols-[minmax(0,1fr)_110px_120px_44px]">
               <input
-                value={value}
-                onChange={(e) => onUpdate(index, e.target.value)}
+                value={ingredient.ingredient_name}
+                onChange={(e) => onUpdate(index, "ingredient_name", e.target.value)}
                 placeholder={`Ingredient ${index + 1}`}
-                className={`${inputClass} flex-1`}
+                className={inputClass}
               />
+              <input
+                value={ingredient.quantity}
+                onChange={(e) => onUpdate(index, "quantity", e.target.value)}
+                placeholder="Qty"
+                className={inputClass}
+              />
+              <select
+                value={ingredient.unit}
+                onChange={(e) => onUpdate(index, "unit", e.target.value)}
+                className={inputClass}
+              >
+                {ingredientUnits.map((unit) => (
+                  <option key={unit} value={unit}>{unit}</option>
+                ))}
+              </select>
             <button
               type="button"
               onClick={() => onRemove(index)}
@@ -278,123 +296,52 @@ export function PreparationStepsSection({
   );
 }
 
-export function HealthWellnessSection({
+export function NutritionFactsSection({
   draft,
   updateField,
 }: {
   draft: DraftModel;
   updateField: <K extends keyof DraftModel>(field: K, value: DraftModel[K]) => void;
 }) {
-  const dietTagOptions = ["High Fiber", "Gluten-Free", "Weight Management", "Energy Boosting"];
-
-  function onToggleDietTag(tag: string) {
-    const hasTag = draft.dietFriendlyTags.includes(tag);
-    const nextTags = hasTag
-      ? draft.dietFriendlyTags.filter((item) => item !== tag)
-      : [...draft.dietFriendlyTags, tag];
-    updateField("dietFriendlyTags", nextTags);
-  }
-
   return (
-    <div className="rounded-xl border border-[#DFDFDF] bg-white p-5 lg:p-6">
-      <h2 className="text-xl font-semibold text-[#0A4833]">Health & Wellness Details</h2>
-      <p className="mt-1 text-sm text-[#6B7280]">Optional: Share the nutritional benefits</p>
-
-      <div className="mt-5 space-y-6">
+    <SectionCard title="Nutrition fact">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Health Benefits</label>
-          <textarea
-            rows={2}
-            value={draft.wellnessNotes}
-            onChange={(e) => updateField("wellnessNotes", e.target.value)}
-            placeholder="Explain the health benefits of this recipe..."
-            className="w-full rounded-lg border border-[#DFDFDF] bg-white p-3 text-sm text-[#0A4833] placeholder:text-[#9CA3AF] outline-none focus:border-[#0A4833]"
+          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Calories *</label>
+          <input
+            value={draft.calories}
+            onChange={(e) => updateField("calories", e.target.value)}
+            placeholder="Enter the calories..."
+            className={inputClass}
           />
         </div>
-
         <div>
-          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Nutrition Notes</label>
-          <textarea
-            rows={2}
-            value={draft.nutritionNotes}
-            onChange={(e) => updateField("nutritionNotes", e.target.value)}
-            placeholder="Any specific nutrition information..."
-            className="w-full rounded-lg border border-[#DFDFDF] bg-white p-3 text-sm text-[#0A4833] placeholder:text-[#9CA3AF] outline-none focus:border-[#0A4833]"
+          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Fat *</label>
+          <input
+            value={draft.fat}
+            onChange={(e) => updateField("fat", e.target.value)}
+            placeholder="Enter the fat..."
+            className={inputClass}
           />
         </div>
-
         <div>
-          <label className="mb-3 block text-sm font-medium text-[#0A4833]">Diet-Friendly Tags</label>
-          <div className="flex flex-wrap gap-3">
-            {dietTagOptions.map((tag) => {
-              const selected = draft.dietFriendlyTags.includes(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => onToggleDietTag(tag)}
-                  className={`inline-flex items-center gap-2 rounded-full border-2 px-4 py-2 text-sm ${
-                    selected
-                      ? "border-[#0A4833] bg-[#E8EFEA] text-[#0A4833]"
-                      : "border-[#DFDFDF] bg-white text-[#0A4833]"
-                  }`}
-                >
-                  <span
-                    className={`inline-flex h-5 w-5 items-center justify-center rounded-sm border ${
-                      selected ? "border-[#0A4833] bg-[#0A4833]" : "border-[#9CA3AF] bg-transparent"
-                    }`}
-                  />
-                  {tag}
-                </button>
-              );
-            })}
-          </div>
+          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Carbs *</label>
+          <input
+            value={draft.carbs}
+            onChange={(e) => updateField("carbs", e.target.value)}
+            placeholder="Enter the carbs..."
+            className={inputClass}
+          />
         </div>
-      </div>
-    </div>
-  );
-}
-
-export function RecipeTagsSection({
-  tags,
-  tagInput,
-  onTagInputChange,
-  onAddTag,
-  onRemoveTag,
-}: {
-  tags: string[];
-  tagInput: string;
-  onTagInputChange: (value: string) => void;
-  onAddTag: () => void;
-  onRemoveTag: (tag: string) => void;
-}) {
-  return (
-    <SectionCard title="Recipe Tags">
-      <p className="mb-3 text-xs text-[#6B7280]">Use short tags so people can search your recipe faster.</p>
-      <div className="flex gap-2">
-        <input
-          value={tagInput}
-          onChange={(e) => onTagInputChange(e.target.value)}
-          placeholder="e.g. vegan, quick, gluten-free"
-          className={`${inputClass} flex-1`}
-        />
-        <button
-          type="button"
-          onClick={onAddTag}
-          className="h-11 rounded-lg bg-[#EBE1CF] px-4 text-sm font-medium text-[#0A4833] hover:bg-[#E3D7C2]"
-        >
-          Add
-        </button>
-      </div>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span key={tag} className="inline-flex items-center gap-1 rounded-full border border-[#D8C9AE] bg-[#F3EEE3] px-3 py-1 text-xs text-[#0A4833]">
-            {tag}
-            <button type="button" onClick={() => onRemoveTag(tag)}>
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </span>
-        ))}
+        <div>
+          <label className="mb-2 block text-sm font-medium text-[#0A4833]">Protein *</label>
+          <input
+            value={draft.protein}
+            onChange={(e) => updateField("protein", e.target.value)}
+            placeholder="Enter the protein..."
+            className={inputClass}
+          />
+        </div>
       </div>
     </SectionCard>
   );
@@ -461,12 +408,14 @@ export function ReviewProcessSection({
 export function ActionArea({
   message,
   isSubmitting,
+  isEditMode,
   onSaveDraft,
   onSubmit,
   onCancel,
 }: {
   message: string;
   isSubmitting: boolean;
+  isEditMode?: boolean;
   onSaveDraft: () => void;
   onSubmit: () => void;
   onCancel: () => void;
@@ -480,14 +429,15 @@ export function ActionArea({
           disabled={isSubmitting}
           className="inline-flex h-12 min-w-[220px] items-center justify-center rounded-xl bg-[#0A5A3F] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#084A34] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isSubmitting ? "Submitting..." : "Submit for Approval"}
+          {isSubmitting ? "Submitting..." : isEditMode ? "Set for Approval" : "Submit for Approval"}
         </button>
         <button
           type="button"
           onClick={onSaveDraft}
+          disabled={isSubmitting}
           className="inline-flex h-12 min-w-[220px] items-center justify-center rounded-xl bg-[#A88751] px-6 text-sm font-semibold text-white shadow-sm hover:bg-[#8E7346]"
         >
-          Save as Draft
+          {isSubmitting ? "Saving..." : "Save as Draft"}
         </button>
       </div>
 
@@ -511,7 +461,7 @@ export function RecipePreviewSection({ draft, ingredientsCount, stepsCount, imag
       <div className="space-y-4 text-sm">
         <div className="relative h-44 w-full overflow-hidden rounded-xl border border-[#E2D8C7] bg-[#E7DECD]">
           {imagePreview ? (
-            <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+            <Image src={imagePreview} alt="Preview" fill unoptimized className="object-cover" />
           ) : (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-[#9CA3AF]">
               <ImagePlus className="h-7 w-7" />
@@ -591,4 +541,4 @@ export function ChooseDishCountrySection({
   );
 }
 
-export type { DraftModel, ReviewChecklist };
+export type { DraftModel, IngredientDraft, ReviewChecklist };

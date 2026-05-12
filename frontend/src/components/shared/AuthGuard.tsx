@@ -23,6 +23,13 @@ const roleHome: Record<GuardRole, string> = {
   community_user: "/communityDashBoard",
 };
 
+function getRoleHome(role: GuardRole, userType?: "guest" | "member" | null): string {
+  if (role === "community_user" && userType === "guest") {
+    return "/guestprofile";
+  }
+  return roleHome[role];
+}
+
 function normalizeRole(role?: string | null): GuardRole | null {
   const normalized = String(role ?? "").toLowerCase();
   if (normalized === "admin") return "admin";
@@ -98,18 +105,14 @@ function BrowserAuthGuard({
         );
 
         if (!allowed.has(role)) {
-          const home =
-            role === "community_user" && userType === "guest"
-              ? "/shop"
-              : roleHome[role];
-          router.replace(home);
+          router.replace(getRoleHome(role, userType));
           return;
         }
 
         // Role is allowed — now check userType restriction if provided
         if (allowedUserTypes && allowedUserTypes.length > 0) {
           if (!userType || !allowedUserTypes.includes(userType)) {
-            router.replace("/shop");
+            router.replace(getRoleHome(role, userType));
             return;
           }
         }

@@ -18,8 +18,7 @@ const registerSchema = z.object({
   gender: z.string().min(1, "Please select a gender"),
 });
 
-const SIGNUP_BACKGROUND =
-  "https://www.figma.com/api/mcp/asset/4804ac51-5a50-48be-b3c6-1a9b2f636148";
+const SIGNUP_BACKGROUND = "/loginimages/loginBg.webp";
 
 export default function SignupComponent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -315,11 +314,11 @@ export default function SignupComponent() {
             <input type="checkbox" className="mt-[1px] h-3 w-3 accent-[#0f5b43]" />
             <span>
               I agree to the{" "}
-              <Link href="#" className="text-[#2563eb] hover:underline">
+              <Link href="/terms" className="text-[#2563eb] hover:underline">
                 Terms and Conditions
               </Link>{" "}
               &{" "}
-              <Link href="#" className="text-[#2563eb] hover:underline">
+              <Link href="/privacy-policy" className="text-[#2563eb] hover:underline">
                 Privacy policy
               </Link>
             </span>

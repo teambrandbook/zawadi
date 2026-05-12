@@ -6,6 +6,31 @@ from communityuser.models import CommunityUser
 from consultant.models import Consultant
 
 
+PERMISSION_ACTION_FIELDS = (
+    "can_view",
+    "can_create",
+    "can_edit",
+    "can_delete",
+    "can_approve",
+    "can_export",
+)
+
+
+def normalize_permission_data(permission):
+    normalized = dict(permission)
+
+    if normalized.get("full_access"):
+        for field in PERMISSION_ACTION_FIELDS:
+            normalized[field] = True
+        normalized["full_access"] = True
+        return normalized
+
+    normalized["full_access"] = all(
+        normalized.get(field, False) for field in PERMISSION_ACTION_FIELDS
+    )
+    return normalized
+
+
 
 
 class CommunityUserSerializer(serializers.ModelSerializer):
@@ -49,7 +74,11 @@ class RoleSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
     
     def get_member_count(self, obj):
-        return obj.members.count()
+        members = getattr(obj, "members", None)
+        if members is not None:
+            return members.count()
+
+        return obj.user_set.count()
 
     class Meta:
         model = Role
@@ -76,7 +105,10 @@ class RoleSerializer(serializers.ModelSerializer):
                 )
         else:
             for perm in permissions_data:
-                RolePermission.objects.create(role=role, **perm)
+                RolePermission.objects.create(
+                    role=role,
+                    **normalize_permission_data(perm),
+                )
 
         return role
     
@@ -115,6 +147,9 @@ class RoleSerializer(serializers.ModelSerializer):
             instance.permissions.all().delete()
 
             for perm in permissions_data:
-                RolePermission.objects.create(role=instance, **perm)
+                RolePermission.objects.create(
+                    role=instance,
+                    **normalize_permission_data(perm),
+                )
 
         return instance

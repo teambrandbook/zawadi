@@ -91,14 +91,14 @@ export default function LoginComponent() {
         </video>
       </div>
 
-      <div className="mx-auto w-full max-w-[1300px]">
-        <div className="overflow-hidden rounded-[34px] border-[4px] border-white/95 bg-transparent shadow-2xl">
+      <div className="mx-auto w-full max-w-[1000px]">
+        <div className="overflow-hidden rounded-[34px] bg-transparent shadow-2xl">
           <div className="grid min-h-[550px] grid-cols-1 lg:grid-cols-2">
-            <div className="relative hidden lg:block">
-              <div className="absolute inset-y-0 left-0 w-[110%] rounded-[34px] bg-transparent z-10" />
+            <div className="relative hidden lg:block overflow-hidden">
+              <div className="absolute inset-[4px] rounded-[30px] shadow-[0_0_0_1000px_white] z-10 pointer-events-none" />
             </div>
 
-            <div className="relative flex items-center justify-center bg-white px-6 py-8 sm:px-8 lg:px-12">
+            <div className="relative flex items-center justify-center bg-white px-6 py-8 sm:px-8 lg:px-12 z-20">
               <div className="w-full max-w-[360px]">
                 <div className="text-center mb-4">
                   <h1 className="text-[24px] font-bold tracking-tight text-[#0a4833]">
@@ -192,7 +192,12 @@ export default function LoginComponent() {
                       <span className="w-full border-t border-gray-100"></span>
                     </div>
                     <div className="relative flex justify-center text-[10px] uppercase">
-                      <span className="bg-white px-2 text-gray-400">Social Login</span>
+                      <Link
+                        href="/signup"
+                        className="bg-white px-2 font-bold text-[#0a4833] transition hover:text-[#9f8151] hover:underline"
+                      >
+                        Create an Account
+                      </Link>
                     </div>
                   </div>
 
@@ -211,10 +216,9 @@ export default function LoginComponent() {
                   </button>
 
                   <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
-                    <Link href="/signup" className="hover:underline">Create Account</Link>
-                    <Link href="#" className="hover:underline">Privacy</Link>
-                    <Link href="#" className="hover:underline">Terms</Link>
-                    <Link href="#" className="hover:underline">Support</Link>
+                    <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
+                    <Link href="/terms" className="hover:underline">Terms & Conditions</Link>
+                    <Link href="/helpandsupport" className="hover:underline">Help & Support</Link>
                   </div>
                 </form>
               </div>

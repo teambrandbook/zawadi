@@ -8,9 +8,14 @@ class EventAdmin(admin.ModelAdmin):
         "title",
         "event_type",
         "status",
-        "start_datetime",
-        "end_datetime",
+        "host_speaker_name",
+        "event_date",
+        "start_time",
+        "end_time",
         "is_online",
+        "enable_registration",
+        "waitlist_enabled",
+        "approval_required",
         "is_free",
         "is_featured",
         "show_in_community",
@@ -21,15 +26,19 @@ class EventAdmin(admin.ModelAdmin):
         "status",
         "event_type",
         "is_online",
+        "repeat_event",
+        "enable_registration",
+        "waitlist_enabled",
+        "approval_required",
         "is_free",
         "is_featured",
         "show_in_community",
     ]
-    search_fields = ["title", "short_description", "location"]
+    search_fields = ["title", "short_subtitle", "short_description", "host_speaker_name", "location"]
     prepopulated_fields = {"slug": ("title",)}
     readonly_fields = ["created_at", "updated_at"]
-    date_hierarchy = "start_datetime"
-    ordering = ["-start_datetime"]
+    date_hierarchy = "event_date"
+    ordering = ["-event_date", "-start_time"]
 
 
 @admin.register(EventRegistration)

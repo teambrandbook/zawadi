@@ -14,14 +14,25 @@ class EventListSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "slug",
+            "short_subtitle",
             "short_description",
             "event_type",
             "status",
             "cover_image",
-            "start_datetime",
-            "end_datetime",
+            "host_speaker_name",
+            "timezone",
+            "agenda_highlights",
+            "event_date",
+            "start_time",
+            "end_time",
+            "registration_deadline",
+            "repeat_event",
             "is_online",
             "location",
+            "enable_registration",
+            "waitlist_enabled",
+            "approval_required",
+            "event_tags",
             "is_free",
             "ticket_price",
             "is_featured",
@@ -46,17 +57,28 @@ class EventDetailSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "slug",
+            "short_subtitle",
             "short_description",
             "full_description",
             "event_type",
             "status",
             "cover_image",
-            "start_datetime",
-            "end_datetime",
+            "host_speaker_name",
+            "timezone",
+            "agenda_highlights",
+            "event_date",
+            "start_time",
+            "end_time",
+            "registration_deadline",
+            "repeat_event",
             "is_online",
             "location",
             "meeting_link",
             "max_attendees",
+            "enable_registration",
+            "waitlist_enabled",
+            "approval_required",
+            "event_tags",
             "is_free",
             "ticket_price",
             "is_featured",
@@ -76,6 +98,12 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
     """Writable serializer for create/update; created_by is set by the view."""
 
     cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
+    institutional_name = serializers.CharField(
+        source="host_speaker_name",
+        required=False,
+        allow_blank=True,
+        write_only=True,
+    )
 
     class Meta:
         model = Event
@@ -83,17 +111,29 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "slug",
+            "short_subtitle",
             "short_description",
             "full_description",
             "event_type",
             "status",
             "cover_image",
-            "start_datetime",
-            "end_datetime",
+            "host_speaker_name",
+            "institutional_name",
+            "timezone",
+            "agenda_highlights",
+            "event_date",
+            "start_time",
+            "end_time",
+            "registration_deadline",
+            "repeat_event",
             "is_online",
             "location",
             "meeting_link",
             "max_attendees",
+            "enable_registration",
+            "waitlist_enabled",
+            "approval_required",
+            "event_tags",
             "is_free",
             "ticket_price",
             "is_featured",
@@ -102,10 +142,10 @@ class EventCreateUpdateSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "slug"]
 
     def validate(self, attrs):
-        start = attrs.get("start_datetime")
-        end = attrs.get("end_datetime")
+        start = attrs.get("start_time")
+        end = attrs.get("end_time")
         if start and end and end <= start:
-            raise serializers.ValidationError("end_datetime must be after start_datetime.")
+            raise serializers.ValidationError("end_time must be after start_time.")
         return attrs
 
 
@@ -137,11 +177,16 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
             "id": event.id,
             "title": event.title,
             "slug": event.slug,
+            "short_subtitle": event.short_subtitle,
             "event_type": event.event_type,
             "cover_image": event.cover_image.url if event.cover_image else None,
-            "start_datetime": event.start_datetime,
-            "end_datetime": event.end_datetime,
+            "event_date": event.event_date,
+            "start_time": event.start_time,
+            "end_time": event.end_time,
             "is_online": event.is_online,
             "location": event.location,
+            "host_speaker_name": event.host_speaker_name,
+            "timezone": event.timezone,
+            "event_tags": event.event_tags,
             "status": event.status,
         }

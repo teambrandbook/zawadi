@@ -61,6 +61,10 @@ const fallbackImages = [
   "/product/p-4.webp",
   "/product/p-main.webp",
 ];
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
+  /\/api\/?$/,
+  ""
+);
 
 function toNumber(value: string | number | null | undefined): number {
   const amount = Number(value);
@@ -224,6 +228,7 @@ export default function CommunityCartPage() {
                           src={toImageUrl(item.image, index)}
                           alt={item.product_name}
                           fill
+                          unoptimized
                           className="object-cover"
                           sizes="96px"
                         />

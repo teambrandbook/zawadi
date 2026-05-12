@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingBag, Star } from "lucide-react";
+import { FaBagShopping } from "react-icons/fa6";
 import { cn, getImageUrl } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
@@ -21,6 +22,7 @@ type Product = {
   sale_price: string | null;
   image: string | null;
   stock_status: string;
+  created_at?: string;
 };
 
 function productImageUrl(path: string | null): string {
@@ -47,6 +49,15 @@ function Rating() {
   );
 }
 
+function isNewProduct(createdAt?: string): boolean {
+  if (!createdAt) return false;
+  const createdDate = new Date(createdAt);
+  if (Number.isNaN(createdDate.getTime())) return false;
+
+  const thirtyDaysAgo = Date.now() - 1000 * 60 * 60 * 24 * 30;
+  return createdDate.getTime() >= thirtyDaysAgo;
+}
+
 function ProductCard({
   product,
   onAddToCart,
@@ -55,6 +66,7 @@ function ProductCard({
   onAddToCart: (id: number) => void;
 }) {
   const price = product.sale_price || product.base_price;
+  const badgeText = isNewProduct(product.created_at) ? "New" : product.category;
   return (
     <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
       <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
@@ -62,11 +74,12 @@ function ProductCard({
           src={productImageUrl(product.image)}
           alt={product.product_name}
           fill
+          unoptimized
           sizes="(min-width: 1280px) 402px, (min-width: 768px) 45vw, 90vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <span className="absolute left-4 top-4 rounded-full bg-[#f2c94c] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-black">
-          {product.category}
+          {badgeText}
         </span>
       </div>
 
@@ -94,7 +107,7 @@ function ProductCard({
             onClick={() => onAddToCart(product.id)}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] sm:text-[16px]"
           >
-            <ShoppingBag size={18} />
+            <FaBagShopping size={18} />
             Add to Cart
           </button>
           <Link

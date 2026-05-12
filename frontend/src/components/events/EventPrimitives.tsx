@@ -65,11 +65,11 @@ export function UpcomingCard({
     <article className="group relative h-[450px] w-full overflow-hidden rounded-[20px]">
       {/* Background Image */}
       <div className="image-topdown absolute inset-0">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={image}
           alt={title}
-          fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 
@@ -118,7 +118,7 @@ export function CompactEventCard({
   month: string;
 }) {
   return (
-    <article className="zoom-item upcoming-zoom-item relative mt-8 rounded-[10px] bg-[#f1f4eb] px-6 pb-6 pt-10">
+    <article className="zoom-item upcoming-zoom-item relative mt-8 min-h-[106px] rounded-[10px] bg-[#f1f4eb] px-6 pb-6 pt-10">
       {/* Positioning the DateBadge to overlap the top border */}
       <div className="absolute -top-6 left-6">
         <DateBadge day={date} month={month} />

@@ -316,6 +316,7 @@ export default function CommunityProductsPage() {
                       src={toImageUrl(product.image, index)}
                       alt={product.product_name}
                       fill
+                      unoptimized
                       className="object-cover"
                       sizes="(min-width: 1280px) 266px, (min-width: 640px) 50vw, 100vw"
                     />

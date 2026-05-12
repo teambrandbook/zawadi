@@ -54,3 +54,19 @@ body {
   opacity: 0;
   visibility: hidden;
 }
+
+.blog-detail-progress {
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: blog-detail-progress-fill 700ms ease-out forwards;
+}
+
+@keyframes blog-detail-progress-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

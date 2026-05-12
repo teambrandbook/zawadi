@@ -271,11 +271,11 @@ export default function CommenLogin() {
               />
               <span>
                 I agree to the{" "}
-                <Link href="#" className="text-[#3b82f6] hover:underline">
+                <Link href="/terms" className="text-[#3b82f6] hover:underline">
                   Terms and Conditions
                 </Link>{" "}
                 &{" "}
-                <Link href="#" className="text-[#3b82f6] hover:underline">
+                <Link href="/privacy-policy" className="text-[#3b82f6] hover:underline">
                   Privacy policy
                 </Link>
               </span>

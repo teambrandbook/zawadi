@@ -42,13 +42,11 @@ class RecipeAdmin(admin.ModelAdmin):
         ("Content", {
             "fields": ["health_benefits", "buckwheat_wellness_value"],
         }),
-        ("Tags", {
-            "fields": [
-                "is_gluten_free",
-                "is_high_fiber",
-                "is_weight_management",
-                "is_energy_boosting",
-            ],
+        ("Nutrition Facts", {
+            "fields": ["calories", "fat", "carbs", "protein"],
+        }),
+        ("Links", {
+            "fields": ["video_url"],
         }),
         ("Visibility & Status", {
             "fields": ["is_featured", "show_in_community", "status", "published_at"],

@@ -10,9 +10,11 @@ type Permission = {
   full_access: boolean;
 };
 
+type PermissionField = Exclude<keyof Permission, "module">;
+
 type Props = {
   permissions: Permission[];
-  onChange: (module: string, field: string, value: boolean) => void;
+  onChange: (module: string, field: PermissionField, value: boolean) => void;
 };
 
 // ✅ Single checkbox cell
@@ -41,7 +43,7 @@ function ModuleRow({
   onChange,
 }: {
   permission: Permission;
-  onChange: (module: string, field: string, value: boolean) => void;
+  onChange: (module: string, field: PermissionField, value: boolean) => void;
 }) {
   return (
     <tr className="border-t border-[#E6E6E6]">

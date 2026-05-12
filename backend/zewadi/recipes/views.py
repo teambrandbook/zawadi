@@ -13,12 +13,24 @@ from django.utils import timezone
 from django.db.models import Q
 
 
+def request_bool(value):
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"true", "1", "yes", "on"}
+
+
+def requested_recipe_status(value):
+    cleaned = str(value or "").strip().lower()
+    if cleaned in {RecipeStatus.PENDING, RecipeStatus.DRAFT}:
+        return cleaned
+    return None
+
 
 class IsAdminUser(BasePermission):
-    """Allow access only to users whose role is ADMIN."""
+    """Allow users who can manage recipes in the admin dashboard."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and request.user.role == "ADMIN"
+        return has_permission(request.user, "recipes", "create")
 
 
 # ---------------------------------------------------------------------------
@@ -176,13 +188,51 @@ class RecipeDetailAPIView(APIView):
 
         if serializer.is_valid():
 
-            serializer.save()
+            updated_recipe = serializer.save()
+
+            if has_permission(request.user, "recipes", "create") and updated_recipe.is_featured:
+                updated_recipe.status = RecipeStatus.DRAFT
+                updated_recipe.published_at = None
+                updated_recipe.approved_by = None
+                updated_recipe.approved_at = None
+                updated_recipe.save(
+                    update_fields=[
+                        "status",
+                        "published_at",
+                        "approved_by",
+                        "approved_at",
+                        "updated_at",
+                    ]
+                )
+            elif request.user.role == "COMMUNITY_USER":
+                new_status = requested_recipe_status(request.data.get("status"))
+                if new_status:
+                    updated_recipe.status = new_status
+                    updated_recipe.published_at = None
+                    updated_recipe.approved_by = None
+                    updated_recipe.approved_at = None
+                    updated_recipe.rejected_at = None
+                    updated_recipe.rejection_reason = None
+                    updated_recipe.save(
+                        update_fields=[
+                            "status",
+                            "published_at",
+                            "approved_by",
+                            "approved_at",
+                            "rejected_at",
+                            "rejection_reason",
+                            "updated_at",
+                        ]
+                    )
 
             return Response(
                 {
                     "success": True,
                     "message": "Recipe updated successfully.",
-                    "data": serializer.data,
+                    "data": RecipeDetailSerializer(
+                        updated_recipe,
+                        context={"request": request},
+                    ).data,
                 },
 
                 status=status.HTTP_200_OK
@@ -240,14 +290,24 @@ class RecipeCreateAPIView(APIView):
 
             
             if has_permission(request.user, "recipes", "create"):
+                is_featured = request_bool(request.data.get("is_featured"))
 
-                recipe = serializer.save(
-                    author=request.user,
-                    status=RecipeStatus.PUBLISHED,
-                    published_at=timezone.now(),
-                    approved_by=request.user,
-                    approved_at=timezone.now(),
-                )
+                if is_featured:
+                    recipe = serializer.save(
+                        author=request.user,
+                        status=RecipeStatus.DRAFT,
+                        published_at=None,
+                        approved_by=None,
+                        approved_at=None,
+                    )
+                else:
+                    recipe = serializer.save(
+                        author=request.user,
+                        status=RecipeStatus.PUBLISHED,
+                        published_at=timezone.now(),
+                        approved_by=request.user,
+                        approved_at=timezone.now(),
+                    )
 
      
             elif request.user.role == "COMMUNITY_USER":
@@ -272,7 +332,10 @@ class RecipeCreateAPIView(APIView):
                     "success": True,
                     "message": "Recipe created successfully",
                     "recipe_status": recipe.status,
-                    "data": serializer.data,
+                    "data": RecipeDetailSerializer(
+                        recipe,
+                        context={"request": request},
+                    ).data,
                 },
 
                 status=status.HTTP_201_CREATED
@@ -335,4 +398,40 @@ class AdminRecipeStatusUpdateView(APIView):
         return Response(
             {"id": recipe.id, "status": recipe.status},
             status=status.HTTP_200_OK,
+        )
+
+
+# in website
+
+class PublishedRecipeListAPIView(APIView):
+    """
+    GET /api/recipes/published/
+
+    Public API:
+    Returns all published recipes.
+    Authentication is not required.
+    """
+
+    permission_classes = [AllowAny]  # No authentication required
+
+    def get(self, request):
+
+        recipes = Recipe.objects.select_related(
+            "author"
+        ).filter(status=RecipeStatus.PUBLISHED)
+
+        serializer = RecipeDetailSerializer(
+            recipes,
+            many=True,
+            context={"request": request},
+        )
+
+        return Response(
+            {
+                "success": True,
+                "count": recipes.count(),
+                "data": serializer.data,
+            },
+
+            status=status.HTTP_200_OK
         )

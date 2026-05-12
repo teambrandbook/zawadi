@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   CalendarClock,
   Calendar,
@@ -241,9 +242,9 @@ function Home() {
           <section>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-[#0A4834]">My Recipes</h2>
-              <button className="flex items-center gap-2 bg-[#A68966] text-white px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm hover:opacity-90">
+              <Link href="/communityDashBorde/myrecipy/add" className="flex items-center gap-2 bg-[#A68966] text-white px-4 py-1.5 rounded-lg font-bold text-sm shadow-sm hover:opacity-90">
                 <Plus size={16} /> Add Recipe
-              </button>
+              </Link>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {recipes.length === 0 ? (
