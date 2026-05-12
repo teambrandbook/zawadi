@@ -11,6 +11,7 @@ from accounts.models import User
 from .util import generate_weekly_slots,convert_time,find_available_consultant,is_slot_available,create_or_update_client_from_booking
 from datetime import datetime
 from django.utils import timezone
+from django.db.models import Q
 from supperadmin.utils.permissions import has_permission
 
 
@@ -45,6 +46,16 @@ class ConsultantListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if getattr(request.user, "role", None) == "COMMUNITY_USER":
+            consultants = (
+                Consultant.objects
+                .select_related("user")
+                .filter(user__is_active=True, available=True)
+                .filter(Q(consultantsettings__isnull=True) | Q(consultantsettings__show_profile=True))
+                .order_by("user__full_name", "user__user_name")
+            )
+            serializer = CommunityConsultantSerializer(consultants, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
         # Check permission
         if not has_permission(request.user, "nutritionists", "view"):
@@ -243,7 +254,11 @@ class ConsultantClientListView(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
 
     def get(self, request):
-        clients = User.objects.filter(role="COMMUNITY_USER").order_by("full_name", "email")
+        clients = (
+            request.user.consultant.clients
+            .select_related("user", "booking")
+            .order_by("-created_at")
+        )
         serializer = ConsultantClientSerializer(clients, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -304,6 +319,41 @@ class DietPlanCreateView(APIView):
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+class DietPlanListView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        diet_plans = (
+            request.user.consultant.diet_plans
+            .select_related("client")
+            .prefetch_related("meals__items")
+            .order_by("-updated_at")
+        )
+        return Response(
+            DietPlanDetailSerializer(diet_plans, many=True).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class ConsultantNoteView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get(self, request):
+        notes = (
+            request.user.consultant.notes
+            .select_related("client", "booking")
+            .order_by("-updated_at")
+        )
+        serializer = ConsultantNoteSerializer(notes, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = ConsultantNoteSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        note = serializer.save(consultant=request.user.consultant)
+        return Response(ConsultantNoteSerializer(note).data, status=status.HTTP_201_CREATED)
+
 
 
 class SaveAvailabilityView(APIView):
@@ -415,19 +465,38 @@ class FindConsultantView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        date = datetime.strptime(request.data["date"], "%Y-%m-%d").date()
-        time_str = request.data["time"]
+        try:
+            date = datetime.strptime(request.data["date"], "%Y-%m-%d").date()
+            time_str = request.data["time"]
+            start_time = convert_time(time_str)
+        except (KeyError, TypeError, ValueError):
+            return Response(
+                {"error": "Valid date and time are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        start_time = convert_time(time_str)
+        consultant_id = request.data.get("consultant_id")
+        if consultant_id:
+            try:
+                consultant = Consultant.objects.select_related("user").get(id=consultant_id)
+            except Consultant.DoesNotExist:
+                return Response(
+                    {"error": "Selected consultant was not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
 
-        consultant = find_available_consultant(date, start_time)
+            available, error = is_slot_available(consultant, date, time_str)
+            if not available:
+                return Response({"error": error}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            consultant = find_available_consultant(date, start_time)
 
-        if not consultant:
-            return Response({"error": "No consultant available"}, status=400)
+            if not consultant:
+                return Response({"error": "No consultant available"}, status=400)
 
         return Response({
             "consultant_id": consultant.id,
-            "consultant_name": consultant.user.user_name,
+            "consultant_name": consultant.user.get_full_name() or consultant.user.full_name or consultant.user.user_name,
             "photo": consultant.user.photo.url if consultant.user.photo else None,
             "qualification": consultant.qualification,
             "consultation_fee": consultant.consultation_fee
@@ -527,12 +596,7 @@ class ConsultantBookingConformApi(APIView):
                 ConsultationBooking.BookingStatus.PENDING,
                 ConsultationBooking.BookingStatus.CONFIRMED
             ]
-        )
-
-        if not bookings.exists():
-            return Response({
-                "message": "No bookings available"
-            })
+        ).select_related("user", "consultant__user").order_by("booked_date", "booked_slot", "created_at")
 
         serializer = ConsultationBookingListSerializer(bookings, many=True)
         return Response(serializer.data)

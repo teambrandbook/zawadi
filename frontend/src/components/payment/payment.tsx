@@ -10,6 +10,7 @@ import {
   Plus,
   Truck,
 } from "lucide-react";
+import { FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
@@ -45,6 +46,13 @@ const money = new Intl.NumberFormat("en-IN", {
   currency: "INR",
   minimumFractionDigits: 2,
 });
+
+const paymentIcons = [
+  { label: "Visa", Icon: FaCcVisa, className: "text-[#1a1f71]" },
+  { label: "Mastercard", Icon: FaCcMastercard, className: "text-[#eb001b]" },
+  { label: "PayPal", Icon: FaCcPaypal, className: "text-[#003087]" },
+  { label: "Apple Pay", Icon: FaCcApplePay, className: "text-[#111827]" },
+];
 
 function CheckoutBreadcrumb() {
   return (
@@ -196,9 +204,24 @@ export default function Payment() {
     } catch (err: unknown) {
       const data =
         typeof err === "object" && err !== null && "response" in err
-          ? (err as { response?: { data?: { detail?: string } } }).response?.data
+          ? (err as { response?: { data?: Record<string, unknown> } }).response?.data
           : null;
-      const msg = data?.detail || "Checkout failed.";
+      const detail = typeof data?.detail === "string" ? data.detail : "";
+      const missing = Array.isArray(data?.missing) ? data.missing.join(", ") : "";
+      const fieldErrors = data
+        ? Object.entries(data)
+            .filter(([key]) => !["detail", "missing"].includes(key))
+            .flatMap(([key, value]) => {
+              if (Array.isArray(value)) return value.map((item) => `${key}: ${String(item)}`);
+              if (typeof value === "string") return [`${key}: ${value}`];
+              return [];
+            })
+        : [];
+      const msg =
+        detail ||
+        (missing ? `Missing required fields: ${missing}` : "") ||
+        fieldErrors[0] ||
+        "Checkout failed. Please try again.";
       toast.error(msg);
     } finally {
       setSubmitting(false);
@@ -260,10 +283,10 @@ export default function Payment() {
                         <div className="text-xs text-[#374151]">
                           <p className="font-semibold">{addr.label || "Saved Address"}</p>
                           <p>
-                            {addr.full_name} · {addr.phone}
+                            {addr.full_name} - {addr.phone}
                           </p>
                           <p>
-                            {addr.address_line}, {addr.city} — {addr.postal_code}
+                            {addr.address_line}, {addr.city} - {addr.postal_code}
                           </p>
                         </div>
                       </label>
@@ -405,13 +428,25 @@ export default function Payment() {
               <div className="mt-6 flex items-center gap-3 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-3">
                 <Truck size={18} className="text-[#1f4d3a]" />
                 <p className="text-sm text-[#4b5563]">
-                  Cash on Delivery — Pay when your order arrives
+                  Cash on Delivery - Pay when your order arrives
                 </p>
               </div>
 
-              <p className="mt-6 text-center text-[10px] font-bold uppercase tracking-widest text-[#9ca3af]">
-                Visa · Mastercard · PayPal · Apple Pay
-              </p>
+              <div
+                className="mt-6 flex flex-wrap items-center justify-center gap-2"
+                aria-label="Accepted payment methods"
+              >
+                {paymentIcons.map(({ label, Icon, className }) => (
+                  <span
+                    key={label}
+                    className="inline-flex h-8 min-w-12 items-center justify-center rounded-md border border-[#e5e7eb] bg-white px-2 shadow-sm"
+                    title={label}
+                    aria-label={label}
+                  >
+                    <Icon className={`text-2xl ${className}`} aria-hidden="true" />
+                  </span>
+                ))}
+              </div>
             </section>
           </aside>
         </div>

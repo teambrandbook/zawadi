@@ -230,6 +230,7 @@ export default function ConsultantAppointmentsPage() {
     const today = new Date();
 
     return appointments.filter((item) => {
+      if (item.sessionStatus === "pending") return true;
       if (!item.rawDate) return true;
       if (scheduleFilter === "daily") return isSameDay(item.rawDate, today);
       if (scheduleFilter === "weekly") return isInCurrentWeek(item.rawDate, today);

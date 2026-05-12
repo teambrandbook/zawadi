@@ -93,9 +93,6 @@ const userSlice = createSlice({
       state.isAuthenticated = true;
       state.error = null;
     },
-    setCartCount(state, action: PayloadAction<number>) {
-      state.cartCount = action.payload;
-    },
     clearCredentials(state) {
       state.userId = null;
       state.role = null;

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Calendar,
   CalendarCheck2,
@@ -13,6 +13,7 @@ import {
   UsersRound,
   XCircle,
 } from "lucide-react";
+import api from "@/services/api";
 
 type ConsultationStatus = "Upcoming" | "Confirmed" | "Follow-up Due" | "Scheduled" | "Cancelled";
 type SessionType = "Video Call" | "Audio Call" | "Chat";
@@ -51,129 +52,24 @@ type BackendConsultationUser = {
   };
 };
 
-const backendConsultationUsers: BackendConsultationUser[] = [
-  {
-    id: "john-smith",
-    consultationId: "#CS-001",
-    fullName: "John Smith",
-    avatarUrl: "/recipe/recipe-2.webp",
-    sessionType: "Video Call",
-    sessionDateLabel: "Today, 2:30 PM",
-    sessionSubLabel: "Jan 15, 2024",
-    wellnessGoal: "Weight Management",
-    wellnessNote: "Buckwheat diet plan",
-    status: "Upcoming",
-    actions: { canStart: true, canSchedule: false, canView: true, canEdit: true },
-    backendDetails: {
-      email: "john.smith@example.com",
-      phone: "+91 98765 12345",
-      age: "34",
-      gender: "Male",
-      language: "English",
-      location: "Chennai",
-      primaryGoal: "Weight loss",
-      focusArea: "Meal consistency",
-      allergies: "None",
-      dietRestriction: "Vegetarian",
-      activityLevel: "Moderate",
-      preferredTime: "Afternoon",
-      additionalMessage: "Need a practical diet plan that works with office hours.",
-    },
-  },
-  {
-    id: "emma-wilson",
-    consultationId: "#CS-002",
-    fullName: "Emma Wilson",
-    avatarUrl: "/recipe/recipe-3.webp",
-    sessionType: "Audio Call",
-    sessionDateLabel: "Tomorrow, 10:00 AM",
-    sessionSubLabel: "Jan 16, 2024",
-    wellnessGoal: "Digestive Health",
-    wellnessNote: "Gluten-free alternatives",
-    status: "Confirmed",
-    actions: { canStart: false, canSchedule: true, canView: true, canEdit: true },
-    backendDetails: {
-      email: "emma.wilson@example.com",
-      phone: "+91 99887 11223",
-      age: "29",
-      gender: "Female",
-      language: "English",
-      location: "Bengaluru",
-      primaryGoal: "Improve digestion",
-      focusArea: "Bloating and food sensitivity",
-      allergies: "Dairy",
-      dietRestriction: "Gluten-free",
-      activityLevel: "Light",
-      preferredTime: "Morning",
-      additionalMessage: "Looking for lighter meals and better ingredient swaps.",
-    },
-  },
-  {
-    id: "michael-brown",
-    consultationId: "#CS-003",
-    fullName: "Michael Brown",
-    avatarUrl: "/recipe/recipe-1.webp",
-    sessionType: "Chat",
-    sessionDateLabel: "Jan 14, 3:15 PM",
-    sessionSubLabel: "Completed",
-    wellnessGoal: "Athletic Performance",
-    wellnessNote: "Pre-workout nutrition",
-    status: "Follow-up Due",
-    actions: { canStart: false, canSchedule: false, canView: true, canEdit: true },
-    backendDetails: {
-      email: "michael.brown@example.com",
-      phone: "+91 93456 98765",
-      age: "31",
-      gender: "Male",
-      language: "English",
-      location: "Hyderabad",
-      primaryGoal: "Build endurance",
-      focusArea: "Pre/post workout meals",
-      allergies: "Peanuts",
-      dietRestriction: "High protein",
-      activityLevel: "High",
-      preferredTime: "Evening",
-      additionalMessage: "Need support around sports nutrition and recovery meals.",
-    },
-  },
-  {
-    id: "lisa-davis",
-    consultationId: "#CS-004",
-    fullName: "Lisa Davis",
-    avatarUrl: "/recipe/recipe-4.webp",
-    sessionType: "Video Call",
-    sessionDateLabel: "Jan 18, 1:00 PM",
-    sessionSubLabel: "Friday",
-    wellnessGoal: "Diabetes Management",
-    wellnessNote: "Blood sugar control",
-    status: "Scheduled",
-    actions: { canStart: false, canSchedule: true, canView: true, canEdit: true },
-    backendDetails: {
-      email: "lisa.davis@example.com",
-      phone: "+91 90909 45454",
-      age: "42",
-      gender: "Female",
-      language: "English",
-      location: "Kochi",
-      primaryGoal: "Stable glucose management",
-      focusArea: "Meal timing and carbs",
-      allergies: "Shellfish",
-      dietRestriction: "Low sugar",
-      activityLevel: "Moderate",
-      preferredTime: "Afternoon",
-      additionalMessage: "Would like a realistic plan for family meals too.",
-    },
-  },
-];
-
-const statCards = [
-  { label: "Total Consultations", value: "127", icon: Search, iconClassName: "text-[#0A6A4F]" },
-  { label: "Upcoming Sessions", value: "8", icon: Calendar, iconClassName: "text-[#A88751]" },
-  { label: "Completed", value: "112", icon: CalendarCheck2, iconClassName: "text-[#16A34A]" },
-  { label: "Follow-ups Due", value: "5", icon: UsersRound, iconClassName: "text-[#F97316]" },
-  { label: "Rescheduled", value: "3", icon: Calendar, iconClassName: "text-[#3B82F6]" },
-  { label: "Cancelled", value: "2", icon: XCircle, iconClassName: "text-[#EF4444]" },
-];
+type BookingItem = {
+  id: number;
+  user_name?: string | null;
+  user_image?: string | null;
+  user_email?: string | null;
+  primary_goal?: string;
+  primary_wellness_goal?: string;
+  focuses_area?: string;
+  diet_preferences?: string;
+  lifestyle_activity_level?: string;
+  buckwheat_journey_goal?: string;
+  message?: string;
+  language?: string;
+  booked_date: string;
+  booked_slot: string;
+  status: string;
+  session_type?: "video" | "audio" | "chat" | string;
+};
 
 function getSessionBadgeTone(sessionType: SessionType) {
   if (sessionType === "Video Call") return "bg-[#DBEAFE] text-[#1D4ED8]";
@@ -189,7 +85,90 @@ function getStatusBadgeTone(status: ConsultationStatus) {
   return "bg-[#FEE2E2] text-[#DC2626]";
 }
 
-function SummaryCards() {
+function getApiOrigin() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
+function mediaUrl(value?: string | null) {
+  if (!value) return "/recipe/recipe-3.webp";
+  if (value.startsWith("http")) return value;
+  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function sessionTypeLabel(value?: string): SessionType {
+  if (value === "audio") return "Audio Call";
+  if (value === "chat") return "Chat";
+  return "Video Call";
+}
+
+function statusLabel(value?: string): ConsultationStatus {
+  if (value === "pending") return "Scheduled";
+  if (value === "confirmed") return "Confirmed";
+  if (value === "cancelled") return "Cancelled";
+  if (value === "completed") return "Follow-up Due";
+  return "Upcoming";
+}
+
+function formatBookingDate(dateValue: string, timeValue: string) {
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return { sessionDateLabel: `${dateValue}, ${timeValue}`, sessionSubLabel: dateValue };
+  }
+  return {
+    sessionDateLabel: `${date.toLocaleDateString("en-IN", { day: "numeric", month: "short" })}, ${timeValue}`,
+    sessionSubLabel: date.toLocaleDateString("en-IN", { weekday: "long", year: "numeric" }),
+  };
+}
+
+function mapBookingToConsultation(booking: BookingItem): BackendConsultationUser {
+  const dateLabels = formatBookingDate(booking.booked_date, booking.booked_slot);
+  const status = statusLabel(booking.status);
+
+  return {
+    id: String(booking.id),
+    consultationId: `#CS-${String(booking.id).padStart(3, "0")}`,
+    fullName: booking.user_name || "Client",
+    avatarUrl: mediaUrl(booking.user_image),
+    sessionType: sessionTypeLabel(booking.session_type),
+    ...dateLabels,
+    wellnessGoal: booking.primary_goal || booking.primary_wellness_goal || "General Wellness",
+    wellnessNote: booking.buckwheat_journey_goal || booking.focuses_area || "Consultation booking",
+    status,
+    actions: {
+      canStart: status === "Confirmed",
+      canSchedule: status === "Scheduled",
+      canView: true,
+      canEdit: false,
+    },
+    backendDetails: {
+      email: booking.user_email || "-",
+      phone: "-",
+      age: "-",
+      gender: "-",
+      language: booking.language || "-",
+      location: "-",
+      primaryGoal: booking.primary_goal || "-",
+      focusArea: booking.focuses_area || "-",
+      allergies: "-",
+      dietRestriction: booking.diet_preferences || "-",
+      activityLevel: booking.lifestyle_activity_level || "-",
+      preferredTime: booking.booked_slot,
+      additionalMessage: booking.message || "-",
+    },
+  };
+}
+
+function SummaryCards({ users }: { users: BackendConsultationUser[] }) {
+  const statCards = [
+    { label: "Total Consultations", value: String(users.length), icon: Search, iconClassName: "text-[#0A6A4F]" },
+    { label: "Upcoming Sessions", value: String(users.filter((item) => item.status === "Confirmed" || item.status === "Scheduled").length), icon: Calendar, iconClassName: "text-[#A88751]" },
+    { label: "Completed", value: String(users.filter((item) => item.status === "Follow-up Due").length), icon: CalendarCheck2, iconClassName: "text-[#16A34A]" },
+    { label: "Follow-ups Due", value: String(users.filter((item) => item.status === "Follow-up Due").length), icon: UsersRound, iconClassName: "text-[#F97316]" },
+    { label: "Rescheduled", value: "0", icon: Calendar, iconClassName: "text-[#3B82F6]" },
+    { label: "Cancelled", value: String(users.filter((item) => item.status === "Cancelled").length), icon: XCircle, iconClassName: "text-[#EF4444]" },
+  ];
+
   return (
     <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
       {statCards.map((card) => {
@@ -282,6 +261,10 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
               <span className="px-3">Actions</span>
             </div>
 
+            {users.length === 0 ? (
+              <div className="px-7 py-8 text-sm text-[#6B7280]">No consultation bookings found.</div>
+            ) : null}
+
             {users.map((user) => (
               <div
                 key={user.id}
@@ -354,7 +337,7 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
         </div>
 
         <div className="flex flex-col gap-4 border-t border-[#E5E7EB] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#4B5563]">Showing 4 of 127 consultations</p>
+          <p className="text-sm text-[#4B5563]">Showing {users.length} consultations</p>
 
           <div className="flex items-center gap-2 text-sm">
             <button type="button" className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827]">
@@ -462,13 +445,40 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
 }
 
 export default function ConsultantConsultationPage() {
-  const usersFromBackend = useMemo(() => backendConsultationUsers, []);
+  const [usersFromBackend, setUsersFromBackend] = useState<BackendConsultationUser[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<BookingItem[]>("/consultant/bookings/")
+      .then(({ data }) => {
+        if (!isMounted) return;
+        setUsersFromBackend(Array.isArray(data) ? data.map(mapBookingToConsultation) : []);
+      })
+      .catch(() => {
+        if (isMounted) setUsersFromBackend([]);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen bg-[#FFFFFF] px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-4">
-        <SummaryCards />
+        <SummaryCards users={usersFromBackend} />
         <ConsultationToolbar />
+        {isLoading ? (
+          <section className="rounded-[14px] border border-[#DFDFDF] bg-white p-5 text-sm text-[#6B7280]">
+            Loading consultations...
+          </section>
+        ) : null}
         <ActiveConsultationsTable users={usersFromBackend} />
       </div>
     </main>

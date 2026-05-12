@@ -49,6 +49,29 @@ class ConsultantListSerializer(serializers.ModelSerializer):
 # -----------------------------------        
 
 
+class CommunityConsultantSerializer(serializers.ModelSerializer):
+    user = ConsultantUserSerializer(read_only=True)
+
+    class Meta:
+        model = Consultant
+        fields = [
+            "id",
+            "user",
+            "years_of_experience",
+            "qualification",
+            "short_bio",
+            "languages_spoken",
+            "experience_areas",
+            "session_type",
+            "consultation_fee",
+            "session_duration",
+            "rating",
+            "available",
+        ]
+
+# -----------------------------------
+
+
 class ConsultantDetailSerializer(serializers.ModelSerializer):
     user = ConsultantUserSerializer(read_only=True)
     consultation_fee = serializers.IntegerField()
@@ -77,10 +100,25 @@ class ConsultantDetailSerializer(serializers.ModelSerializer):
 
 
 class ConsultantClientSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source="user.id", read_only=True)
+    client_profile_id = serializers.IntegerField(source="id", read_only=True)
+    user_id = serializers.CharField(source="user.user_id", read_only=True)
+    email = serializers.EmailField(source="user.email", read_only=True)
+    full_name = serializers.SerializerMethodField()
+    phone = serializers.CharField(source="user.phone", read_only=True)
+    date_of_birth = serializers.DateField(source="user.date_of_birth", read_only=True)
+    gender = serializers.CharField(source="user.gender", read_only=True)
+    location = serializers.CharField(source="user.location", read_only=True)
+    photo = serializers.ImageField(source="user.photo", read_only=True)
+    booking_id = serializers.IntegerField(source="booking.id", read_only=True)
+    last_consultation = serializers.DateField(source="booking.booked_date", read_only=True)
+    booking_status = serializers.CharField(source="booking.status", read_only=True)
+
     class Meta:
-        model = User
+        model = Client
         fields = [
             "id",
+            "client_profile_id",
             "user_id",
             "email",
             "full_name",
@@ -88,7 +126,24 @@ class ConsultantClientSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "gender",
             "location",
+            "photo",
+            "booking_id",
+            "last_consultation",
+            "booking_status",
+            "primary_goal",
+            "primary_wellness_goal",
+            "focuses_area",
+            "diet_preferences",
+            "lifestyle_activity_level",
+            "buckwheat_journey_goal",
+            "language",
+            "message",
+            "is_active",
+            "created_at",
         ]
+
+    def get_full_name(self, obj):
+        return obj.user.get_full_name() or obj.user.full_name or obj.user.user_name or obj.user.email
 
 
 class ConsultantProfileSerializer(serializers.ModelSerializer):
@@ -435,6 +490,46 @@ class DietPlanDetailSerializer(serializers.ModelSerializer):
 
     def get_consultant_name(self, obj):
         return obj.consultant.user.get_full_name() or obj.consultant.user.email
+
+
+class ConsultantNoteSerializer(serializers.ModelSerializer):
+    client_name = serializers.SerializerMethodField()
+    client_email = serializers.EmailField(source="client.email", read_only=True)
+    client_photo = serializers.ImageField(source="client.photo", read_only=True)
+
+    class Meta:
+        model = ConsultantNote
+        fields = [
+            "id",
+            "client",
+            "client_name",
+            "client_email",
+            "client_photo",
+            "booking",
+            "title",
+            "note_type",
+            "priority_level",
+            "summary",
+            "observations",
+            "recommendations",
+            "food_restrictions",
+            "follow_up_instructions",
+            "follow_up_date",
+            "tags",
+            "internal_notes",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "client_name", "client_email", "client_photo", "created_at", "updated_at"]
+
+    def get_client_name(self, obj):
+        return obj.client.get_full_name() or obj.client.full_name or obj.client.user_name or obj.client.email
+
+    def validate_client(self, value):
+        consultant = self.context["request"].user.consultant
+        if not consultant.clients.filter(user=value).exists():
+            raise serializers.ValidationError("Client is not assigned to this consultant.")
+        return value
 
 
 

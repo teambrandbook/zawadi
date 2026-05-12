@@ -40,6 +40,15 @@ export default function TodaysScheduleCard({
       </div>
 
       <div className="space-y-3 p-4">
+        {!schedule.length ? (
+          <div className="rounded-[14px] border border-dashed border-[#D0D5DD] bg-white px-4 py-8 text-center">
+            <p className="text-sm font-semibold text-[#0A4833]">No appointments found</p>
+            <p className="mt-1 text-xs text-[#667085]">
+              New community user bookings will appear here for approval.
+            </p>
+          </div>
+        ) : null}
+
         {schedule.map((item) => (
           <article
             key={`${item.time}-${item.name}`}

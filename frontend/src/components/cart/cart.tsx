@@ -186,10 +186,10 @@ function OrderSummary({
       </div>
 
       <Link
-        href="/checkout"
+        href="/payment"
         className="mt-7 flex h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-6 text-sm font-bold text-white shadow-[0_8px_15px_rgba(0,0,0,0.12)] transition hover:bg-[#1a4331] active:scale-[0.99]"
       >
-        Proceed to Checkout
+        Proceed to Payment
         <ArrowRight size={17} />
       </Link>
 

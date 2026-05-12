@@ -248,7 +248,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           >
             <div className="relative w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
               <Image
-                src="/logo/zawadi-logo.webp"
+                src="/logo/zewadi-logo.webp"
                 alt="ZEWADI Logo"
                 fill
                 className="object-cover group-hover:scale-110 transition-transform"
