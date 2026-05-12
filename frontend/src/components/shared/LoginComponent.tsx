@@ -165,6 +165,10 @@ export default function LoginComponent() {
                     </div>
                   </div>
 
+                  <a href="/forgot-password" className="text-sm text-green-800 hover:underline block text-right">
+                    Forgot password?
+                  </a>
+
                   <button
                     type="submit"
                     className="flex h-[44px] w-full items-center justify-center rounded-lg bg-[#0a4833] text-sm font-bold text-white shadow-lg hover:bg-[#0c5a40] transition active:scale-[0.98]"
