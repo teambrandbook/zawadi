@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/media/**" },
+      // Add your staging API hostname here if it uses HTTP (not HTTPS):
+      // { protocol: "http", hostname: "your-staging-ip", port: "8000", pathname: "/media/**" },
       { protocol: "https", hostname: "**", pathname: "/media/**" },
     ],
   },
