@@ -14,6 +14,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
+import { z } from "zod";
+
+// address field is named "address" (not "address_line") in the local form state
+const checkoutSchema = z.object({
+  full_name: z.string().min(1, "Name is required"),
+  phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
+  address: z.string().min(5, "Address is required"),
+  city: z.string().min(1, "City is required"),
+  postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+});
 
 type SavedAddress = {
   id: number;
@@ -127,6 +137,21 @@ export default function Payment() {
   }
 
   async function handlePlaceOrder() {
+    // Validate the new-address form only when the user is entering a new address
+    if (showForm) {
+      const result = checkoutSchema.safeParse({
+        full_name: form.full_name,
+        phone: form.phone,
+        address: form.address,
+        city: form.city,
+        postal_code: form.postal_code,
+      });
+      if (!result.success) {
+        toast.error(result.error.issues[0].message);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const cartRes = await api.get("/orders/cart/");

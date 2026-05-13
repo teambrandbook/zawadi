@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -37,26 +37,9 @@ type Product = {
   variants: ProductVariant[];
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "");
-
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
-  if (path.startsWith("http")) {
-    try {
-      const imageUrl = new URL(path);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(API_BASE);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return path;
-    }
-    return path;
-  }
-  return `${API_BASE}${path}`;
+  return getImageUrl(path);
 }
 
 const ProductDetails = () => {
@@ -276,6 +259,7 @@ const ProductDetails = () => {
               <button
                 type="button"
                 aria-label="Save to wishlist"
+                onClick={() => toast.info("Wishlist coming soon!")}
                 className="rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
               >
                 <Heart size={20} />
@@ -296,9 +280,12 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            <button className="description-stagger rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]">
+            <Link
+              href="/recipes"
+              className="description-stagger inline-block rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+            >
               Try Recipes
-            </button>
+            </Link>
           </div>
         )}
 

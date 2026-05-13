@@ -1,4 +1,6 @@
 from django.utils import timezone
+from django.db.models import Q
+from django.core.cache import cache
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -29,69 +31,63 @@ class BlogListAPIView(APIView):
 
     permission_classes = [AllowAny]
 
-    def get(self, request):
+    # Safe fields that can be used for ordering
+    ORDERING_WHITELIST = {"title", "created_at", "-title", "-created_at"}
 
+    def get(self, request):
         user = request.user
         public_list = request.query_params.get("public") == "1" or not user.is_authenticated
 
         if public_list:
+            try:
+                cached = cache.get("blog_list_public")
+                if cached is not None:
+                    return Response(cached, status=status.HTTP_200_OK)
+            except Exception:
+                pass
+
             blogs = Blog.objects.filter(
                 show_in_community_blog=True,
                 status__in=[BlogStatus.PUBLISHED, BlogStatus.PENDING],
             ).order_by("-created_at")
+            serializer = BlogListSerializer(blogs, many=True, context={"request": request})
 
-            serializer = BlogListSerializer(
-                blogs,
-                many=True,
-                context={"request": request}
-            )
+            try:
+                cache.set("blog_list_public", serializer.data, timeout=300)
+            except Exception:
+                pass
 
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
-        has_blog_permission = has_permission(
-            user,
-            "blog",
-            "view"
-        )
+        has_blog_permission = has_permission(user, "blog", "view")
 
-        # permission user -> view all blogs
         if has_blog_permission:
-
-            blogs = Blog.objects.all().order_by(
-                "-created_at"
-            )
-
-        # community user -> only own blogs
+            qs = Blog.objects.all()
         elif user.role == "COMMUNITY_USER":
-
-            blogs = Blog.objects.filter(
-                author=user
-            ).order_by(
-                "-created_at"
-            )
-
+            qs = Blog.objects.filter(author=user)
         else:
+            return Response({"message": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
-            return Response(
-                {
-                    "message": "Permission denied"
-                },
-                status=status.HTTP_403_FORBIDDEN
+        search = request.query_params.get("search", "").strip()
+        if search:
+            qs = qs.filter(
+                Q(title__icontains=search)
+                | Q(content__icontains=search)
+                | Q(author__first_name__icontains=search)
+                | Q(author__last_name__icontains=search)
             )
 
-        serializer = BlogListSerializer(
-            blogs,
-            many=True,
-            context={"request": request}
-        )
+        tag = request.query_params.get("tag", "").strip()
+        if tag:
+            qs = qs.filter(tags__name__icontains=tag).distinct()
 
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        ordering = request.query_params.get("ordering", "-created_at").strip()
+        if ordering not in self.ORDERING_WHITELIST:
+            ordering = "-created_at"
+        qs = qs.order_by(ordering)
+
+        serializer = BlogListSerializer(qs, many=True, context={"request": request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 
@@ -184,19 +180,23 @@ class BlogDetailAPIView(APIView):
     # GET BLOG DETAILS
     # -----------------------------
     def get(self, request, blog_id):
+        user = request.user
+
+        # For unauthenticated requests on numeric IDs, try cache before hitting DB.
+        if not user.is_authenticated and str(blog_id).isdigit():
+            cache_key = f"blog_detail:{blog_id}"
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return Response(cached, status=status.HTTP_200_OK)
+            except Exception:
+                pass
 
         blog = self.get_object(blog_id)
 
         if not blog:
+            return Response({"message": "Blog not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response(
-                {
-                    "message": "Blog not found"
-                },
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        user = request.user
         public_allowed = (
             blog.show_in_community_blog
             and blog.status in [BlogStatus.PUBLISHED, BlogStatus.PENDING]
@@ -204,36 +204,25 @@ class BlogDetailAPIView(APIView):
 
         if not user.is_authenticated:
             if not public_allowed:
-                return Response(
-                    {
-                        "message": "Blog not found"
-                    },
-                    status=status.HTTP_404_NOT_FOUND
-                )
-        else:
-            has_blog_permission = has_permission(
-                user,
-                "blog",
-                "view"
-            )
-            if not (
-                public_allowed
-                or has_blog_permission
-                or blog.author == user
-            ):
-                return Response(
-                    {
-                        "message": "Permission denied"
-                    },
-                    status=status.HTTP_403_FORBIDDEN
-                )
+                return Response({"message": "Blog not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = BlogSerializer(blog, context={"request": request})
+
+            # Cache only for numeric-ID requests (slug requests skip cache on read too)
+            if str(blog_id).isdigit():
+                try:
+                    cache.set(f"blog_detail:{blog.pk}", serializer.data, timeout=300)
+                except Exception:
+                    pass
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        has_blog_permission = has_permission(user, "blog", "view")
+        if not (public_allowed or has_blog_permission or blog.author == user):
+            return Response({"message": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = BlogSerializer(blog, context={"request": request})
-
-        return Response(
-            serializer.data,
-            status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # -----------------------------
     # EDIT BLOG

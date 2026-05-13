@@ -11,6 +11,7 @@ import OrderSummary from "./OrderSummary";
 import NeedHelpCard from "./NeedHelpCard";
 import { DeliveryForm, PackOption } from "./types";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiVariant = {
   id: number;
@@ -80,10 +81,7 @@ function toNumber(value: string | number): number {
 
 function toImageUrl(imagePath?: string | null): string {
   if (!imagePath) return "/product/p-1.webp";
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function toPacks(product: ApiProduct | null): PackOption[] {
@@ -283,7 +281,7 @@ export default function OrderPage() {
       };
       setIsSubmitting(true);
       sessionStorage.setItem("zewadi_checkout", JSON.stringify(payload));
-      router.push("/communityDashBorde/payment-method");
+      router.push("/communityDashBoard/payment-method");
       return;
     }
 
@@ -330,7 +328,7 @@ export default function OrderPage() {
     };
     setIsSubmitting(true);
     sessionStorage.setItem("zewadi_checkout", JSON.stringify(payload));
-    router.push("/communityDashBorde/payment-method");
+    router.push("/communityDashBoard/payment-method");
   }
 
   return (
@@ -522,7 +520,7 @@ function CartCheckoutSummary({
 
       <button
         type="button"
-        onClick={() => window.location.assign("/communityDashBorde/cart")}
+        onClick={() => window.location.assign("/communityDashBoard/cart")}
         className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-lg border border-[#DFDFDF] bg-white text-sm font-medium text-[#4B5563]"
       >
         Back to Cart

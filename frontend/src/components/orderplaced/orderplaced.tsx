@@ -190,7 +190,7 @@ export default function OrderPlaced() {
           </Link>
           <span className="hidden h-6 w-px bg-[#d8c29a] sm:block" />
           <Link
-            href="/communityDashBorde/myorders"
+            href="/communityDashBoard/myorders"
             className="transition hover:text-[#1a4331]"
           >
             View All Orders

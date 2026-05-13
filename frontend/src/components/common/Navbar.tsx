@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -12,6 +12,9 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount, clearCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
+
+type NavItem = { name: string; href: string };
+type NavLink = NavItem & { hasDropdown?: boolean; items?: NavItem[] };
 
 const Navbar = () => {
   const [mounted, setMounted] = useState(false);
@@ -74,7 +77,7 @@ const Navbar = () => {
     setExpandedLink(expandedLink === name ? null : name);
   };
 
-  const { navLinks, footer } = navData as any;
+  const { navLinks, footer } = navData as { navLinks: NavLink[]; footer: { innerPages: NavItem[] } };
   const innerPages = footer.innerPages;
 
   const initials =
@@ -86,7 +89,7 @@ const Navbar = () => {
     if (role === "admin") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
     if (role === "consultant") return { profile: "/consultant/profile", orders: "/consultant/appointments" };
     if (userType === "guest") return { profile: "/guestprofile", orders: "/guestprofile/history" };
-    return { profile: "/communityDashBorde", orders: "/communityDashBorde/myorders" };
+    return { profile: "/communityDashBoard", orders: "/communityDashBoard/myorders" };
   }
 
   async function handleLogout() {
@@ -132,7 +135,7 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <div className="hidden lg:flex items-center space-x-10">
-            {navLinks.map((link: any) => (
+            {navLinks.map((link: NavLink) => (
               <div key={link.name} className="relative group py-4">
                 {link.hasDropdown ? (
                   <div className="flex items-center gap-1 text-[15px] font-semibold text-white/90 hover:text-brand-primary transition-all duration-300 cursor-pointer">
@@ -141,7 +144,7 @@ const Navbar = () => {
                     <div className="absolute top-full left-0 mt-0 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-1100">
                       <div className="bg-[#1A4331] border border-white/10 rounded-xl shadow-2xl p-4 min-w-50 backdrop-blur-xl">
                         <div className="flex flex-col space-y-1">
-                          {innerPages.map((item: any) => (
+                          {(link.items ?? innerPages).map((item: NavItem) => (
                             <Link
                               key={item.name}
                               href={item.href}
@@ -310,7 +313,7 @@ const Navbar = () => {
         </button>
 
         <div className="flex flex-col space-y-6 relative z-10 overflow-y-auto max-h-[70vh] pr-4">
-          {navLinks.map((link: any, idx: number) => (
+          {navLinks.map((link: NavLink, idx: number) => (
             <div key={link.name} className="flex flex-col">
               {link.hasDropdown ? (
                 <div className="flex flex-col">
@@ -338,7 +341,7 @@ const Navbar = () => {
                       expandedLink === link.name ? "max-h-125 mt-4 opacity-100" : "max-h-0"
                     )}
                   >
-                    {innerPages.map((item: any) => (
+                    {(link.items ?? innerPages).map((item: NavItem) => (
                       <Link
                         key={item.name}
                         href={item.href}

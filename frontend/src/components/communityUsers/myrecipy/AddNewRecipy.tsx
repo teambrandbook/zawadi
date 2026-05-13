@@ -387,7 +387,7 @@ export default function AddNewRecipy() {
       }
       localStorage.removeItem(DRAFT_KEY);
       setMessage(status === "pending" ? "Recipe submitted for approval." : "Recipe saved as draft.");
-      router.push("/communityDashBorde/myrecipy");
+      router.push("/communityDashBoard/myrecipy");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const errors =
@@ -443,7 +443,7 @@ export default function AddNewRecipy() {
               isEditMode={isEditMode}
               onSaveDraft={saveDraft}
               onSubmit={submitRecipe}
-              onCancel={() => router.push("/communityDashBorde/myrecipy")}
+              onCancel={() => router.push("/communityDashBoard/myrecipy")}
             />
           </div>
 

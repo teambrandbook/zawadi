@@ -7,7 +7,7 @@ export default function BlogHeader() {
   const router = useRouter();
 
   function goToNewBlog() {
-    router.push("/communityDashBorde/new-blog");
+    router.push("/communityDashBoard/new-blog");
   }
 
   return (

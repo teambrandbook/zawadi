@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from django.core.cache import cache
 
 from .models import Product, ProductStatus, ProductVariant
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
@@ -43,15 +44,63 @@ class ProductListCreateView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        products = Product.objects.prefetch_related("variants").order_by("id")
+        category = request.query_params.get("category", "")
+        search = request.query_params.get("search", "")
+        ordering = request.query_params.get("ordering", "-created_at")
+        page = request.query_params.get("page", "1")
+
+        if not can_manage:
+            cache_key = f"product_list:{category}:{search}:{ordering}:{page}"
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return Response(cached)
+            except Exception:
+                pass
+
+        products = Product.objects.prefetch_related("variants")
         if not can_manage:
             products = products.filter(product_status=ProductStatus.ACTIVE)
+
+        if category:
+            products = products.filter(category__iexact=category)
+
+        if search:
+            from django.db.models import Q
+            products = products.filter(
+                Q(product_name__icontains=search)
+                | Q(short_description__icontains=search)
+                | Q(full_description__icontains=search)
+            )
+
+        allowed_orderings = {
+            "base_price", "-base_price",
+            "product_name", "-product_name",
+            "created_at", "-created_at",
+        }
+        if ordering in allowed_orderings:
+            products = products.order_by(ordering)
+        else:
+            products = products.order_by("-created_at")
+
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:
             serializer = ProductSerializer(page, many=True, context={"request": request})
-            return paginator.get_paginated_response(serializer.data)
+            response = paginator.get_paginated_response(serializer.data)
+            if not can_manage:
+                try:
+                    cache.set(cache_key, response.data, timeout=180)
+                except Exception:
+                    pass
+            return response
+
         serializer = ProductSerializer(products, many=True, context={"request": request})
+        if not can_manage:
+            try:
+                cache.set(cache_key, serializer.data, timeout=180)
+            except Exception:
+                pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -99,6 +148,15 @@ class ProductDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if not can_manage:
+            cache_key = f"product_detail:{pk}"
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return Response(cached)
+            except Exception:
+                pass
+
         product = self._get_object(pk)
         if not product:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -106,6 +164,11 @@ class ProductDetailView(APIView):
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ProductSerializer(product, context={"request": request})
+        if not can_manage:
+            try:
+                cache.set(f"product_detail:{pk}", serializer.data, timeout=600)
+            except Exception:
+                pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):

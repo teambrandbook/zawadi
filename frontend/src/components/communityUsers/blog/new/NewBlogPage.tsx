@@ -47,7 +47,7 @@ export default function NewBlogPage() {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Blog submitted for review.");
-      router.push("/communityDashBorde/add-blog");
+      router.push("/communityDashBoard/add-blog");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const detail = Object.entries(data ?? {})

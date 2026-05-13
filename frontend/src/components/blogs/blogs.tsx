@@ -7,10 +7,11 @@ import { ArrowRight, CalendarDays, ChevronRight, Search } from "lucide-react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
-import axios from "axios";
+import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 const fallbackBlogImage = "/blogs/blog-1.webp";
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
 
 type BlogPost = {
   title: string;
@@ -36,11 +37,7 @@ type BackendBlog = {
 
 function mediaUrl(value?: string | null) {
   if (!value) return fallbackBlogImage;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  if (value.startsWith("http")) return value;
-  if (value.startsWith("/media/")) return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
-  if (value.startsWith("/")) return value;
-  return `${apiBase.replace(/\/api\/?$/, "")}${value}`;
+  return getImageUrl(value);
 }
 
 function formatDate(value?: string) {
@@ -178,7 +175,7 @@ export default function Blogs() {
 
   useEffect(() => {
     let mounted = true;
-    axios.get(`${API_BASE}/blog/?public=1`)
+    api.get(`/blog/?public=1`)
       .then(({ data }) => {
         const raw = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
         if (mounted) {

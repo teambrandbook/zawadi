@@ -9,6 +9,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type Booking = {
   id: string;
@@ -44,10 +45,7 @@ type ConsultationFilters = {
 
 function toImageUrl(image?: string | null) {
   if (!image) return null;
-  if (image.startsWith("http://") || image.startsWith("https://")) return image;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${image.startsWith("/") ? image : `/${image}`}`;
+  return getImageUrl(image);
 }
 
 function detailValue(value: unknown) {

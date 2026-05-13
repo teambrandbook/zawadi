@@ -13,6 +13,7 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ProductVariant = {
   id: number;
@@ -83,26 +84,7 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(apiOrigin);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function toCategoryLabel(category: string): string {
@@ -195,7 +177,7 @@ export default function CommunityProductsPage() {
         variant_id: product.variants?.[0]?.id,
         quantity: 1,
       });
-      router.push("/communityDashBorde/cart");
+      router.push("/communityDashBoard/cart");
     } catch {
       setStatusMessage("Unable to add this product to your cart.");
     } finally {
@@ -204,7 +186,7 @@ export default function CommunityProductsPage() {
   }
 
   function goToCheckout(productId: number) {
-    router.push(`/communityDashBorde/myorders/order?productId=${productId}&quantity=1`);
+    router.push(`/communityDashBoard/myorders/order?productId=${productId}&quantity=1`);
   }
 
   return (

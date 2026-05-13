@@ -54,6 +54,10 @@ class ConsultationBooking(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._status_before_save = self.status
+
     def __str__(self):
         return f"{self.user} -> {self.consultant} on {self.booked_date}"
 
@@ -203,6 +207,11 @@ class WeekDay(models.TextChoices):
 
 
 class WeeklySlot(models.Model):
+    """
+    DEPRECATED — superseded by `Availability` + `BreakTime`.
+    Kept to avoid requiring a destructive migration; do NOT add new references to this model.
+    Use `Availability` for all new scheduling logic.
+    """
     consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE)
 
     day = models.CharField(max_length=10, choices=WeekDay.choices)

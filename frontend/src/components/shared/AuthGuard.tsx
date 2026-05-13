@@ -20,7 +20,7 @@ type MeResponse = {
 const roleHome: Record<GuardRole, string> = {
   admin: "/admindashboard",
   consultant: "/consultant",
-  community_user: "/communityDashBorde",
+  community_user: "/communityDashBoard",
 };
 
 function getRoleHome(role: GuardRole, userType?: "guest" | "member" | null): string {
