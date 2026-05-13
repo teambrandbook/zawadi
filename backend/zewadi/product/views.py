@@ -47,9 +47,10 @@ class ProductListCreateView(APIView):
         category = request.query_params.get("category", "")
         search = request.query_params.get("search", "")
         ordering = request.query_params.get("ordering", "-created_at")
+        page = request.query_params.get("page", "1")
 
         if not can_manage:
-            cache_key = f"product_list:{category}:{search}:{ordering}"
+            cache_key = f"product_list:{category}:{search}:{ordering}:{page}"
             try:
                 cached = cache.get(cache_key)
                 if cached is not None:

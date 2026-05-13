@@ -21,7 +21,7 @@ def invalidate_product_cache(sender, instance, **kwargs):
     except AttributeError:
         # LocMemCache does not support delete_pattern — delete default key only
         try:
-            cache.delete("product_list:::-created_at")
+            cache.delete("product_list:::-created_at:1")
         except Exception:
             logger.warning("Failed to invalidate product list cache (fallback)", exc_info=True)
     except Exception:
