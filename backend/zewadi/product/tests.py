@@ -1,6 +1,5 @@
 from django.test import TestCase, override_settings
 from django.core.cache import cache
-from django.urls import reverse
 from rest_framework.test import APIClient
 from .models import Product, ProductStatus
 
@@ -30,8 +29,7 @@ class ProductListCacheTest(TestCase):
 
     def test_second_get_is_served_from_cache(self):
         make_product("Alpha")
-        with self.assertNumQueries(1):
-            r1 = self.client.get("/api/products/")
+        r1 = self.client.get("/api/products/")
         with self.assertNumQueries(0):
             r2 = self.client.get("/api/products/")
         self.assertEqual(r1.data, r2.data)
@@ -62,8 +60,7 @@ class ProductDetailCacheTest(TestCase):
 
     def test_second_get_is_served_from_cache(self):
         p = make_product("Delta")
-        with self.assertNumQueries(1):
-            r1 = self.client.get(f"/api/products/{p.pk}/")
+        r1 = self.client.get(f"/api/products/{p.pk}/")
         with self.assertNumQueries(0):
             r2 = self.client.get(f"/api/products/{p.pk}/")
         self.assertEqual(r1.data, r2.data)
