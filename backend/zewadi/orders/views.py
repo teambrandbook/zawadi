@@ -409,11 +409,11 @@ class CartCheckoutView(APIView):
                         allocated_shipping = _money(shipping - used_shipping)
                         allocated_tax = _money(tax - used_tax)
 
-                    pack_name = variant.variant_name if variant else "Standard Pack"
                     serializer = OrderCreateSerializer(
                         data={
+                            "product_id": product.id,
+                            "variant_id": variant.id if variant else None,
                             "product_name": product.product_name,
-                            "pack_name": pack_name,
                             "pack_price": f"{Decimal(item.unit_price):.2f}",
                             "quantity": item.quantity,
                             "subtotal": f"{line_subtotal:.2f}",

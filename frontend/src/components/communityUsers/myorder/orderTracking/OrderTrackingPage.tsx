@@ -22,6 +22,7 @@ import api from "@/services/api";
 type ApiOrderDetail = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   pack_name: string;
   pack_price: string | number;
   quantity: number;
@@ -53,6 +54,17 @@ type StepState = "completed" | "current" | "upcoming";
 
 const cardClass = "rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]";
 const fallbackImage = "/product/p-1.webp";
+const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
+  /\/api\/?$/,
+  ""
+);
+
+function resolveProductImage(image?: string | null): string {
+  if (!image) return fallbackImage;
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  if (image.startsWith("/media/")) return `${apiOrigin}${image}`;
+  return image;
+}
 
 function toNumber(value: string | number | null | undefined): number {
   const amount = Number(value);
@@ -217,6 +229,7 @@ export default function OrderTrackingPage() {
   const currentIndex = activeStepIndex(order?.status);
   const expectedDate = toShortDate(addDays(order?.created_at, 5));
   const productName = order?.product_name || "ZEWADI Buckwheat Product";
+  const productImage = resolveProductImage(order?.product_image);
   const packName = order?.pack_name || "Wellness Pack";
   const quantity = order?.quantity ?? 1;
   const subtotal = order?.subtotal ?? 0;
@@ -277,7 +290,7 @@ export default function OrderTrackingPage() {
               <h2 className="text-lg font-semibold leading-7 tracking-[-0.02em] text-[#0A4833]">Order Summary</h2>
               <div className="mt-4 flex flex-col gap-4 sm:flex-row">
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#EBE1CF] p-2">
-                  <Image src={fallbackImage} alt={productName} fill sizes="96px" className="object-cover p-2" />
+                  <Image src={productImage} alt={productName} fill sizes="96px" className="object-cover p-2" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base font-medium leading-6 tracking-[-0.02em] text-[#0A4833]">{productName}</h3>

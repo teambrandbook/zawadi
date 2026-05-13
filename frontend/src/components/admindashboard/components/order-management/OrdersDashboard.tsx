@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
+import OrderDetailsModal from "./components/OrderDetailsModal";
 import OrdersHeader from "./components/OrdersHeader";
 import OrderStats from "./components/OrderStats";
 import OrderStatusModal from "./components/OrderStatusModal";
@@ -15,13 +16,29 @@ type Order = {
   email: string;
   product: string;
   pack: string;
+  quantity: string;
+  packPrice: string;
+  subtotal: string;
+  deliveryCharge: string;
   date: string;
   amount: string;
   status: string;
   payment: "Paid" | "Pending" | "Refunded";
+  paymentMethod: string;
+  phone: string;
+  city: string;
+  postalCode: string;
+  address: string;
+  instructions: string;
   avatar: string;
   product_image: string;
 };
+
+function money(value: unknown) {
+  return value != null && value !== ""
+    ? `$${parseFloat(String(value)).toFixed(2)}`
+    : "$0.00";
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiOrder(item: Record<string, any>, index: number): Order {
@@ -32,7 +49,11 @@ function mapApiOrder(item: Record<string, any>, index: number): Order {
     ),
     email: String(item.email ?? ""),
     product: String(item.product_name ?? item.product ?? "—"),
-    pack: String(item.pack ?? item.variant ?? ""),
+    pack: String(item.pack_name ?? item.pack ?? item.variant ?? ""),
+    quantity: String(item.quantity ?? ""),
+    packPrice: money(item.pack_price),
+    subtotal: money(item.subtotal),
+    deliveryCharge: money(item.delivery_charge),
 
     date: item.created_at
       ? new Date(item.created_at).toLocaleDateString("en-US", {
@@ -44,7 +65,7 @@ function mapApiOrder(item: Record<string, any>, index: number): Order {
 
     amount:
       item.total_amount != null
-        ? `$${parseFloat(item.total_amount).toFixed(2)}`
+        ? money(item.total_amount)
         : String(item.amount ?? "$0.00"),
 
     status: String(item.status ?? "confirmed"),
@@ -57,6 +78,13 @@ function mapApiOrder(item: Record<string, any>, index: number): Order {
           item.payment_status === "pending"
         ? "Pending"
         : "Paid",
+
+    paymentMethod: String(item.payment_method ?? ""),
+    phone: String(item.phone ?? ""),
+    city: String(item.city ?? ""),
+    postalCode: String(item.postal_code ?? ""),
+    address: String(item.address ?? ""),
+    instructions: String(item.instructions ?? ""),
 
     avatar: String(
       item.user_image ||
@@ -119,6 +147,8 @@ export default function OrdersDashboard() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOrderId, setDetailsOrderId] = useState("");
 
   // DELETE MODAL STATES
   const [deleteModalOpen, setDeleteModalOpen] =
@@ -258,6 +288,11 @@ export default function OrdersDashboard() {
     setModalOpen(true);
   }
 
+  function openDetailsModal(orderId: string) {
+    setDetailsOrderId(orderId);
+    setDetailsOpen(true);
+  }
+
   // OPEN DELETE MODAL
   function openDeleteModal(orderId: string) {
     setDeleteOrderId(orderId);
@@ -318,6 +353,9 @@ export default function OrdersDashboard() {
   const activeOrder = orders.find(
     (o) => o.id === activeOrderId
   );
+
+  const detailsOrder =
+    orders.find((o) => o.id === detailsOrderId) ?? null;
 
   return (
     <section className="w-full min-h-screen overflow-x-hidden bg-white p-4 lg:p-6">
@@ -412,6 +450,7 @@ export default function OrdersDashboard() {
               onOpenStatus={
                 openStatusModal
               }
+              onViewDetails={openDetailsModal}
               onDelete={openDeleteModal}
             />
           </div>
@@ -427,6 +466,14 @@ export default function OrdersDashboard() {
           setModalOpen(false)
         }
         onSave={saveStatus}
+      />
+
+      <OrderDetailsModal
+        open={detailsOpen}
+        order={detailsOrder}
+        onClose={() =>
+          setDetailsOpen(false)
+        }
       />
 
       {/* DELETE MODAL */}

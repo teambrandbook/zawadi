@@ -3,7 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from .models import CartItem, Order, OrderReview
-from product.models import Product
+from product.models import Product, ProductVariant
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -47,6 +47,45 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "product_name": {"required": False},
+            "pack_name": {"required": False},
+        }
+
+    def _format_pack_name(self, value, unit):
+        parts = [str(part).strip() for part in (value, unit) if str(part).strip()]
+        return " ".join(parts)
+
+    def validate(self, attrs):
+        product_id = attrs.get("product_id")
+        variant_id = attrs.get("variant_id")
+
+        if not product_id:
+            return attrs
+
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError({"product_id": "Product not found."})
+
+        attrs["product_name"] = product.product_name
+
+        if variant_id:
+            try:
+                variant = ProductVariant.objects.get(pk=variant_id, product=product)
+            except ProductVariant.DoesNotExist:
+                raise serializers.ValidationError({"variant_id": "Product variant not found."})
+            attrs["pack_name"] = self._format_pack_name(
+                variant.variant_value,
+                variant.variant_unit,
+            )
+        else:
+            attrs["pack_name"] = self._format_pack_name(
+                product.unit_quantity,
+                product.product_unit,
+            )
+
+        return attrs
 
     def create(self, validated_data):
         validated_data.pop("product_id", None)
@@ -217,7 +256,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     stock_quantity = serializers.IntegerField(source="product.stock_quantity", read_only=True)
     stock_status = serializers.CharField(source="product.stock_status", read_only=True)
     variant_id = serializers.IntegerField(source="variant.id", read_only=True, allow_null=True)
-    variant_name = serializers.CharField(source="variant.variant_name", read_only=True, allow_null=True)
+    variant_name = serializers.CharField(source="variant.variant_value", read_only=True, allow_null=True)
     variant_stock = serializers.IntegerField(source="variant.stock", read_only=True, allow_null=True)
     unit_price = serializers.SerializerMethodField()
     line_total = serializers.SerializerMethodField()

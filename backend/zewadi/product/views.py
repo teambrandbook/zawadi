@@ -1,3 +1,5 @@
+import json
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -28,6 +30,27 @@ def _can_view_public_products(user):
     return not getattr(user, "is_authenticated", False) or _is_community_user(user)
 
 
+def _product_payload_from_request(request):
+    payload = {}
+    for key, value in request.data.items():
+        payload[key] = value
+
+    if "image" not in payload and request.FILES.get("image"):
+        payload["image"] = request.FILES["image"]
+
+    if "allow_out_of_stock" in payload and "allow_orders_when_out_of_stock" not in payload:
+        payload["allow_orders_when_out_of_stock"] = payload.get("allow_out_of_stock")
+
+    variants = payload.get("variants")
+    if isinstance(variants, str):
+        try:
+            payload["variants"] = json.loads(variants)
+        except json.JSONDecodeError:
+            pass
+
+    return payload
+
+
 class ProductListCreateView(APIView):
     """
     GET  /api/products/          — list all products (requires products.view permission)
@@ -37,70 +60,48 @@ class ProductListCreateView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        can_manage = _can_manage_products(request.user)
-        if not can_manage and not _can_view_public_products(request.user):
-            return Response(
-                {"error": "You do not have permission to view products"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
 
-        products = Product.objects.prefetch_related("variants")
-        if not can_manage:
-            products = products.filter(product_status=ProductStatus.ACTIVE)
+    # If user has permission -> all products
+        if has_permission(request.user, "products", "view"):
+            products = Product.objects.all()
 
-        # Category filter
-        category = request.query_params.get("category")
-        if category:
-            products = products.filter(category__iexact=category)
-
-        # Search filter (product_name, short_description, full_description)
-        search = request.query_params.get("search")
-        if search:
-            from django.db.models import Q
-            products = products.filter(
-                Q(product_name__icontains=search) | Q(short_description__icontains=search) | Q(full_description__icontains=search)
-            )
-
-        # Ordering
-        ordering = request.query_params.get("ordering", "-created_at")
-        allowed_orderings = {
-            "base_price", "-base_price",
-            "product_name", "-product_name",
-            "created_at", "-created_at",
-        }
-        if ordering in allowed_orderings:
-            products = products.order_by(ordering)
+        # Else -> only active products
         else:
-            products = products.order_by("-created_at")
+            products = Product.objects.filter(product_status="active")
 
-        paginator = StandardPagination()
-        page = paginator.paginate_queryset(products, request)
-        if page is not None:
-            serializer = ProductSerializer(page, many=True, context={"request": request})
-            return paginator.get_paginated_response(serializer.data)
-        serializer = ProductSerializer(products, many=True, context={"request": request})
+        serializer = ProductSerializer(
+            products,
+            many=True,
+        )
+
         return Response(serializer.data, status=status.HTTP_200_OK)
-
     def post(self, request):
+
+        # Permission Check
         if not has_permission(request.user, "products", "create"):
             return Response(
                 {"error": "You do not have permission to create products"},
-                status=status.HTTP_403_FORBIDDEN,
+                status=status.HTTP_403_FORBIDDEN
             )
 
-        payload = request.data.copy()
-        if "image" not in payload and request.FILES.get("image"):
-            payload["image"] = request.FILES["image"]
-
+        payload = _product_payload_from_request(request)
         serializer = ProductCreateSerializer(data=payload, context={"request": request})
+
         if serializer.is_valid():
-            product = serializer.save()
-            out = ProductSerializer(product, context={"request": request})
+            serializer.save()
+
             return Response(
-                {"message": "Product created successfully", "data": out.data},
-                status=status.HTTP_201_CREATED,
+                {
+                    "message": "Product created successfully",
+                    "data": serializer.data
+                },
+                status=status.HTTP_201_CREATED
             )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST
+        )
 
 
 class ProductDetailView(APIView):
@@ -109,7 +110,6 @@ class ProductDetailView(APIView):
     PATCH  /api/products/<id>/   — partial update
     DELETE /api/products/<id>/   — delete
     """
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
     permission_classes = [AllowAny]
 
     def _get_object(self, pk):
@@ -146,9 +146,7 @@ class ProductDetailView(APIView):
         if not product:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        payload = request.data.copy()
-        if "image" not in payload and request.FILES.get("image"):
-            payload["image"] = request.FILES["image"]
+        payload = _product_payload_from_request(request)
 
         serializer = ProductCreateSerializer(
             product, data=payload, partial=True, context={"request": request}

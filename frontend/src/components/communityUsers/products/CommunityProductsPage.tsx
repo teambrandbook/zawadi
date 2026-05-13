@@ -42,6 +42,8 @@ type Product = {
   stock_status: string;
   variants: ProductVariant[];
   created_at?: string;
+  product_unit?: string;
+  unit_quantity?: string | number;
 };
 
 type PaginatedResponse<T> = {
@@ -146,6 +148,8 @@ export default function CommunityProductsPage() {
           (product) => product.product_status === "active"
         );
         setProducts(activeProducts);
+        console.log(activeProducts);
+        
       } catch {
         if (isMounted) {
           setLoadError("Unable to load products right now.");
@@ -212,7 +216,7 @@ export default function CommunityProductsPage() {
   }
 
   function goToCheckout(productId: number) {
-    router.push(`/communityDashBoard/myorders/order?productId=${productId}&quantity=1`);
+    router.push(`/communityDashBoard/products/order?productId=${productId}&quantity=1`);
   }
 
   return (
@@ -355,13 +359,6 @@ export default function CommunityProductsPage() {
                         Featured
                       </span>
                     ) : null}
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-[#4B5563] transition hover:bg-white hover:text-[#0A4833]"
-                      aria-label={`Save ${product.product_name}`}
-                    >
-                      <Heart className="h-4 w-4" />
-                    </button>
                   </div>
 
                   <div className="flex h-[248px] flex-col p-4">
@@ -379,7 +376,7 @@ export default function CommunityProductsPage() {
                       <strong className="text-lg font-bold text-[#0A4833]">
                         {toCurrency(price, product.currency)}
                       </strong>
-                      <span className="text-xs text-[#6B7280]">{getPackLabel(product)}</span>
+                      <span className="text-xs text-[#6B7280]">{product.unit_quantity} {product.product_unit}</span>
                     </div>
 
                     <div className="mt-3 flex gap-2">

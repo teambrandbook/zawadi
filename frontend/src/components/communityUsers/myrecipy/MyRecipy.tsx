@@ -303,14 +303,14 @@ export default function MyRecipy() {
                     <div className="mt-auto flex items-center gap-2 pt-2">
                       <button
                         type="button"
-                        onClick={() => router.push(`/communityDashBorde/myrecipy/${recipe.id}`)}
+                        onClick={() => router.push(`/communityDashBoard/myrecipy/${recipe.id}`)}
                         className="h-9 flex-1 rounded-lg bg-[#0A4833] text-sm font-semibold text-white hover:bg-[#083B2A]"
                       >
                         {isPublished ? "View Recipe" : "View Details"}
                       </button>
                       <button
                         type="button"
-                        onClick={() => router.push(`/communityDashBorde/myrecipy/add?id=${recipe.id}`)}
+                        onClick={() => router.push(`/communityDashBoard/myrecipy/add?id=${recipe.id}`)}
                         className="h-9 rounded-lg border border-[#DFDFDF] px-4 text-sm font-medium text-[#374151] hover:bg-[#F9FAFB]"
                       >
                         Edit

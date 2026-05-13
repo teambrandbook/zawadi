@@ -22,6 +22,7 @@ type Props = {
   perPage: number;
   total: number;
   onPageChange: (page: number) => void;
+  onViewDetails: (orderId: string) => void;
   onOpenStatus: (orderId: string) => void;
   onDelete: (orderId: string) => void;
 };
@@ -67,6 +68,7 @@ export default function RecentOrdersTable({
   perPage,
   total,
   onPageChange,
+  onViewDetails,
   onOpenStatus,
   onDelete,
 }: Props) {
@@ -211,10 +213,10 @@ export default function RecentOrdersTable({
                     <button
                       type="button"
                       onClick={() =>
-                        onOpenStatus(row.id)
+                        onViewDetails(row.id)
                       }
                       className="text-[#0A4833] hover:text-[#083927]"
-                      aria-label="View status"
+                      aria-label="View order details"
                     >
                       <Eye className="h-4 w-4" />
                     </button>
