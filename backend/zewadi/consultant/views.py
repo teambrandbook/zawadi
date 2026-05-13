@@ -321,15 +321,29 @@ class DietPlanCreateView(APIView):
     
 
 class DietPlanListView(APIView):
-    permission_classes = [IsAuthenticated, IsConsultantUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        diet_plans = (
-            request.user.consultant.diet_plans
-            .select_related("client")
-            .prefetch_related("meals__items")
-            .order_by("-updated_at")
-        )
+        if getattr(request.user, "role", None) == "CONSULTANT" and hasattr(request.user, "consultant"):
+            diet_plans = (
+                request.user.consultant.diet_plans
+                .select_related("client", "consultant__user")
+                .prefetch_related("meals__items")
+                .order_by("-updated_at")
+            )
+        elif getattr(request.user, "role", None) == "COMMUNITY_USER":
+            diet_plans = (
+                request.user.diet_plans
+                .select_related("consultant__user", "client")
+                .prefetch_related("meals__items")
+                .order_by("-updated_at")
+            )
+        else:
+            return Response(
+                {"detail": "Only consultants and community users can view diet plans."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         return Response(
             DietPlanDetailSerializer(diet_plans, many=True).data,
             status=status.HTTP_200_OK,
@@ -586,16 +600,44 @@ class CommunityBookingCancelView(APIView):
         )
 
 
+class ConsultantBookingMeetingLinkView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, pk):
+        consultant = Consultant.objects.filter(user=request.user).first()
+        if not consultant:
+            return Response(
+                {"detail": "Only consultants can share appointment links."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        try:
+            booking = ConsultationBooking.objects.get(
+                pk=pk,
+                consultant=consultant,
+            )
+        except ConsultationBooking.DoesNotExist:
+            return Response({"detail": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        meeting_link = str(request.data.get("meeting_link", "")).strip()
+        if not meeting_link:
+            return Response({"meeting_link": ["Meeting link is required."]}, status=status.HTTP_400_BAD_REQUEST)
+
+        booking.meeting_link = meeting_link
+        booking.save(update_fields=["meeting_link", "updated_at"])
+        return Response(ConsultationBookingListSerializer(booking).data, status=status.HTTP_200_OK)
+
+
 class ConsultantBookingConformApi(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
 
     def get(self, request):
         bookings = ConsultationBooking.objects.filter(
-            consultant=request.user.consultant,
-            status__in=[
-                ConsultationBooking.BookingStatus.PENDING,
-                ConsultationBooking.BookingStatus.CONFIRMED
-            ]
+            Q(status=ConsultationBooking.BookingStatus.PENDING)
+            | Q(
+                consultant=request.user.consultant,
+                status=ConsultationBooking.BookingStatus.CONFIRMED,
+            )
         ).select_related("user", "consultant__user").order_by("booked_date", "booked_slot", "created_at")
 
         serializer = ConsultationBookingListSerializer(bookings, many=True)

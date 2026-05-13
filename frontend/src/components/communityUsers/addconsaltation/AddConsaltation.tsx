@@ -88,7 +88,7 @@ export default function AddConsaltation() {
   const [isFindingConsultant, setIsFindingConsultant] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [matchedConsultant, setMatchedConsultant] = useState<MatchedConsultant | null>(null);
-  const stepLabels = ["Choose Expert", "Select Date & Time", "Health Details", "Confirm Booking"];
+  const stepLabels = ["Choose Session Type", "Select Date & Time", "Health Details", "Confirm Booking"];
 
   const selectedExpert = experts.find((item) => item.id === selectedExpertId) ?? null;
 

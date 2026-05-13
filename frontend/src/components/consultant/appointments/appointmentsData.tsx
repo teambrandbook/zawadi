@@ -30,6 +30,7 @@ export type ScheduleItem = {
   consultationMode: string;
   notes: string;
   consultant: string;
+  meetingLink?: string;
   sessionStatus?: "pending" | "confirmed" | "completed" | "cancelled";
   rawDate?: string;
   isEmpty?: boolean;

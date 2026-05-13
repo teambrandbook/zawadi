@@ -28,9 +28,21 @@ type BookingItem = {
   booked_slot: string;
   status: string;
   session_type?: string;
+  meeting_link?: string;
 };
 
 type ScheduleFilter = "daily" | "weekly" | "monthly";
+
+function getApiOrigin() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
+function mediaUrl(value?: string | null) {
+  if (!value) return "/recipe/recipe-3.webp";
+  if (value.startsWith("http")) return value;
+  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+}
 
 function formatTimeLabel(value: string) {
   const match = value.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/i);
@@ -103,12 +115,13 @@ function mapBookingToScheduleItem(item: BookingItem): ScheduleItem {
     meta: item.primary_goal ? [item.primary_goal] : [],
     status: displayStatus,
     action: status === "pending" ? "Approve" : "Join",
-    avatar: item.user_image || "/recipe/recipe-3.webp",
+    avatar: mediaUrl(item.user_image),
     date: formatDateLabel(item.booked_date),
     focus: item.primary_goal || "General consultation support",
     consultationMode: item.session_type || "Consultation Session",
     notes: "Client booking details loaded from the appointments API.",
     consultant: "You",
+    meetingLink: item.meeting_link || "",
     rawDate: item.booked_date,
     sessionStatus:
       status === "confirmed" || status === "pending" || status === "completed" || status === "cancelled"
@@ -165,6 +178,18 @@ export default function ConsultantAppointmentsPage() {
 
     setAppointments((current) => current.filter((item) => item.id !== appointment.id));
     setSelectedAppointment((current) => (current?.id === appointment.id ? null : current));
+  }
+
+  async function handleShareMeetingLink(appointment: ScheduleItem, meetingLink: string) {
+    const { data } = await api.patch<BookingItem>(`/consultant/bookings/${appointment.id}/meeting-link/`, {
+      meeting_link: meetingLink,
+    });
+    const updatedAppointment = mapBookingToScheduleItem(data);
+
+    setAppointments((current) =>
+      current.map((item) => (item.id === appointment.id ? updatedAppointment : item)),
+    );
+    setSelectedAppointment((current) => (current?.id === appointment.id ? updatedAppointment : current));
   }
 
   const todayLabel = useMemo(
@@ -288,6 +313,7 @@ export default function ConsultantAppointmentsPage() {
               <NextAppointmentCard
                 appointment={selectedAppointment ?? nextAppointment}
                 onJoin={(appointment) => setSelectedAppointment(appointment)}
+                onShareLink={handleShareMeetingLink}
               />
               <QuickAvailabilityCard />
               <RecentActivityCard />

@@ -49,6 +49,7 @@ class ConsultationBooking(models.Model):
     buckwheat_journey_goal = models.CharField(max_length=255, blank=True)
     message = models.TextField(blank=True)
     language = models.CharField(max_length=50, default="English")
+    meeting_link = models.URLField(blank=True)
     is_agreed = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=BookingStatus.choices, default=BookingStatus.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)

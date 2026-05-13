@@ -15,6 +15,12 @@ function actionButtonTone(item: (typeof todaySchedule)[number]) {
   return "bg-transparent text-[#0A4833]";
 }
 
+function appointmentCardTone(item: ScheduleItem) {
+  if (item.isEmpty) return "border-dashed border-[#D0D5DD] bg-white";
+  if (item.status === "Confirmed") return "border-[#0A4833] bg-[#0A4833]";
+  return "border-[#E9DDC8] bg-[#F4EBD8]";
+}
+
 type Props = {
   schedule?: ScheduleItem[];
   title?: string;
@@ -54,12 +60,12 @@ export default function TodaysScheduleCard({
             key={`${item.time}-${item.name}`}
             onClick={() => !item.isEmpty && onSelectAppointment(item)}
             className={`grid gap-4 rounded-[14px] border px-4 py-4 md:grid-cols-[74px_minmax(0,1fr)_120px] md:items-center ${
-              item.isEmpty ? "border-dashed border-[#D0D5DD] bg-white" : "border-[#E9DDC8] bg-[#F4EBD8]"
+              appointmentCardTone(item)
             } ${item.isEmpty ? "" : "cursor-pointer"}`}
           >
             <div>
-              <p className="text-sm font-semibold text-[#344054]">{item.time}</p>
-              <p className="text-xs text-[#98A2B3]">{item.duration}</p>
+              <p className={`text-sm font-semibold ${item.status === "Confirmed" ? "text-white" : "text-[#344054]"}`}>{item.time}</p>
+              <p className={`text-xs ${item.status === "Confirmed" ? "text-white/75" : "text-[#98A2B3]"}`}>{item.duration}</p>
             </div>
 
             <div className="flex items-center gap-3">
@@ -72,12 +78,12 @@ export default function TodaysScheduleCard({
               )}
 
               <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-[#101828]">{item.name}</p>
-                <p className="truncate text-xs text-[#667085]">{item.type}</p>
+                <p className={`truncate text-sm font-semibold ${item.status === "Confirmed" ? "text-white" : "text-[#101828]"}`}>{item.name}</p>
+                <p className={`truncate text-xs ${item.status === "Confirmed" ? "text-white/80" : "text-[#667085]"}`}>{item.type}</p>
                 {item.meta.length ? (
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     {item.meta.map((metaItem) => (
-                      <span key={metaItem} className="text-[11px] text-[#8A6A33]">
+                      <span key={metaItem} className={`text-[11px] ${item.status === "Confirmed" ? "text-white/80" : "text-[#8A6A33]"}`}>
                         #{metaItem}
                       </span>
                     ))}
@@ -120,7 +126,7 @@ export default function TodaysScheduleCard({
                   </>
                 ) : (
                   <>
-                    <button type="button" className="text-[#0A4833] transition hover:text-[#083727]">
+                    <button type="button" className={`${item.status === "Confirmed" ? "text-white hover:text-white/80" : "text-[#0A4833] hover:text-[#083727]"} transition`}>
                       {item.action === "Approve" ? <Check className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current" />}
                     </button>
                     <button
@@ -129,7 +135,7 @@ export default function TodaysScheduleCard({
                         event.stopPropagation();
                         onOpenDetails(item);
                       }}
-                      className="text-[#667085] transition hover:text-[#0A4833]"
+                      className={`${item.status === "Confirmed" ? "text-white/80 hover:text-white" : "text-[#667085] hover:text-[#0A4833]"} transition`}
                       aria-label={`View details for ${item.name}`}
                     >
                       <ExternalLink className="h-4 w-4" />

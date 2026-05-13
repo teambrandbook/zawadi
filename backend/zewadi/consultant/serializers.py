@@ -239,6 +239,7 @@ class ConsultationBookingListSerializer(serializers.ModelSerializer):
             "buckwheat_journey_goal",
             "message",
             "language",
+            "meeting_link",
             "booked_date",
             "booked_slot",
             "status",
@@ -349,15 +350,18 @@ class ConsultantBookingConformSerializer(serializers.Serializer):
         consultant = request.user.consultant
 
         try:
-            booking = ConsultationBooking.objects.get(
-                id=data["booking_id"],
-                consultant=consultant
-            )
+            booking = ConsultationBooking.objects.get(id=data["booking_id"])
         except ConsultationBooking.DoesNotExist:
             raise serializers.ValidationError("Booking not found")
 
         if booking.status != ConsultationBooking.BookingStatus.PENDING:
             raise serializers.ValidationError("Booking already processed")
+
+        if not data["is_accept"] and booking.consultant != consultant:
+            raise serializers.ValidationError("Only the assigned consultant can reject this booking")
+
+        if data["is_accept"]:
+            booking.consultant = consultant
 
         # attach booking for later use
         data["booking"] = booking
@@ -424,6 +428,9 @@ class DietPlanCreateSerializer(serializers.ModelSerializer):
     def validate_client(self, value):
         if value.role != "COMMUNITY_USER":
             raise serializers.ValidationError("Diet plans can only be created for community users.")
+        consultant = self.context["request"].user.consultant
+        if not consultant.clients.filter(user=value, is_active=True).exists():
+            raise serializers.ValidationError("Client is not assigned to this consultant.")
         return value
 
     def validate(self, attrs):
