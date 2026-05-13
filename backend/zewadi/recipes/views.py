@@ -423,13 +423,13 @@ class PublishedRecipeListAPIView(APIView):
         except Exception:
             pass
 
-        recipes = Recipe.objects.select_related("author").filter(
+        recipes = Recipe.objects.select_related("author").prefetch_related("ingredients", "steps").filter(
             status=RecipeStatus.PUBLISHED
         )
         serializer = RecipeDetailSerializer(recipes, many=True, context={"request": request})
         data = {
             "success": True,
-            "count": recipes.count(),
+            "count": len(serializer.data),
             "data": serializer.data,
         }
 
