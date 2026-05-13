@@ -14,13 +14,15 @@ def invalidate_product_cache(sender, instance, **kwargs):
         cache.delete(f"product_detail:{instance.pk}")
     except Exception:
         logger.warning("Failed to invalidate product detail cache", exc_info=True)
+    # Delete all product list keys (Redis/django-redis supports delete_pattern)
+    # Fall back to deleting the default no-filter list key for LocMemCache (tests)
     try:
         cache.delete_pattern("*:product_list:*")
     except AttributeError:
-        # LocMemCache (used in tests) doesn't support delete_pattern — clear all
+        # LocMemCache does not support delete_pattern — delete default key only
         try:
-            cache.clear()
+            cache.delete("product_list:::-created_at")
         except Exception:
-            pass
+            logger.warning("Failed to invalidate product list cache (fallback)", exc_info=True)
     except Exception:
         logger.warning("Failed to invalidate product list cache", exc_info=True)

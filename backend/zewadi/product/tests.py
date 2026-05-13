@@ -72,3 +72,11 @@ class ProductDetailCacheTest(TestCase):
         p.save()
         r = self.client.get(f"/api/products/{p.pk}/")
         self.assertEqual(r.data["product_name"], "Epsilon Updated")
+
+    def test_cache_invalidated_on_product_delete(self):
+        p = make_product("Zeta")
+        pk = p.pk
+        self.client.get(f"/api/products/{pk}/")   # prime cache
+        p.delete()
+        r = self.client.get(f"/api/products/{pk}/")
+        self.assertEqual(r.status_code, 404)
