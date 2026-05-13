@@ -206,12 +206,15 @@ class BlogDetailAPIView(APIView):
             if not public_allowed:
                 return Response({"message": "Blog not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            cache_key = f"blog_detail:{blog.pk}"
             serializer = BlogSerializer(blog, context={"request": request})
-            try:
-                cache.set(cache_key, serializer.data, timeout=300)
-            except Exception:
-                pass
+
+            # Cache only for numeric-ID requests (slug requests skip cache on read too)
+            if str(blog_id).isdigit():
+                try:
+                    cache.set(f"blog_detail:{blog.pk}", serializer.data, timeout=300)
+                except Exception:
+                    pass
+
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         has_blog_permission = has_permission(user, "blog", "view")

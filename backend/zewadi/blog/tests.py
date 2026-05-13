@@ -57,6 +57,15 @@ class BlogPublicListCacheTest(TestCase):
         titles = [item["title"] for item in r.data]
         self.assertNotIn("Delete Blog", titles)
 
+    def test_cache_invalidated_when_blog_made_private(self):
+        b = make_blog(self.author, title="Goes Private")
+        self.client.get("/api/blog/?public=1")   # prime cache
+        b.show_in_community_blog = False
+        b.save()
+        r = self.client.get("/api/blog/?public=1")
+        titles = [item["title"] for item in r.data]
+        self.assertNotIn("Goes Private", titles)
+
 
 @override_settings(CACHES=CACHE_SETTINGS)
 class BlogDetailCacheTest(TestCase):
