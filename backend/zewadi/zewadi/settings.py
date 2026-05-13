@@ -215,3 +215,16 @@ if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT
     raise RuntimeError(
         "Set a real SECRET_KEY environment variable before running in production."
     )
+
+# ─── Cache (Redis) ────────────────────────────────────────────────────────────
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "zawadi",
+    }
+}
