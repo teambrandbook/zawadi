@@ -1,5 +1,4 @@
 import uuid
-import uuid as _uuid
 from datetime import timedelta
 from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -144,6 +143,6 @@ class OTP(models.Model):
             return None
         otp.is_used = True
         if purpose == cls.PURPOSE_PASSWORD_RESET:
-            otp.reset_token = _uuid.uuid4()
+            otp.reset_token = uuid.uuid4()
         otp.save(update_fields=["is_used", "reset_token"])
         return otp

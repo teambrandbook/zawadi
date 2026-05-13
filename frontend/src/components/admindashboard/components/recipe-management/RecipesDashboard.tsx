@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import Image from "next/image";
 import { Check, ChefHat, CircleAlert, Eye, Filter, Globe, Plus, Search, ShieldAlert, Sparkles, Star, Trash2, Upload, X,Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -12,8 +13,7 @@ type StatCardDef = {
   title: string;
   value: string;
   note: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon: any;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   accent: string;
   iconBg: string;
 };

@@ -94,7 +94,7 @@ const userSlice = createSlice({
       state.error = null;
     },
     setCartCount(state, action: PayloadAction<number>) {
-      state.cartCount = action.payload;
+      state.cartCount = Math.max(0, Number(action.payload) || 0);
     },
     clearCredentials(state) {
       state.userId = null;
@@ -105,9 +105,6 @@ const userSlice = createSlice({
       state.cartCount = 0;
       state.isAuthenticated = false;
       state.error = null;
-    },
-    setCartCount(state, action: PayloadAction<number>) {
-      state.cartCount = Math.max(0, Number(action.payload) || 0);
     },
   },
   extraReducers: (builder) => {
@@ -141,7 +138,6 @@ const userSlice = createSlice({
       state.userType = null;
       state.cartCount = 0;
       state.isAuthenticated = false;
-      state.cartCount = 0;
     });
 
     builder

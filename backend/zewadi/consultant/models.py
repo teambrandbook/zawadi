@@ -207,6 +207,11 @@ class WeekDay(models.TextChoices):
 
 
 class WeeklySlot(models.Model):
+    """
+    DEPRECATED — superseded by `Availability` + `BreakTime`.
+    Kept to avoid requiring a destructive migration; do NOT add new references to this model.
+    Use `Availability` for all new scheduling logic.
+    """
     consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE)
 
     day = models.CharField(max_length=10, choices=WeekDay.choices)

@@ -1,17 +1,24 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import gsap from "@/lib/gsap";
 import { Heart, Clock, Leaf, LayoutGrid, Layers } from "lucide-react";
 import communityData from "@/data/community.json";
 
-const iconMap: any = {
-  Heart: Heart,
-  Clock: Clock,
-  Leaf: Leaf,
-  LayoutGrid: LayoutGrid,
-  Layers: Layers,
+type ValueCard = {
+  icon: string;
+  title: string;
+  description: string;
+};
+
+const iconMap: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {
+  Heart,
+  Clock,
+  Leaf,
+  LayoutGrid,
+  Layers,
 };
 
 const CommunityValues = () => {
@@ -86,7 +93,7 @@ const CommunityValues = () => {
             </div>
 
             {/* Value Cards */}
-            {valuesGridSection.cards.map((card: any, idx: number) => {
+            {valuesGridSection.cards.map((card: ValueCard, idx: number) => {
               const Icon = iconMap[card.icon];
               return (
                 <div

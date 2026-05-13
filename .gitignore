@@ -19,6 +19,7 @@ env/
 
 # ─── Django ───────────────────────────────────────────────────────────────────
 backend/zewadi/db.sqlite3
+backend/zewadi/db.sqlite3.*
 backend/zewadi/staticfiles/
 backend/zewadi/media/
 

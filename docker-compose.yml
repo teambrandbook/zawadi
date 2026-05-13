@@ -42,6 +42,12 @@ services:
     volumes:
       - ./backend/zewadi:/app
       - media_files:/app/media
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/account/me/')\" 2>/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
 
   # ── Next.js Frontend ────────────────────────────────────────────────────────
   frontend:
@@ -54,7 +60,8 @@ services:
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     ports:
       - "3000:3000"
     volumes:
