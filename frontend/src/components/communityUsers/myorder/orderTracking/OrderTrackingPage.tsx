@@ -14,6 +14,7 @@ import {
   PackageCheck,
   RefreshCw,
   Truck,
+  Package,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import api from "@/services/api";
@@ -21,6 +22,7 @@ import api from "@/services/api";
 type ApiOrderDetail = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   pack_name: string;
   pack_price: string | number;
   quantity: number;
@@ -52,6 +54,17 @@ type StepState = "completed" | "current" | "upcoming";
 
 const cardClass = "rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]";
 const fallbackImage = "/product/p-1.webp";
+const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
+  /\/api\/?$/,
+  ""
+);
+
+function resolveProductImage(image?: string | null): string {
+  if (!image) return fallbackImage;
+  if (image.startsWith("http://") || image.startsWith("https://")) return image;
+  if (image.startsWith("/media/")) return `${apiOrigin}${image}`;
+  return image;
+}
 
 function toNumber(value: string | number | null | undefined): number {
   const amount = Number(value);
@@ -108,14 +121,17 @@ function toTitleCase(value: string): string {
     .join(" ");
 }
 
+/**
+ * Updated to match: confirmed, processing, shipped, out_for_delivery, delivered
+ */
 function activeStepIndex(status?: string): number {
-  const normalized = (status || "pending").toLowerCase();
-  if (normalized === "delivered") return 6;
-  if (normalized === "shipped") return 4;
-  if (normalized === "processing") return 2;
-  if (normalized === "confirmed") return 1;
-  if (normalized === "pending") return 0;
-  if (normalized === "cancelled") return 1;
+  const normalized = (status || "confirmed").toLowerCase();
+  if (normalized === "delivered") return 4;
+  if (normalized === "out_for_delivery") return 3;
+  if (normalized === "shipped") return 2;
+  if (normalized === "processing") return 1;
+  if (normalized === "confirmed") return 0;
+  if (normalized === "cancelled") return 0;
   return 0;
 }
 
@@ -127,8 +143,6 @@ function getStepState(index: number, activeIndex: number): StepState {
 
 function getStatusLabel(order?: ApiOrderDetail | null): string {
   if (!order) return "Loading";
-  if (order.status === "pending") return "Order Placed";
-  if (order.status === "shipped") return "In Transit";
   return toTitleCase(order.status);
 }
 
@@ -138,37 +152,28 @@ function getPaymentLabel(order?: ApiOrderDetail | null): string {
   return toTitleCase(order.payment_status);
 }
 
+/**
+ * Updated Timeline to match the 5 main status steps
+ */
 function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
   const createdAt = order?.created_at;
+  const updatedAt = order?.updated_at;
+  
   return [
     {
-      title: "Order Placed",
-      description: "Your order has been successfully placed",
+      title: "Confirmed",
+      description: "Your order has been confirmed",
       date: toShortDateTime(createdAt),
-      Icon: Check,
-    },
-    {
-      title: "Order Confirmed",
-      description: order?.payment_method === "cod" ? "Cash on delivery order confirmed" : "Payment verified and order confirmed",
-      date: toShortDateTime(addDays(createdAt, 0)),
       Icon: Check,
     },
     {
       title: "Processing",
       description: "Your wellness essentials are being prepared",
-      date: toShortDateTime(addDays(createdAt, 1)),
-      Icon: Check,
+      Icon: Package,
     },
     {
-      title: "Packed",
-      description: "Order securely packed and ready for shipment",
-      date: toShortDateTime(addDays(createdAt, 1)),
-      Icon: Check,
-    },
-    {
-      title: "In Transit",
+      title: "Shipped",
       description: "Your package is on the way to you",
-      date: toShortDateTime(addDays(createdAt, 2)),
       Icon: Truck,
     },
     {
@@ -179,6 +184,7 @@ function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
     {
       title: "Delivered",
       description: "Package successfully delivered",
+      date: order?.status === "delivered" ? toShortDateTime(updatedAt) : undefined,
       Icon: Home,
     },
   ];
@@ -223,6 +229,7 @@ export default function OrderTrackingPage() {
   const currentIndex = activeStepIndex(order?.status);
   const expectedDate = toShortDate(addDays(order?.created_at, 5));
   const productName = order?.product_name || "ZEWADI Buckwheat Product";
+  const productImage = resolveProductImage(order?.product_image);
   const packName = order?.pack_name || "Wellness Pack";
   const quantity = order?.quantity ?? 1;
   const subtotal = order?.subtotal ?? 0;
@@ -243,7 +250,7 @@ export default function OrderTrackingPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/communityDashBorde/myorders")}
+            onClick={() => router.push("/communityDashBoard/myorders")}
             className="mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#0A4833] px-6 text-sm font-medium text-white"
           >
             View My Orders
@@ -283,7 +290,7 @@ export default function OrderTrackingPage() {
               <h2 className="text-lg font-semibold leading-7 tracking-[-0.02em] text-[#0A4833]">Order Summary</h2>
               <div className="mt-4 flex flex-col gap-4 sm:flex-row">
                 <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#EBE1CF] p-2">
-                  <Image src={fallbackImage} alt={productName} fill sizes="96px" className="object-cover p-2" />
+                  <Image src={productImage} alt={productName} fill sizes="96px" className="object-cover p-2" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base font-medium leading-6 tracking-[-0.02em] text-[#0A4833]">{productName}</h3>
@@ -391,7 +398,7 @@ export default function OrderTrackingPage() {
                 <HelpButton Icon={Headset} label="Contact Support" onClick={() => setStatusMessage("Support contact flow is not available in the MVP.")} />
                 <HelpButton Icon={AlertTriangle} label="Report Issue" onClick={() => setStatusMessage("Issue reporting is not available in the MVP.")} />
                 <HelpButton Icon={Download} label="Download Invoice" onClick={() => setStatusMessage("Invoice download is not available in the MVP.")} />
-                <HelpButton Icon={RefreshCw} label="Reorder" onClick={() => router.push("/communityDashBorde/products")} />
+                <HelpButton Icon={RefreshCw} label="Reorder" onClick={() => router.push("/communityDashBoard/products")} />
               </div>
             </section>
 
@@ -447,4 +454,4 @@ function HelpButton({ Icon, label, onClick }: { Icon: LucideIcon; label: string;
       {label}
     </button>
   );
-}
+} 

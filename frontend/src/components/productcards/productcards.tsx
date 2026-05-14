@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { ShoppingBag, Star } from "lucide-react";
 import { FaBagShopping } from "react-icons/fa6";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -25,26 +25,9 @@ type Product = {
   created_at?: string;
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "");
-
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
-  if (path.startsWith("http")) {
-    try {
-      const imageUrl = new URL(path);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(API_BASE);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return path;
-    }
-    return path;
-  }
-  return `${API_BASE}${path}`;
+  return getImageUrl(path);
 }
 
 function Rating() {

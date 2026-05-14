@@ -23,6 +23,7 @@ import api from "@/services/api";
 type ApiOrderDetail = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   pack_name: string;
   pack_price: string | number;
   quantity: number;
@@ -40,6 +41,14 @@ type ApiOrderDetail = {
   payment_status: string;
   status: string;
   created_at: string;
+};
+
+type ApiOrderListItem = {
+  order_id: string;
+};
+
+type PaginatedResponse<T> = {
+  results?: T[];
 };
 
 type ProgressStep = {
@@ -135,27 +144,37 @@ function buildProgress(status?: string): ProgressStep[] {
   ];
 }
 
+function toList<T>(data: T[] | PaginatedResponse<T>): T[] {
+  return Array.isArray(data) ? data : data.results ?? [];
+}
+
 export default function OrderPlacedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  const selectedOrderId = orderId ?? "";
   const [order, setOrder] = useState<ApiOrderDetail | null>(null);
-  const [isLoading, setIsLoading] = useState(Boolean(orderId));
+  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     let isMounted = true;
 
     async function loadOrder() {
-      if (!orderId) {
-        setIsLoading(false);
-        return;
-      }
-
       try {
         setIsLoading(true);
-        const response = await api.get<ApiOrderDetail>(`/orders/${encodeURIComponent(orderId)}/`);
+        let selectedOrderId = orderId;
+
+        if (!selectedOrderId) {
+          const ordersResponse = await api.get<ApiOrderListItem[] | PaginatedResponse<ApiOrderListItem>>("/orders/");
+          selectedOrderId = toList(ordersResponse.data)[0]?.order_id ?? null;
+        }
+
+        if (!selectedOrderId) {
+          if (isMounted) setOrder(null);
+          return;
+        }
+
+        const response = await api.get<ApiOrderDetail>(`/orders/${encodeURIComponent(selectedOrderId)}/`);
         if (isMounted) setOrder(response.data);
       } catch {
         if (isMounted) setLoadError("We could not load this order right now.");
@@ -171,12 +190,14 @@ export default function OrderPlacedPage() {
   }, [orderId]);
 
   const progress = useMemo(() => buildProgress(order?.status), [order?.status]);
+  const selectedOrderId = order?.order_id ?? orderId ?? "";
   const addressLines = useMemo(() => {
     if (!order) return ["Delivery address will appear here once the order loads."];
     return [order.address, `${order.city}${order.postal_code ? `, ${order.postal_code}` : ""}`].filter(Boolean);
   }, [order]);
 
   const productName = order?.product_name || "ZEWADI Buckwheat Product";
+  const productImage = order?.product_image || fallbackImage;
   const packName = order?.pack_name || "Wellness Pack";
   const quantity = order?.quantity ?? 1;
   const subtotal = order?.subtotal ?? 0;
@@ -194,7 +215,7 @@ export default function OrderPlacedPage() {
           </p>
           <button
             type="button"
-            onClick={() => router.push("/communityDashBorde/myorders")}
+            onClick={() => router.push("/communityDashBoard/myorders")}
             className="mt-6 inline-flex h-12 items-center justify-center rounded-lg bg-[#0A4833] px-6 text-sm font-medium text-white"
           >
             View My Orders
@@ -251,7 +272,7 @@ export default function OrderPlacedPage() {
 
               <div className="mt-5 flex flex-col gap-4 rounded-xl bg-[#EBE1CF] p-4 sm:flex-row sm:items-center">
                 <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-white">
-                  <Image src={fallbackImage} alt={productName} fill sizes="64px" className="object-cover" />
+                  <Image src={productImage} alt={productName} fill sizes="64px" className="object-cover" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-base font-semibold leading-6 tracking-[-0.01em] text-[#1F2937]">
@@ -314,9 +335,9 @@ export default function OrderPlacedPage() {
             <section className={cardClass}>
               <h2 className="text-lg font-semibold tracking-[-0.02em] text-[#0A4833]">Quick Actions</h2>
               <div className="mt-4 space-y-3">
-                <ActionLink href={`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(selectedOrderId)}`} label="Track Order" Icon={Truck} tone="primary" />
-                <ActionLink href="/communityDashBorde/myorders" label="View My Orders" Icon={Receipt} tone="gold" />
-                <ActionLink href="/communityDashBorde/products" label="Continue Shopping" Icon={ShoppingBag} tone="outline" />
+                <ActionLink href={`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(selectedOrderId)}`} label="Track Order" Icon={Truck} tone="primary" />
+                <ActionLink href="/communityDashBoard/myorders" label="View My Orders" Icon={Receipt} tone="gold" />
+                <ActionLink href="/communityDashBoard/products" label="Continue Shopping" Icon={ShoppingBag} tone="outline" />
               </div>
             </section>
 

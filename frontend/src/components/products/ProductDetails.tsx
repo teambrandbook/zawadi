@@ -4,19 +4,24 @@ import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Heart, Minus, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { getImageUrl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import AddToCartModal from "@/components/shared/AddToCartModal";
+import PackSelector from "@/components/communityUsers/myorder/orderDetails/PackSelector";
+import type { PackOption } from "@/components/communityUsers/myorder/orderDetails/types";
 import { setCartCount } from "@/redux/userSlice";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
 type ProductVariant = {
   id: number;
-  variant_name: string;
+  variant_name?: string;
+  variant_value?: string;
+  variant_unit?: string;
+  cost?: string | number | null;
   sku: string;
   price: string;
   stock: number;
@@ -33,30 +38,60 @@ type Product = {
   sale_price: string | null;
   currency: string;
   image: string | null;
+  product_unit?: string;
+  unit_quantity?: string;
   stock_status: string;
   variants: ProductVariant[];
 };
 
-const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api").replace(/\/api$/, "");
-
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
-  if (path.startsWith("http")) {
-    try {
-      const imageUrl = new URL(path);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(API_BASE);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return path;
-    }
-    return path;
+  return getImageUrl(path);
+}
+
+function toNumber(value: string | number | null | undefined): number {
+  const amount = Number(value);
+  return Number.isNaN(amount) ? 0 : amount;
+}
+
+function toCurrency(value: string | number | null | undefined, currency = "INR"): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(toNumber(value));
+}
+
+function toPacks(product: Product | null): PackOption[] {
+  if (!product) return [];
+
+  const productUnit = [product.unit_quantity, product.product_unit].filter(Boolean).join(" ");
+  const packs: PackOption[] = [
+    {
+      id: `product-${product.id}-default`,
+      name: productUnit || "Standard Pack",
+      price: toNumber(product.sale_price ?? product.base_price),
+      unitNote: `Cost ${toCurrency(product.base_price, product.currency || "INR")}`,
+      badge: "Default",
+    },
+  ];
+
+  if (product.variants?.length) {
+    packs.push(
+      ...product.variants.map((variant) => ({
+        id: String(variant.id),
+        name:
+          [variant.variant_value ?? variant.variant_name, variant.variant_unit]
+            .filter(Boolean)
+            .join(" ") || "Variant Pack",
+        price: toNumber(variant.price),
+        unitNote: `Cost ${toCurrency(variant.cost ?? 0, product.currency || "INR")}`,
+      }))
+    );
   }
-  return `${API_BASE}${path}`;
+
+  return packs;
 }
 
 const ProductDetails = () => {
@@ -68,7 +103,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [selectedPackId, setSelectedPackId] = useState("");
   const [mounted, setMounted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -88,9 +123,7 @@ const ProductDetails = () => {
       .get(`/products/${productId}/`)
       .then((res) => {
         setProduct(res.data);
-        if (res.data.variants?.length > 0) {
-          setSelectedVariantId(res.data.variants[0].id);
-        }
+        setSelectedPackId(`product-${res.data.id}-default`);
       })
       .catch(() => {
         toast.error("Could not load product.");
@@ -132,9 +165,12 @@ const ProductDetails = () => {
       return;
     }
     try {
+      const selectedVariant = product.variants?.find(
+        (variant) => String(variant.id) === selectedPackId
+      );
       const res = await api.post("/orders/cart/items/", {
         product_id: product.id,
-        ...(selectedVariantId ? { variant_id: selectedVariantId } : {}),
+        ...(selectedVariant ? { variant_id: selectedVariant.id } : {}),
         quantity,
       });
       toast.success("Added to cart!");
@@ -164,6 +200,10 @@ const ProductDetails = () => {
   }
 
   const displayPrice = product.sale_price || product.base_price;
+  const packs = toPacks(product);
+  const selectedVariant = product.variants?.find(
+    (variant) => String(variant.id) === selectedPackId
+  );
   const benefits = product.health_benefits
     ? product.health_benefits.split("\n").filter(Boolean)
     : [];
@@ -220,27 +260,16 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Variant selector */}
-            {product.variants.length > 0 && (
-              <div className="product-info-stagger space-y-2 opacity-0">
-                <h3 className="font-bold text-black">Variant</h3>
-                <div className="flex flex-wrap gap-2">
-                  {product.variants.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => setSelectedVariantId(v.id)}
-                      className={cn(
-                        "rounded-lg border px-4 py-2 text-sm font-medium transition",
-                        selectedVariantId === v.id
-                          ? "border-[#1A4331] bg-[#1A4331] text-white"
-                          : "border-gray-200 text-[#1A4331] hover:border-[#1A4331]"
-                      )}
-                    >
-                      {v.variant_name} — ₹{v.price}
-                    </button>
-                  ))}
-                </div>
+            {/* Pack selector */}
+            {packs.length > 0 && (
+              <div className="product-info-stagger opacity-0">
+                <PackSelector
+                  packs={packs}
+                  selectedPackId={selectedPackId || packs[0].id}
+                  onSelectPack={setSelectedPackId}
+                  currency={product.currency || "INR"}
+                  locale="en-IN"
+                />
               </div>
             )}
 
@@ -276,6 +305,7 @@ const ProductDetails = () => {
               <button
                 type="button"
                 aria-label="Save to wishlist"
+                onClick={() => toast.info("Wishlist coming soon!")}
                 className="rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
               >
                 <Heart size={20} />
@@ -296,9 +326,12 @@ const ProductDetails = () => {
               </p>
             </div>
 
-            <button className="description-stagger rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]">
+            <Link
+              href="/recipes"
+              className="description-stagger inline-block rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+            >
               Try Recipes
-            </button>
+            </Link>
           </div>
         )}
 
@@ -306,7 +339,7 @@ const ProductDetails = () => {
           <AddToCartModal
             isOpen={modalOpen}
             productId={product.id}
-            variantId={selectedVariantId ?? undefined}
+            variantId={selectedVariant?.id}
             quantity={quantity}
             onClose={() => setModalOpen(false)}
             onSuccess={() => setModalOpen(false)}

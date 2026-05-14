@@ -1,5 +1,7 @@
 import os
+import uuid as _uuid
 import requests
+from datetime import timedelta
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -14,7 +16,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from communityuser.models import CommunityUser, UserType
 from supperadmin.utils.permissions import has_permission
-from .models import User
+from django.utils import timezone
+from .models import OTP, User
+from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
 from .throttles import LoginRateThrottle, RegisterRateThrottle
 
@@ -106,12 +110,14 @@ class RegisterAPIView(APIView):
         serializer = RegisterSerializer(data=payload)
         if serializer.is_valid():
             user = serializer.save()
+            otp = OTP.generate(user, OTP.PURPOSE_EMAIL_VERIFICATION)
+            send_otp_email(user.email, otp.code, OTP.PURPOSE_EMAIL_VERIFICATION)
             return Response(
                 {
-                    "message": "User registered successfully",
+                    "message": "Registration successful. Check your email for a verification code.",
                     "user_id": user.user_id,
                     "email": user.email,
-                    "role": user.role,
+                    "requires_otp": True,
                 },
                 status=status.HTTP_201_CREATED,
             )
@@ -139,6 +145,8 @@ class CreateNutritionistAPIView(APIView):
         serializer = RegisterSerializer(data=payload)
         if serializer.is_valid():
             user = serializer.save()
+            user.is_active = True
+            user.save(update_fields=["is_active"])
             return Response(
                 {
                     "message": "Nutritionist created successfully",
@@ -148,6 +156,182 @@ class CreateNutritionistAPIView(APIView):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OTPVerifyAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        code = request.data.get("code", "").strip()
+        purpose = request.data.get("purpose", "")
+
+        if not email or not code or not purpose:
+            return Response(
+                {"error": "email, code, and purpose are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = OTP.verify(user, code, purpose)
+        if otp is None:
+            return Response(
+                {"error": "Invalid or expired code."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if purpose == OTP.PURPOSE_EMAIL_VERIFICATION:
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+            refresh = RefreshToken.for_user(user)
+            access = str(refresh.access_token)
+            response = Response(
+                {
+                    "message": "Email verified. You are now logged in.",
+                    "data": {
+                        "user_id": user.user_id,
+                        "email": user.email,
+                        "role": user.role.lower(),
+                    },
+                    "access": access,
+                },
+                status=status.HTTP_200_OK,
+            )
+            set_auth_cookies(response, refresh, access)
+            return response
+
+        return Response(
+            {
+                "message": "Code verified.",
+                "reset_token": str(otp.reset_token),
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class OTPResendAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        purpose = request.data.get("purpose", "")
+
+        if not email or not purpose:
+            return Response(
+                {"error": "email and purpose are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"message": "If that email is registered, a new code has been sent."}, status=status.HTTP_200_OK)
+
+        otp = OTP.generate(user, purpose)
+        send_otp_email(user.email, otp.code, purpose)
+        return Response({"message": "A new code has been sent to your email."}, status=status.HTTP_200_OK)
+
+
+class PasswordResetRequestAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        if not email:
+            return Response({"error": "email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response(
+                {"message": "If that email is registered, a reset code has been sent."},
+                status=status.HTTP_200_OK,
+            )
+
+        otp = OTP.generate(user, OTP.PURPOSE_PASSWORD_RESET)
+        send_otp_email(user.email, otp.code, OTP.PURPOSE_PASSWORD_RESET)
+        return Response(
+            {"message": "A reset code has been sent to your email."},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetVerifyAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        email = request.data.get("email", "").strip().lower()
+        code = request.data.get("code", "").strip()
+
+        if not email or not code:
+            return Response({"error": "email and code are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({"error": "Invalid code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        otp = OTP.verify(user, code, OTP.PURPOSE_PASSWORD_RESET)
+        if otp is None:
+            return Response({"error": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            {"message": "Code verified.", "reset_token": str(otp.reset_token)},
+            status=status.HTTP_200_OK,
+        )
+
+
+class PasswordResetConfirmAPIView(APIView):
+    permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
+
+    def post(self, request):
+        reset_token = request.data.get("reset_token", "").strip()
+        new_password = request.data.get("new_password", "")
+
+        if not reset_token or not new_password:
+            return Response(
+                {"error": "reset_token and new_password are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if len(new_password) < 8:
+            return Response(
+                {"error": "Password must be at least 8 characters."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            token_uuid = _uuid.UUID(reset_token)
+        except ValueError:
+            return Response({"error": "Invalid reset token."}, status=status.HTTP_400_BAD_REQUEST)
+
+        cutoff = timezone.now() - timedelta(minutes=15)
+        try:
+            otp = OTP.objects.get(
+                reset_token=token_uuid,
+                purpose=OTP.PURPOSE_PASSWORD_RESET,
+                is_used=True,
+                created_at__gte=cutoff,
+            )
+        except OTP.DoesNotExist:
+            return Response({"error": "Reset token is invalid or expired."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = otp.user
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        otp.reset_token = None
+        otp.save(update_fields=["reset_token"])
+
+        return Response({"message": "Password reset successful. You can now log in."}, status=status.HTTP_200_OK)
 
 
 class LoginAPIView(APIView):
@@ -281,7 +465,7 @@ class GoogleCallbackAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
-        response = redirect(f"{get_frontend_url()}/communityDashBorde")
+        response = redirect(f"{get_frontend_url()}/communityDashBoard")
         set_auth_cookies(response, refresh, access)
         return response
 
@@ -318,6 +502,21 @@ class LogoutAPIView(APIView):
                 pass
 
         response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+        return response
+
+
+class LogoutAllAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+        tokens = OutstandingToken.objects.filter(user=request.user)
+        for token in tokens:
+            BlacklistedToken.objects.get_or_create(token=token)
+
+        response = Response({"message": "All sessions logged out."}, status=status.HTTP_200_OK)
         response.delete_cookie("access_token")
         response.delete_cookie("refresh_token")
         return response

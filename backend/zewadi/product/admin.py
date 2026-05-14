@@ -5,7 +5,7 @@ from .models import Product, ProductVariant
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ["variant_name", "sku", "price", "stock"]
+    fields = ["variant_value", "variant_unit", "cost", "price", "stock"]
 
 
 @admin.register(Product)
@@ -33,6 +33,9 @@ class ProductAdmin(admin.ModelAdmin):
                 "category",
                 "product_status",
                 "image",
+                "product_unit",
+                "unit_quantity",
+                "alternative_unit_enabled",
             )
         }),
         ("Description", {
@@ -60,8 +63,4 @@ class ProductAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(ProductVariant)
-class ProductVariantAdmin(admin.ModelAdmin):
-    list_display = ["sku", "product", "variant_name", "price", "stock"]
-    search_fields = ["sku", "variant_name", "product__product_name"]
-    list_filter = ["product__category"]
+admin.site.register(ProductVariant)

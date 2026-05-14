@@ -20,33 +20,35 @@ export default function ProductPreviewCard({
   imageUrl = null,
 }: Props) {
   return (
-    <aside className="rounded-lg border border-[#E4E7EC] bg-white p-4">
-      <h2 className="mb-3 text-[12px] font-semibold text-[#0A4833]">Product Preview</h2>
+    <aside className="rounded-[12px] border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)] lg:sticky lg:top-24">
+      <h2 className="mb-6 text-[18px] font-semibold leading-7 tracking-[-0.5px] text-[#0A4833]">Product Preview</h2>
 
-      <div className="mb-4 grid h-28 place-items-center overflow-hidden rounded-md border border-[#EAECF0] bg-[#F9FAFB]">
+      <div className="mb-6 grid h-48 place-items-center overflow-hidden rounded-[8px] bg-[#F3F4F6]">
         {imageUrl ? (
           <img src={imageUrl} alt={productName || "Product preview"} className="h-full w-full object-cover" />
         ) : (
-          <ImageIcon className="h-5 w-5 text-[#98A2B3]" />
+          <ImageIcon className="h-9 w-9 text-[#98A2B3]" />
         )}
       </div>
 
-      <div className="space-y-2 text-[11px] text-[#475467]">
-        <div className="flex items-start justify-between gap-2">
-          <span className="font-semibold text-[#344054]">Product Name</span>
-          <span className="text-right">{productName || subtitle}</span>
+      <div className="space-y-4 text-[16px] tracking-[-0.5px]">
+        <div>
+          <p className="font-semibold leading-6 text-[#0A4833]">{productName || "Product Name"}</p>
+          <p className="text-[14px] leading-5 text-[#6B7280]">{subtitle || "Product subtitle will appear here"}</p>
         </div>
-        <div className="flex items-center justify-between border-t border-[#F2F4F7] pt-2">
-          <span className="font-semibold text-[#344054]">Price:</span>
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-[#0A4833]">Price:</span>
           <span className="font-semibold text-[#A1844F]">${price || "0.00"}</span>
         </div>
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-[#344054]">Stock:</span>
-          <span>{stock || "0"} units</span>
+          <span className="font-medium text-[#0A4833]">Stock:</span>
+          <span className="text-[#4B5563]">{stock || "0"} units</span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="font-semibold text-[#344054]">Status:</span>
-          <span>{status}</span>
+        <div className="border-t border-[#DFDFDF] pt-4">
+          <div className="flex items-center justify-between">
+            <span className="font-medium text-[#0A4833]">Status:</span>
+            <span className="text-[12px] leading-4 text-[#4B5563]">{status || "Draft"}</span>
+          </div>
         </div>
       </div>
     </aside>

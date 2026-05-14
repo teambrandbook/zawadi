@@ -4,11 +4,12 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import ProductBulkActions from "./components/ProductBulkActions";
 import ProductFilters from "./components/ProductFilters";
 import ProductsHeader from "./components/ProductsHeader";
 import ProductStatsGrid from "./components/ProductStatsGrid";
-import ProductsTable, { ProductRow } from "./components/ProductsTable";
+import ProductsTable, { ProductRow, ProductVariant } from "./components/ProductsTable";
 
 type ProductDetail = {
   id: string;
@@ -35,22 +36,21 @@ function toProductImageUrl(imagePath?: string | null) {
   if (!imagePath) {
     return "https://images.unsplash.com/photo-1585238342024-78d387f4a707?w=120&h=120&fit=crop";
   }
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    return imagePath;
-  }
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
+// Updated to map complex variants for the table component
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiProduct(item: Record<string, any>, index: number): ProductRow {
-  const variantNames = Array.isArray(item.variants)
-    ? item.variants
-        .map((variant: { variant_name?: string }) => variant.variant_name)
-        .filter(Boolean)
-        .join(", ")
-    : "";
+  const variants: ProductVariant[] = Array.isArray(item.variants)
+    ? item.variants.map((v: any) => ({
+        variant_value: String(v.variant_value ?? v.variant_name ?? ""),
+        variant_unit: String(v.variant_unit ?? ""),
+        cost: parseFloat(v.cost ?? 0),
+        price: parseFloat(v.price ?? 0),
+        stock: parseInt(v.stock ?? 0, 10),
+      }))
+    : [];
 
   return {
     id: String(item.id ?? `p-${index}`),
@@ -58,7 +58,7 @@ function mapApiProduct(item: Record<string, any>, index: number): ProductRow {
     subtitle: String(item.short_description ?? item.description ?? item.product_subtitle ?? item.subtitle ?? ""),
     sku: String(item.sku ?? item.product_code ?? `SKU-${index}`),
     category: String(item.category ?? "—"),
-    variant: variantNames || String(item.variant ?? "—"),
+    variants: variants, // Updated to match new ProductRow type
     price: parseFloat(item.price ?? item.base_price ?? 0),
     stockUnits: parseInt(item.stock_quantity ?? item.stock ?? 0, 10),
     stockStatus: String(item.stock_status ?? ""),
@@ -92,15 +92,33 @@ function mapApiProductDetail(item: Record<string, any>): ProductDetail {
     stockStatus: String(item.stock_status ?? "in_stock"),
     variantNames: Array.isArray(item.variants)
       ? item.variants
-          .map((variant: { variant_name?: string }) => String(variant.variant_name ?? "").trim())
+          .map((variant: { variant_name?: string; variant_value?: string }) => 
+            String(variant.variant_value ?? variant.variant_name ?? "").trim()
+          )
           .filter(Boolean)
       : [],
   };
 }
 
 function toCsv(rows: ProductRow[]) {
-  const header = ["Name", "SKU", "Category", "Variant", "Price", "Stock", "Status", "Sales", "Featured"];
-  const body = rows.map((p) => [p.name, p.sku, p.category, p.variant, p.price, p.stockUnits, p.status, p.sales, p.featured ? "Yes" : "No"]);
+  const header = ["Name", "SKU", "Category", "Variants", "Price", "Stock", "Status", "Sales", "Featured"];
+  const body = rows.map((p) => {
+    const variantString = p.variants
+      .map((v) => `${v.variant_value} ${v.variant_unit}`)
+      .join(" | ");
+      
+    return [
+      p.name, 
+      p.sku, 
+      p.category, 
+      variantString, 
+      p.price, 
+      p.stockUnits, 
+      p.status, 
+      p.sales, 
+      p.featured ? "Yes" : "No"
+    ];
+  });
   return [header, ...body].map((line) => line.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n");
 }
 
@@ -244,15 +262,12 @@ export default function ProductsDashboard() {
     setFetchError(null);
     try {
       const res = await api.get("/products/");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const raw: Record<string, any>[] = Array.isArray(res.data)
+      const raw: any[] = Array.isArray(res.data)
         ? res.data
         : Array.isArray(res.data?.results)
         ? res.data.results
         : [];
       setProducts(raw.map(mapApiProduct));
-      
-      
     } catch {
       setFetchError("Failed to load products");
     } finally {

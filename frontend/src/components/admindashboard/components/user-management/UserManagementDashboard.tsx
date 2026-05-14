@@ -11,13 +11,11 @@ import UserStatsGrid from "./components/UserStatsGrid";
 import UserDetailsModal from "./components/UserDetailsModal";
 import UsersDataTable from "./components/UsersDataTable";
 import api, { getAccessToken } from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 function toUserPhotoUrl(photo?: string | null) {
   if (!photo) return null;
-  if (photo.startsWith("http://") || photo.startsWith("https://")) return photo;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  return `${apiOrigin}${photo.startsWith("/") ? photo : `/${photo}`}`;
+  return getImageUrl(photo);
 }
 
 function mapApiUsers(rawUsers: Record<string, unknown>[]): UserRecord[] {

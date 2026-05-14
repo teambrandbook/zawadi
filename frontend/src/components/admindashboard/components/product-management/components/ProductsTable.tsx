@@ -2,13 +2,21 @@
 
 import { Eye, Pencil, Star, Trash2 } from "lucide-react";
 
+export type ProductVariant = {
+  variant_value: string;
+  variant_unit: string;
+  cost: number;
+  price: number;
+  stock: number;
+};
+
 export type ProductRow = {
   id: string;
   name: string;
   subtitle: string;
   sku: string;
   category: string;
-  variant: string;
+  variants: ProductVariant[]; // Changed from variant: string
   price: number;
   stockUnits: number;
   stockStatus?: string;
@@ -52,9 +60,11 @@ export default function ProductsTable({
         <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
           <thead className="bg-[#E9E0D0] text-[#0A4833]">
             <tr>
-              <th className="px-3 py-3"><input type="checkbox" onChange={onToggleSelectAllPage} /></th>
+              <th className="px-3 py-3">
+                <input type="checkbox" onChange={onToggleSelectAllPage} />
+              </th>
               <th className="px-3 py-3">Product</th>
-              <th className="px-3 py-3">SKU</th>
+              <th className="px-3 py-3">Product Code</th>
               <th className="px-3 py-3">Category</th>
               <th className="px-3 py-3">Variant</th>
               <th className="px-3 py-3">Price</th>
@@ -68,11 +78,19 @@ export default function ProductsTable({
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-[#DFDFDF]">
                 <td className="px-3 py-4">
-                  <input type="checkbox" checked={selectedIds.includes(row.id)} onChange={() => onToggleSelect(row.id)} />
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(row.id)}
+                    onChange={() => onToggleSelect(row.id)}
+                  />
                 </td>
                 <td className="px-3 py-4">
                   <div className="flex items-center gap-2">
-                    <img src={row.image} alt={row.name} className="h-12 w-12 rounded-md border border-[#DFDFDF] object-cover" />
+                    <img
+                      src={row.image}
+                      alt={row.name}
+                      className="h-12 w-12 rounded-md border border-[#DFDFDF] object-cover"
+                    />
                     <div>
                       <p className="font-medium text-[#0A4833]">{row.name}</p>
                       <p className="text-xs text-[#6B7280]">{row.subtitle}</p>
@@ -81,22 +99,67 @@ export default function ProductsTable({
                 </td>
                 <td className="px-3 py-4 text-[#4B5563]">{row.sku}</td>
                 <td className="px-3 py-4 text-[#0A4833]">{row.category}</td>
-                <td className="px-3 py-4 text-[#4B5563]">{row.variant}</td>
-                <td className="px-3 py-4 font-semibold text-[#0A4833]">${row.price.toFixed(2)}</td>
-                <td className="px-3 py-4 text-xs font-medium text-[#9F8151]">{row.stockUnits} units</td>
+                <td className="px-3 py-4 text-[#4B5563]">
+                  {row.variants && row.variants.length > 0
+                    ? row.variants
+                        .map(
+                          (variant) =>
+                            `${variant.variant_value} ${variant.variant_unit}`
+                        )
+                        .join(", ")
+                    : "N/A"}
+                </td>
+                <td className="px-3 py-4 font-semibold text-[#0A4833]">
+                  ${row.price.toFixed(2)}
+                </td>
+                <td className="px-3 py-4 text-xs font-medium text-[#9F8151]">
+                  {row.stockUnits} units
+                </td>
                 <td className="px-3 py-4">
                   <div className="flex items-center gap-2">
-                    <span className={`text-xs font-medium ${row.status === "Active" ? "text-[#15803D]" : "text-[#6B7280]"}`}>{row.status}</span>
-                    <button type="button" onClick={() => onToggleFeaturedRow(row.id)} title="Toggle featured">
-                      <Star className={`h-4 w-4 ${row.featured ? "fill-[#A88751] text-[#A88751]" : "text-[#C4C4C4]"}`} />
+                    <span
+                      className={`text-xs font-medium ${
+                        row.status === "Active"
+                          ? "text-[#15803D]"
+                          : "text-[#6B7280]"
+                      }`}
+                    >
+                      {row.status}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onToggleFeaturedRow(row.id)}
+                      title="Toggle featured"
+                    >
+                      <Star
+                        className={`h-4 w-4 ${
+                          row.featured
+                            ? "fill-[#A88751] text-[#A88751]"
+                            : "text-[#C4C4C4]"
+                        }`}
+                      />
                     </button>
                   </div>
                 </td>
-                <td className="px-3 py-4 text-[#4B5563]">{row.sales.toLocaleString()}</td>
+                <td className="px-3 py-4 text-[#4B5563]">
+                  {row.sales.toLocaleString()}
+                </td>
                 <td className="px-3 py-4">
                   <div className="flex items-center gap-2 text-[#0A4833]">
-                    <button type="button" onClick={() => onViewRow(row.id)} aria-label="View"><Eye className="h-4 w-4" /></button>
-                    <button type="button" onClick={() => onEditRow(row.id)} aria-label="Edit"><Pencil className="h-4 w-4" /></button>
+                    <button
+                      type="button"
+                      onClick={() => onViewRow(row.id)}
+                      aria-label="View"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onEditRow(row.id)}
+                      aria-label="Edit"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
                     <button
                       type="button"
                       onClick={() => onDeleteRow(row.id)}
@@ -117,7 +180,8 @@ export default function ProductsTable({
         <button
           type="button"
           onClick={() => onPageChange(Math.max(1, page - 1))}
-          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium"
+          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium disabled:opacity-50"
+          disabled={page === 1}
         >
           Previous
         </button>
@@ -127,7 +191,11 @@ export default function ProductsTable({
             key={n}
             type="button"
             onClick={() => onPageChange(n)}
-            className={`rounded border px-3 py-1 font-medium ${n === page ? "border-[#0A4833] bg-[#0A4833] text-white" : "border-[#DFDFDF] text-black"}`}
+            className={`rounded border px-3 py-1 font-medium ${
+              n === page
+                ? "border-[#0A4833] bg-[#0A4833] text-white"
+                : "border-[#DFDFDF] text-black"
+            }`}
           >
             {n}
           </button>
@@ -136,7 +204,8 @@ export default function ProductsTable({
         <button
           type="button"
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
-          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium"
+          className="rounded border border-[#DFDFDF] px-3 py-1 text-black font-medium disabled:opacity-50"
+          disabled={page === totalPages}
         >
           Next
         </button>

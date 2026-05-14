@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 const CATEGORIES = [
   { label: "Nutrition", value: "nutrition" },
@@ -27,13 +28,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function toMediaUrl(value?: string | null) {
   if (!value) return null;
-  if (value.startsWith("http")) return value;
-
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const siteBase = apiBase.replace(/\/api\/?$/, "");
-
-  if (value.startsWith("/")) return `${siteBase}${value}`;
-  return `${siteBase}/${value}`;
+  return getImageUrl(value);
 }
 
 export default function AddBlogPage() {

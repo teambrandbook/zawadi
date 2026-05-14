@@ -1,14 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
+import NotificationDropdown from "@/components/notifications/NotificationDropdown";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -76,27 +79,6 @@ function getInitials(name: string, email: string): string {
   return nameInitials || email.slice(0, 2).toUpperCase() || "U";
 }
 
-function toImageUrl(imagePath?: string | null): string | null {
-  if (!imagePath) return null;
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      const apiUrl = new URL(apiOrigin);
-      if ((imageUrl.hostname === "localhost" || imageUrl.hostname === "127.0.0.1") && imageUrl.pathname.startsWith("/media/")) {
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
-}
 
 function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary): UserInfo {
   const hasProfileName = "full_name" in profile || "user_name" in profile;
@@ -116,7 +98,7 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
     role,
     userType,
     initials: getInitials(fullName, email),
-    photo: toImageUrl(profile.photo) ?? user.photo,
+    photo: profile.photo ? getImageUrl(profile.photo) : user.photo,
   };
 }
 
@@ -147,14 +129,33 @@ function getUserFromTokenCookie(): UserInfo {
   return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBorde/settings" }) => {
+const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
+  // ref kept for future use (e.g. click-outside on bell area)
+  const _bellRef = useRef<HTMLDivElement>(null);
+
+  const fetchUnreadCount = useCallback(async () => {
+    if (!isCommunityUser) return;
+    try {
+      const { data } = await api.get<{ count: number }>("/notifications/inbox/unread-count/");
+      setUnreadCount(data.count ?? 0);
+    } catch {
+      // silently ignore
+    }
+  }, [isCommunityUser]);
+
+  useEffect(() => {
+    void fetchUnreadCount();
+    const interval = setInterval(() => { void fetchUnreadCount(); }, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchUnreadCount]);
 
   useEffect(() => {
     let isMounted = true;
@@ -194,23 +195,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
     if (!isCommunityUser) {
       return;
     }
-    api.get<{ stats: { unread_notifications: number } }>("/community/dashboard/summary/")
-      .then(({ data }) => {
-        if (isMounted) {
-          setUnreadCount(data.stats?.unread_notifications ?? 0);
-        }
-      })
-      .catch(() => {
-        // not critical — leave at 0
-      });
     dispatch(fetchCartCount());
-    return () => {
-      isMounted = false;
-    };
   }, [pathname, isCommunityUser, dispatch]);
 
   const handleLogout = async () => {
@@ -246,7 +234,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
             href="/"
             className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-28 lg:h-36 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
           >
-            <div className="relative w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
+            <div className="relative w-12 h-12 lg:w-20 lg:h-20  overflow-hidden mb-1 bg-white">
               <Image
                 src="/logo/zewadi-logo.webp"
                 alt="ZEWADI Logo"
@@ -284,22 +272,32 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           />
         </div>
 
-        {/* Notification Icon */}
-        <Link
-          href="/communityDashBorde/notifications"
-          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
-          aria-label="Open notifications"
-        >
-          <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-          {unreadCount > 0 && (
-            <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
-              {unreadCount > 99 ? "99+" : unreadCount}
-            </span>
+        {/* Notification bell */}
+        <ErrorBoundary fallback={null}>
+        <div className="relative" ref={_bellRef}>
+          <button
+            onClick={() => {
+              setShowNotifications((v) => !v);
+              if (!showNotifications) setUnreadCount(0);
+            }}
+            className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+            aria-label="Notifications"
+          >
+            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </button>
+          {showNotifications && (
+            <NotificationDropdown onClose={() => setShowNotifications(false)} />
           )}
-        </Link>
+        </div>
+        </ErrorBoundary>
 
         <Link
-          href="/communityDashBorde/cart"
+          href="/communityDashBoard/cart"
           className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open cart"
         >

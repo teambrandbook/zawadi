@@ -1,7 +1,9 @@
+from django.test import TestCase
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from accounts.models import User
+from accounts.models import User, OTP
 from communityuser.models import CommunityUser, UserType
 from consultant.models import Consultant
 from supperadmin.models import Role, RolePermission
@@ -36,6 +38,8 @@ class AccountMeAPITests(APITestCase):
 
 class RegisterSecurityTests(APITestCase):
     def test_public_register_forces_community_user_role(self):
+        from unittest.mock import patch
+
         payload = {
             "email": "new-user@example.com",
             "password": "Pass@1234",
@@ -47,10 +51,15 @@ class RegisterSecurityTests(APITestCase):
             "role": "ADMIN",
         }
 
-        response = self.client.post("/api/account/register/", payload, format="json")
+        with patch("accounts.views.send_otp_email"):
+            response = self.client.post("/api/account/register/", payload, format="json")
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["role"], "COMMUNITY_USER")
+        self.assertTrue(response.data["requires_otp"])
+        # Confirm the DB user has the forced community_user role
+        from accounts.models import User as UserModel
+        user = UserModel.objects.get(email="new-user@example.com")
+        self.assertEqual(user.role, "COMMUNITY_USER")
 
 
 class MeSerializerTest(APITestCase):
@@ -192,3 +201,43 @@ class CreateNutritionistAPITests(APITestCase):
         created_user = User.objects.get(email="nutritionist@example.com")
         self.assertEqual(created_user.role, "CONSULTANT")
         self.assertTrue(Consultant.objects.filter(user=created_user).exists())
+
+
+class OTPModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="test@example.com",
+            password="pass1234",
+            full_name="Test",
+            user_name="test_1",
+            phone="",
+        )
+
+    def test_generate_creates_otp(self):
+        otp = OTP.generate(self.user, OTP.PURPOSE_EMAIL_VERIFICATION)
+        self.assertEqual(len(otp.code), 6)
+        self.assertFalse(otp.is_used)
+        self.assertGreater(otp.expires_at, timezone.now())
+
+    def test_generate_invalidates_previous(self):
+        first = OTP.generate(self.user, OTP.PURPOSE_EMAIL_VERIFICATION)
+        second = OTP.generate(self.user, OTP.PURPOSE_EMAIL_VERIFICATION)
+        first.refresh_from_db()
+        self.assertTrue(first.is_used)
+        self.assertFalse(second.is_used)
+
+    def test_verify_returns_otp_on_correct_code(self):
+        otp = OTP.generate(self.user, OTP.PURPOSE_EMAIL_VERIFICATION)
+        result = OTP.verify(self.user, otp.code, OTP.PURPOSE_EMAIL_VERIFICATION)
+        self.assertIsNotNone(result)
+        self.assertTrue(result.is_used)
+
+    def test_verify_returns_none_on_wrong_code(self):
+        OTP.generate(self.user, OTP.PURPOSE_EMAIL_VERIFICATION)
+        result = OTP.verify(self.user, "000000", OTP.PURPOSE_EMAIL_VERIFICATION)
+        self.assertIsNone(result)
+
+    def test_verify_sets_reset_token_for_password_reset(self):
+        otp = OTP.generate(self.user, OTP.PURPOSE_PASSWORD_RESET)
+        result = OTP.verify(self.user, otp.code, OTP.PURPOSE_PASSWORD_RESET)
+        self.assertIsNotNone(result.reset_token)

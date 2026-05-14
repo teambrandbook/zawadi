@@ -13,6 +13,7 @@ import {
   Truck,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type CartItem = {
   id: number;
@@ -85,27 +86,13 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(API_BASE);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-  return `${API_BASE}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function stockLabel(item: CartItem): { text: string; className: string } {
-  const stock = item.variant_stock ?? item.stock_quantity;
-  if (item.stock_status === "out_of_stock" || stock <= 0) {
+  const hasVariantStock = item.variant_stock !== null && item.variant_stock !== undefined;
+  const stock = hasVariantStock ? item.variant_stock ?? 0 : item.stock_quantity;
+  if ((!hasVariantStock && item.stock_status === "out_of_stock") || stock <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
   }
   if (stock <= 3) {
@@ -222,7 +209,7 @@ export default function CommunityCartPage() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => router.push("/communityDashBorde/products")}
+                  onClick={() => router.push("/communityDashBoard/products")}
                   className="mt-5 rounded-lg bg-[#0A4833] px-5 py-2.5 text-sm font-semibold text-white"
                 >
                   Continue Shopping
@@ -371,7 +358,7 @@ export default function CommunityCartPage() {
           <div className="mt-5 space-y-3">
             <button
               type="button"
-              onClick={() => router.push("/communityDashBorde/myorders/order?cart=1")}
+              onClick={() => router.push("/communityDashBoard/products/order?cart=1")}
               disabled={items.length === 0}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0A4833] text-sm font-semibold text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
             >
@@ -380,7 +367,7 @@ export default function CommunityCartPage() {
             </button>
             <button
               type="button"
-              onClick={() => router.push("/communityDashBorde/products")}
+              onClick={() => router.push("/communityDashBoard/products")}
               className="h-12 w-full rounded-xl border border-[#DFDFDF] text-sm font-medium text-[#374151] transition hover:bg-[#F9FAFB]"
             >
               Continue Shopping

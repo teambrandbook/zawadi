@@ -268,7 +268,7 @@ export default function Consultation() {
             </p>
           </div>
           <button
-            onClick={() => router.push("/communityDashBorde/addconsaltation")}
+            onClick={() => router.push("/communityDashBoard/addconsaltation")}
             className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-xs font-medium text-white hover:bg-[#083B2A]"
           >
             <Plus className="h-3.5 w-3.5" />

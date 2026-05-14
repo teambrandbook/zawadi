@@ -53,13 +53,13 @@ const SIDEBAR_DATA: Pick<
     title: "Notification Preferences",
     description: "Manage how you receive notifications and stay updated",
     ctaLabel: "Manage Preferences",
-    ctaHref: "/communityDashBorde/settings",
+    ctaHref: "/communityDashBoard/settings",
   },
   activitySummary: {
     title: "Activity Summary",
     description: "View your recent activity on the platform",
     ctaLabel: "View Dashboard",
-    ctaHref: "/communityDashBorde",
+    ctaHref: "/communityDashBoard",
   },
 };
 

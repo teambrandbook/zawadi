@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useDispatch } from "react-redux";
 import {
   ChevronDown,
   Eye,
@@ -12,7 +14,10 @@ import {
   ShoppingCart,
   SlidersHorizontal,
 } from "lucide-react";
+import type { AppDispatch } from "@/redux/store";
+import { setCartCount } from "@/redux/userSlice";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ProductVariant = {
   id: number;
@@ -37,6 +42,8 @@ type Product = {
   stock_status: string;
   variants: ProductVariant[];
   created_at?: string;
+  product_unit?: string;
+  unit_quantity?: string | number;
 };
 
 type PaginatedResponse<T> = {
@@ -83,26 +90,7 @@ function toCurrency(value: string | number | null | undefined, currency = "USD")
 
 function toImageUrl(imagePath: string | null | undefined, index: number): string {
   if (!imagePath) return fallbackImages[index % fallbackImages.length];
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  const apiOrigin = apiBase.replace(/\/api\/?$/, "");
-
-  if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
-    try {
-      const imageUrl = new URL(imagePath);
-      if (imageUrl.pathname.startsWith("/media/")) {
-        const apiUrl = new URL(apiOrigin);
-        imageUrl.protocol = apiUrl.protocol;
-        imageUrl.hostname = apiUrl.hostname;
-        imageUrl.port = apiUrl.port;
-        return imageUrl.toString();
-      }
-    } catch {
-      return imagePath;
-    }
-    return imagePath;
-  }
-
-  return `${apiOrigin}${imagePath.startsWith("/") ? imagePath : `/${imagePath}`}`;
+  return getImageUrl(imagePath);
 }
 
 function toCategoryLabel(category: string): string {
@@ -119,14 +107,27 @@ function isNewProduct(createdAt?: string): boolean {
 }
 
 function getPackLabel(product: Product): string {
-  if (product.variants?.[0]?.variant_name) return product.variants[0].variant_name;
+  const variant = getCartVariant(product);
+  if (variant?.variant_name) return variant.variant_name;
   if (product.stock_status === "out_of_stock") return "Out of stock";
   if (product.stock_quantity <= 0) return "Stock pending";
   return `${product.stock_quantity} in stock`;
 }
 
+function getCartVariant(product: Product): ProductVariant | undefined {
+  return product.variants?.find((variant) => variant.stock > 0) ?? product.variants?.[0];
+}
+
+function isProductOutOfStock(product: Product): boolean {
+  if (product.variants?.length) {
+    return product.variants.every((variant) => variant.stock <= 0);
+  }
+  return product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
+}
+
 export default function CommunityProductsPage() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -147,6 +148,8 @@ export default function CommunityProductsPage() {
           (product) => product.product_status === "active"
         );
         setProducts(activeProducts);
+        console.log(activeProducts);
+        
       } catch {
         if (isMounted) {
           setLoadError("Unable to load products right now.");
@@ -190,13 +193,22 @@ export default function CommunityProductsPage() {
     setBusyProductId(product.id);
     setStatusMessage("");
     try {
-      await api.post("/orders/cart/items/", {
+      const variant = getCartVariant(product);
+      const payload: { product_id: number; quantity: number; variant_id?: number } = {
         product_id: product.id,
-        variant_id: product.variants?.[0]?.id,
         quantity: 1,
-      });
-      router.push("/communityDashBorde/cart");
-    } catch {
+      };
+      if (variant) payload.variant_id = variant.id;
+
+      const response = await api.post("/orders/cart/items/", payload);
+      const itemCount = response.data?.summary?.item_count;
+      if (typeof itemCount === "number") {
+        dispatch(setCartCount(itemCount));
+      }
+      toast.success("Added to cart!");
+    } catch (error: unknown) {
+      const detail = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      toast.error(detail || "Unable to add this product to your cart.");
       setStatusMessage("Unable to add this product to your cart.");
     } finally {
       setBusyProductId(null);
@@ -204,7 +216,7 @@ export default function CommunityProductsPage() {
   }
 
   function goToCheckout(productId: number) {
-    router.push(`/communityDashBorde/myorders/order?productId=${productId}&quantity=1`);
+    router.push(`/communityDashBoard/products/order?productId=${productId}&quantity=1`);
   }
 
   return (
@@ -321,7 +333,7 @@ export default function CommunityProductsPage() {
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {filteredProducts.map((product, index) => {
               const price = product.sale_price ?? product.base_price;
-              const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
+              const outOfStock = isProductOutOfStock(product);
               const productIsNew = isNewProduct(product.created_at);
 
               return (
@@ -347,13 +359,6 @@ export default function CommunityProductsPage() {
                         Featured
                       </span>
                     ) : null}
-                    <button
-                      type="button"
-                      className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/85 text-[#4B5563] transition hover:bg-white hover:text-[#0A4833]"
-                      aria-label={`Save ${product.product_name}`}
-                    >
-                      <Heart className="h-4 w-4" />
-                    </button>
                   </div>
 
                   <div className="flex h-[248px] flex-col p-4">
@@ -371,7 +376,7 @@ export default function CommunityProductsPage() {
                       <strong className="text-lg font-bold text-[#0A4833]">
                         {toCurrency(price, product.currency)}
                       </strong>
-                      <span className="text-xs text-[#6B7280]">{getPackLabel(product)}</span>
+                      <span className="text-xs text-[#6B7280]">{product.unit_quantity} {product.product_unit}</span>
                     </div>
 
                     <div className="mt-3 flex gap-2">

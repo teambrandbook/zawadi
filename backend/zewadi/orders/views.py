@@ -166,8 +166,9 @@ class OrderListView(APIView):
         paginator = StandardPagination()
         page = paginator.paginate_queryset(orders, request)
         if page is not None:
-            return paginator.get_paginated_response(OrderListSerializer(page, many=True).data)
-        return Response(OrderListSerializer(orders, many=True).data)
+            serializer = OrderListSerializer(page, many=True, context={"request": request})
+            return paginator.get_paginated_response(serializer.data)
+        return Response(OrderListSerializer(orders, many=True, context={"request": request}).data)
 
 
 class OrderDetailView(APIView):
@@ -190,7 +191,7 @@ class OrderDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = OrderDetailSerializer(order)
+        serializer = OrderDetailSerializer(order, context={"request": request})
         return Response(serializer.data)
 
 
@@ -408,11 +409,11 @@ class CartCheckoutView(APIView):
                         allocated_shipping = _money(shipping - used_shipping)
                         allocated_tax = _money(tax - used_tax)
 
-                    pack_name = variant.variant_name if variant else "Standard Pack"
                     serializer = OrderCreateSerializer(
                         data={
+                            "product_id": product.id,
+                            "variant_id": variant.id if variant else None,
                             "product_name": product.product_name,
-                            "pack_name": pack_name,
                             "pack_price": f"{Decimal(item.unit_price):.2f}",
                             "quantity": item.quantity,
                             "subtotal": f"{line_subtotal:.2f}",
@@ -466,27 +467,61 @@ class AdminOrderListView(APIView):
         paginator = StandardPagination()
         page = paginator.paginate_queryset(queryset, request)
         if page is not None:
-            return paginator.get_paginated_response(OrderListSerializer(page, many=True).data)
-        return Response(OrderListSerializer(queryset, many=True).data)
+            serializer = OrderListSerializer(page, many=True, context={"request": request})
+            return paginator.get_paginated_response(serializer.data)
+        return Response(OrderListSerializer(queryset, many=True, context={"request": request}).data)
 
 
 class AdminOrderStatusUpdateView(APIView):
-    """PATCH /api/orders/admin/<order_id>/status/ — update an order's status."""
+    """
+    PATCH   /api/orders/admin/<order_id>/status/ — update order status
+    DELETE  /api/orders/admin/<order_id>/status/ — delete order
+    """
 
     permission_classes = [IsAdminUser]
 
-    def patch(self, request, order_id):
+    def get_order(self, order_id):
         try:
-            order = Order.objects.get(order_id=order_id)
+            return Order.objects.get(order_id=order_id)
         except Order.DoesNotExist:
+            return None
+
+    def patch(self, request, order_id):
+        order = self.get_order(order_id)
+
+        if not order:
             return Response(
-                {"detail": "Order not found."}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
             )
 
         serializer = OrderStatusUpdateSerializer(
-            order, data=request.data, partial=True
+            order,
+            data=request.data,
+            partial=True,
         )
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response(
+            serializer.errors,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def delete(self, request, order_id):
+        order = self.get_order(order_id)
+
+        if not order:
+            return Response(
+                {"detail": "Order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        order.delete()
+
+        return Response(
+            {"detail": "Order deleted successfully."},
+            status=status.HTTP_204_NO_CONTENT,
+        )

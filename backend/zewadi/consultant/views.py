@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
+from django.db.models import Q
 
 from .models import BlockedDate, ConsultationBooking, Consultant, ConsultantSettings
 from .serializers import *
@@ -65,6 +66,33 @@ class ConsultantListView(APIView):
             )
 
         consultants = Consultant.objects.select_related("user").all()
+
+        # Search filter: ?search=<term>
+        search = request.query_params.get("search")
+        if search:
+            consultants = consultants.filter(
+                Q(user__full_name__icontains=search) |
+                Q(short_bio__icontains=search) |
+                Q(experience_areas__icontains=search)
+            )
+
+        # Availability filter: ?available=true/false
+        available = request.query_params.get("available")
+        if available is not None:
+            consultants = consultants.filter(available=available.lower() == "true")
+
+        # Ordering: ?ordering=<field>  (whitelist of safe fields)
+        ORDERING_WHITELIST = {
+            "rating": "rating",
+            "-rating": "-rating",
+            "consultation_fee": "consultation_fee",
+            "-consultation_fee": "-consultation_fee",
+            "years_of_experience": "years_of_experience",
+            "-years_of_experience": "-years_of_experience",
+        }
+        ordering = request.query_params.get("ordering")
+        order_field = ORDERING_WHITELIST.get(ordering, "-rating")
+        consultants = consultants.order_by(order_field)
 
         serializer = ConsultantListSerializer(
             consultants,

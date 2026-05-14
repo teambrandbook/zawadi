@@ -1,4 +1,5 @@
 import uuid
+from datetime import timedelta
 from django.db import models, transaction
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils import timezone
@@ -95,3 +96,53 @@ class User(AbstractUser):
 
     def __str__(self):
         return f"{self.email} ({self.role})"
+
+
+class OTP(models.Model):
+    PURPOSE_EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
+    PURPOSE_PASSWORD_RESET = "PASSWORD_RESET"
+    PURPOSE_CHOICES = [
+        (PURPOSE_EMAIL_VERIFICATION, "Email Verification"),
+        (PURPOSE_PASSWORD_RESET, "Password Reset"),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")
+    code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    reset_token = models.UUIDField(null=True, blank=True)
+
+    class Meta:
+        indexes = [models.Index(fields=["user", "purpose", "is_used"])]
+
+    @classmethod
+    def generate(cls, user, purpose):
+        import random
+        cls.objects.filter(user=user, purpose=purpose, is_used=False).update(is_used=True)
+        code = f"{random.randint(100000, 999999)}"
+        return cls.objects.create(
+            user=user,
+            code=code,
+            purpose=purpose,
+            expires_at=timezone.now() + timedelta(minutes=10),
+        )
+
+    @classmethod
+    def verify(cls, user, code, purpose):
+        try:
+            otp = cls.objects.get(
+                user=user,
+                code=code,
+                purpose=purpose,
+                is_used=False,
+                expires_at__gt=timezone.now(),
+            )
+        except cls.DoesNotExist:
+            return None
+        otp.is_used = True
+        if purpose == cls.PURPOSE_PASSWORD_RESET:
+            otp.reset_token = uuid.uuid4()
+        otp.save(update_fields=["is_used", "reset_token"])
+        return otp

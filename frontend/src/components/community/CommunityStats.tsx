@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import gsap, { animatePopUp, animateFadeInLeft, animateSwipeReveal, animateCounter } from "@/lib/gsap";
 import { Leaf, ArrowRight } from "lucide-react";
 import communityData from "@/data/community.json";
+
+type StatItem = {
+  value: number | string;
+  label: string;
+};
 
 const CommunityStats = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -14,7 +19,7 @@ const CommunityStats = () => {
   const imageRevealRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
 
-  const { statsSection } = communityData as any;
+  const { statsSection } = communityData as { statsSection: { largeImage: string; card: { title: string; description: string; ctaText: string; image: string }; stats: StatItem[] } };
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -111,7 +116,7 @@ const CommunityStats = () => {
             {/* Bottom: Stats Bar */}
             <div className="bg-brand-green rounded-[2.5rem] p-8 md:p-12 shadow-[0_25px_50px_rgba(26,67,49,0.3)] relative z-10 hover:shadow-[0_30px_60px_rgba(26,67,49,0.4)] transition-shadow" ref={statsRef}>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-                {statsSection.stats.map((stat: any, index: number) => (
+                {(statsSection.stats as StatItem[]).map((stat, index) => (
                   <div key={index} className="text-center md:text-left">
                     <div
                       className="stat-value text-3xl md:text-4xl font-bold text-white mb-2"

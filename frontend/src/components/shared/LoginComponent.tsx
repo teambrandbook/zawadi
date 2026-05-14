@@ -9,6 +9,13 @@ import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
+import { z } from "zod";
+import { API_BASE_URL } from "@/lib/config";
+
+const loginSchema = z.object({
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -17,12 +24,16 @@ export default function LoginComponent() {
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-
   const normalizeRole = (role?: string) => String(role ?? "").toLowerCase();
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const result = loginSchema.safeParse({ email, password });
+    if (!result.success) {
+      toast.error(result.error.issues[0].message);
+      return;
+    }
 
     try {
       const res = await api.post("/account/login/", { email, password });
@@ -52,7 +63,7 @@ export default function LoginComponent() {
       } else if (role === "community_user" && userType === "guest") {
         router.push("/products");
       } else {
-        router.push("/communityDashBorde");
+        router.push("/communityDashBoard");
       }
     } catch (error: unknown) {
       console.log("Login error:", error);
@@ -61,7 +72,7 @@ export default function LoginComponent() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = `${apiBase}/account/google/login/`;
+    window.location.href = `${API_BASE_URL}/account/google/login/`;
   };
 
   return (
@@ -164,6 +175,10 @@ export default function LoginComponent() {
                       </button>
                     </div>
                   </div>
+
+                  <a href="/forgot-password" className="text-sm text-green-800 hover:underline block text-right">
+                    Forgot password?
+                  </a>
 
                   <button
                     type="submit"

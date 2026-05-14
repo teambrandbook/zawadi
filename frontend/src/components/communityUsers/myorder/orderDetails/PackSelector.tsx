@@ -6,18 +6,26 @@ type Props = {
   packs: PackOption[];
   selectedPackId: string;
   onSelectPack: (packId: string) => void;
+  currency?: string;
+  locale?: string;
 };
 
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat("en-US", {
+function formatCurrency(amount: number, currency: string, locale: string) {
+  return new Intl.NumberFormat(locale, {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
 }
 
-export default function PackSelector({ packs, selectedPackId, onSelectPack }: Props) {
+export default function PackSelector({
+  packs,
+  selectedPackId,
+  onSelectPack,
+  currency = "USD",
+  locale = "en-US",
+}: Props) {
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
       <h3 className="text-xl font-semibold text-[#0A4833]">Select Your Pack</h3>
@@ -41,7 +49,7 @@ export default function PackSelector({ packs, selectedPackId, onSelectPack }: Pr
                   </span>
                 )}
               </div>
-              <p className="mt-2 text-3xl font-bold leading-none text-[#0A4833]">{formatCurrency(pack.price)}</p>
+              <p className="mt-2 text-3xl font-bold leading-none text-[#0A4833]">{formatCurrency(pack.price, currency, locale)}</p>
               <p className="mt-1 text-xs text-[#9F8151]">{pack.unitNote}</p>
             </button>
           );

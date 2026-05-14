@@ -21,7 +21,7 @@ export default function NewBlogActions({
         Save as Draft
       </button>
       <Link
-        href="/communityDashBorde/add-blog"
+        href="/communityDashBoard/add-blog"
         className="inline-flex h-11 items-center justify-center gap-2 rounded-md border border-[#D1D5DB] bg-white text-sm font-semibold text-[#374151] hover:bg-[#F9FAFB]"
       >
         <Eye className="h-4 w-4" />

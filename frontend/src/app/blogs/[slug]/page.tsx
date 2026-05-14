@@ -5,6 +5,8 @@ import { CalendarDays, Search } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import ContentSection from "@/components/common/ContentSection";
+import { getImageUrl } from "@/lib/utils";
+import { API_BASE_URL } from "@/lib/config";
 
 type BackendBlogDetail = {
   id?: number;
@@ -20,14 +22,10 @@ type BackendBlogDetail = {
   published_at?: string | null;
 };
 
-const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-const siteBase = apiBase.replace(/\/api\/?$/, "");
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/blogs/blog-1.webp";
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  if (value.startsWith("/")) return `${siteBase}${value}`;
-  return `${siteBase}/${value}`;
+  return getImageUrl(value);
 }
 
 function formatDate(value?: string | null) {
@@ -42,6 +40,7 @@ function formatDate(value?: string | null) {
 }
 
 async function getBlog(slug: string) {
+  const apiBase = API_BASE_URL;
   try {
     const response = await fetch(`${apiBase}/blog/${slug}/`, { cache: "no-store" });
     if (response.ok) return (await response.json()) as BackendBlogDetail;
@@ -53,7 +52,7 @@ async function getBlog(slug: string) {
 
 async function getPopularBlogs(currentSlug: string) {
   try {
-    const response = await fetch(`${apiBase}/blog/?public=1`, { cache: "no-store" });
+    const response = await fetch(`${API_BASE_URL}/blog/?public=1`, { cache: "no-store" });
     if (!response.ok) return [];
     const data = await response.json();
     const blogs = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];

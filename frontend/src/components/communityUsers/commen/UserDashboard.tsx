@@ -21,15 +21,15 @@ type Props = {
 };
 
 const menuItems = [
-  { name: 'Dashboard', icon: Home, href: '/communityDashBorde' },
-  { name: 'My Recipes', icon: UtensilsCrossed, href: '/communityDashBorde/myrecipy' },
-  { name: 'Products', icon: Package, href: '/communityDashBorde/products' },
-  { name: 'My Orders', icon: ShoppingBag, href: '/communityDashBorde/myorders' },
-  { name: 'Consultation', icon: UserRound, href: '/communityDashBorde/consultation' },
-  { name: 'My Events', icon: Calendar, href: '/communityDashBorde/events' },
-  { name: 'Custom Gifts', icon: Gift, href: '/communityDashBorde/custom-gifts' },
-  { name: 'Add Blog', icon: MessageSquareDiff, href: '/communityDashBorde/add-blog' },
-  { name: 'Settings', icon: Settings, href: '/communityDashBorde/settings' },
+  { name: 'Dashboard', icon: Home, href: '/communityDashBoard' },
+  { name: 'My Recipes', icon: UtensilsCrossed, href: '/communityDashBoard/myrecipy' },
+  { name: 'Products', icon: Package, href: '/communityDashBoard/products' },
+  { name: 'My Orders', icon: ShoppingBag, href: '/communityDashBoard/myorders' },
+  { name: 'Consultation', icon: UserRound, href: '/communityDashBoard/consultation' },
+  { name: 'My Events', icon: Calendar, href: '/communityDashBoard/events' },
+  { name: 'Custom Gifts', icon: Gift, href: '/communityDashBoard/custom-gifts' },
+  { name: 'Add Blog', icon: MessageSquareDiff, href: '/communityDashBoard/add-blog' },
+  { name: 'Settings', icon: Settings, href: '/communityDashBoard/settings' },
 ];
 
 /* ✅ ACCEPT PROPS */
@@ -44,7 +44,7 @@ const UserDashboard = ({ onClose }: Props) => {
       {menuItems.map((item) => {
         const Icon = item.icon;
         const isActive =
-          item.href === '/communityDashBorde'
+          item.href === '/communityDashBoard'
             ? pathname === item.href
             : pathname.startsWith(item.href);
 

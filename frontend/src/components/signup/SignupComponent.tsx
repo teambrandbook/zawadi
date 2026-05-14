@@ -6,6 +6,17 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  full_name: z.string().min(1, "Name is required"),
+  user_name: z.string().min(1, "Username is required"),
+  email: z.string().email("Enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  phone: z.string().min(1, "Phone is required"),
+  date_of_birth: z.string().min(1, "Date of birth is required"),
+  gender: z.string().min(1, "Please select a gender"),
+});
 
 const SIGNUP_BACKGROUND = "/loginimages/loginBg.webp";
 
@@ -34,6 +45,20 @@ export default function SignupComponent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const result = registerSchema.safeParse({
+      full_name: form.full_name,
+      user_name: form.user_name,
+      email: form.email,
+      password: form.password,
+      phone: form.phone,
+      date_of_birth: form.date_of_birth,
+      gender: form.gender,
+    });
+    if (!result.success) {
+      toast.error(result.error.issues[0].message);
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       toast.error("Passwords do not match.");
       return;
@@ -41,7 +66,7 @@ export default function SignupComponent() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/account/register/", {
+      const { data } = await api.post("/account/register/", {
         full_name: form.full_name.trim(),
         user_name: form.user_name.trim(),
         email: form.email.trim(),
@@ -52,8 +77,12 @@ export default function SignupComponent() {
         user_type: accountType,
       });
 
-      toast.success("Account created. Please sign in.");
-      router.push("/login");
+      if (data.requires_otp) {
+        router.push(`/otp?email=${encodeURIComponent(data.email)}&purpose=EMAIL_VERIFICATION`);
+      } else {
+        toast.success("Account created. Please sign in.");
+        router.push("/login");
+      }
     } catch (error: unknown) {
       const detail =
         typeof error === "object" &&

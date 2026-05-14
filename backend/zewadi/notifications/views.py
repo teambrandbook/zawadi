@@ -172,3 +172,20 @@ class UserNotificationMarkAllReadView(APIView):
         ).update(is_read=True, read_at=now)
 
         return Response({"marked_read": updated}, status=status.HTTP_200_OK)
+
+
+class UserNotificationUnreadCountView(APIView):
+    """
+    GET /api/notifications/inbox/unread-count/
+    Returns {"count": N} — the number of unread notifications for the current user.
+    """
+    permission_classes = [IsCommunityUser]
+
+    def get(self, request):
+        count = UserNotificationReceipt.objects.filter(
+            user=request.user,
+            is_read=False,
+            notification__status="SENT",
+            notification__target_role__in=["ALL", "community_user"],
+        ).count()
+        return Response({"count": count}, status=status.HTTP_200_OK)

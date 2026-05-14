@@ -1,5 +1,22 @@
-import { ImageIcon, Info, Leaf, Package, Tags } from "lucide-react";
+import {
+  Boxes,
+  DollarSign,
+  ImageIcon,
+  Info,
+  Leaf,
+  PencilLine,
+  Plus,
+  UploadCloud,
+} from "lucide-react";
 import { ReactNode } from "react";
+
+export type ProductVariantFormData = {
+  variant_value: string;
+  variant_unit: string;
+  cost: string;
+  price: string;
+  stock: string;
+};
 
 export type ProductFormData = {
   product_name: string;
@@ -18,12 +35,23 @@ export type ProductFormData = {
   stock_quantity: string;
   low_stock_alert: string;
   stock_status: string;
+  unit_quantity: string;
+  product_unit: string;
+  alternative_unit_enabled: boolean;
+  allow_out_of_stock: boolean;
+  enable_low_stock_alerts: boolean;
+  variants: ProductVariantFormData[];
 };
 
 type Props = {
   formData: ProductFormData;
   onChange: (data: ProductFormData) => void;
 };
+
+const fieldClass =
+  "h-12 w-full rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 text-[16px] tracking-[-0.5px] text-[#111827] outline-none transition placeholder:text-black/50 focus:border-[#0A4833]";
+
+const labelClass = "block text-[16px] font-medium leading-5 tracking-[-0.5px] text-[#0A4833]";
 
 function TextField({
   label,
@@ -39,14 +67,14 @@ function TextField({
   onValueChange: (v: string) => void;
 }) {
   return (
-    <label className="space-y-1">
-      <span className="block text-[11px] font-medium text-[#344054]">{label}</span>
+    <label className="space-y-2">
+      <span className={labelClass}>{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
-        className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+        className={fieldClass}
       />
     </label>
   );
@@ -66,13 +94,9 @@ function SelectField({
   onValueChange: (v: string) => void;
 }) {
   return (
-    <label className="space-y-1">
-      <span className="block text-[11px] font-medium text-[#344054]">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onValueChange(e.target.value)}
-        className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
-      >
+    <label className="space-y-2">
+      <span className={labelClass}>{label}</span>
+      <select value={value} onChange={(e) => onValueChange(e.target.value)} className={fieldClass}>
         <option value="">{placeholder}</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -98,14 +122,14 @@ function TextareaField({
   onValueChange: (v: string) => void;
 }) {
   return (
-    <label className="space-y-1">
-      <span className="block text-[11px] font-medium text-[#344054]">{label}</span>
+    <label className="space-y-2">
+      <span className={labelClass}>{label}</span>
       <textarea
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
-        className="w-full resize-none rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2 text-[12px] text-[#667085] outline-none"
+        className="w-full resize-none rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-[16px] tracking-[-0.5px] text-[#111827] outline-none transition placeholder:text-black/50 focus:border-[#0A4833]"
       />
     </label>
   );
@@ -113,28 +137,43 @@ function TextareaField({
 
 function SectionTitle({ icon, title }: { icon: ReactNode; title: string }) {
   return (
-    <div className="mb-3 flex items-center gap-2 text-[12px] font-semibold text-[#0A4833]">
-      <span className="text-[#0A4833]">{icon}</span>
+    <div className="mb-6 flex items-center gap-2 text-[18px] font-semibold leading-[22px] tracking-[-0.5px] text-[#0A4833]">
+      <span className="flex h-5 w-5 items-center justify-center text-[#0A4833]">{icon}</span>
       <span>{title}</span>
     </div>
   );
 }
 
-function Card({ children }: { children: ReactNode }) {
-  return <section className="rounded-lg border border-[#E4E7EC] bg-white p-4">{children}</section>;
+function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <section className={`rounded-[12px] border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)] ${className}`}>
+      {children}
+    </section>
+  );
 }
 
 const CATEGORY_OPTIONS = [
-  { label: "Food", value: "food" },
-  { label: "Seed", value: "seed" },
-  { label: "Supplement", value: "supplement" },
-  { label: "Other", value: "other" },
+  { label: "Multi Grains", value: "multi_grains" },
+  { label: "Small Grains", value: "small_grains" },
+  { label: "Pulses", value: "pulses" },
+  { label: "Nuts", value: "nuts" },
+  { label: "Seeds", value: "seeds" },
+  { label: "Rices", value: "rices" },
+  { label: "Oils", value: "oils" },
+  { label: "Spices", value: "spices" },
+  { label: "Spreads & Butters", value: "spreads_butters" },
 ];
 
 const STATUS_OPTIONS = [
   { label: "Draft", value: "draft" },
   { label: "Active", value: "active" },
-  { label: "Inactive", value: "inactive" },
+];
+
+const UNIT_OPTIONS = [
+  { label: "Kg", value: "kg" },
+  { label: "Gram", value: "g" },
+  { label: "Packet", value: "packet" },
+  { label: "Box", value: "box" },
 ];
 
 const CURRENCY_OPTIONS = [
@@ -151,128 +190,162 @@ const STOCK_STATUS_OPTIONS = [
 
 export default function AddProductForm({ formData, onChange }: Props) {
   function set(field: keyof ProductFormData) {
-    return (v: string) => onChange({ ...formData, [field]: v });
+    return (value: string | boolean) => onChange({ ...formData, [field]: value });
+  }
+
+  function setVariant(index: number, field: keyof ProductVariantFormData) {
+    return (value: string) => {
+      const variants = formData.variants.map((variant, variantIndex) =>
+        variantIndex === index ? { ...variant, [field]: value } : variant
+      );
+      onChange({ ...formData, variants });
+    };
+  }
+
+  function addVariant() {
+    onChange({
+      ...formData,
+      variants: [
+        ...formData.variants,
+        { variant_value: "", variant_unit: "", cost: "", price: "", stock: "" },
+      ],
+    });
   }
 
   return (
     <div className="space-y-4">
-      {/* Basic Information */}
       <Card>
-        <SectionTitle icon={<Info className="h-4 w-4" />} title="Basic Information" />
-        <div className="grid gap-3 sm:grid-cols-2">
+        <SectionTitle icon={<Info className="h-[18px] w-[18px]" />} title="Basic Information" />
+        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
           <TextField label="Product Name *" placeholder="Enter product name" value={formData.product_name} onValueChange={set("product_name")} />
-          <TextField label="Product Subtitle" placeholder="Short tagline or subtitle" value={formData.product_subtitle} onValueChange={set("product_subtitle")} />
-          <TextField label="SKU / Product Code *" placeholder="BWT-001" value={formData.product_code} onValueChange={set("product_code")} />
-          <SelectField
-            label="Category *"
-            placeholder="Select category"
-            value={formData.category}
-            options={CATEGORY_OPTIONS}
-            onValueChange={set("category")}
-          />
-          <div className="space-y-1">
-            <span className="block text-[11px] font-medium text-[#344054]">Brand Name</span>
-            <div className="flex h-10 w-full items-center rounded-md border border-[#E4E7EC] bg-[#F3F4F6] px-3 text-[12px] text-[#9CA3AF]">
-              Zewadi
-            </div>
-          </div>
           <SelectField
             label="Product Status"
-            placeholder="Select status"
+            placeholder="Short tagline or subtitle"
             value={formData.product_status}
             options={STATUS_OPTIONS}
             onValueChange={set("product_status")}
           />
+          <TextField label="Product Code *" placeholder="BWH-001" value={formData.product_code} onValueChange={set("product_code")} />
+          <SelectField label="Category *" placeholder="Select category" value={formData.category} options={CATEGORY_OPTIONS} onValueChange={set("category")} />
+          <label className="space-y-2">
+            <span className={labelClass}>Brand Name</span>
+            <div className="flex h-12 w-full items-center rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 text-[16px] tracking-[-0.5px] text-black/50">
+              ZEWADI
+            </div>
+          </label>
+          <div className="grid grid-cols-[minmax(0,1fr)_32px] items-end gap-3">
+            <SelectField label="Product Unit" placeholder="Choose Unit" value={formData.product_unit} options={UNIT_OPTIONS} onValueChange={set("product_unit")} />
+            <button type="button" aria-label="Add unit" className="mb-0.5 grid h-10 w-8 place-items-center text-[#0A4833]">
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+          <TextField label="Unit Quantity" placeholder="Type Quantity" value={formData.unit_quantity} onValueChange={set("unit_quantity")} />
         </div>
       </Card>
 
       <Card>
-        <SectionTitle icon={<ImageIcon className="h-4 w-4" />} title="Product Images" />
-        <div className="rounded-md border border-dashed border-[#D0D5DD] bg-[#F9FAFB] p-7 text-center">
-          <ImageIcon className="mx-auto h-5 w-5 text-[#98A2B3]" />
-          <p className="mt-2 text-[12px] text-[#344054]">
+        <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Product Images" />
+        <label className="block cursor-pointer rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-5 py-10 text-center">
+          <UploadCloud className="mx-auto h-8 w-8 text-[#9F8151]" />
+          <span className="mt-2 block text-[14px] font-semibold tracking-[-0.5px] text-[#0A4833]">
             {formData.image ? formData.image.name : "Drag and drop images here, or click to browse"}
-          </p>
-          <p className="text-[11px] text-[#98A2B3]">Recommended size: 600×600px · JPG, PNG</p>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })}
-            className="mt-3 block w-full text-[12px] text-[#667085] file:mr-3 file:rounded-md file:border-0 file:bg-[#0A4833] file:px-3 file:py-2 file:text-white"
-          />
+          </span>
+          <span className="block text-[12px] tracking-[-0.5px] text-[#6B7280]">Recommended size: 800x800px. Supports JPG, PNG formats.</span>
+          <input type="file" accept="image/*" onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })} className="sr-only" />
+        </label>
+      </Card>
+
+      <Card>
+        <SectionTitle icon={<PencilLine className="h-[18px] w-[18px]" />} title="Product Description" />
+        <div className="space-y-4">
+          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} onValueChange={set("short_description")} />
+          <TextareaField label="Full Description" placeholder="Detailed product description" value={formData.full_description} rows={6} onValueChange={set("full_description")} />
         </div>
       </Card>
 
-      {/* Description */}
       <Card>
-        <SectionTitle icon={<Package className="h-4 w-4" />} title="Product Description" />
-        <div className="space-y-3">
-          <TextField
-            label="Short Description *"
-            placeholder="Brief product overview (max 150 characters)"
-            value={formData.short_description}
-            onValueChange={set("short_description")}
-          />
-          <TextareaField
-            label="Full Description"
-            placeholder="Detailed product description"
-            value={formData.full_description}
-            rows={5}
-            onValueChange={set("full_description")}
-          />
+        <SectionTitle icon={<Leaf className="h-[18px] w-[18px]" />} title="Nutritional & Wellness Information" />
+        <div className="grid gap-6 sm:grid-cols-2">
+          <TextareaField label="Key Ingredients" placeholder="List main ingredients" value={formData.key_ingredients} rows={3} onValueChange={set("key_ingredients")} />
+          <TextareaField label="Health Benefits" placeholder="Describe health benefits" value={formData.health_benefits} rows={3} onValueChange={set("health_benefits")} />
         </div>
       </Card>
 
-      {/* Nutritional & Wellness */}
+      <label className="flex w-max items-center gap-3 text-[14px] font-medium tracking-[-0.5px] text-[#374151]">
+        <span>Alternative Unit</span>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={formData.alternative_unit_enabled}
+          onClick={() => set("alternative_unit_enabled")(!formData.alternative_unit_enabled)}
+          className={`relative h-6 w-10 rounded-full transition ${formData.alternative_unit_enabled ? "bg-[#9F8151]" : "bg-[#CBD5E1]"}`}
+        >
+          <span
+            className={`absolute top-0 h-6 w-6 rounded-full border-4 transition ${
+              formData.alternative_unit_enabled ? "left-4 border-[#9F8151] bg-white" : "left-0 border-[#CBD5E1] bg-white"
+            }`}
+          />
+        </button>
+      </label>
+
+      {formData.alternative_unit_enabled ? (
+        <Card>
+          <h3 className="mb-6 text-[18px] font-semibold leading-[22px] tracking-[-0.5px] text-[#0A4833]">Alternative Unit</h3>
+          <div className="rounded-[8px] border border-[#DFDFDF] p-4">
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <h4 className="text-[16px] font-medium tracking-[-0.5px] text-[#0A4833]">Product Variants</h4>
+              <button type="button" onClick={addVariant} className="inline-flex h-10 items-center gap-2 rounded-[8px] bg-[#9F8151] px-4 text-[14px] font-medium tracking-[-0.5px] text-white">
+                <Plus className="h-4 w-4" />
+                Add Variant
+              </button>
+            </div>
+            <div className="space-y-3">
+              {formData.variants.map((variant, index) => (
+                <div key={index} className="grid gap-3 sm:grid-cols-4">
+                  <input value={variant.variant_value} onChange={(event) => setVariant(index, "variant_value")(event.target.value)} className={fieldClass} placeholder="Variant Value" />
+                  <select value={variant.variant_unit} onChange={(event) => setVariant(index, "variant_unit")(event.target.value)} className={fieldClass}>
+                    <option value="">Choose Unit</option>
+                    {UNIT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <input value={variant.cost} onChange={(event) => setVariant(index, "cost")(event.target.value)} className={fieldClass} placeholder="Cost" />
+                  <input value={variant.price} onChange={(event) => setVariant(index, "price")(event.target.value)} className={fieldClass} placeholder="MRP" />
+                  <input value={variant.stock} onChange={(event) => setVariant(index, "stock")(event.target.value)} className={`${fieldClass} sm:col-span-2`} placeholder="Stock Quantity" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </Card>
+      ) : null}
+
       <Card>
-        <SectionTitle icon={<Leaf className="h-4 w-4" />} title="Nutritional & Wellness Information" />
-        <div className="grid gap-3 sm:grid-cols-2">
-          <TextareaField
-            label="Key Ingredients"
-            placeholder="List main ingredients"
-            value={formData.key_ingredients}
-            rows={3}
-            onValueChange={set("key_ingredients")}
-          />
-          <TextareaField
-            label="Health Benefits"
-            placeholder="Describe health benefits"
-            value={formData.health_benefits}
-            rows={3}
-            onValueChange={set("health_benefits")}
-          />
+        <SectionTitle icon={<DollarSign className="h-[18px] w-[18px]" />} title="MRP Information" />
+        <div className="grid gap-6 sm:grid-cols-3">
+          <TextField label="Cost *" placeholder="0.00" type="number" value={formData.base_price} onValueChange={set("base_price")} />
+          <TextField label="MRP*" placeholder="0.00" type="number" value={formData.sale_price} onValueChange={set("sale_price")} />
+          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={CURRENCY_OPTIONS} onValueChange={set("currency")} />
         </div>
       </Card>
 
-      {/* Pricing */}
       <Card>
-        <SectionTitle icon={<Tags className="h-4 w-4" />} title="Pricing & Variants" />
-        <div className="grid gap-3 sm:grid-cols-3">
-          <TextField label="Base Price *" placeholder="0.00" type="number" value={formData.base_price} onValueChange={set("base_price")} />
-          <TextField label="Sale Price" placeholder="0.00" type="number" value={formData.sale_price} onValueChange={set("sale_price")} />
-          <SelectField
-            label="Currency"
-            placeholder="Select currency"
-            value={formData.currency}
-            options={CURRENCY_OPTIONS}
-            onValueChange={set("currency")}
-          />
-        </div>
-      </Card>
-
-      {/* Inventory */}
-      <Card>
-        <SectionTitle icon={<Package className="h-4 w-4" />} title="Inventory Management" />
-        <div className="grid gap-3 sm:grid-cols-3">
-          <TextField label="Stock Quantity" placeholder="0" type="number" value={formData.stock_quantity} onValueChange={set("stock_quantity")} />
+        <SectionTitle icon={<Boxes className="h-[18px] w-[18px]" />} title="Inventory Management" />
+        <div className="grid gap-6 sm:grid-cols-3">
+          <TextField label="Stock Quantity *" placeholder="0" type="number" value={formData.stock_quantity} onValueChange={set("stock_quantity")} />
           <TextField label="Low Stock Alert" placeholder="5" type="number" value={formData.low_stock_alert} onValueChange={set("low_stock_alert")} />
-          <SelectField
-            label="Stock Status"
-            placeholder="Select status"
-            value={formData.stock_status}
-            options={STOCK_STATUS_OPTIONS}
-            onValueChange={set("stock_status")}
-          />
+          <SelectField label="Stock Status" placeholder="Select status" value={formData.stock_status} options={STOCK_STATUS_OPTIONS} onValueChange={set("stock_status")} />
+        </div>
+        <div className="mt-6 space-y-3">
+          <label className="flex items-center gap-3 text-[16px] tracking-[-0.5px] text-[#0A4833]">
+            <input type="checkbox" checked={formData.allow_out_of_stock} onChange={(e) => set("allow_out_of_stock")(e.target.checked)} className="h-[13px] w-[13px] accent-[#0A4833]" />
+            Allow orders when out of stock
+          </label>
+          <label className="flex items-center gap-3 text-[16px] tracking-[-0.5px] text-[#0A4833]">
+            <input type="checkbox" checked={formData.enable_low_stock_alerts} onChange={(e) => set("enable_low_stock_alerts")(e.target.checked)} className="h-[13px] w-[13px] accent-[#0A4833]" />
+            Enable low stock alerts
+          </label>
         </div>
       </Card>
     </div>

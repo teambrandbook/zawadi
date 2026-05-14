@@ -28,11 +28,11 @@ export default function UserManagementHeader({
         <div className="relative min-w-[220px] flex-1 md:max-w-[420px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#6B7280]" />
           <input
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search users..."
-            className="w-full rounded-lg bg-[#E6E6E6] py-2 pl-9 pr-3 text-sm outline-none ring-[#0A4833]/20 placeholder:text-[#6B7280] focus:ring-2"
-          />
+  value={searchQuery}
+  onChange={(e) => onSearchChange(e.target.value)}
+  placeholder="Search users..."
+  className="w-full rounded-lg bg-[#E6E6E6] py-2 pl-9 pr-3 text-sm text-black outline-none ring-[#0A4833]/20 placeholder:text-[#6B7280] focus:ring-2"
+/>
         </div>
 
         <button type="button" onClick={onQuickFilter} className="inline-flex items-center gap-2 rounded-lg bg-[#E5E7EB] px-4 py-2 text-sm text-[#374151] hover:bg-[#D9DCE1]">

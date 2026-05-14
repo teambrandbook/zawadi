@@ -21,12 +21,15 @@ import {
   ShoppingBag,
   Star,
   Truck,
+  Package,
 } from "lucide-react";
 import api from "@/services/api";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
 
 type ApiOrderListItem = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   pack_name?: string;
   quantity?: number;
   total_amount: string | number;
@@ -62,7 +65,7 @@ const ITEMS_PER_PAGE = 4;
 const tabs: TabFilter[] = ["All Orders", "Processing", "Shipped", "Delivered", "Cancelled"];
 const progressStages = [
   "Confirmed",
-  "Packed",
+  "Processing",
   "Shipped",
   "Out for Delivery",
   "Delivered",
@@ -79,7 +82,7 @@ function toLifecycleStatus(status: string): OrderLifecycleStatus {
   if (normalized === "cancelled") return "Cancelled";
   if (normalized === "shipped") return "Shipped";
   if (normalized === "out_for_delivery") return "Out for Delivery";
-  return "Processing";
+  return "Processing"; // Covers 'confirmed' and 'processing'
 }
 
 function toOrderTitle(productName: string): string {
@@ -127,7 +130,7 @@ function getCompletedStageIndex(status: OrderLifecycleStatus) {
   if (status === "Shipped") return 2;
   if (status === "Out for Delivery") return 3;
   if (status === "Delivered") return 4;
-  return -1;
+  return 0; // Confirmed
 }
 
 function getBadgeData(status: OrderLifecycleStatus) {
@@ -143,7 +146,7 @@ function getBadgeData(status: OrderLifecycleStatus) {
   if (status === "Shipped") {
     return { bg: "bg-[#DBEAFE]", text: "text-[#1D4ED8]", Icon: PackageCheck, label: "Shipped" };
   }
-  return { bg: "bg-[#DBEAFE]", text: "text-[#2563EB]", Icon: ShoppingBag, label: "Processing" };
+  return { bg: "bg-[#DBEAFE]", text: "text-[#2563EB]", Icon: Package, label: "Processing" };
 }
 
 function matchesTab(order: OrderItem, activeTab: TabFilter) {
@@ -190,7 +193,7 @@ export default function MyOrder() {
             id: item.order_id,
             title: toOrderTitle(item.product_name),
             orderId: item.order_id,
-            image: fallbackImages[index % fallbackImages.length],
+            image: item.product_image || fallbackImages[index % fallbackImages.length],
             orderDate: toDateLabel(item.created_at),
             quantity: `${item.quantity ?? 1} x ${item.pack_name || "pack"}`,
             totalAmount: toCurrency(item.total_amount),
@@ -255,29 +258,26 @@ export default function MyOrder() {
     setCurrentPage(1);
   }
 
-  function goToTracking(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
+  function toggleOrderExpansion(orderId: string) {
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
   }
 
-  function goToOrderDetails(orderId: string) {
-    router.push(`/communityDashBorde/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
-  }
-
-  function onActionClick(orderId: string, actionLabel: string) {
+  function onActionClick(e: React.MouseEvent, orderId: string, actionLabel: string) {
+    e.stopPropagation();
     if (actionLabel === "Track Order") {
-      goToTracking(orderId);
+      router.push(`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "View Details") {
-      goToOrderDetails(orderId);
+      router.push(`/communityDashBoard/myorders/order-placed?orderId=${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "Write Review") {
-      router.push(`/communityDashBorde/myorders/review/${encodeURIComponent(orderId)}`);
+      router.push(`/communityDashBoard/myorders/review/${encodeURIComponent(orderId)}`);
       return;
     }
     if (actionLabel === "Reorder") {
-      router.push("/communityDashBorde/products");
+      router.push("/communityDashBoard/products");
       return;
     }
     setStatusMessage("Invoice download is not available in the MVP.");
@@ -323,10 +323,7 @@ export default function MyOrder() {
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
           {stats.map(({ label, value, tag, valueClass, Icon }) => (
-            <article
-              key={label}
-              className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]"
-            >
+            <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
               <div className="flex h-12 items-center justify-between">
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#EBE1CF] text-[#0A4833]">
                   <Icon className="h-5 w-5" />
@@ -348,23 +345,19 @@ export default function MyOrder() {
                   type="button"
                   onClick={() => onTabClick(tab)}
                   className={`h-9 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
-                    activeTab === tab
-                      ? "bg-[#0A4833] text-white"
-                      : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
+                    activeTab === tab ? "bg-[#0A4833] text-white" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
                   }`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
-
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <label className="relative block">
                 <select
                   value={sortMode}
                   onChange={(event) => setSortMode(event.target.value as SortMode)}
                   className="h-10 min-w-[180px] appearance-none rounded-lg border-0 bg-[#EBE1CF] px-4 pr-10 text-sm font-medium tracking-[-0.02em] text-[#0A4833] outline-none"
-                  aria-label="Sort orders"
                 >
                   <option value="latest">Sort by: Latest</option>
                   <option value="oldest">Sort by: Oldest</option>
@@ -375,7 +368,7 @@ export default function MyOrder() {
               <button
                 type="button"
                 onClick={() => {
-                  setLast30DaysOnly((value) => !value);
+                  setLast30DaysOnly((v) => !v);
                   setCurrentPage(1);
                 }}
                 className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
@@ -389,73 +382,63 @@ export default function MyOrder() {
           </div>
         </div>
 
-        {statusMessage ? (
+        {statusMessage && (
           <div className="rounded-xl border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-sm text-[#4B5563]">
             {statusMessage}
           </div>
-        ) : null}
+        )}
 
-        {isLoading ? (
-          <div className="rounded-xl border border-[#DFDFDF] bg-white p-6 text-sm text-[#9F8151]">Loading orders...</div>
-        ) : null}
-
-        {loadError && !isLoading ? (
-          <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">{loadError}</div>
-        ) : null}
-
-        <div className="space-y-4">
-          {!isLoading &&
-            paginatedOrders.map((order) => {
+        <ErrorBoundary>
+          <div className="space-y-4">
+            {isLoading && <div className="p-6 text-sm text-[#9F8151]">Loading orders...</div>}
+            {loadError && !isLoading && <div className="rounded-xl border border-[#F3D7D7] bg-[#FFF7F7] p-6 text-sm text-[#9B1C1C]">{loadError}</div>}
+            
+            {!isLoading && paginatedOrders.map((order) => {
               const badge = getBadgeData(order.lifecycleStatus);
               const actions = getActions(order.lifecycleStatus);
               const dateMeta = getDateMeta(order);
-              const showTrackingSection = expandedOrderId === order.id && order.lifecycleStatus !== "Delivered" && order.lifecycleStatus !== "Cancelled";
+              const isExpanded = expandedOrderId === order.id;
+              const showTracking = isExpanded && order.lifecycleStatus !== "Delivered" && order.lifecycleStatus !== "Cancelled";
               const currentStageIndex = getCompletedStageIndex(order.lifecycleStatus);
 
               return (
                 <article
                   key={order.orderId}
-                  className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+                  onClick={() => toggleOrderExpansion(order.id)}
+                  className={`overflow-hidden rounded-xl border border-[#DFDFDF] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.05)] cursor-pointer transition-all ${
+                    isExpanded ? "ring-1 ring-[#0A4833]" : "hover:border-[#0A4833]"
+                  }`}
                 >
                   <div className="p-5 lg:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center">
                       <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg bg-[#EBE1CF]">
                         <Image src={order.image} alt={order.title} fill sizes="96px" className="object-cover" />
                       </div>
-
                       <div className="min-w-0 flex-1 space-y-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                           <div className="min-w-0">
-                            <h2 className="truncate text-lg font-semibold leading-7 tracking-[-0.02em] text-[#0A4833]">
-                              {order.title}
-                            </h2>
+                            <h2 className="truncate text-lg font-semibold leading-7 tracking-[-0.02em] text-[#0A4833]">{order.title}</h2>
                             <p className="text-sm leading-5 tracking-[-0.02em] text-[#9F8151]">Order ID: #{order.orderId}</p>
                           </div>
-                          <span
-                            className={`inline-flex h-6 shrink-0 items-center justify-center gap-1 rounded-full px-3 text-xs font-medium tracking-[-0.02em] ${badge.bg} ${badge.text}`}
-                          >
+                          <span className={`inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-3 text-xs font-medium ${badge.bg} ${badge.text}`}>
                             <badge.Icon className="h-3 w-3" />
                             {badge.label}
                           </span>
                         </div>
-
                         <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm md:grid-cols-4">
                           <OrderMeta label="Order Date" value={order.orderDate} />
                           <OrderMeta label="Quantity" value={order.quantity} />
                           <OrderMeta label="Total Amount" value={order.totalAmount} />
                           <OrderMeta label={dateMeta.label} value={dateMeta.value} />
                         </div>
-
                         <div className="flex flex-wrap gap-2 pt-1">
                           {actions.map((action) => (
                             <button
                               key={action.label}
                               type="button"
-                              onClick={() => onActionClick(order.id, action.label)}
-                              className={`inline-flex h-9 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
-                                action.variant === "primary"
-                                  ? "bg-[#0A4833] text-white hover:bg-[#083B2A]"
-                                  : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
+                              onClick={(e) => onActionClick(e, order.id, action.label)}
+                              className={`inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium ${
+                                action.variant === "primary" ? "bg-[#0A4833] text-white hover:bg-[#083B2A]" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
                               }`}
                             >
                               <action.Icon className="h-4 w-4" />
@@ -467,43 +450,26 @@ export default function MyOrder() {
                     </div>
                   </div>
 
-                  {showTrackingSection ? (
-                    <div className="border-t border-[#DFDFDF] bg-[#EBE1CF] px-5 py-4 lg:px-6">
-                      <div className="mb-4 flex items-center justify-between text-xs tracking-[-0.02em] text-[#9F8151]">
-                        <span>Delivery Progress</span>
-                        <span className="font-medium text-[#0A4833]">{getStatusPercent(order.lifecycleStatus)}</span>
+                  {showTracking && (
+                    <div className="border-t border-[#DFDFDF] bg-[#EBE1CF] px-5 py-6 lg:px-6">
+                      <div className="mb-6 flex items-center justify-between text-xs font-semibold text-[#0A4833]">
+                        <span>DELIVERY PROGRESS</span>
+                        <span className="rounded-full bg-white px-2 py-0.5">{getStatusPercent(order.lifecycleStatus)}</span>
                       </div>
-
                       <div className="grid grid-cols-5 items-start gap-2">
                         {progressStages.map((stage, index) => {
-                          const done = index <= currentStageIndex;
-                          const current = index === currentStageIndex;
-                          const StageIcon = stage === "Out for Delivery" ? Truck : done ? Check : Circle;
+                          const isDone = index <= currentStageIndex;
+                          const isCurrent = index === currentStageIndex;
+                          const StageIcon = stage === "Out for Delivery" ? Truck : isDone ? Check : Circle;
                           return (
                             <div key={stage} className="relative flex flex-col items-center gap-2 text-center">
-                              {index < progressStages.length - 1 ? (
-                                <span
-                                  className={`absolute left-[calc(50%+24px)] top-4 h-1 w-[calc(100%-22px)] rounded-full ${
-                                    index < currentStageIndex - 1
-                                      ? "bg-[#0A4833]"
-                                      : index === currentStageIndex - 1
-                                        ? "bg-[#9F8151]"
-                                        : "bg-white"
-                                  }`}
-                                />
-                              ) : null}
-                              <span
-                                className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full ${
-                                  current
-                                    ? "bg-[#9F8151] text-white"
-                                    : done
-                                      ? "bg-[#0A4833] text-white"
-                                      : "bg-white text-[#CBD5E1]"
-                                }`}
-                              >
+                              {index < progressStages.length - 1 && (
+                                <span className={`absolute left-[calc(50%+16px)] top-4 h-0.5 w-[calc(100%-32px)] ${index < currentStageIndex ? "bg-[#0A4833]" : "bg-white"}`} />
+                              )}
+                              <span className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full ${isCurrent ? "bg-[#9F8151] text-white" : isDone ? "bg-[#0A4833] text-white" : "bg-white text-[#CBD5E1]"}`}>
                                 <StageIcon className="h-3.5 w-3.5" />
                               </span>
-                              <span className={`text-xs font-medium tracking-[-0.02em] ${done || current ? "text-[#0A4833]" : "text-[#9F8151]"}`}>
+                              <span className={`text-[10px] font-bold uppercase tracking-tight sm:text-xs ${isDone || isCurrent ? "text-[#0A4833]" : "text-[#9F8151]"}`}>
                                 {stage}
                               </span>
                             </div>
@@ -511,42 +477,37 @@ export default function MyOrder() {
                         })}
                       </div>
                     </div>
-                  ) : null}
+                  )}
                 </article>
               );
             })}
 
-          {!isLoading && paginatedOrders.length === 0 ? (
-            <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#9F8151]">
-              No orders found for this filter.
-            </div>
-          ) : null}
-        </div>
+            {!isLoading && paginatedOrders.length === 0 && (
+              <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#9F8151]">No orders found for this filter.</div>
+            )}
+          </div>
+        </ErrorBoundary>
 
-        {!isLoading && filteredOrders.length > 0 ? (
+        {!isLoading && filteredOrders.length > 0 && (
           <div className="flex items-center justify-center gap-2 pt-2">
-            <PaginationButton label="Previous page" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}>
+            <PaginationButton label="Previous" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>
               <ChevronLeft className="h-4 w-4" />
             </PaginationButton>
-            {pageNumbers.map((page) => (
+            {pageNumbers.map((p) => (
               <button
-                key={page}
+                key={p}
                 type="button"
-                onClick={() => setCurrentPage(page)}
-                className={`h-10 w-10 rounded-lg border text-sm font-medium ${
-                  currentPage === page
-                    ? "border-[#0A4833] bg-[#0A4833] text-white"
-                    : "border-[#DFDFDF] bg-white text-[#0A4833]"
-                }`}
+                onClick={() => setCurrentPage(p)}
+                className={`h-10 w-10 rounded-lg border text-sm font-medium ${currentPage === p ? "border-[#0A4833] bg-[#0A4833] text-white" : "border-[#DFDFDF] bg-white text-[#0A4833]"}`}
               >
-                {page}
+                {p}
               </button>
             ))}
-            <PaginationButton label="Next page" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}>
+            <PaginationButton label="Next" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}>
               <ChevronRight className="h-4 w-4" />
             </PaginationButton>
           </div>
-        ) : null}
+        )}
       </div>
     </section>
   );
@@ -555,30 +516,20 @@ export default function MyOrder() {
 function OrderMeta({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs leading-4 tracking-[-0.02em] text-[#9F8151]">{label}</p>
-      <p className="mt-1 text-sm font-medium leading-5 tracking-[-0.02em] text-[#0A4833]">{value}</p>
+      <p className="text-xs leading-4 text-[#9F8151]">{label}</p>
+      <p className="mt-1 text-sm font-medium text-[#0A4833]">{value}</p>
     </div>
   );
 }
 
-function PaginationButton({
-  children,
-  disabled,
-  label,
-  onClick,
-}: {
-  children: ReactNode;
-  disabled: boolean;
-  label: string;
-  onClick: () => void;
-}) {
+function PaginationButton({ children, disabled, label, onClick }: { children: ReactNode; disabled: boolean; label: string; onClick: () => void }) {
   return (
     <button
       type="button"
       aria-label={label}
       disabled={disabled}
       onClick={onClick}
-      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#DFDFDF] bg-white text-[#0A4833] disabled:cursor-not-allowed disabled:opacity-45"
+      className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#DFDFDF] bg-white text-[#0A4833] disabled:cursor-not-allowed disabled:opacity-40"
     >
       {children}
     </button>
