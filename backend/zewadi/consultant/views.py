@@ -378,6 +378,45 @@ class DietPlanListView(APIView):
         )
 
 
+class DietPlanDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsConsultantUser]
+
+    def get_object(self, request, pk):
+        try:
+            return (
+                request.user.consultant.diet_plans
+                .select_related("client", "consultant__user")
+                .prefetch_related("meals__items")
+                .get(pk=pk)
+            )
+        except DietPlan.DoesNotExist:
+            return None
+
+    def get(self, request, pk):
+        diet_plan = self.get_object(request, pk)
+        if diet_plan is None:
+            return Response({"detail": "Diet plan not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(DietPlanDetailSerializer(diet_plan).data, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk):
+        diet_plan = self.get_object(request, pk)
+        if diet_plan is None:
+            return Response({"detail": "Diet plan not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = DietPlanCreateSerializer(
+            diet_plan,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        updated_plan = serializer.save()
+        return Response(DietPlanDetailSerializer(updated_plan).data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk):
+        return self.patch(request, pk)
+
+
 class ConsultantNoteView(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
 

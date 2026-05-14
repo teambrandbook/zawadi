@@ -1,20 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   ClipboardCheck,
   HeartPulse,
-  Lightbulb,
   Plus,
+  Star,
+  Video,
 } from "lucide-react";
-import StatCard from "../commen/StatCard";
 import UpcomingSessions from "./components/UpcomingSessions";
-import ActiveDietPlan from "./components/ActiveDietPlan";
-import DietPlanModal from "./components/DietPlanModal";
-import FindNutritionist from "./components/FindNutritionist";
-import ExpertRecommendations from "./components/ExpertRecommendations";
 import ConsultationHistory from "./components/ConsultationHistory";
 import api from "@/services/api";
 import { toast } from "sonner";
@@ -40,6 +37,15 @@ type Session = {
   mode: "Video Call" | "Phone Call";
   status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled";
   meetingLink?: string;
+};
+
+type SummaryCard = {
+  label: string;
+  value: number;
+  helper: string;
+  Icon: typeof CalendarClock;
+  iconBg: string;
+  iconColor: string;
 };
 
 function formatSessionDate(dateValue: string) {
@@ -94,105 +100,134 @@ function mapBookingToSession(booking: ApiBooking): Session {
   };
 }
 
-const statCards = [
-  {
-    Icon: CalendarClock,
-    value: 0,
-    label: "Upcoming Sessions",
-    trend: "Next session soon",
-    trendColor: "text-[#6B7280]",
-    iconBgColor: "bg-[#E8F2ED]",
-    iconColor: "text-[#0A4833]",
-  },
-  {
-    Icon: ClipboardCheck,
-    value: 0,
-    label: "Completed Sessions",
-    trend: "This month",
-    trendColor: "text-[#6B7280]",
-    iconBgColor: "bg-[#F8F3E9]",
-    iconColor: "text-[#A88751]",
-  },
-  {
-    Icon: HeartPulse,
-    value: 1,
-    label: "Active Diet Plans",
-    trend: "Buckwheat wellness plan",
-    trendColor: "text-[#6B7280]",
-    iconBgColor: "bg-[#E8F2ED]",
-    iconColor: "text-[#0A4833]",
-  },
-  {
-    Icon: Lightbulb,
-    value: 5,
-    label: "Expert Tips",
-    trend: "New recommendations",
-    trendColor: "text-[#6B7280]",
-    iconBgColor: "bg-[#F8F3E9]",
-    iconColor: "text-[#A88751]",
-  },
-];
+function avatarFor(index: number) {
+  return `/recipe/recipe-${(index % 4) + 1}.webp`;
+}
 
-const nutritionists = [
-  {
-    id: "n-1",
-    name: "Dr. Emma Rodriguez",
-    role: "Holistic Nutrition Expert",
-    blurb: "Specializes in buckwheat-based diets and natural wellness approaches.",
-    rating: 5.0,
-    reviews: 124,
-  },
-  {
-    id: "n-2",
-    name: "Dr. James Thompson",
-    role: "Weight Management Specialist",
-    blurb: "Expert in sustainable weight-loss and metabolic health optimization.",
-    rating: 4.8,
-    reviews: 98,
-  },
-];
+function SummaryCard({ card }: { card: SummaryCard }) {
+  const Icon = card.Icon;
 
-const recommendations = [
-  {
-    id: "r-1",
-    text: "Start your day with buckwheat porridge for sustained energy and better blood sugar control.",
-    author: "Dr. Sarah Wilson",
-  },
-  {
-    id: "r-2",
-    text: "Combine buckwheat with leafy greens for maximum nutrient absorption.",
-    author: "Dr. Emma Rodriguez",
-  },
-  {
-    id: "r-3",
-    text: "Remember to stay hydrated and practice mindful eating during your wellness journey.",
-    author: "Dr. Michael Chen",
-  },
-];
+  return (
+    <article className="rounded-[10px] border border-[#E1E4E8] bg-white px-5 py-5">
+      <div className="flex items-start justify-between gap-4">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-[6px] ${card.iconBg}`}>
+          <Icon className={`h-4 w-4 ${card.iconColor}`} strokeWidth={2.4} />
+        </div>
+        <p className="text-[22px] font-bold leading-none text-[#0A4833]">{card.value}</p>
+      </div>
+      <p className="mt-5 text-[14px] font-semibold text-[#111827]">{card.label}</p>
+      <p className="mt-4 text-[13px] text-[#6B7280]">{card.helper}</p>
+    </article>
+  );
+}
 
-const historyRows = [
-  {
-    id: "h-1",
-    nutritionist: "Dr. Sarah Wilson",
-    profileImage: "/recipe/recipe-2.webp",
-    date: "Dec 15, 2024",
-    type: "Video Call",
-    status: "Completed",
-  },
-  {
-    id: "h-2",
-    nutritionist: "Dr. Emma Rodriguez",
-    profileImage: "/recipe/recipe-3.webp",
-    date: "Dec 10, 2024",
-    type: "Phone Call",
-    status: "Completed",
-  },
-];
+function SessionJoinCard({ session, onJoin }: { session?: Session; onJoin: (id: string) => void }) {
+  if (!session) {
+    return (
+      <aside className="rounded-[10px] border border-[#E1E4E8] bg-white p-5">
+        <p className="text-[14px] font-semibold text-[#0A4833]">No upcoming session</p>
+        <p className="mt-2 text-[13px] text-[#6B7280]">Your next consultation details will appear here.</p>
+      </aside>
+    );
+  }
+
+  return (
+    <aside className="rounded-[10px] border border-[#E1E4E8] bg-white p-5">
+      <div className="flex items-center gap-3">
+        <div className="relative h-10 w-10 overflow-hidden rounded-full bg-[#E5E7EB]">
+          <Image src="/recipe/recipe-2.webp" alt={session.doctor} fill className="object-cover" />
+        </div>
+        <div>
+          <p className="text-[14px] font-bold leading-tight text-[#0A4833]">{session.doctor}</p>
+          <p className="text-[12px] text-[#4B5563]">{session.specialty}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-[6px] bg-[#E9DFC9] p-4">
+        <div className="flex justify-between gap-4 text-[12px] text-[#0A4833]">
+          <span>Starting in</span>
+          <span className="font-medium">25 minutes</span>
+        </div>
+        <p className="mt-4 text-[16px] font-bold text-[#0A4833]">{session.timeLabel}</p>
+      </div>
+
+      {session.meetingLink ? (
+        <button
+          type="button"
+          onClick={() => onJoin(session.id)}
+          title={session.meetingLink}
+          className="mt-4 w-full truncate rounded-[6px] bg-[#F3F4F6] px-4 py-3 text-center text-[12px] text-[#4B5563] hover:bg-[#E8EAEE]"
+        >
+          {session.meetingLink}
+        </button>
+      ) : (
+        <div className="mt-4 rounded-[6px] bg-[#F3F4F6] px-4 py-3 text-center text-[12px] text-[#6B7280]">
+          Consultant has not shared the meeting link yet
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onJoin(session.id)}
+        disabled={!session.meetingLink}
+        className="mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-[6px] bg-[#07533D] text-[13px] font-semibold text-white hover:bg-[#063F2F] disabled:cursor-not-allowed disabled:bg-[#D1D5DB] disabled:text-[#6B7280]"
+      >
+        <Video className="h-4 w-4 fill-current" />
+        Join Session
+      </button>
+    </aside>
+  );
+}
+
+function ActiveDietPlanCard({ progress, onViewPlan }: { progress: number; onViewPlan: () => void }) {
+  return (
+    <aside className="overflow-hidden rounded-[10px] border border-[#E1E4E8] bg-white">
+      <div className="border-b border-[#E8EAEE] px-5 py-6">
+        <h3 className="text-[18px] font-bold text-[#0A4833]">Active Diet Plan</h3>
+      </div>
+
+      <div className="px-5 py-6">
+        <h4 className="text-[14px] font-bold text-[#111827]">Buckwheat Wellness Plan</h4>
+        <p className="mt-3 text-[13px] leading-5 text-[#4B5563]">
+          A 30-day nutrition program focused on buckwheat integration for optimal health.
+        </p>
+
+        <div className="mt-4">
+          <div className="mb-2 flex items-center justify-between text-[13px]">
+            <span className="text-[#6B7280]">Progress</span>
+            <span className="text-[#A88751]">{progress}%</span>
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+            <div className="h-full rounded-full bg-[#A88751]" style={{ width: `${progress}%` }} />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-3 text-[13px]">
+          <div className="flex items-center justify-between">
+            <span className="text-[#6B7280]">Target Weight</span>
+            <span className="font-medium text-[#111827]">65 kg</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-[#6B7280]">Daily Calories</span>
+            <span className="font-medium text-[#111827]">1,800 kcal</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onViewPlan}
+          className="mt-5 inline-flex h-10 w-full items-center justify-center rounded-[6px] bg-[#A88751] text-[13px] font-medium text-white hover:bg-[#8E7346]"
+        >
+          View Full Plan
+        </button>
+      </div>
+    </aside>
+  );
+}
 
 export default function Consultation() {
   const router = useRouter();
   const [message, setMessage] = useState("");
-  const [isDietPlanOpen, setIsDietPlanOpen] = useState(false);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
   const hasLoadedSessionsRef = useRef(false);
@@ -257,56 +292,109 @@ export default function Consultation() {
     };
   }, [fetchSessions]);
 
+  const upcomingSessions = useMemo(
+    () => sessions.filter((session) => session.status !== "completed" && session.status !== "cancelled"),
+    [sessions]
+  );
+  const completedSessions = useMemo(() => sessions.filter((session) => session.status === "completed"), [sessions]);
+  const nextSession = upcomingSessions[0];
+  const summaryCards: SummaryCard[] = [
+    {
+      Icon: CalendarClock,
+      value: upcomingSessions.length,
+      label: "Upcoming Sessions",
+      helper: nextSession ? `Next session ${nextSession.dateLabel.toLowerCase()}` : "No upcoming sessions",
+      iconBg: "bg-[#E7F0EC]",
+      iconColor: "text-[#0A4833]",
+    },
+    {
+      Icon: ClipboardCheck,
+      value: completedSessions.length,
+      label: "Completed Sessions",
+      helper: "This month",
+      iconBg: "bg-[#F4F0EA]",
+      iconColor: "text-[#A88751]",
+    },
+    {
+      Icon: HeartPulse,
+      value: 1,
+      label: "Active Diet Plans",
+      helper: "Buckwheat wellness plan",
+      iconBg: "bg-[#E7F0EC]",
+      iconColor: "text-[#0A4833]",
+    },
+    {
+      Icon: Star,
+      value: 5,
+      label: "Expert Tips",
+      helper: "New recommendations",
+      iconBg: "bg-[#F4F0EA]",
+      iconColor: "text-[#A88751]",
+    },
+  ];
+  const historyRows = (completedSessions.length > 0 ? completedSessions : sessions.slice(0, 2)).map((session, index) => ({
+    id: session.id,
+    nutritionist: session.doctor,
+    profileImage: avatarFor(index),
+    date: session.dateLabel,
+    type: session.mode,
+    status: session.status === "completed" ? "Completed" : "Scheduled",
+  }));
+
+  function joinSession(id: string) {
+    const session = sessions.find((item) => item.id === id);
+    if (session?.meetingLink) {
+      window.open(session.meetingLink, "_blank", "noopener,noreferrer");
+      return;
+    }
+    setMessage("Consultant has not shared the meeting link yet.");
+  }
+
   return (
-    <section className="w-full bg-white px-4 py-8 lg:px-8">
-      <div className="mx-auto max-w-[1120px] space-y-5">
+    <section className="w-full bg-white px-3 py-4 lg:px-4">
+      <div className="mx-auto max-w-[1220px] space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-[#0A4833]">Consultation</h1>
-            <p className="mt-1 text-sm text-[#6B7280]">
+            <h1 className="text-[26px] font-bold leading-tight text-[#0A4833]">Consultation</h1>
+            <p className="mt-1 text-[14px] text-[#4B5563]">
               Connect with nutrition experts and manage your personalized wellness guidance.
             </p>
           </div>
           <button
+            type="button"
             onClick={() => router.push("/communityDashBoard/addconsaltation")}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-xs font-medium text-white hover:bg-[#083B2A]"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] bg-[#07533D] px-6 text-[14px] font-semibold text-white hover:bg-[#063F2F]"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             Book Consultation
           </button>
         </header>
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {statCards.map((card) => (
-            <StatCard key={card.label} {...card} />
+          {summaryCards.map((card) => (
+            <SummaryCard key={card.label} card={card} />
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_374px]">
           {loadingSessions ? (
-            <div className="rounded-xl border border-[#DFDFDF] bg-white p-6 text-sm text-[#6B7280]">
+            <div className="rounded-[10px] border border-[#E1E4E8] bg-white p-6 text-sm text-[#6B7280]">
               Loading sessions...
             </div>
           ) : (
             <UpcomingSessions
-              sessions={sessions}
-              onJoin={(id) => {
-                const session = sessions.find((item) => item.id === id);
-                if (session?.meetingLink) {
-                  window.open(session.meetingLink, "_blank", "noopener,noreferrer");
-                  return;
-                }
-                setMessage(`Joining session: ${id}`);
-              }}
+              sessions={upcomingSessions}
+              onJoin={joinSession}
               onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
             />
           )}
-          <ActiveDietPlan progress={65} onViewPlan={() => setIsDietPlanOpen(true)} />
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <FindNutritionist nutritionists={nutritionists} onBook={(id) => setMessage(`Booking nutritionist: ${id}`)} />
-          <ExpertRecommendations items={recommendations} />
+          <div className="space-y-5">
+            <SessionJoinCard session={nextSession} onJoin={joinSession} />
+            <ActiveDietPlanCard
+              progress={65}
+              onViewPlan={() => router.push("/communityDashBoard/consultation/diet-plan")}
+            />
+          </div>
         </div>
 
         <ConsultationHistory rows={historyRows} />
@@ -317,8 +405,6 @@ export default function Consultation() {
           </div>
         )}
       </div>
-
-      <DietPlanModal open={isDietPlanOpen} onClose={() => setIsDietPlanOpen(false)} />
     </section>
   );
 }

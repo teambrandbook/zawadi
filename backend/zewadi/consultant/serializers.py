@@ -456,6 +456,24 @@ class DietPlanCreateSerializer(serializers.ModelSerializer):
 
         return diet_plan
 
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        meals_data = validated_data.pop("meals", None)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        if meals_data is not None:
+            instance.meals.all().delete()
+            for meal_data in meals_data:
+                items_data = meal_data.pop("items", [])
+                meal = DietPlanMeal.objects.create(diet_plan=instance, **meal_data)
+                for item_data in items_data:
+                    DietPlanMealItem.objects.create(meal=meal, **item_data)
+
+        return instance
+
 
 class DietPlanDetailSerializer(serializers.ModelSerializer):
     meals = DietPlanMealSerializer(many=True, read_only=True)

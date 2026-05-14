@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
 import {
   CalendarDays,
@@ -9,7 +10,6 @@ import {
   ChevronDown,
   CircleCheck,
   Clock3,
-  Copy,
   Eye,
   FileText,
   Flame,
@@ -37,11 +37,11 @@ type DietPlan = {
   highlights: string[];
 };
 
-type StatCard = {
+type StatCardConfig = {
   label: string;
-  value: string;
   icon: ComponentType<{ className?: string }>;
   iconColor: string;
+  getValue: (plans: DietPlan[]) => number;
 };
 
 type MealItem = {
@@ -71,12 +71,12 @@ type DietPlanApiResponse = {
   meals: DietPlanApiMeal[];
 };
 
-const stats: StatCard[] = [
-  { label: "Total Plans", value: "48", icon: FileText, iconColor: "text-[#0A4833]" },
-  { label: "Active Plans", value: "32", icon: Flame, iconColor: "text-[#B48A4A]" },
-  { label: "Draft Plans", value: "8", icon: FileText, iconColor: "text-[#7C8A86]" },
-  { label: "Completed", value: "24", icon: CircleCheck, iconColor: "text-[#22C55E]" },
-  { label: "Pending", value: "5", icon: Clock3, iconColor: "text-[#F97316]" },
+const statConfigs: StatCardConfig[] = [
+  { label: "Total Plans", icon: FileText, iconColor: "text-[#0A4833]", getValue: (plans) => plans.length },
+  { label: "Active Plans", icon: Flame, iconColor: "text-[#B48A4A]", getValue: (plans) => plans.filter((plan) => plan.status === "active").length },
+  { label: "Draft Plans", icon: FileText, iconColor: "text-[#7C8A86]", getValue: (plans) => plans.filter((plan) => plan.status === "draft").length },
+  { label: "Completed", icon: CircleCheck, iconColor: "text-[#22C55E]", getValue: (plans) => plans.filter((plan) => plan.status === "completed").length },
+  { label: "Pending", icon: Clock3, iconColor: "text-[#F97316]", getValue: (plans) => plans.filter((plan) => plan.status === "pending").length },
 ];
 
 const dietPlans: DietPlan[] = [
@@ -271,7 +271,6 @@ function getPlanActions(status: PlanStatus) {
     return [
       ...baseActions,
       { label: "Edit", icon: FileText, className: "bg-[#F5EFE3] text-[#A88751] hover:bg-[#ECE2D0]" },
-      { label: "Duplicate", icon: Copy, className: "bg-[#F3F4F6] text-[#0A4833] hover:bg-[#E5E7EB]" },
       { label: "Assign", icon: UserPlus, className: "bg-[#F3F4F6] text-[#0A4833] hover:bg-[#E5E7EB]" },
     ];
   }
@@ -285,10 +284,7 @@ function getPlanActions(status: PlanStatus) {
   }
 
   if (status === "completed") {
-    return [
-      ...baseActions,
-      { label: "Duplicate", icon: Copy, className: "bg-[#F3F4F6] text-[#0A4833] hover:bg-[#E5E7EB]" },
-    ];
+    return baseActions;
   }
 
   return [
@@ -299,6 +295,7 @@ function getPlanActions(status: PlanStatus) {
 }
 
 export default function ConsultantDietPlansPage() {
+  const router = useRouter();
   const [plans, setPlans] = useState<DietPlan[]>(dietPlans);
   const [selectedPlan, setSelectedPlan] = useState<DietPlan | null>(dietPlans[0]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -334,6 +331,22 @@ export default function ConsultantDietPlansPage() {
     setIsPreviewOpen(true);
   }
 
+  function handlePlanAction(plan: DietPlan, label: string) {
+    if (label === "View Plan") {
+      handleViewPlan(plan);
+      return;
+    }
+
+    if (label === "Edit") {
+      router.push(`/consultant/diet-plans/add?mode=edit&id=${plan.id}`);
+      return;
+    }
+
+    if (label === "Assign") {
+      router.push(`/consultant/diet-plans/add?mode=assign&id=${plan.id}`);
+    }
+  }
+
   return (
     <>
       <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
@@ -356,13 +369,14 @@ export default function ConsultantDietPlansPage() {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-          {stats.map((stat) => {
+          {statConfigs.map((stat) => {
             const Icon = stat.icon;
+            const value = isLoading ? "..." : String(stat.getValue(plans));
 
             return (
               <SectionCard key={stat.label} className="p-4">
                 <Icon className={`h-6 w-6 ${stat.iconColor}`} />
-                <p className="mt-4 text-[38px] font-bold leading-none text-[#0A4833]">{stat.value}</p>
+                <p className="mt-4 text-[38px] font-bold leading-none text-[#0A4833]">{value}</p>
                 <p className="mt-2 text-sm text-[rgba(10,72,51,0.55)]">{stat.label}</p>
               </SectionCard>
             );
@@ -445,13 +459,11 @@ export default function ConsultantDietPlansPage() {
                 <div className="mt-5 flex flex-wrap gap-2">
                   {getPlanActions(plan.status).map((action) => {
                     const Icon = action.icon;
-                    const isViewAction = action.label === "View Plan";
-
                     return (
                       <button
                         key={`${plan.id}-${action.label}`}
                         type="button"
-                        onClick={isViewAction ? () => handleViewPlan(plan) : undefined}
+                        onClick={() => handlePlanAction(plan, action.label)}
                         className={`inline-flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium transition ${action.className}`}
                       >
                         <Icon className="h-4 w-4" />

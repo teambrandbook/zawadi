@@ -231,4 +231,3 @@ CACHES = {
         },
         "KEY_PREFIX": "zawadi",
     }
-}
