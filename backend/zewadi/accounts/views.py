@@ -1,12 +1,10 @@
 import logging
 import os
 import uuid as _uuid
-import requests
-
-logger = logging.getLogger(__name__)
 from datetime import timedelta
 from urllib.parse import urlencode
 
+import requests
 from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import status
@@ -24,6 +22,8 @@ from .models import OTP, User
 from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
 from .throttles import LoginRateThrottle, RegisterRateThrottle
+
+logger = logging.getLogger(__name__)
 
 
 def get_google_config_error():
@@ -81,7 +81,6 @@ def get_or_create_google_user(email, name):
 
 
 def set_auth_cookies(response, refresh, access):
-    from django.conf import settings
     secure = not settings.DEBUG
     response.set_cookie(
         key="refresh_token",
