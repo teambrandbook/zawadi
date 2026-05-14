@@ -678,7 +678,6 @@ class ConsultantBookingConformApi(APIView):
             context={"request": request}
         )
 
-        print("hello")
         serializer.is_valid(raise_exception=True)
 
         booking = serializer.validated_data["booking"]

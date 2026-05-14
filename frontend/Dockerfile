@@ -8,6 +8,10 @@ RUN npm ci
 
 COPY . .
 
+# NEXT_PUBLIC_* vars are embedded at build time
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build with standalone output
 RUN npm run build
 
