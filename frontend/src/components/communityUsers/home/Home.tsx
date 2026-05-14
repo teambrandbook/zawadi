@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   CalendarClock,
@@ -61,6 +61,12 @@ type ApiRecipe = {
   category?: string;
 };
 
+type ListResponse<T> = T[] | {
+  data?: T[];
+  results?: T[];
+  count?: number;
+};
+
 const ORDER_STATUS_CLASSES: Record<string, string> = {
   delivered: "bg-green-100 text-green-700",
   pending: "bg-yellow-100 text-yellow-700",
@@ -84,12 +90,26 @@ function parseEventDate(iso: string) {
   };
 }
 
+function toList<T>(data: ListResponse<T>): T[] {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data.data)) return data.data;
+  if (Array.isArray(data.results)) return data.results;
+  return [];
+}
+
+function toCount<T>(data: ListResponse<T>, fallbackList: T[]): number {
+  return Array.isArray(data) ? data.length : data.count ?? fallbackList.length;
+}
+
 function Home() {
   const [displayName, setDisplayName] = useState("there");
   const [summaryStats, setSummaryStats] = useState<DashboardSummaryResponse["stats"] | null>(null);
   const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [events, setEvents] = useState<ApiEvent[]>([]);
+  const [totalEvents, setTotalEvents] = useState(0);
   const [recipes, setRecipes] = useState<ApiRecipe[]>([]);
+  const [totalRecipes, setTotalRecipes] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -108,9 +128,9 @@ function Home() {
           userRole === "community_user"
             ? api.get<DashboardSummaryResponse>("/community/dashboard/summary/")
             : Promise.resolve(null),
-          api.get<{ results?: ApiOrder[]; count?: number } | ApiOrder[]>("/orders/"),
-          api.get<{ results?: ApiEvent[] } | ApiEvent[]>("/events/"),
-          api.get<{ results?: ApiRecipe[] } | ApiRecipe[]>("/recipes/"),
+          api.get<ListResponse<ApiOrder>>("/orders/"),
+          api.get<ListResponse<ApiEvent>>("/events/"),
+          api.get<ListResponse<ApiRecipe>>("/recipes/"),
         ]);
 
         if (!isMounted) return;
@@ -124,19 +144,22 @@ function Home() {
 
         if (ordersRes.status === "fulfilled") {
           const d = ordersRes.value.data;
-          const list: ApiOrder[] = Array.isArray(d) ? d : (d.results ?? []);
+          const list = toList(d);
+          setTotalOrders(toCount(d, list));
           setOrders(list.slice(0, 3));
         }
 
         if (eventsRes.status === "fulfilled") {
           const d = eventsRes.value.data;
-          const list: ApiEvent[] = Array.isArray(d) ? d : (d.results ?? []);
+          const list = toList(d);
+          setTotalEvents(toCount(d, list));
           setEvents(list.slice(0, 3));
         }
 
         if (recipesRes.status === "fulfilled") {
           const d = recipesRes.value.data;
-          const list: ApiRecipe[] = Array.isArray(d) ? d : (d.results ?? []);
+          const list = toList(d);
+          setTotalRecipes(toCount(d, list));
           setRecipes(list.slice(0, 4));
         }
       } catch {
@@ -151,6 +174,16 @@ function Home() {
   }, []);
 
   const EVENT_THEMES = ["green", "golden", "outline"] as const;
+  const stats = useMemo(
+    () => ({
+      total_orders: summaryStats?.total_orders ?? totalOrders,
+      upcoming_events: summaryStats?.upcoming_events ?? totalEvents,
+      consultations: summaryStats?.consultations ?? 0,
+      submitted_recipes: summaryStats?.submitted_recipes ?? totalRecipes,
+      published_blogs: summaryStats?.published_blogs ?? 0,
+    }),
+    [summaryStats, totalEvents, totalOrders, totalRecipes]
+  );
 
   return (
     <div className="w-full bg-white py-10 px-2">
@@ -175,11 +208,11 @@ function Home() {
 
       {/* StatCards Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 pt-5">
-        <StatCard Icon={ShoppingBag} value={String(summaryStats?.total_orders ?? "—")} label="Total Orders" trend="+12%" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
-        <StatCard Icon={Calendar} value={String(summaryStats?.upcoming_events ?? "—")} label="Upcoming Events" trend="3 New" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
-        <StatCard Icon={UserRound} value={String(summaryStats?.consultations ?? "—")} label="Consultations" trend="Active" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
-        <StatCard Icon={Utensils} value={String(summaryStats?.submitted_recipes ?? "—")} label="Submitted Recipes" trend="8 Live" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
-        <StatCard Icon={PenTool} value={String(summaryStats?.published_blogs ?? "—")} label="Published Blogs" trend="2 Draft" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
+        <StatCard Icon={ShoppingBag} value={String(stats.total_orders)} label="Total Orders" trend="Orders" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
+        <StatCard Icon={Calendar} value={String(stats.upcoming_events)} label="Upcoming Events" trend="Events" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
+        <StatCard Icon={UserRound} value={String(stats.consultations)} label="Consultations" trend="Active" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
+        <StatCard Icon={Utensils} value={String(stats.submitted_recipes)} label="Submitted Recipes" trend="Recipes" iconBgColor="bg-[#F5F1E9]" iconColor="text-[#A68966]" trendColor="text-[#0A4834]" />
+        <StatCard Icon={PenTool} value={String(stats.published_blogs)} label="Published Blogs" trend="Blogs" iconBgColor="bg-[#E8F0EE]" iconColor="text-[#0A4834]" trendColor="text-[#A68966]" />
       </div>
 
       {/* Main Content Grid */}

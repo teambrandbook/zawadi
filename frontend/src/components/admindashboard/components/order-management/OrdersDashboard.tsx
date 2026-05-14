@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
+import OrderDetailsModal from "./components/OrderDetailsModal";
 import OrdersHeader from "./components/OrdersHeader";
 import OrderStats from "./components/OrderStats";
 import OrderStatusModal from "./components/OrderStatusModal";
@@ -15,68 +16,168 @@ type Order = {
   email: string;
   product: string;
   pack: string;
+  quantity: string;
+  packPrice: string;
+  subtotal: string;
+  deliveryCharge: string;
   date: string;
   amount: string;
   status: string;
   payment: "Paid" | "Pending" | "Refunded";
+  paymentMethod: string;
+  phone: string;
+  city: string;
+  postalCode: string;
+  address: string;
+  instructions: string;
   avatar: string;
+  product_image: string;
 };
+
+function money(value: unknown) {
+  return value != null && value !== ""
+    ? `$${parseFloat(String(value)).toFixed(2)}`
+    : "$0.00";
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiOrder(item: Record<string, any>, index: number): Order {
   return {
     id: String(item.order_id ?? item.id ?? `ORD-${index + 1}`),
-    customer: String(item.full_name ?? item.customer_name ?? item.customer ?? "Unknown"),
+    customer: String(
+      item.full_name ?? item.customer_name ?? item.customer ?? "Unknown"
+    ),
     email: String(item.email ?? ""),
     product: String(item.product_name ?? item.product ?? "—"),
-    pack: String(item.pack ?? item.variant ?? ""),
+    pack: String(item.pack_name ?? item.pack ?? item.variant ?? ""),
+    quantity: String(item.quantity ?? ""),
+    packPrice: money(item.pack_price),
+    subtotal: money(item.subtotal),
+    deliveryCharge: money(item.delivery_charge),
+
     date: item.created_at
-      ? new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+      ? new Date(item.created_at).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })
       : String(item.date ?? ""),
-    amount: item.total_amount != null ? `$${parseFloat(item.total_amount).toFixed(2)}` : String(item.amount ?? "$0.00"),
-    status: String(item.status ?? "Pending"),
+
+    amount:
+      item.total_amount != null
+        ? money(item.total_amount)
+        : String(item.amount ?? "$0.00"),
+
+    status: String(item.status ?? "confirmed"),
+
     payment:
-      item.payment_method === "Refunded" || item.payment_status === "refunded"
+      item.payment_method === "Refunded" ||
+      item.payment_status === "refunded"
         ? "Refunded"
-        : item.payment_method === "Pending" || item.payment_status === "pending"
+        : item.payment_method === "Pending" ||
+          item.payment_status === "pending"
         ? "Pending"
         : "Paid",
-    avatar: String(item.avatar ?? item.customer_avatar ?? ""),
+
+    paymentMethod: String(item.payment_method ?? ""),
+    phone: String(item.phone ?? ""),
+    city: String(item.city ?? ""),
+    postalCode: String(item.postal_code ?? ""),
+    address: String(item.address ?? ""),
+    instructions: String(item.instructions ?? ""),
+
+    avatar: String(
+      item.user_image ||
+        item.avatar ||
+        item.customer_avatar ||
+        "/userdash/myrecipy/my-recipes-icon.png"
+    ),
+
+    product_image: String(
+      item.product_image || "/product/p-1.webp"
+    ),
   };
 }
 
 function toCsv(rows: Order[]) {
-  const header = ["Order ID", "Customer", "Email", "Product", "Pack", "Date", "Amount", "Status", "Payment"];
-  const body = rows.map((o) => [o.id, o.customer, o.email, o.product, o.pack, o.date, o.amount, o.status, o.payment]);
-  return [header, ...body].map((line) => line.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n");
+  const header = [
+    "Order ID",
+    "Customer",
+    "Email",
+    "Product",
+    "Pack",
+    "Date",
+    "Amount",
+    "Status",
+    "Payment",
+  ];
+
+  const body = rows.map((o) => [
+    o.id,
+    o.customer,
+    o.email,
+    o.product,
+    o.pack,
+    o.date,
+    o.amount,
+    o.status,
+    o.payment,
+  ]);
+
+  return [header, ...body]
+    .map((line) =>
+      line.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")
+    )
+    .join("\n");
 }
 
 export default function OrdersDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All Status");
   const [payment, setPayment] = useState("Payment Status");
+
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+
   const [page, setPage] = useState(1);
+
   const [modalOpen, setModalOpen] = useState(false);
   const [activeOrderId, setActiveOrderId] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOrderId, setDetailsOrderId] = useState("");
+
+  // DELETE MODAL STATES
+  const [deleteModalOpen, setDeleteModalOpen] =
+    useState(false);
+
+  const [deleteOrderId, setDeleteOrderId] =
+    useState("");
 
   const fetchOrders = async () => {
     setIsLoading(true);
     setFetchError(null);
+
     try {
       const res = await api.get("/orders/admin/");
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const raw: Record<string, any>[] = Array.isArray(res.data)
+      const raw: Record<string, any>[] = Array.isArray(
+        res.data
+      )
         ? res.data
         : Array.isArray(res.data?.results)
         ? res.data.results
         : [];
+
       setOrders(raw.map(mapApiOrder));
-    } catch {
+
+      console.log(res.data);
+    } catch (error) {
+      console.log(error);
       setFetchError("Failed to load orders");
     } finally {
       setIsLoading(false);
@@ -90,37 +191,95 @@ export default function OrdersDashboard() {
   const filtered = useMemo(() => {
     return orders.filter((o) => {
       const q = search.toLowerCase();
+
       const bySearch =
         o.id.toLowerCase().includes(q) ||
         o.customer.toLowerCase().includes(q) ||
         o.product.toLowerCase().includes(q);
-      const byStatus = status === "All Status" || o.status === status;
-      const byPayment = payment === "Payment Status" || o.payment === payment;
+
+      const byStatus =
+        status === "All Status" ||
+        o.status === status;
+
+      const byPayment =
+        payment === "Payment Status" ||
+        o.payment === payment;
+
       const orderTime = new Date(o.date).getTime();
-      const fromTime = fromDate ? new Date(fromDate).getTime() : null;
-      const toTime = toDate ? new Date(toDate).getTime() : null;
+
+      const fromTime = fromDate
+        ? new Date(fromDate).getTime()
+        : null;
+
+      const toTime = toDate
+        ? new Date(toDate).getTime()
+        : null;
+
       const validDate = !Number.isNaN(orderTime);
-      const afterFrom = fromTime === null || (!Number.isNaN(fromTime) && validDate && orderTime >= fromTime);
-      const beforeTo = toTime === null || (!Number.isNaN(toTime) && validDate && orderTime <= toTime);
-      return bySearch && byStatus && byPayment && afterFrom && beforeTo;
+
+      const afterFrom =
+        fromTime === null ||
+        (!Number.isNaN(fromTime) &&
+          validDate &&
+          orderTime >= fromTime);
+
+      const beforeTo =
+        toTime === null ||
+        (!Number.isNaN(toTime) &&
+          validDate &&
+          orderTime <= toTime);
+
+      return (
+        bySearch &&
+        byStatus &&
+        byPayment &&
+        afterFrom &&
+        beforeTo
+      );
     });
-  }, [orders, search, status, payment, fromDate, toDate]);
+  }, [
+    orders,
+    search,
+    status,
+    payment,
+    fromDate,
+    toDate,
+  ]);
 
   const perPage = 10;
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filtered.length / perPage)
+  );
+
   const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * perPage, safePage * perPage);
+
+  const paged = filtered.slice(
+    (safePage - 1) * perPage,
+    safePage * perPage
+  );
 
   function handleExport() {
     const csv = toCsv(filtered);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    const blob = new Blob([csv], {
+      type: "text/csv;charset=utf-8;",
+    });
+
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement("a");
+
     a.href = url;
     a.download = "orders.csv";
+
     document.body.appendChild(a);
+
     a.click();
+
     document.body.removeChild(a);
+
     URL.revokeObjectURL(url);
   }
 
@@ -129,29 +288,91 @@ export default function OrdersDashboard() {
     setModalOpen(true);
   }
 
+  function openDetailsModal(orderId: string) {
+    setDetailsOrderId(orderId);
+    setDetailsOpen(true);
+  }
+
+  // OPEN DELETE MODAL
+  function openDeleteModal(orderId: string) {
+    setDeleteOrderId(orderId);
+    setDeleteModalOpen(true);
+  }
+
+  // DELETE ORDER
+  async function handleDelete() {
+    try {
+      await api.delete(
+        `/orders/admin/${deleteOrderId}/status/`
+      );
+
+      setOrders((prev) =>
+        prev.filter(
+          (order) =>
+            order.id !== deleteOrderId
+        )
+      );
+
+      toast.success(
+        "Order deleted successfully"
+      );
+    } catch {
+      toast.error("Failed to delete order");
+    } finally {
+      setDeleteModalOpen(false);
+    }
+  }
+
   async function saveStatus(nextStatus: string) {
     try {
-      await api.patch(`/orders/admin/${activeOrderId}/status/`, { status: nextStatus });
-      setOrders((prev) => prev.map((o) => (o.id === activeOrderId ? { ...o, status: nextStatus } : o)));
+      await api.patch(
+        `/orders/admin/${activeOrderId}/status/`,
+        {
+          status: nextStatus,
+        }
+      );
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === activeOrderId
+            ? { ...o, status: nextStatus }
+            : o
+        )
+      );
+
+      toast.success("Order status updated");
     } catch {
-      toast.error("Failed to update order status. Please try again.");
+      toast.error(
+        "Failed to update order status. Please try again."
+      );
     } finally {
       setModalOpen(false);
     }
   }
 
-  const activeOrder = orders.find((o) => o.id === activeOrderId);
+  const activeOrder = orders.find(
+    (o) => o.id === activeOrderId
+  );
+
+  const detailsOrder =
+    orders.find((o) => o.id === detailsOrderId) ?? null;
 
   return (
-    <section className="w-full min-h-screen bg-white p-4 lg:p-6 overflow-x-hidden">
-      <div className="mx-auto max-w-[1180px] w-full space-y-6">
+    <section className="w-full min-h-screen overflow-x-hidden bg-white p-4 lg:p-6">
+      <div className="mx-auto w-full max-w-[1180px] space-y-6">
         <OrdersHeader
           search={search}
           onSearchChange={(value) => {
             setSearch(value);
             setPage(1);
           }}
-          onFilterClick={() => setStatus((s) => (s === "All Status" ? "Processing" : "All Status"))}
+          onFilterClick={() =>
+            setStatus((s) =>
+              s === "All Status"
+                ? "processing"
+                : "All Status"
+            )
+          }
           onExport={handleExport}
         />
 
@@ -164,16 +385,20 @@ export default function OrdersDashboard() {
             Loading orders...
           </div>
         )}
+
         {fetchError && (
           <div className="rounded-xl border border-[#FECACA] bg-[#FEF2F2] p-4 text-sm text-[#B91C1C]">
             {fetchError}
           </div>
         )}
-        {!isLoading && !fetchError && orders.length === 0 && (
-          <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#6B7280]">
-            No orders found.
-          </div>
-        )}
+
+        {!isLoading &&
+          !fetchError &&
+          orders.length === 0 && (
+            <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#6B7280]">
+              No orders found.
+            </div>
+          )}
 
         <OrderFilters
           status={status}
@@ -181,10 +406,17 @@ export default function OrdersDashboard() {
           fromDate={fromDate}
           toDate={toDate}
           onChange={(field, value) => {
-            if (field === "status") setStatus(value);
-            if (field === "payment") setPayment(value);
-            if (field === "fromDate") setFromDate(value);
-            if (field === "toDate") setToDate(value);
+            if (field === "status")
+              setStatus(value);
+
+            if (field === "payment")
+              setPayment(value);
+
+            if (field === "fromDate")
+              setFromDate(value);
+
+            if (field === "toDate")
+              setToDate(value);
           }}
           onApply={() => setPage(1)}
           onClear={() => {
@@ -204,8 +436,22 @@ export default function OrdersDashboard() {
               page={safePage}
               perPage={perPage}
               total={filtered.length}
-              onPageChange={(nextPage) => setPage(Math.max(1, Math.min(nextPage, totalPages)))}
-              onOpenStatus={openStatusModal}
+              onPageChange={(nextPage) =>
+                setPage(
+                  Math.max(
+                    1,
+                    Math.min(
+                      nextPage,
+                      totalPages
+                    )
+                  )
+                )
+              }
+              onOpenStatus={
+                openStatusModal
+              }
+              onViewDetails={openDetailsModal}
+              onDelete={openDeleteModal}
             />
           </div>
         </div>
@@ -213,10 +459,60 @@ export default function OrdersDashboard() {
 
       <OrderStatusModal
         open={modalOpen}
-        currentStatus={activeOrder?.status ?? ""}
-        onClose={() => setModalOpen(false)}
+        currentStatus={
+          activeOrder?.status ?? ""
+        }
+        onClose={() =>
+          setModalOpen(false)
+        }
         onSave={saveStatus}
       />
+
+      <OrderDetailsModal
+        open={detailsOpen}
+        order={detailsOrder}
+        onClose={() =>
+          setDetailsOpen(false)
+        }
+      />
+
+      {/* DELETE MODAL */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="text-xl font-semibold text-[#0A4833]">
+              Delete Order
+            </h2>
+
+            <p className="mt-3 text-sm leading-6 text-[#6B7280]">
+              Are you sure you want to
+              delete this order?
+            </p>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setDeleteModalOpen(
+                    false
+                  )
+                }
+                className="rounded-lg border border-[#D1D5DB] bg-white px-5 py-2 text-sm font-medium text-[#374151] transition hover:bg-gray-100"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="rounded-lg bg-red-600 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
