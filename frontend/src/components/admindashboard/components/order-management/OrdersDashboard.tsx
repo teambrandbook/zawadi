@@ -51,7 +51,7 @@ function mapApiOrder(item: Record<string, any>, index: number): Order {
     product: String(item.product_name ?? item.product ?? "—"),
     pack: String(item.pack_name ?? item.pack ?? item.variant ?? ""),
     quantity: String(item.quantity ?? ""),
-    packPrice: money(item.pack_price),
+    packPrice: money(item.selling_price ?? item.pack_price),
     subtotal: money(item.subtotal),
     deliveryCharge: money(item.delivery_charge),
 

@@ -24,6 +24,9 @@ type ApiProduct = {
   health_benefits?: string | null;
   base_price?: string | number;
   sale_price?: string | number | null;
+  cost_price?: string | number;
+  mrp_price?: string | number;
+  selling_price?: string | number;
   currency?: string;
   stock_quantity?: number;
   low_stock_alert?: number;
@@ -56,6 +59,9 @@ const initialFormData: ProductFormData = {
   health_benefits: "",
   base_price: "",
   sale_price: "",
+  cost_price: "",
+  mrp_price: "",
+  selling_price: "",
   currency: "USD",
   stock_quantity: "",
   low_stock_alert: "5",
@@ -109,6 +115,9 @@ export default function AddProductPage() {
           health_benefits: String(data.health_benefits ?? ""),
           base_price: String(data.base_price ?? ""),
           sale_price: String(data.sale_price ?? ""),
+          cost_price: String(data.cost_price ?? data.base_price ?? ""),
+          mrp_price: String(data.mrp_price ?? data.sale_price ?? data.base_price ?? ""),
+          selling_price: String(data.selling_price ?? data.sale_price ?? data.base_price ?? ""),
           currency: String(data.currency ?? "USD"),
           stock_quantity: String(data.stock_quantity ?? ""),
           low_stock_alert: String(data.low_stock_alert ?? "5"),
@@ -157,26 +166,15 @@ export default function AddProductPage() {
   async function handleSubmit(overrideStatus?: string) {
     if (!formData.product_name.trim()) { toast.error("Product name is required."); return; }
     if (!formData.product_code.trim()) { toast.error("SKU / Product Code is required."); return; }
-    if (!formData.base_price) { toast.error("Base price is required."); return; }
-    if (!formData.short_description.trim()) { toast.error("Short description is required."); return; }
-    if (!formData.category) { toast.error("Category is required."); return; }
-
-    const variants = formData.alternative_unit_enabled
-      ? formData.variants
-          .map((variant) => ({
-            variant_value: variant.variant_value.trim(),
-            variant_unit: variant.variant_unit,
-            cost: variant.cost || "0",
-            price: variant.price || variant.cost,
-            stock: variant.stock || "0",
-          }))
-          .filter((variant) => variant.variant_value || variant.price || variant.stock !== "0")
-      : [];
-
-    if (formData.alternative_unit_enabled && variants.some((variant) => !variant.variant_value || !variant.price)) {
-      toast.error("Variant value and MRP are required for product variants.");
+    if (!formData.cost_price) { toast.error("Cost price is required."); return; }
+    if (!formData.mrp_price) { toast.error("MRP is required."); return; }
+    if (!formData.selling_price) { toast.error("Selling price is required."); return; }
+    if (Number(formData.selling_price) > Number(formData.mrp_price)) {
+      toast.error("Selling price cannot be greater than MRP.");
       return;
     }
+    if (!formData.short_description.trim()) { toast.error("Short description is required."); return; }
+    if (!formData.category) { toast.error("Category is required."); return; }
 
     const fd = new FormData();
     fd.append("product_name", formData.product_name.trim());
@@ -184,13 +182,17 @@ export default function AddProductPage() {
     fd.append("category", formData.category);
     fd.append("product_status", overrideStatus || formData.product_status);
     fd.append("short_description", formData.short_description.trim());
-    fd.append("base_price", formData.base_price);
+    fd.append("cost_price", formData.cost_price);
+    fd.append("mrp_price", formData.mrp_price);
+    fd.append("selling_price", formData.selling_price);
+    fd.append("base_price", formData.cost_price);
+    fd.append("sale_price", formData.selling_price);
     fd.append("stock_quantity", formData.stock_quantity || "0");
     fd.append("stock_status", formData.stock_status);
     fd.append("currency", formData.currency);
     fd.append("product_unit", formData.product_unit);
     fd.append("unit_quantity", formData.unit_quantity);
-    fd.append("alternative_unit_enabled", String(formData.alternative_unit_enabled));
+    fd.append("alternative_unit_enabled", "false");
     fd.append("allow_out_of_stock", String(formData.allow_out_of_stock));
     fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
@@ -198,9 +200,7 @@ export default function AddProductPage() {
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
-    if (formData.sale_price) fd.append("sale_price", formData.sale_price);
     if (formData.low_stock_alert) fd.append("low_stock_alert", formData.low_stock_alert);
-    if (variants.length) fd.append("variants", JSON.stringify(variants));
 
     setIsSubmitting(true);
     try {
@@ -253,7 +253,7 @@ export default function AddProductPage() {
           <ProductPreviewCard
             productName={formData.product_name}
             subtitle={formData.product_subtitle || formData.short_description}
-            price={formData.base_price}
+            price={formData.selling_price}
             stock={formData.stock_quantity}
             status={formData.product_status}
             imageUrl={previewImageUrl}

@@ -30,14 +30,21 @@ class Order(models.Model):
     user = models.ForeignKey(
         "accounts.User", on_delete=models.CASCADE, related_name="orders"
     )
+    product_code = models.CharField(max_length=50, blank=True, default="")
     product_name = models.CharField(max_length=255)
     pack_name = models.CharField(max_length=255)
     pack_price = models.DecimalField(max_digits=10, decimal_places=2)
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    mrp_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    selling_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     quantity = models.PositiveIntegerField(default=1)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     delivery_charge = models.DecimalField(
         max_digits=10, decimal_places=2, default=0
     )
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     # Shipping / contact details
@@ -154,9 +161,7 @@ class CartItem(models.Model):
 
     @property
     def unit_price(self):
-        if self.variant:
-            return self.variant.price
-        return self.product.sale_price or self.product.base_price
+        return self.product.selling_price
 
     @property
     def line_total(self):

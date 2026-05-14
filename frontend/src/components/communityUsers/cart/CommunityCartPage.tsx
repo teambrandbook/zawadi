@@ -90,12 +90,11 @@ function toImageUrl(imagePath: string | null | undefined, index: number): string
 }
 
 function stockLabel(item: CartItem): { text: string; className: string } {
-  const hasVariantStock = item.variant_stock !== null && item.variant_stock !== undefined;
-  const stock = hasVariantStock ? item.variant_stock ?? 0 : item.stock_quantity;
-  if ((!hasVariantStock && item.stock_status === "out_of_stock") || stock <= 0) {
+  const stock = item.stock_quantity;
+  if (item.stock_status === "out_of_stock" || stock <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
   }
-  if (stock <= 3) {
+  if (stock <= 5) {
     return { text: `Only ${stock} left`, className: "text-[#EA580C]" };
   }
   return { text: "In Stock", className: "text-[#16A34A]" };

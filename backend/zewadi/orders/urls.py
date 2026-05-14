@@ -9,6 +9,7 @@ urlpatterns = [
     path("cart/checkout/", views.CartCheckoutView.as_view()),
     path("", views.OrderListView.as_view()),
     path("admin/", views.AdminOrderListView.as_view()),
+    path("admin/cart/", views.AdminCartListView.as_view()),
     path("admin/<str:order_id>/status/", views.AdminOrderStatusUpdateView.as_view()),
     path("<str:order_id>/", views.OrderDetailView.as_view()),
     path("<str:order_id>/review/", views.OrderReviewCreateView.as_view()),

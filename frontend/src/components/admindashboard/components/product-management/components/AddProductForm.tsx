@@ -31,6 +31,9 @@ export type ProductFormData = {
   health_benefits: string;
   base_price: string;
   sale_price: string;
+  cost_price: string;
+  mrp_price: string;
+  selling_price: string;
   currency: string;
   stock_quantity: string;
   low_stock_alert: string;
@@ -271,24 +274,17 @@ export default function AddProductForm({ formData, onChange }: Props) {
         </div>
       </Card>
 
-      <label className="flex w-max items-center gap-3 text-[14px] font-medium tracking-[-0.5px] text-[#374151]">
-        <span>Alternative Unit</span>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={formData.alternative_unit_enabled}
-          onClick={() => set("alternative_unit_enabled")(!formData.alternative_unit_enabled)}
-          className={`relative h-6 w-10 rounded-full transition ${formData.alternative_unit_enabled ? "bg-[#9F8151]" : "bg-[#CBD5E1]"}`}
-        >
-          <span
-            className={`absolute top-0 h-6 w-6 rounded-full border-4 transition ${
-              formData.alternative_unit_enabled ? "left-4 border-[#9F8151] bg-white" : "left-0 border-[#CBD5E1] bg-white"
-            }`}
-          />
-        </button>
+      <label className="flex max-w-2xl items-center gap-3 rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-[14px] font-medium tracking-[-0.5px] text-[#374151]">
+        <input
+          type="checkbox"
+          checked={false}
+          disabled
+          className="h-[13px] w-[13px]"
+        />
+        <span>Variants are paused for this v1 flow. Create each pack or size as a separate product/SKU.</span>
       </label>
 
-      {formData.alternative_unit_enabled ? (
+      {false ? (
         <Card>
           <h3 className="mb-6 text-[18px] font-semibold leading-[22px] tracking-[-0.5px] text-[#0A4833]">Alternative Unit</h3>
           <div className="rounded-[8px] border border-[#DFDFDF] p-4">
@@ -322,10 +318,11 @@ export default function AddProductForm({ formData, onChange }: Props) {
       ) : null}
 
       <Card>
-        <SectionTitle icon={<DollarSign className="h-[18px] w-[18px]" />} title="MRP Information" />
+        <SectionTitle icon={<DollarSign className="h-[18px] w-[18px]" />} title="Pricing" />
         <div className="grid gap-6 sm:grid-cols-3">
-          <TextField label="Cost *" placeholder="0.00" type="number" value={formData.base_price} onValueChange={set("base_price")} />
-          <TextField label="MRP*" placeholder="0.00" type="number" value={formData.sale_price} onValueChange={set("sale_price")} />
+          <TextField label="Cost Price *" placeholder="0.00" type="number" value={formData.cost_price} onValueChange={set("cost_price")} />
+          <TextField label="MRP *" placeholder="0.00" type="number" value={formData.mrp_price} onValueChange={set("mrp_price")} />
+          <TextField label="Selling Price *" placeholder="0.00" type="number" value={formData.selling_price} onValueChange={set("selling_price")} />
           <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={CURRENCY_OPTIONS} onValueChange={set("currency")} />
         </div>
       </Card>

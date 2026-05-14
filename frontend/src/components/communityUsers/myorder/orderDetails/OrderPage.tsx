@@ -33,11 +33,14 @@ type ApiProduct = {
   short_description: string;
   base_price: string | number;
   sale_price?: string | number | null;
+  cost_price?: string | number;
+  mrp_price?: string | number;
+  selling_price?: string | number;
   product_unit?: string;
   unit_quantity?: string | number;
   stock_quantity: number;
   image?: string | null;
-  variants: ApiVariant[];
+  variants?: ApiVariant[];
 };
 
 type PaginatedResponse<T> = {
@@ -102,20 +105,13 @@ function toPacks(product: ApiProduct | null): PackOption[] {
     {
       id: `product-${product.id}-default`,
       name: productUnit || "Standard Pack",
-      price: toNumber(product.sale_price ?? product.base_price),
-      unitNote: `Cost ${toCurrency(product.base_price)}`,
-      badge: "Default",
+      price: toNumber(product.selling_price ?? product.sale_price ?? product.base_price),
+      unitNote:
+        product.mrp_price && toNumber(product.mrp_price) > toNumber(product.selling_price ?? product.sale_price ?? product.base_price)
+          ? `MRP ${toCurrency(product.mrp_price)}`
+          : "Single SKU",
     },
   ];
-
-  if (product.variants?.length) {
-    packs.push(...product.variants.map((variant) => ({
-      id: String(variant.id),
-      name: [variant.variant_value, variant.variant_unit].filter(Boolean).join(" ") || "Variant Pack",
-      price: toNumber(variant.price),
-      unitNote: `Cost ${toCurrency(variant.cost ?? 0)}`,
-    })));
-  }
 
   return packs;
 }
@@ -165,11 +161,8 @@ export default function OrderPage() {
     [packs, selectedPackId]
   );
   const maxQuantity = useMemo(() => {
-    if (!selectedProduct || !selectedPack) return 1;
-    const variantStock = selectedProduct.variants?.find((item) => String(item.id) === selectedPack.id)?.stock;
-    const baseStock = selectedProduct.stock_quantity;
-    const stock = typeof variantStock === "number" ? variantStock : baseStock;
-    return Math.max(1, stock);
+    if (!selectedProduct || !selectedPack) return 0;
+    return Math.max(0, toNumber(selectedProduct.stock_quantity));
   }, [selectedPack, selectedProduct]);
 
   const singleSubtotal = useMemo(() => {
@@ -250,13 +243,13 @@ export default function OrderPage() {
   }, [selectedProductId, packs]);
 
   useEffect(() => {
-    setQuantity((prev) => Math.min(prev, maxQuantity));
+    setQuantity((prev) => (maxQuantity < 1 ? 0 : Math.min(Math.max(prev, 1), maxQuantity)));
   }, [maxQuantity]);
 
   useEffect(() => {
     const parsedQuantity = Number(requestedQuantity);
     if (Number.isInteger(parsedQuantity) && parsedQuantity > 0) {
-      setQuantity(Math.min(parsedQuantity, maxQuantity));
+      setQuantity(maxQuantity < 1 ? 0 : Math.min(parsedQuantity, maxQuantity));
     }
   }, [maxQuantity, requestedQuantity]);
 
@@ -276,15 +269,10 @@ export default function OrderPage() {
     setBusyProductId(selectedProduct.id);
     setStatusMessage("");
     try {
-      const selectedVariant = selectedProduct.variants?.find(
-        (v) => String(v.id) === selectedPackId
-      );
-
-      const payload: { product_id: number; quantity: number; variant_id?: number } = {
+      const payload: { product_id: number; quantity: number } = {
         product_id: selectedProduct.id,
         quantity: quantity,
       };
-      if (selectedVariant) payload.variant_id = selectedVariant.id;
 
       const response = await api.post("/orders/cart/items/", payload);
       const itemCount = response.data?.summary?.item_count;
@@ -346,15 +334,15 @@ export default function OrderPage() {
       showStatus("Please select a product and pack.");
       return;
     }
-    const selectedVariant = selectedProduct.variants?.find(
-      (variant) => String(variant.id) === selectedPack.id
-    );
-
+    if (maxQuantity < 1) {
+      showStatus("This product is out of stock.");
+      return;
+    }
     const payload = {
       mode: "single" as const,
       item: {
         productId: selectedProduct.id,
-        variantId: selectedVariant?.id ?? null,
+        variantId: null,
         productName: selectedProduct.product_name,
         productImage: toImageUrl(selectedProduct.image),
         packName: selectedPack.name,
@@ -365,7 +353,7 @@ export default function OrderPage() {
       },
       order: {
         product_id: selectedProduct.id,
-        variant_id: selectedVariant?.id ?? null,
+        variant_id: null,
         product_name: selectedProduct.product_name,
         pack_name: selectedPack.name,
         pack_price: selectedPack.price.toFixed(2),
@@ -446,7 +434,7 @@ export default function OrderPage() {
                     onClick={addToCart}
                     disabled={maxQuantity === 0 || busyProductId === selectedProduct.id}
                     /* Changed to w-full for 100% width, or use w-80 for a fixed large width */
-                    className="flex w-full md:w-80 items-center justify-center gap-2 rounded-lg bg-[#A88751] h-12 px-6 text-sm font-bold text-[#0A4833] transition hover:bg-[#E6C200] disabled:cursor-not-allowed disabled:bg-gray-300 shadow-sm"
+                    className="flex w-full md:w-80 items-center justify-center gap-2 rounded-lg bg-[#A88751] h-12 px-6 text-sm font-bold text-white transition hover:bg-[#E6C200] disabled:cursor-not-allowed disabled:bg-gray-300 shadow-sm"
                   >
                     <ShoppingCart className="h-5 w-5" />
                     {busyProductId === selectedProduct.id ? "Adding..." : "Add to Cart First"}

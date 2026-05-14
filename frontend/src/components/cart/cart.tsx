@@ -38,6 +38,7 @@ type SuggestedProduct = {
   image: string | null;
   base_price: string;
   sale_price: string | null;
+  selling_price?: string | null;
   currency: string;
 };
 
@@ -207,7 +208,7 @@ function SuggestedCard({
   product: SuggestedProduct;
   onAddToCart: () => void;
 }) {
-  const displayPrice = parseFloat(product.sale_price || product.base_price || "0");
+  const displayPrice = parseFloat(product.selling_price || product.sale_price || product.base_price || "0");
 
   return (
     <article className="rounded-2xl border border-[#f3f4f6] bg-white p-4 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">

@@ -38,8 +38,6 @@ def _cart_queryset(user):
 
 
 def _max_available_quantity(product, variant=None):
-    if variant:
-        return variant.stock
     return product.stock_quantity
 
 
@@ -58,13 +56,7 @@ def _lock_product_for_order(product_id, variant_id=None):
         pk=product_id,
         product_status=ProductStatus.ACTIVE,
     )
-    variant = None
-    if variant_id:
-        variant = ProductVariant.objects.select_for_update().get(
-            pk=variant_id,
-            product=product,
-        )
-    return product, variant
+    return product, None
 
 
 def _validate_and_decrement_stock(product, variant, quantity):
@@ -72,17 +64,12 @@ def _validate_and_decrement_stock(product, variant, quantity):
         return
 
     available_quantity = _max_available_quantity(product, variant)
-    if product.stock_status == StockStatus.OUT_OF_STOCK or available_quantity <= 0:
+    if available_quantity <= 0:
         raise ValueError(f"{product.product_name} is out of stock.")
     if quantity > available_quantity:
         raise ValueError(
             f"Only {available_quantity} units of {product.product_name} are available."
         )
-
-    if variant:
-        variant.stock -= quantity
-        variant.save(update_fields=["stock"])
-        return
 
     product.stock_quantity -= quantity
     _update_product_stock_status(product)
@@ -137,7 +124,7 @@ class OrderCreateView(APIView):
         serializer = OrderCreateSerializer(data=request.data)
         if serializer.is_valid():
             product_id = serializer.validated_data.get("product_id")
-            variant_id = serializer.validated_data.get("variant_id")
+            variant_id = None
             quantity = serializer.validated_data.get("quantity") or 1
             try:
                 with transaction.atomic():
@@ -258,7 +245,7 @@ class CartItemCreateView(APIView):
 
     def post(self, request):
         product_id = request.data.get("product_id")
-        variant_id = request.data.get("variant_id")
+        variant_id = None
         try:
             quantity = int(request.data.get("quantity") or 1)
         except (TypeError, ValueError):
@@ -271,15 +258,10 @@ class CartItemCreateView(APIView):
         except (Product.DoesNotExist, TypeError, ValueError):
             return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if product.stock_status == StockStatus.OUT_OF_STOCK and not product.allow_orders_when_out_of_stock:
+        if product.stock_quantity <= 0 and not product.allow_orders_when_out_of_stock:
             return Response({"detail": "Product is out of stock."}, status=status.HTTP_400_BAD_REQUEST)
 
         variant = None
-        if variant_id:
-            try:
-                variant = ProductVariant.objects.get(pk=variant_id, product=product)
-            except (ProductVariant.DoesNotExist, TypeError, ValueError):
-                return Response({"detail": "Product variant not found."}, status=status.HTTP_404_NOT_FOUND)
 
         max_quantity = _max_available_quantity(product, variant)
         if not product.allow_orders_when_out_of_stock and max_quantity <= 0:
@@ -380,7 +362,7 @@ class CartCheckoutView(APIView):
                 created_orders = []
 
                 for index, item in enumerate(cart_items):
-                    product, variant = _lock_product_for_order(item.product_id, item.variant_id)
+                    product, variant = _lock_product_for_order(item.product_id, None)
                     if product.product_status != ProductStatus.ACTIVE:
                         return Response(
                             {"detail": f"{product.product_name} is no longer available."},
@@ -418,6 +400,7 @@ class CartCheckoutView(APIView):
                             "quantity": item.quantity,
                             "subtotal": f"{line_subtotal:.2f}",
                             "delivery_charge": f"{allocated_shipping:.2f}",
+                            "tax_amount": f"{allocated_tax:.2f}",
                             "total_amount": f"{_money(line_subtotal + allocated_shipping + allocated_tax):.2f}",
                             "full_name": request.data["full_name"],
                             "phone": request.data["phone"],
@@ -470,6 +453,24 @@ class AdminOrderListView(APIView):
             serializer = OrderListSerializer(page, many=True, context={"request": request})
             return paginator.get_paginated_response(serializer.data)
         return Response(OrderListSerializer(queryset, many=True, context={"request": request}).data)
+
+
+class AdminCartListView(APIView):
+    """GET /api/orders/admin/cart/ — list active cart items for admins."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        queryset = (
+            CartItem.objects.select_related("user", "product", "variant")
+            .order_by("-updated_at")
+        )
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(queryset, request)
+        if page is not None:
+            serializer = CartItemSerializer(page, many=True, context={"request": request})
+            return paginator.get_paginated_response(serializer.data)
+        return Response(CartItemSerializer(queryset, many=True, context={"request": request}).data)
 
 
 class AdminOrderStatusUpdateView(APIView):

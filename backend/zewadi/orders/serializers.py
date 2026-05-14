@@ -19,12 +19,19 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "order_id",
             "product_id",
             "variant_id",
+            "product_code",
             "product_name",
             "pack_name",
             "pack_price",
+            "cost_price",
+            "mrp_price",
+            "selling_price",
+            "discount_amount",
+            "discount_percent",
             "quantity",
             "subtotal",
             "delivery_charge",
+            "tax_amount",
             "total_amount",
             "full_name",
             "phone",
@@ -50,6 +57,9 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             "product_name": {"required": False},
             "pack_name": {"required": False},
+            "pack_price": {"required": False},
+            "subtotal": {"required": False},
+            "total_amount": {"required": False},
         }
 
     def _format_pack_name(self, value, unit):
@@ -58,7 +68,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         product_id = attrs.get("product_id")
-        variant_id = attrs.get("variant_id")
+        quantity = attrs.get("quantity") or 1
 
         if not product_id:
             return attrs
@@ -69,21 +79,24 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"product_id": "Product not found."})
 
         attrs["product_name"] = product.product_name
-
-        if variant_id:
-            try:
-                variant = ProductVariant.objects.get(pk=variant_id, product=product)
-            except ProductVariant.DoesNotExist:
-                raise serializers.ValidationError({"variant_id": "Product variant not found."})
-            attrs["pack_name"] = self._format_pack_name(
-                variant.variant_value,
-                variant.variant_unit,
-            )
-        else:
-            attrs["pack_name"] = self._format_pack_name(
-                product.unit_quantity,
-                product.product_unit,
-            )
+        attrs["product_code"] = product.product_code
+        attrs["pack_name"] = self._format_pack_name(
+            product.unit_quantity,
+            product.product_unit,
+        ) or product.product_name
+        attrs["cost_price"] = product.cost_price
+        attrs["mrp_price"] = product.mrp_price
+        attrs["selling_price"] = product.selling_price
+        attrs["pack_price"] = product.selling_price
+        attrs["discount_amount"] = product.discount_amount
+        attrs["discount_percent"] = product.discount_percent
+        attrs["subtotal"] = Decimal(product.selling_price) * Decimal(quantity)
+        attrs["tax_amount"] = attrs.get("tax_amount") or Decimal("0.00")
+        attrs["total_amount"] = (
+            Decimal(attrs["subtotal"])
+            + Decimal(attrs.get("delivery_charge") or 0)
+            + Decimal(attrs["tax_amount"])
+        )
 
         return attrs
 
@@ -102,14 +115,21 @@ class OrderListSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "order_id",
+            "product_code",
             "product_name",
             "product_image",
             "user_image",
             "pack_name",
             "pack_price",
+            "cost_price",
+            "mrp_price",
+            "selling_price",
+            "discount_amount",
+            "discount_percent",
             "quantity",
             "subtotal",
             "delivery_charge",
+            "tax_amount",
             "total_amount",
             "full_name",
             "phone",
@@ -155,14 +175,21 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "order_id",
+            "product_code",
             "product_name",
             "product_image",
             "user_image",
             "pack_name",
             "pack_price",
+            "cost_price",
+            "mrp_price",
+            "selling_price",
+            "discount_amount",
+            "discount_percent",
             "quantity",
             "subtotal",
             "delivery_charge",
+            "tax_amount",
             "total_amount",
             "full_name",
             "phone",
@@ -244,6 +271,9 @@ class OrderReviewSerializer(serializers.ModelSerializer):
 
 
 class CartItemSerializer(serializers.ModelSerializer):
+    user_id = serializers.IntegerField(source="user.id", read_only=True)
+    user_email = serializers.EmailField(source="user.email", read_only=True)
+    user_name = serializers.CharField(source="user.full_name", read_only=True)
     product_id = serializers.IntegerField(source="product.id", read_only=True)
     product_name = serializers.CharField(source="product.product_name", read_only=True)
     product_subtitle = serializers.CharField(source="product.product_subtitle", read_only=True)
@@ -258,6 +288,10 @@ class CartItemSerializer(serializers.ModelSerializer):
     variant_id = serializers.IntegerField(source="variant.id", read_only=True, allow_null=True)
     variant_name = serializers.CharField(source="variant.variant_value", read_only=True, allow_null=True)
     variant_stock = serializers.IntegerField(source="variant.stock", read_only=True, allow_null=True)
+    mrp_price = serializers.DecimalField(source="product.mrp_price", max_digits=10, decimal_places=2, read_only=True)
+    selling_price = serializers.DecimalField(source="product.selling_price", max_digits=10, decimal_places=2, read_only=True)
+    discount_amount = serializers.SerializerMethodField()
+    discount_percent = serializers.SerializerMethodField()
     unit_price = serializers.SerializerMethodField()
     line_total = serializers.SerializerMethodField()
 
@@ -265,6 +299,9 @@ class CartItemSerializer(serializers.ModelSerializer):
         model = CartItem
         fields = [
             "id",
+            "user_id",
+            "user_email",
+            "user_name",
             "product_id",
             "product_name",
             "product_subtitle",
@@ -279,6 +316,10 @@ class CartItemSerializer(serializers.ModelSerializer):
             "variant_id",
             "variant_name",
             "variant_stock",
+            "mrp_price",
+            "selling_price",
+            "discount_amount",
+            "discount_percent",
             "quantity",
             "unit_price",
             "line_total",
@@ -291,6 +332,12 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def get_line_total(self, obj):
         return f"{Decimal(obj.line_total):.2f}"
+
+    def get_discount_amount(self, obj):
+        return f"{obj.product.discount_amount:.2f}"
+
+    def get_discount_percent(self, obj):
+        return f"{obj.product.discount_percent:.2f}"
 
     def get_image(self, obj):
         if not obj.product.image:

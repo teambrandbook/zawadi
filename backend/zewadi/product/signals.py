@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 @receiver([post_save, post_delete], sender=Product)
-def invalidate_product_cache(sender, instance, **kwargs):
+def invalidate_product_cache(sender, instance, signal=None, **kwargs):
     try:
         cache.delete(f"product_detail:{instance.pk}")
     except Exception:
@@ -26,3 +26,45 @@ def invalidate_product_cache(sender, instance, **kwargs):
             logger.warning("Failed to invalidate product list cache (fallback)", exc_info=True)
     except Exception:
         logger.warning("Failed to invalidate product list cache", exc_info=True)
+
+    try:
+        if signal is post_save:
+            notify_admin_stock_status(instance)
+    except Exception:
+        logger.warning("Failed to create product stock notification", exc_info=True)
+
+
+def notify_admin_stock_status(product):
+    from django.utils import timezone
+    from notifications.models import Notification
+    from notifications.utils import create_receipts_for_notification
+
+    stock = int(product.stock_quantity or 0)
+    if stock > 5:
+        return
+
+    if stock <= 0:
+        title = f"Out of stock: {product.product_name}"
+        body = f"{product.product_name} ({product.product_code}) is out of stock."
+    else:
+        title = f"Low stock: {product.product_name}"
+        body = f"{product.product_name} ({product.product_code}) has only {stock} units left."
+
+    existing = Notification.objects.filter(
+        title=title,
+        body=body,
+        target_role="admin",
+        status="SENT",
+    ).exists()
+    if existing:
+        return
+
+    notification = Notification.objects.create(
+        title=title,
+        body=body,
+        notification_type="ALERT",
+        target_role="admin",
+        status="SENT",
+        sent_at=timezone.now(),
+    )
+    create_receipts_for_notification(notification)
