@@ -25,6 +25,17 @@ class IsCommunityUser(BasePermission):
         )
 
 
+def notification_target_roles_for_user(user):
+    role = str(getattr(user, "role", "") or "").lower()
+    if role == "community_user":
+        return ["ALL", "community_user"]
+    if role == "consultant":
+        return ["ALL", "consultant"]
+    if role in ("admin", "internal_staff"):
+        return ["ALL", "admin", "internal_staff"]
+    return ["ALL", role] if role else ["ALL"]
+
+
 class NotificationListCreateView(APIView):
     permission_classes = [IsAdminRole]
 
@@ -90,16 +101,17 @@ class NotificationDetailView(APIView):
 class UserNotificationListView(APIView):
     """
     GET /api/notifications/inbox/
-    Returns all SENT notifications targeted at ALL or community_user.
+    Returns all SENT notifications targeted at ALL or the current user's role.
     Auto-creates a UserNotificationReceipt for each one the user hasn't seen.
     Supports ?unread=true to filter to unread only.
     """
-    permission_classes = [IsCommunityUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        target_roles = notification_target_roles_for_user(request.user)
         notifications = Notification.objects.filter(
             status="SENT",
-            target_role__in=["ALL", "community_user"],
+            target_role__in=target_roles,
         )
 
         # Ensure a receipt row exists for every qualifying notification
@@ -120,7 +132,7 @@ class UserNotificationListView(APIView):
         receipts = UserNotificationReceipt.objects.filter(
             user=request.user,
             notification__status="SENT",
-            notification__target_role__in=["ALL", "community_user"],
+            notification__target_role__in=target_roles,
         ).select_related("notification")
 
         unread_only = request.query_params.get("unread", "").lower() == "true"
@@ -134,18 +146,24 @@ class UserNotificationListView(APIView):
 class UserNotificationMarkReadView(APIView):
     """
     PATCH /api/notifications/inbox/<pk>/read/
-    Marks a single receipt as read. <pk> is the notification id.
+    Marks a single receipt as read. <pk> is the receipt id.
     """
-    permission_classes = [IsCommunityUser]
+    permission_classes = [IsAuthenticated]
 
     def patch(self, request, pk):
         try:
             receipt = UserNotificationReceipt.objects.select_related("notification").get(
-                notification_id=pk,
+                pk=pk,
                 user=request.user,
             )
         except UserNotificationReceipt.DoesNotExist:
-            return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                receipt = UserNotificationReceipt.objects.select_related("notification").get(
+                    notification_id=pk,
+                    user=request.user,
+                )
+            except UserNotificationReceipt.DoesNotExist:
+                return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
         if not receipt.is_read:
             receipt.is_read = True
@@ -160,15 +178,16 @@ class UserNotificationMarkAllReadView(APIView):
     POST /api/notifications/inbox/mark-all-read/
     Marks every unread receipt for this user as read.
     """
-    permission_classes = [IsCommunityUser]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         now = timezone.now()
+        target_roles = notification_target_roles_for_user(request.user)
         updated = UserNotificationReceipt.objects.filter(
             user=request.user,
             is_read=False,
             notification__status="SENT",
-            notification__target_role__in=["ALL", "community_user"],
+            notification__target_role__in=target_roles,
         ).update(is_read=True, read_at=now)
 
         return Response({"marked_read": updated}, status=status.HTTP_200_OK)
@@ -179,13 +198,14 @@ class UserNotificationUnreadCountView(APIView):
     GET /api/notifications/inbox/unread-count/
     Returns {"count": N} — the number of unread notifications for the current user.
     """
-    permission_classes = [IsCommunityUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        target_roles = notification_target_roles_for_user(request.user)
         count = UserNotificationReceipt.objects.filter(
             user=request.user,
             is_read=False,
             notification__status="SENT",
-            notification__target_role__in=["ALL", "community_user"],
+            notification__target_role__in=target_roles,
         ).count()
         return Response({"count": count}, status=status.HTTP_200_OK)

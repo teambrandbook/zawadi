@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   CalendarClock,
   Calendar,
@@ -49,7 +50,9 @@ type ApiOrder = {
 type ApiEvent = {
   id: number;
   title: string;
-  start_datetime: string;
+  start_datetime?: string;
+  start_date?: string;
+  date?: string;
   event_type: string;
 };
 
@@ -81,8 +84,17 @@ function formatOrderDate(iso: string): string {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-function parseEventDate(iso: string) {
-  const d = new Date(iso);
+function parseEventDate(event: ApiEvent) {
+  const rawDate = event.start_datetime || event.start_date || event.date || "";
+  const d = new Date(rawDate);
+  if (!rawDate || Number.isNaN(d.getTime())) {
+    return {
+      date: "--",
+      month: "TBA",
+      time: "Date will be announced",
+    };
+  }
+
   return {
     date: String(d.getDate()).padStart(2, "0"),
     month: d.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
@@ -102,6 +114,7 @@ function toCount<T>(data: ListResponse<T>, fallbackList: T[]): number {
 }
 
 function Home() {
+  const router = useRouter();
   const [displayName, setDisplayName] = useState("there");
   const [summaryStats, setSummaryStats] = useState<DashboardSummaryResponse["stats"] | null>(null);
   const [orders, setOrders] = useState<ApiOrder[]>([]);
@@ -198,7 +211,11 @@ function Home() {
             Your wellness journey continues. Explore new buckwheat recipes, join community events, and stay connected with your nutritionists.
           </p>
           <div className="pt-1">
-            <button className="flex items-center gap-2 px-5 py-2 bg-white text-[#0A4834] rounded-xl shadow-md hover:bg-gray-50 transition-colors">
+            <button
+              type="button"
+              onClick={() => router.push("/communityDashBoard/addconsaltation")}
+              className="flex items-center gap-2 px-5 py-2 bg-white text-[#0A4834] rounded-xl shadow-md hover:bg-gray-50 transition-colors"
+            >
               <CalendarClock className="w-4 h-4 md:w-5 h-5" strokeWidth={2.5} />
               <span className="font-semibold text-xs md:text-sm">Book Consultation</span>
             </button>
@@ -256,6 +273,14 @@ function Home() {
                         </div>
                       </div>
                       <button
+                        type="button"
+                        onClick={() => {
+                          if (isDelivered) {
+                            router.push("/communityDashBoard/products");
+                            return;
+                          }
+                          router.push(`/communityDashBoard/myorders/order-tracking?orderId=${encodeURIComponent(order.order_id)}`);
+                        }}
                         className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${
                           isDelivered
                             ? "bg-[#0A4834] text-white hover:bg-[#083627]"
@@ -343,7 +368,7 @@ function Home() {
                 <p className="text-sm text-gray-400">No upcoming events.</p>
               ) : (
                 events.map((event, i) => {
-                  const { date, month, time } = parseEventDate(event.start_datetime);
+                  const { date, month, time } = parseEventDate(event);
                   const theme = EVENT_THEMES[i % EVENT_THEMES.length];
                   return (
                     <div key={event.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
@@ -358,6 +383,20 @@ function Home() {
                         </div>
                       </div>
                       <button
+                        type="button"
+                        onClick={async () => {
+                          if (theme === "outline") {
+                            router.push(`/communityDashBoard/events/${event.id}`);
+                            return;
+                          }
+
+                          try {
+                            await api.post(`/events/${event.id}/register/`);
+                            router.push(`/communityDashBoard/events/${event.id}`);
+                          } catch {
+                            router.push(`/communityDashBoard/events/${event.id}`);
+                          }
+                        }}
                         className={`w-full py-2 rounded-lg text-sm font-bold transition-all ${
                           theme === "outline"
                             ? "border border-[#0A4834] text-[#0A4834] hover:bg-gray-50"
@@ -394,7 +433,11 @@ function Home() {
                 <Video size={14} /> <span>Video Call Session</span>
               </div>
             </div>
-            <button className="w-full bg-white text-[#A68966] py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors">
+            <button
+              type="button"
+              onClick={() => router.push("/communityDashBoard/addconsaltation")}
+              className="w-full bg-white text-[#A68966] py-3 rounded-xl font-bold text-sm hover:bg-gray-50 transition-colors"
+            >
               Book Session
             </button>
           </section>

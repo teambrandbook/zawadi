@@ -28,9 +28,10 @@ const actionClasses: Record<NotificationAction["tone"], string> = {
 
 type Props = {
   item: NotificationItem;
+  onMarkRead: (receiptId: string) => void;
 };
 
-export default function NotificationListItem({ item }: Props) {
+export default function NotificationListItem({ item, onMarkRead }: Props) {
   const Icon = kindStyles[item.kind].icon;
 
   return (
@@ -62,6 +63,9 @@ export default function NotificationListItem({ item }: Props) {
               <button
                 key={action.id}
                 type="button"
+                onClick={() => {
+                  if (action.id === "mark-read") onMarkRead(item.id);
+                }}
                 className={`text-sm font-medium transition hover:opacity-80 ${actionClasses[action.tone]}`}
               >
                 {action.label}

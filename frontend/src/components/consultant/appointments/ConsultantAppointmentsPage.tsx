@@ -136,6 +136,7 @@ export default function ConsultantAppointmentsPage() {
   const [appointments, setAppointments] = useState<ScheduleItem[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("daily");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
     api
@@ -154,10 +155,26 @@ export default function ConsultantAppointmentsPage() {
   }, []);
 
   async function handleBookingDecision(appointment: ScheduleItem, isAccept: boolean) {
-    await api.post("/consultant/bookings/", {
-      booking_id: Number(appointment.id),
-      is_accept: isAccept,
-    });
+    setStatusMessage("");
+
+    try {
+      await api.post("/consultant/bookings/", {
+        booking_id: Number(appointment.id),
+        is_accept: isAccept,
+      });
+    } catch (error: unknown) {
+      const detail =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { detail?: unknown; error?: unknown } } }).response?.data?.detail === "string"
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
+            ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+            : "Unable to update this booking right now.";
+      setStatusMessage(detail);
+      return;
+    }
 
     if (isAccept) {
       setAppointments((current) =>
@@ -173,23 +190,46 @@ export default function ConsultantAppointmentsPage() {
           ? { ...current, status: "Confirmed", action: "Join", sessionStatus: "confirmed" }
           : current,
       );
+      setStatusMessage("Booking approved successfully.");
       return;
     }
 
     setAppointments((current) => current.filter((item) => item.id !== appointment.id));
     setSelectedAppointment((current) => (current?.id === appointment.id ? null : current));
+    setStatusMessage("Booking rejected successfully.");
   }
 
   async function handleShareMeetingLink(appointment: ScheduleItem, meetingLink: string) {
-    const { data } = await api.patch<BookingItem>(`/consultant/bookings/${appointment.id}/meeting-link/`, {
-      meeting_link: meetingLink,
-    });
+    setStatusMessage("");
+
+    let data: BookingItem;
+    try {
+      const response = await api.patch<BookingItem>(`/consultant/bookings/${appointment.id}/meeting-link/`, {
+        meeting_link: meetingLink,
+      });
+      data = response.data;
+    } catch (error: unknown) {
+      const detail =
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error &&
+        typeof (error as { response?: { data?: { meeting_link?: unknown; detail?: unknown; error?: unknown } } }).response?.data?.meeting_link === "object"
+          ? ((error as { response?: { data?: { meeting_link?: string[] } } }).response?.data?.meeting_link ?? []).join(", ")
+          : typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === "string"
+            ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+            : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
+              ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+              : "Unable to share meeting link right now.";
+      setStatusMessage(detail);
+      return;
+    }
     const updatedAppointment = mapBookingToScheduleItem(data);
 
     setAppointments((current) =>
       current.map((item) => (item.id === appointment.id ? updatedAppointment : item)),
     );
     setSelectedAppointment((current) => (current?.id === appointment.id ? updatedAppointment : current));
+    setStatusMessage("Meeting link shared successfully.");
   }
 
   const todayLabel = useMemo(
@@ -269,6 +309,11 @@ export default function ConsultantAppointmentsPage() {
         <div className="mx-auto max-w-[1220px] space-y-5">
           <AppointmentsHeader />
           <AppointmentsStatsGrid stats={stats} />
+          {statusMessage ? (
+            <div className="rounded-[10px] border border-[#D8C9AE] bg-[#F8F3E9] px-4 py-3 text-sm text-[#0A4833]">
+              {statusMessage}
+            </div>
+          ) : null}
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_320px]">
             {loadingAppointments ? (

@@ -57,7 +57,7 @@ export default function TodaysScheduleCard({
 
         {schedule.map((item) => (
           <article
-            key={`${item.time}-${item.name}`}
+            key={item.id}
             onClick={() => !item.isEmpty && onSelectAppointment(item)}
             className={`grid gap-4 rounded-[14px] border px-4 py-4 md:grid-cols-[74px_minmax(0,1fr)_120px] md:items-center ${
               appointmentCardTone(item)

@@ -16,6 +16,11 @@ type ConsultantProfile = {
   role?: string | null;
 };
 
+type ConsultantBooking = {
+  id: number;
+  status?: string;
+};
+
 function getApiOrigin() {
   const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
   return apiBase.replace(/\/api\/?$/, "");
@@ -36,6 +41,7 @@ function getInitials(name: string) {
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const [profile, setProfile] = useState<ConsultantProfile | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -51,6 +57,42 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUnreadCount = () => {
+      Promise.allSettled([
+        api.get<{ count: number }>("/notifications/inbox/unread-count/"),
+        api.get<ConsultantBooking[]>("/consultant/bookings/"),
+      ])
+        .then(([notificationsResponse, bookingsResponse]) => {
+          if (!isMounted) return;
+
+          const notificationCount =
+            notificationsResponse.status === "fulfilled"
+              ? Number(notificationsResponse.value.data.count ?? 0)
+              : 0;
+          const pendingBookingCount =
+            bookingsResponse.status === "fulfilled" && Array.isArray(bookingsResponse.value.data)
+              ? bookingsResponse.value.data.filter((booking) => String(booking.status ?? "").toLowerCase() === "pending").length
+              : 0;
+
+          setUnreadCount(notificationCount + pendingBookingCount);
+        })
+        .catch(() => {
+          if (isMounted) setUnreadCount(0);
+        });
+    };
+
+    loadUnreadCount();
+    const intervalId = window.setInterval(loadUnreadCount, 60000);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(intervalId);
     };
   }, []);
 
@@ -123,6 +165,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           aria-label="Open notifications"
         >
           <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+          {unreadCount > 0 ? (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#B42318] px-1.5 text-[10px] font-bold leading-none text-white">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          ) : null}
         </Link>
 
         {/* Profile Info */}

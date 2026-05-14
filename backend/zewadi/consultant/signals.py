@@ -23,7 +23,20 @@ BOOKING_STATUS_MESSAGES = {
 @receiver(post_save, sender="consultant.ConsultationBooking")
 def handle_booking_status_change(sender, instance, created, **kwargs):
     if created:
-        return  # No notification on booking creation (pending state)
+        date_str = instance.booked_date.strftime("%d %b %Y") if instance.booked_date else "the selected date"
+        client_name = (
+            instance.user.get_full_name()
+            or getattr(instance.user, "full_name", "")
+            or getattr(instance.user, "user_name", "")
+            or instance.user.email
+        )
+        send_user_notification(
+            instance.consultant.user,
+            "New consultation request",
+            f"{client_name} requested a consultation on {date_str} at {instance.booked_slot}.",
+            "ALERT",
+        )
+        return
 
     old_status = getattr(instance, "_status_before_save", None)
     if old_status is None or old_status == instance.status:
