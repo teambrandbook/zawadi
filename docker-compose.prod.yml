@@ -9,6 +9,8 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
       interval: 5s
@@ -20,8 +22,13 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+    environment:
+      # REDISCLI_AUTH lets redis-cli read the password without exposing it as a CLI arg
+      REDISCLI_AUTH: ${REDIS_PASSWORD}
+    networks:
+      - internal
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,8 +69,12 @@ services:
         condition: service_healthy
     volumes:
       - media_files:/app/media
+    networks:
+      - internal
+      - public
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=public"
       - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`, `/admin`, `/static`, `/media`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
@@ -88,14 +99,26 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    networks:
+      - public
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=public"
       - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
       - "traefik.http.routers.frontend.priority=1"
       - "traefik.http.routers.backend.priority=10"
+
+networks:
+  # db and redis are only reachable by the backend — not exposed to Traefik
+  internal:
+    driver: bridge
+    internal: true
+  # backend and frontend are reachable by Traefik for routing
+  public:
+    driver: bridge
 
 volumes:
   postgres_data:
