@@ -11,6 +11,7 @@ type Props = {
   quantity: number;
   deliveryCharge: number;
   isSubmitting?: boolean;
+  isDisabled?: boolean;
   actionLabel?: string;
   submittingLabel?: string;
   onPlaceOrder: () => void;
@@ -32,6 +33,7 @@ export default function OrderSummary({
   quantity,
   deliveryCharge,
   isSubmitting = false,
+  isDisabled = false,
   actionLabel = "Place Order",
   submittingLabel = "Placing Order...",
   onPlaceOrder,
@@ -69,7 +71,7 @@ export default function OrderSummary({
 
       <button
         onClick={onPlaceOrder}
-        disabled={isSubmitting}
+        disabled={isSubmitting || isDisabled}
         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0A4833] text-sm font-semibold text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-70"
       >
         <CircleDollarSign className="h-4 w-4" />

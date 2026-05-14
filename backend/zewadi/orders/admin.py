@@ -8,7 +8,9 @@ class OrderAdmin(admin.ModelAdmin):
         "order_id",
         "user",
         "product_name",
+        "product_code",
         "pack_name",
+        "selling_price",
         "total_amount",
         "payment_method",
         "payment_status",
@@ -34,6 +36,6 @@ class OrderReviewAdmin(admin.ModelAdmin):
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ["user", "product", "variant", "quantity", "updated_at"]
     list_filter = ["created_at", "updated_at"]
-    search_fields = ["user__email", "product__product_name", "variant__variant_name"]
+    search_fields = ["user__email", "product__product_name", "variant__variant_value"]
     readonly_fields = ["created_at", "updated_at"]
     ordering = ["-updated_at"]

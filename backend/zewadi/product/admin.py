@@ -16,14 +16,14 @@ class ProductAdmin(admin.ModelAdmin):
         "category",
         "product_status",
         "stock_status",
-        "base_price",
+        "selling_price",
         "currency",
         "created_at",
     ]
     list_filter = ["category", "product_status", "stock_status", "currency"]
     search_fields = ["product_name", "product_code"]
     readonly_fields = ["created_at", "updated_at"]
-    inlines = [ProductVariantInline]
+    inlines = []
     fieldsets = (
         ("Basic Info", {
             "fields": (
@@ -45,7 +45,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("key_ingredients", "health_benefits")
         }),
         ("Pricing", {
-            "fields": ("base_price", "sale_price", "currency")
+            "fields": ("cost_price", "mrp_price", "selling_price", "currency")
         }),
         ("Inventory", {
             "fields": (

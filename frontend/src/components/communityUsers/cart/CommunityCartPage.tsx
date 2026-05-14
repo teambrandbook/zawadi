@@ -90,15 +90,18 @@ function toImageUrl(imagePath: string | null | undefined, index: number): string
 }
 
 function stockLabel(item: CartItem): { text: string; className: string } {
-  const hasVariantStock = item.variant_stock !== null && item.variant_stock !== undefined;
-  const stock = hasVariantStock ? item.variant_stock ?? 0 : item.stock_quantity;
-  if ((!hasVariantStock && item.stock_status === "out_of_stock") || stock <= 0) {
+  const stock = item.stock_quantity;
+  if (item.stock_status === "out_of_stock" || stock <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
   }
-  if (stock <= 3) {
+  if (stock <= 5) {
     return { text: `Only ${stock} left`, className: "text-[#EA580C]" };
   }
   return { text: "In Stock", className: "text-[#16A34A]" };
+}
+
+function isCartItemOutOfStock(item: CartItem): boolean {
+  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity) <= 0;
 }
 
 export default function CommunityCartPage() {
@@ -115,6 +118,7 @@ export default function CommunityCartPage() {
     const count = summary.item_count;
     return `${count} ${count === 1 ? "Item" : "Items"} in Cart`;
   }, [summary.item_count]);
+  const hasOutOfStockItem = useMemo(() => items.some(isCartItemOutOfStock), [items]);
 
   async function loadCart() {
     try {
@@ -359,7 +363,7 @@ export default function CommunityCartPage() {
             <button
               type="button"
               onClick={() => router.push("/communityDashBoard/products/order?cart=1")}
-              disabled={items.length === 0}
+              disabled={items.length === 0 || hasOutOfStockItem}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0A4833] text-sm font-semibold text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
             >
               <Lock className="h-4 w-4" />

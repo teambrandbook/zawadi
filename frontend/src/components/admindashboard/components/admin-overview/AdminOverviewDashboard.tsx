@@ -5,6 +5,7 @@ import api from "@/services/api";
 import WelcomeBanner from "./WelcomeBanner";
 import MetricsGrid from "./MetricsGrid";
 import MainPanels from "./MainPanels";
+import CartAndStockPanels from "./CartAndStockPanels";
 import BottomPanels from "./BottomPanels";
 
 export type OverviewStats = {
@@ -54,6 +55,7 @@ export default function AdminOverviewDashboard() {
 
         {!isLoading && <MetricsGrid stats={stats} />}
         <MainPanels />
+        <CartAndStockPanels />
         <BottomPanels />
       </div>
     </section>

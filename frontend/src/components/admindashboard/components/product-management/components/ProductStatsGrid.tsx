@@ -79,7 +79,7 @@ export default function ProductStatsGrid({ rows }: Props) {
           return s === "draft" || s === "inactive";
         }).length;
         const revenue = raw.reduce((sum, p) => {
-          const price = parseFloat(p.price ?? p.base_price ?? 0);
+          const price = parseFloat(p.selling_price ?? p.sale_price ?? p.price ?? p.base_price ?? 0);
           const sales = parseInt(p.total_sales ?? p.sales ?? 0, 10);
           return sum + (Number.isNaN(price) || Number.isNaN(sales) ? 0 : price * sales);
         }, 0);
