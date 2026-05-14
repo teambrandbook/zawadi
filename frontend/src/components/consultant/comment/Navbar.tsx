@@ -1,13 +1,64 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 import { Search, Bell, Menu } from 'lucide-react';
+import api from '@/services/api';
 
 interface NavbarProps {
   onMenuClick: () => void;
 }
 
+type ConsultantProfile = {
+  full_name?: string | null;
+  user_name?: string | null;
+  location?: string | null;
+  photo?: string | null;
+  role?: string | null;
+};
+
+function getApiOrigin() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
+function normalizePhotoUrl(photo?: string | null) {
+  if (!photo) return "";
+  if (photo.startsWith("http")) return photo;
+  if (photo.startsWith("/")) return `${getApiOrigin()}${photo}`;
+  return photo;
+}
+
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "C";
+  return parts.slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+}
+
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
+  const [profile, setProfile] = useState<ConsultantProfile | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<ConsultantProfile>("/consultant/profile/")
+      .then((response) => {
+        if (isMounted) setProfile(response.data);
+      })
+      .catch(() => {
+        if (isMounted) setProfile(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const displayName = profile?.full_name || profile?.user_name || "Consultant";
+  const location = profile?.location?.trim();
+  const photoSrc = normalizePhotoUrl(profile?.photo);
+  const initials = useMemo(() => getInitials(displayName), [displayName]);
+
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
       
@@ -31,7 +82,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           >
             <div className="relative w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 border-[#0A4834] overflow-hidden mb-1 bg-white">
               <Image
-                src="/logo/zawadi-logo.webp"
+                src="/logo/zewadi-logo.webp"
                 alt="ZEWADI Logo"
                 fill
                 className="object-cover group-hover:scale-110 transition-transform"
@@ -45,7 +96,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
         {/* Welcome Greeting (Desktop Only) */}
         <div className="hidden lg:flex flex-col min-w-0 ml-4">
-          <h1 className="text-xl font-bold text-[#0A4833] leading-tight truncate">Hai, Dr. Chen!</h1>
+          <h1 className="text-xl font-bold text-[#0A4833] leading-tight truncate">Hai, {displayName}!</h1>
           <p className="text-sm text-gray-500 whitespace-nowrap">Manage appointments, support clients, and guide healthier wellness journeys.</p>
         </div>
       </div>
@@ -76,14 +127,18 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
         {/* Profile Info */}
         <div className="flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
-          <div className="text-right mr-3 hidden lg:block">
-            <p className="text-sm font-bold text-gray-900 leading-none whitespace-nowrap">Dr.Chen</p>
-            <p className="text-xs text-gray-400 mt-1">Counsultant</p>
+          <div className="text-right mr-3 hidden max-w-[170px] lg:block">
+            <p className="truncate text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
+            <p className="mt-1 truncate text-xs text-gray-400">{location || "Consultant"}</p>
           </div>
-          <div className="w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-xs font-medium text-gray-600">DC</span>
-            </div>
+          <div className="relative w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+            {photoSrc ? (
+              <img src={photoSrc} alt={`${displayName} profile`} className="h-full w-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <span className="text-xs font-medium text-gray-600">{initials}</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

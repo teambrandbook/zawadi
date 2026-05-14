@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { MessageCircleMore, PhoneCall, Shield, Users, Video } from "lucide-react";
 
 type SessionType = "Video Call" | "Audio Call" | "Chat Session";

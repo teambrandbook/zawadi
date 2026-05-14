@@ -44,6 +44,9 @@ export type EventDetail = {
   end_time?: string | null;
   registration_deadline?: string | null;
   repeat_event?: boolean;
+  enable_registration?: boolean;
+  waitlist_enabled?: boolean;
+  approval_required?: boolean;
   is_online?: boolean;
   location?: string;
   meeting_link?: string;
@@ -78,6 +81,9 @@ export type CreateEventFormData = {
   max_attendees: string;
   status: string;
   show_in_community: boolean;
+  enable_registration: boolean;
+  waitlist_enabled: boolean;
+  approval_required: boolean;
   institutional_name: string;
   host_type: string;
   timezone: string;

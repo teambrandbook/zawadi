@@ -20,7 +20,7 @@ export default function ConsultantLayout({ children }: Props) {
             </div>
 
             {/* ✅ Desktop Sidebar */}
-            <div className="hidden lg:block fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white border-r z-40">
+            <div className="hidden lg:block fixed top-16 left-0 w-72 h-[calc(100vh-4rem)] bg-white border-r z-40">
                 <ConsultantSidebar/>
             </div>
 
@@ -37,7 +37,7 @@ export default function ConsultantLayout({ children }: Props) {
 
                 {/* Sidebar */}
                 <div
-                    className={`relative w-64 bg-white h-full shadow-lg transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
+                    className={`relative w-72 bg-white h-full shadow-lg transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
                         }`}
                 >
                     <ConsultantSidebar onClose={() => setIsOpen(false)} />
@@ -45,7 +45,7 @@ export default function ConsultantLayout({ children }: Props) {
             </div>
 
             {/* ✅ Main Content */}
-            <div className=" pt-26 lg:pl-64 bg-white min-h-screen">
+            <div className=" pt-26 lg:pl-72 bg-white min-h-screen">
                     {children}
             </div>
         </div>

@@ -1,13 +1,59 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Bell, Clock3, Mail, MessageCircle, Users } from "lucide-react";
 import NotificationsPanel from "@/components/consultant/notes/NotificationsPanel";
+import api from "@/services/api";
 import type {
   NotificationCategory,
   NotificationItem,
   NotificationStatItem,
 } from "@/components/consultant/notes/notificationTypes";
+
+type ApiNotification = {
+  receipt_id: number;
+  id: number;
+  title: string;
+  body: string;
+  notification_type: string;
+  is_read: boolean;
+  created_at: string;
+};
+
+function timeAgo(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently";
+  const diffMinutes = Math.max(0, Math.floor((Date.now() - date.getTime()) / 60000));
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes} minutes ago`;
+  const hours = Math.floor(diffMinutes / 60);
+  if (hours < 24) return `${hours} hours ago`;
+  return `${Math.floor(hours / 24)} days ago`;
+}
+
+function mapNotification(item: ApiNotification): NotificationItem {
+  const type = item.notification_type.toLowerCase();
+  const category: NotificationItem["category"] = type.includes("event")
+    ? "events"
+    : type.includes("message")
+      ? "messages"
+      : type.includes("consult")
+        ? "consultations"
+        : "admin-alerts";
+
+  return {
+    id: String(item.receipt_id),
+    title: item.title,
+    description: item.body,
+    time: timeAgo(item.created_at),
+    category,
+    label: item.notification_type || "Notification",
+    labelColor: item.is_read ? "text-[#6B7280]" : "text-[#0A4833]",
+    kind: category === "events" ? "event" : category === "messages" ? "message" : category === "consultations" ? "consultation" : "admin",
+    unread: !item.is_read,
+    actions: item.is_read ? [] : [{ id: "mark-read", label: "Mark Read", tone: "secondary" }],
+  };
+}
 
 const backendNotificationStats: NotificationStatItem[] = [
   { id: "total", label: "Total Notifications", value: 47, tone: "sand", icon: Bell },
@@ -107,9 +153,34 @@ const backendNotifications: NotificationItem[] = [
 ];
 
 export default function ConsultantNotificationPage() {
-  const notificationsFromBackend = useMemo(() => backendNotifications, []);
+  const [notificationsFromBackend, setNotificationsFromBackend] = useState<NotificationItem[]>([]);
   const [activeTab, setActiveTab] = useState<NotificationCategory>("all");
   const [statusMessage, setStatusMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<ApiNotification[]>("/notifications/inbox/")
+      .then(({ data }) => {
+        if (isMounted) setNotificationsFromBackend(Array.isArray(data) ? data.map(mapNotification) : []);
+      })
+      .catch(() => {
+        if (isMounted) setNotificationsFromBackend([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const notificationStats: NotificationStatItem[] = useMemo(() => [
+    { id: "total", label: "Total Notifications", value: notificationsFromBackend.length, tone: "sand", icon: Bell },
+    { id: "unread", label: "Unread", value: notificationsFromBackend.filter((item) => item.unread).length, tone: "rose", icon: Mail },
+    { id: "consultations", label: "Consultations", value: notificationsFromBackend.filter((item) => item.category === "consultations").length, tone: "green", icon: Users },
+    { id: "messages", label: "Messages", value: notificationsFromBackend.filter((item) => item.category === "messages").length, tone: "blue", icon: MessageCircle },
+    { id: "reminders", label: "Reminders", value: notificationsFromBackend.filter((item) => item.kind === "reminder").length, tone: "amber", icon: Clock3 },
+  ], [notificationsFromBackend]);
 
   const visibleNotifications = useMemo(() => {
     if (activeTab === "all") {
@@ -124,18 +195,23 @@ export default function ConsultantNotificationPage() {
   }, [activeTab, notificationsFromBackend]);
 
   function handleMarkAllAsRead() {
-    setStatusMessage("Notification action is ready to connect to the backend mark-all-as-read endpoint.");
+    api.post("/notifications/inbox/mark-all-read/")
+      .then(() => {
+        setNotificationsFromBackend((current) => current.map((item) => ({ ...item, unread: false, actions: [] })));
+        setStatusMessage("All notifications marked as read.");
+      })
+      .catch(() => setStatusMessage("Unable to mark notifications as read."));
   }
 
   function handleLoadMore() {
-    setStatusMessage("Load-more action is ready to connect to the backend pagination endpoint.");
+    setStatusMessage("All available notifications are loaded.");
   }
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-6">
         <NotificationsPanel
-          stats={backendNotificationStats}
+          stats={notificationStats}
           notifications={visibleNotifications}
           activeTab={activeTab}
           onTabChange={setActiveTab}

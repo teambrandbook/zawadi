@@ -1,11 +1,55 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import api from "@/services/api";
 import AddNoteHeader from "@/components/consultant/notes/add/AddNoteHeader";
 import ClientConsultationReferenceSection from "@/components/consultant/notes/add/ClientConsultationReferenceSection";
 import NoteFormSection from "@/components/consultant/notes/add/NoteFormSection";
 import type { AddNoteFormState, NoteClientOption } from "@/components/consultant/notes/add/formTypes";
+
+type ApiClient = {
+  id: number;
+  full_name: string;
+  photo?: string | null;
+  booking_id?: number | null;
+  last_consultation?: string | null;
+  primary_goal?: string;
+  focuses_area?: string;
+};
+
+function getApiOrigin() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
+function mediaUrl(value?: string | null) {
+  if (!value) return "/recipe/recipe-2.webp";
+  if (value.startsWith("http")) return value;
+  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function formatDate(value?: string | null) {
+  if (!value) return "-";
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function mapClient(item: ApiClient): NoteClientOption {
+  return {
+    id: String(item.id),
+    name: item.full_name || "Client",
+    avatar: mediaUrl(item.photo),
+    consultationId: item.booking_id ? `CONS-${item.booking_id}` : "-",
+    sessionDate: formatDate(item.last_consultation),
+    sessionMode: "Consultation",
+    sessionTime: "-",
+    wellnessGoal: item.primary_goal || "General Wellness",
+    focusArea: item.focuses_area || "-",
+    consultant: "You",
+  };
+}
 
 const backendClients: NoteClientOption[] = [
   {
@@ -82,11 +126,31 @@ export default function ConsultantAddNotePage() {
   const router = useRouter();
   const [form, setForm] = useState<AddNoteFormState>(initialFormState);
   const [statusMessage, setStatusMessage] = useState("");
-  const clientsFromBackend = useMemo(() => backendClients, []);
+  const [clientsFromBackend, setClientsFromBackend] = useState<NoteClientOption[]>([]);
   const selectedClient = useMemo(
     () => clientsFromBackend.find((client) => client.id === form.userId) ?? clientsFromBackend[0],
     [clientsFromBackend, form.userId]
   );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<ApiClient[]>("/consultant/clients/")
+      .then(({ data }) => {
+        if (!isMounted) return;
+        const mappedClients = Array.isArray(data) ? data.map(mapClient) : [];
+        setClientsFromBackend(mappedClients);
+        setForm((current) => ({ ...current, userId: mappedClients[0]?.id ?? "" }));
+      })
+      .catch(() => {
+        if (isMounted) setClientsFromBackend([]);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function updateField<K extends keyof AddNoteFormState>(field: K, value: AddNoteFormState[K]) {
     setForm((current) => ({ ...current, [field]: value }));
@@ -100,44 +164,50 @@ export default function ConsultantAddNotePage() {
   }
 
   function handleSave() {
-    const payloadForBackend = {
-      userId: form.userId,
-      noteTitle: form.noteTitle,
-      noteType: form.noteType,
-      sessionDate: form.sessionDate,
-      sessionMode: form.sessionMode,
-      priorityLevel: form.priorityLevel,
-      currentMood: form.currentMood,
-      sessionSummary: form.sessionSummary,
-      keyObservation: form.keyObservation,
-      nutritionObservation: form.nutritionObservation,
-      foodHabitObservation: form.foodHabitObservation,
-      lifestyleObservation: form.lifestyleObservation,
-      clientProgressNotes: form.clientProgressNotes,
-      foodsToInclude: form.foodsToInclude,
-      foodsToAvoid: form.foodsToAvoid,
-      buckwheatRecommendation: form.buckwheatRecommendation,
-      mealTimingAdvice: form.mealTimingAdvice,
-      waterIntakeAdvice: form.waterIntakeAdvice,
-      additionalDietaryGuidance: form.additionalDietaryGuidance,
-      allergies: form.allergies,
-      dietaryRestrictions: form.dietaryRestrictions,
-      medicalConditions: form.medicalConditions,
-      sensitivities: form.sensitivities,
-      specialReminders: form.specialReminders,
-      nextConsultationRecommendation: form.nextConsultationRecommendation,
-      followUpDate: form.followUpDate,
-      actionItemsForClient: form.actionItemsForClient,
-      progressChecksRequired: form.progressChecksRequired,
-      dietPlanUpdateNeeded: form.dietPlanUpdateNeeded,
-      additionalMonitoringNote: form.additionalMonitoringNote,
-      internalNotes: form.internalNotes,
-      tags: form.tags,
-    };
+    if (!form.userId) {
+      setStatusMessage("Select a client before saving a note.");
+      return;
+    }
 
-    console.log("Add note payload", payloadForBackend);
-    setStatusMessage("Note form data is ready to pass to the backend.");
-    window.setTimeout(() => router.push("/consultant/notes"), 900);
+    api
+      .post("/consultant/notes/", {
+        client: Number(form.userId),
+        title: form.noteTitle.trim() || "Consultation note",
+        note_type: form.noteType,
+        priority_level: form.priorityLevel,
+        summary: form.sessionSummary,
+        observations: [
+          form.keyObservation,
+          form.nutritionObservation,
+          form.foodHabitObservation,
+          form.lifestyleObservation,
+          form.clientProgressNotes,
+        ].filter(Boolean).join("\n"),
+        recommendations: [
+          form.foodsToInclude,
+          form.buckwheatRecommendation,
+          form.mealTimingAdvice,
+          form.waterIntakeAdvice,
+          form.additionalDietaryGuidance,
+        ].filter(Boolean).join("\n"),
+        food_restrictions: [form.foodsToAvoid, form.allergies, form.dietaryRestrictions, form.medicalConditions, form.sensitivities].filter(Boolean).join("\n"),
+        follow_up_instructions: [
+          form.specialReminders,
+          form.nextConsultationRecommendation,
+          form.actionItemsForClient,
+          form.progressChecksRequired,
+          form.dietPlanUpdateNeeded,
+          form.additionalMonitoringNote,
+        ].filter(Boolean).join("\n"),
+        follow_up_date: /^\d{4}-\d{2}-\d{2}$/.test(form.followUpDate) ? form.followUpDate : null,
+        tags: form.tags.join(", "),
+        internal_notes: form.internalNotes,
+      })
+      .then(() => {
+        setStatusMessage("Note saved.");
+        window.setTimeout(() => router.push("/consultant/notes"), 500);
+      })
+      .catch(() => setStatusMessage("Unable to save note."));
   }
 
   return (

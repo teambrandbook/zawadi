@@ -388,7 +388,7 @@ function ConsultationDetailsModal({
             <p className="mb-3 text-sm font-semibold text-[#0A4833]">User</p>
             <div className="flex items-center gap-3">
               <img
-                src={booking.userImage || "/logo/zawadi-logo.webp"}
+                src={booking.userImage || "/logo/zewadi-logo.webp"}
                 alt={booking.userName}
                 className="h-14 w-14 rounded-full object-cover"
               />
@@ -403,7 +403,7 @@ function ConsultationDetailsModal({
             <p className="mb-3 text-sm font-semibold text-[#0A4833]">Consultant</p>
             <div className="flex items-center gap-3">
               <img
-                src={booking.nutritionistImage || "/logo/zawadi-logo.webp"}
+                src={booking.nutritionistImage || "/logo/zewadi-logo.webp"}
                 alt={booking.nutritionistName}
                 className="h-14 w-14 rounded-full object-cover"
               />
@@ -525,7 +525,7 @@ export default function AdminConsultationPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={booking.userImage || "/logo/zawadi-logo.webp"}
+                              src={booking.userImage || "/logo/zewadi-logo.webp"}
                               alt={booking.userName}
                               className="h-10 w-10 rounded-full object-cover"
                             />
@@ -538,7 +538,7 @@ export default function AdminConsultationPage() {
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <img
-                              src={booking.nutritionistImage || "/logo/zawadi-logo.webp"}
+                              src={booking.nutritionistImage || "/logo/zewadi-logo.webp"}
                               alt={booking.nutritionistName}
                               className="h-10 w-10 rounded-full object-cover"
                             />

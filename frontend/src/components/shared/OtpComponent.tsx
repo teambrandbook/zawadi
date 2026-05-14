@@ -160,7 +160,7 @@ export default function OtpComponent({
                 <div className="mb-4 flex justify-center">
                   <div className="rounded-b-[16px] bg-[#f3e8c8] px-3 pb-2 pt-1 shadow-[0_8px_16px_rgba(159,129,81,0.12)]">
                     <Image
-                      src="/logo/zawadi-logo.webp"
+                      src="/logo/zewadi-logo.webp"
                       alt="Zawadi"
                       width={40}
                       height={48}
