@@ -100,6 +100,10 @@ function stockLabel(item: CartItem): { text: string; className: string } {
   return { text: "In Stock", className: "text-[#16A34A]" };
 }
 
+function isCartItemOutOfStock(item: CartItem): boolean {
+  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity) <= 0;
+}
+
 export default function CommunityCartPage() {
   const router = useRouter();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -114,6 +118,7 @@ export default function CommunityCartPage() {
     const count = summary.item_count;
     return `${count} ${count === 1 ? "Item" : "Items"} in Cart`;
   }, [summary.item_count]);
+  const hasOutOfStockItem = useMemo(() => items.some(isCartItemOutOfStock), [items]);
 
   async function loadCart() {
     try {
@@ -358,7 +363,7 @@ export default function CommunityCartPage() {
             <button
               type="button"
               onClick={() => router.push("/communityDashBoard/products/order?cart=1")}
-              disabled={items.length === 0}
+              disabled={items.length === 0 || hasOutOfStockItem}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0A4833] text-sm font-semibold text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
             >
               <Lock className="h-4 w-4" />

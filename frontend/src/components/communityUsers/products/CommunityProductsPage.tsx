@@ -123,7 +123,7 @@ function getSellingPrice(product: Product): string | number | null | undefined {
 }
 
 function isProductOutOfStock(product: Product): boolean {
-  return toNumber(product.stock_quantity) <= 0;
+  return product.stock_status === "out_of_stock" || toNumber(product.stock_quantity) <= 0;
 }
 
 function hasDiscount(product: Product): boolean {
@@ -212,6 +212,8 @@ export default function CommunityProductsPage() {
   }, [activeFilter, products, sortBy]);
 
   async function addToCart(product: Product) {
+    if (isProductOutOfStock(product)) return;
+
     setBusyProductId(product.id);
     setStatusMessage("");
     try {

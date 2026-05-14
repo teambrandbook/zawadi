@@ -39,6 +39,7 @@ type ApiProduct = {
   product_unit?: string;
   unit_quantity?: string | number;
   stock_quantity: number;
+  stock_status?: string;
   image?: string | null;
   variants?: ApiVariant[];
 };
@@ -56,6 +57,8 @@ type CartItem = {
   unit_price: string | number;
   line_total: string | number;
   currency: string;
+  stock_quantity?: number;
+  stock_status?: string;
 };
 
 type CartSummary = {
@@ -129,6 +132,14 @@ function toList<T>(data: T[] | PaginatedResponse<T>): T[] {
   return Array.isArray(data) ? data : data.results ?? [];
 }
 
+function isProductOutOfStock(product: ApiProduct): boolean {
+  return product.stock_status === "out_of_stock" || toNumber(product.stock_quantity) <= 0;
+}
+
+function isCartItemOutOfStock(item: CartItem): boolean {
+  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity ?? 0) <= 0;
+}
+
 export default function OrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -162,8 +173,13 @@ export default function OrderPage() {
   );
   const maxQuantity = useMemo(() => {
     if (!selectedProduct || !selectedPack) return 0;
+    if (isProductOutOfStock(selectedProduct)) return 0;
     return Math.max(0, toNumber(selectedProduct.stock_quantity));
   }, [selectedPack, selectedProduct]);
+  const hasOutOfStockCartItem = useMemo(
+    () => cartItems.some(isCartItemOutOfStock),
+    [cartItems]
+  );
 
   const singleSubtotal = useMemo(() => {
     if (!selectedPack) return 0;
@@ -265,6 +281,7 @@ export default function OrderPage() {
   // Add to Cart Function
   async function addToCart() {
     if (!selectedProduct) return;
+    if (maxQuantity < 1) return;
 
     setBusyProductId(selectedProduct.id);
     setStatusMessage("");
@@ -309,6 +326,10 @@ export default function OrderPage() {
     if (isCartCheckout) {
       if (!cartItems.length) {
         showStatus("Your cart is empty.");
+        return;
+      }
+      if (hasOutOfStockCartItem) {
+        showStatus("Remove out of stock products before checkout.");
         return;
       }
 
@@ -451,6 +472,7 @@ export default function OrderPage() {
                 summary={cartSummary}
                 currency={cartItems[0]?.currency ?? "USD"}
                 isSubmitting={isSubmitting}
+                hasOutOfStockItem={hasOutOfStockCartItem}
                 onPlaceOrder={placeOrder}
               />
             ) : selectedPack ? (
@@ -461,6 +483,7 @@ export default function OrderPage() {
                 quantity={quantity}
                 deliveryCharge={deliveryCharge}
                 isSubmitting={isSubmitting}
+                isDisabled={maxQuantity < 1}
                 actionLabel="Continue to Payment"
                 submittingLabel="Opening Payment..."
                 onPlaceOrder={placeOrder}
@@ -525,12 +548,14 @@ function CartCheckoutSummary({
   summary,
   currency,
   isSubmitting,
+  hasOutOfStockItem,
   onPlaceOrder,
 }: {
   items: CartItem[];
   summary: CartSummary;
   currency: string;
   isSubmitting: boolean;
+  hasOutOfStockItem: boolean;
   onPlaceOrder: () => void;
 }) {
   return (
@@ -560,7 +585,7 @@ function CartCheckoutSummary({
 
       <button
         onClick={onPlaceOrder}
-        disabled={isSubmitting || items.length === 0}
+        disabled={isSubmitting || items.length === 0 || hasOutOfStockItem}
         className="mt-4 inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#0A4833] text-sm font-semibold text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "Opening Payment..." : "Continue to Payment"}
