@@ -23,7 +23,6 @@ services:
     restart: unless-stopped
     command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
     environment:
-      # REDISCLI_AUTH lets redis-cli read the password without exposing it as a CLI arg
       REDISCLI_AUTH: ${REDIS_PASSWORD}
     networks:
       - internal
@@ -33,7 +32,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Django Backend ──────────────────────────────────────────────────────────
+  # ── Django Backend — api.zewadi.com ─────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -42,7 +41,7 @@ services:
     environment:
       SECRET_KEY: ${SECRET_KEY}
       DEBUG: "False"
-      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+      ALLOWED_HOSTS: api.zewadi.com
       DB_ENGINE: postgresql
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
@@ -50,8 +49,8 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       REDIS_URL: ${REDIS_URL:-redis://:${REDIS_PASSWORD}@redis:6379/0}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS}
-      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS}
+      CORS_ALLOWED_ORIGINS: https://app.zewadi.com
+      CSRF_TRUSTED_ORIGINS: https://api.zewadi.com,https://app.zewadi.com
       EMAIL_HOST: ${EMAIL_HOST}
       EMAIL_PORT: ${EMAIL_PORT:-587}
       EMAIL_HOST_USER: ${EMAIL_HOST_USER}
@@ -59,9 +58,9 @@ services:
       DEFAULT_FROM_EMAIL: ${DEFAULT_FROM_EMAIL}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      FRONTEND_URL: ${FRONTEND_URL}
-      SECURE_SSL_REDIRECT: ${SECURE_SSL_REDIRECT:-True}
-      SECURE_HSTS_SECONDS: ${SECURE_HSTS_SECONDS:-31536000}
+      FRONTEND_URL: https://app.zewadi.com
+      SECURE_SSL_REDIRECT: "True"
+      SECURE_HSTS_SECONDS: "31536000"
     depends_on:
       db:
         condition: service_healthy
@@ -75,7 +74,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
-      - "traefik.http.routers.backend.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`, `/admin`, `/static`, `/media`)"
+      - "traefik.http.routers.backend.rule=Host(`api.zewadi.com`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
@@ -86,13 +85,13 @@ services:
       retries: 6
       start_period: 40s
 
-  # ── Next.js Frontend ────────────────────────────────────────────────────────
+  # ── Next.js Frontend — app.zewadi.com ───────────────────────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_API_URL: https://api.zewadi.com/api
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -104,19 +103,15 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
-      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.rule=Host(`app.zewadi.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
-      - "traefik.http.routers.frontend.priority=1"
-      - "traefik.http.routers.backend.priority=10"
 
 networks:
-  # db and redis are only reachable by the backend — not exposed to Traefik
   internal:
     driver: bridge
     internal: true
-  # backend and frontend are reachable by Traefik for routing
   public:
     driver: bridge
 
