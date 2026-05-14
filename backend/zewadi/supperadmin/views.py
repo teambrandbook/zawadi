@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.db import OperationalError, ProgrammingError
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F, DecimalField, ExpressionWrapper
 from django.db.models.functions import TruncMonth, TruncWeek
 from django.utils import timezone
 from datetime import timedelta
@@ -53,7 +53,7 @@ class AdminReportsAPIView(APIView):
                 Order.objects.filter(status__in=["confirmed", "processing", "shipped", "delivered"], created_at__gte=six_months_ago)
                 .annotate(month=TruncMonth("created_at"))
                 .values("month")
-                .annotate(value=Sum("total_amount"))
+                .annotate(value=Sum("subtotal"))
                 .order_by("month")
             )
             return [{"label": row["month"].strftime("%b"), "value": float(row["value"] or 0)} for row in qs]
@@ -101,15 +101,42 @@ class AdminReportsAPIView(APIView):
 
         def report_rows():
             orders_count = Order.objects.count()
+            confirmed_orders = Order.objects.filter(
+                status__in=["confirmed", "processing", "shipped", "delivered"]
+            )
+            profit_expr = ExpressionWrapper(
+                (F("selling_price") - F("cost_price")) * F("quantity"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
+            discount_expr = ExpressionWrapper(
+                F("discount_amount") * F("quantity"),
+                output_field=DecimalField(max_digits=12, decimal_places=2),
+            )
             total_rev = float(
-                Order.objects.filter(
-                    status__in=["confirmed", "processing", "shipped", "delivered"]
-                ).aggregate(t=Sum("total_amount"))["t"] or 0
+                confirmed_orders.aggregate(t=Sum("subtotal"))["t"] or 0
+            )
+            total_profit = float(
+                confirmed_orders.aggregate(t=Sum(profit_expr))["t"] or 0
+            )
+            total_discount = float(
+                confirmed_orders.aggregate(t=Sum(discount_expr))["t"] or 0
+            )
+            total_shipping = float(
+                confirmed_orders.aggregate(t=Sum("delivery_charge"))["t"] or 0
+            )
+            total_tax = float(
+                confirmed_orders.aggregate(t=Sum("tax_amount"))["t"] or 0
             )
             date_str = now.strftime("%b %d, %Y")
             return [
                 {"id": "revenue", "report_type": "Revenue Report", "date_range": "All Time",
                  "records": str(orders_count), "total": total_rev, "status": "Ready", "updated_at": date_str},
+                {"id": "profit", "report_type": "Gross Profit Report", "date_range": "All Time",
+                 "records": str(orders_count), "total": total_profit, "status": "Ready", "updated_at": date_str},
+                {"id": "discounts", "report_type": "Discounts Given", "date_range": "All Time",
+                 "records": str(orders_count), "total": total_discount, "status": "Ready", "updated_at": date_str},
+                {"id": "charges", "report_type": "Tax & Shipping", "date_range": "All Time",
+                 "records": str(orders_count), "total": total_tax + total_shipping, "status": "Ready", "updated_at": date_str},
                 {"id": "users", "report_type": "User Analytics", "date_range": "All Time",
                  "records": str(User.objects.count()), "status": "Ready", "updated_at": date_str},
                 {"id": "content", "report_type": "Content Performance", "date_range": "All Time",
@@ -155,7 +182,21 @@ class AdminStatsAPIView(APIView):
             lambda: float(
                 Order.objects.filter(
                     status__in=["confirmed", "processing", "shipped", "delivered"]
-                ).aggregate(t=Sum("total_amount"))["t"] or 0
+                ).aggregate(t=Sum("subtotal"))["t"] or 0
+            )
+        )
+        total_shipping = safe_query(
+            lambda: float(
+                Order.objects.filter(
+                    status__in=["confirmed", "processing", "shipped", "delivered"]
+                ).aggregate(t=Sum("delivery_charge"))["t"] or 0
+            )
+        )
+        total_tax = safe_query(
+            lambda: float(
+                Order.objects.filter(
+                    status__in=["confirmed", "processing", "shipped", "delivered"]
+                ).aggregate(t=Sum("tax_amount"))["t"] or 0
             )
         )
 
@@ -166,6 +207,8 @@ class AdminStatsAPIView(APIView):
             "total_events": total_events,
             "total_consultations": total_consultations,
             "total_revenue": float(total_revenue),
+            "total_shipping": float(total_shipping),
+            "total_tax": float(total_tax),
         }, status=status.HTTP_200_OK)
 
 

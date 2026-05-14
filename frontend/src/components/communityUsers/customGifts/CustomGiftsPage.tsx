@@ -25,6 +25,7 @@ type ApiProduct = {
   price?: number | string;
   base_price?: number | string;
   sale_price?: number | string;
+  selling_price?: number | string;
   weight?: string;
 };
 
@@ -88,7 +89,7 @@ function mapApiProduct(p: ApiProduct): CartProduct {
   const firstVariant = p.variants?.[0];
   const productName = p.name ?? p.product_name ?? "ZEWADI Product";
   const size = firstVariant?.weight ?? firstVariant?.variant_name ?? p.weight ?? "250g";
-  const price = formatPrice(firstVariant?.price ?? p.sale_price ?? p.price ?? p.base_price);
+  const price = formatPrice(p.selling_price ?? p.sale_price ?? p.price ?? p.base_price);
   return {
     id: p.id,
     name: productName,

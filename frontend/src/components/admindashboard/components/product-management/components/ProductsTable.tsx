@@ -66,8 +66,8 @@ export default function ProductsTable({
               <th className="px-3 py-3">Product</th>
               <th className="px-3 py-3">Product Code</th>
               <th className="px-3 py-3">Category</th>
-              <th className="px-3 py-3">Variant</th>
-              <th className="px-3 py-3">Price</th>
+              <th className="px-3 py-3">Pack Policy</th>
+              <th className="px-3 py-3">Selling Price</th>
               <th className="px-3 py-3">Stock</th>
               <th className="px-3 py-3">Status</th>
               <th className="px-3 py-3">Sales</th>
@@ -100,14 +100,7 @@ export default function ProductsTable({
                 <td className="px-3 py-4 text-[#4B5563]">{row.sku}</td>
                 <td className="px-3 py-4 text-[#0A4833]">{row.category}</td>
                 <td className="px-3 py-4 text-[#4B5563]">
-                  {row.variants && row.variants.length > 0
-                    ? row.variants
-                        .map(
-                          (variant) =>
-                            `${variant.variant_value} ${variant.variant_unit}`
-                        )
-                        .join(", ")
-                    : "N/A"}
+                  Separate SKU
                 </td>
                 <td className="px-3 py-4 font-semibold text-[#0A4833]">
                   ${row.price.toFixed(2)}

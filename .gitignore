@@ -16,6 +16,7 @@ build/
 .venv/
 venv/
 env/
+env-ze/
 
 # ─── Django ───────────────────────────────────────────────────────────────────
 backend/zewadi/db.sqlite3
