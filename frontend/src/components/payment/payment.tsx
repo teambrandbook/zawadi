@@ -147,7 +147,7 @@ export default function Payment() {
         postal_code: form.postal_code,
       });
       if (!result.success) {
-        toast.error(result.error.errors[0].message);
+        toast.error(result.error.issues[0].message);
         return;
       }
     }

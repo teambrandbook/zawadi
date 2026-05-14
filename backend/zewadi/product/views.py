@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
-from rest_framework.filters import OrderingFilter, SearchFilter
+from django.core.cache import cache
 
 from .models import Product, ProductStatus, ProductVariant
 from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
@@ -126,6 +126,15 @@ class ProductDetailView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if not can_manage:
+            cache_key = f"product_detail:{pk}"
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return Response(cached)
+            except Exception:
+                pass
+
         product = self._get_object(pk)
         if not product:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -133,6 +142,11 @@ class ProductDetailView(APIView):
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = ProductSerializer(product, context={"request": request})
+        if not can_manage:
+            try:
+                cache.set(f"product_detail:{pk}", serializer.data, timeout=600)
+            except Exception:
+                pass
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def patch(self, request, pk):

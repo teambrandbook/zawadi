@@ -11,6 +11,7 @@ from .serializers import (
 )
 from django.utils import timezone
 from django.db.models import Q
+from django.core.cache import cache
 
 
 def request_bool(value):
@@ -415,23 +416,26 @@ class PublishedRecipeListAPIView(APIView):
     permission_classes = [AllowAny]  # No authentication required
 
     def get(self, request):
+        try:
+            cached = cache.get("published_recipes")
+            if cached is not None:
+                return Response(cached, status=status.HTTP_200_OK)
+        except Exception:
+            pass
 
-        recipes = Recipe.objects.select_related(
-            "author"
-        ).filter(status=RecipeStatus.PUBLISHED)
-
-        serializer = RecipeDetailSerializer(
-            recipes,
-            many=True,
-            context={"request": request},
+        recipes = Recipe.objects.select_related("author").prefetch_related("ingredients", "steps").filter(
+            status=RecipeStatus.PUBLISHED
         )
+        serializer = RecipeDetailSerializer(recipes, many=True, context={"request": request})
+        data = {
+            "success": True,
+            "count": len(serializer.data),
+            "data": serializer.data,
+        }
 
-        return Response(
-            {
-                "success": True,
-                "count": recipes.count(),
-                "data": serializer.data,
-            },
+        try:
+            cache.set("published_recipes", data, timeout=300)
+        except Exception:
+            pass
 
-            status=status.HTTP_200_OK
-        )
+        return Response(data, status=status.HTTP_200_OK)

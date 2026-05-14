@@ -31,7 +31,7 @@ export default function LoginComponent() {
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      toast.error(result.error.errors[0].message);
+      toast.error(result.error.issues[0].message);
       return;
     }
 

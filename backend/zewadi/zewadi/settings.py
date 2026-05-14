@@ -1,15 +1,11 @@
-"""
-Django settings for zewadi project.
-"""
-
 from pathlib import Path
+from datetime import timedelta
 from dotenv import load_dotenv
 import os
+import sys as _sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
-
-BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── Security ────────────────────────────────────────────────────────────────
 
@@ -158,8 +154,6 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 20,
 }
 
-from datetime import timedelta
-
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
@@ -214,7 +208,6 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024    # 5 MB per file
 
 # ─── Production Safety Guard ─────────────────────────────────────────────────
 
-import sys as _sys
 _INSECURE_KEY = "django-insecure-change-me-in-production"
 _MANAGEMENT_CMDS = {"collectstatic", "migrate", "makemigrations", "shell", "createsuperuser"}
 _running_cmd = _sys.argv[1] if len(_sys.argv) > 1 else ""
@@ -222,3 +215,17 @@ if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT
     raise RuntimeError(
         "Set a real SECRET_KEY environment variable before running in production."
     )
+
+# ─── Cache (Redis) ────────────────────────────────────────────────────────────
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+        "TIMEOUT": 300,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "zawadi",
+    }
+}

@@ -1,3 +1,4 @@
+import random
 from rest_framework import serializers
 from .models import User, ROLE_CHOICES
 from django.contrib.auth import authenticate
@@ -107,8 +108,6 @@ class RegisterSerializer(serializers.Serializer):
         return normalized
 
     def create(self, validated_data):
-        import random
-
         with transaction.atomic():
             # Auto-generate missing full_name and user_name from email prefix
             email = validated_data.get("email", "")
