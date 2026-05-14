@@ -17,12 +17,13 @@ export default function OrderFilters({ status, payment, fromDate, toDate, onChan
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-3">
       <div className="flex flex-wrap items-center gap-3">
         <select className={fieldClass} value={status} onChange={(e) => onChange("status", e.target.value)}>
-          <option>All Status</option>
-          <option>Processing</option>
-          <option>Packed</option>
-          <option>Shipped</option>
-          <option>Out for Delivery</option>
-          <option>Delivered</option>
+          <option value="All Status">All Status</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="processing">Processing</option>
+          <option value="shipped">Shipped</option>
+          <option value="out_for_delivery">Out for Delivery</option>
+          <option value="delivered">Delivered</option>
+          <option value="cancelled">Cancelled</option>
         </select>
 
         <select className={fieldClass} value={payment} onChange={(e) => onChange("payment", e.target.value)}>

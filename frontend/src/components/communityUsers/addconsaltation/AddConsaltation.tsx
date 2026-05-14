@@ -9,14 +9,6 @@ import SelectDateTimeSection from "./components/SelectDateTimeSection";
 import HealthDetailsSection, { type HealthDetails } from "./components/HealthDetailsSection";
 import ConfirmBookingSection, { type ConsultationFormData } from "./components/ConfirmBookingSection";
 
-type Expert = {
-  id: string;
-  name: string;
-  specialty: string;
-  experience: string;
-  rating: string;
-};
-
 type MatchedConsultant = {
   consultant_id: string | number;
   consultant_name: string;
@@ -48,7 +40,7 @@ function getDefaultBookingTime() {
   return "09:00 AM";
 }
 
-const experts: Expert[] = [
+const experts = [
   { id: "e1", name: "Dr. Sarah Wilson", specialty: "Certified Nutritionist", experience: "8+ years", rating: "4.9" },
   { id: "e2", name: "Dr. Emma Rodriguez", specialty: "Holistic Nutrition Expert", experience: "10+ years", rating: "5.0" },
   { id: "e3", name: "Dr. Michael Chen", specialty: "Sports Nutrition", experience: "6+ years", rating: "4.8" },
@@ -96,7 +88,7 @@ export default function AddConsaltation() {
   const [isFindingConsultant, setIsFindingConsultant] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [matchedConsultant, setMatchedConsultant] = useState<MatchedConsultant | null>(null);
-  const stepLabels = ["Choose Expert", "Select Date & Time", "Health Details", "Confirm Booking"];
+  const stepLabels = ["Choose Session Type", "Select Date & Time", "Health Details", "Confirm Booking"];
 
   const selectedExpert = experts.find((item) => item.id === selectedExpertId) ?? null;
 
@@ -243,8 +235,8 @@ export default function AddConsaltation() {
         primary_wellness_goal: formData.primary_wellness_goal || healthDetails.primaryWellnessGoal,
         focuses_area: formData.focus_area || healthDetails.mainConcern,
         diet_preferences: formData.diet_restriction || healthDetails.dietPreferences.join(", "),
-        lifestyle_activity_leavel: formData.lifestyle_activity || healthDetails.lifestyle,
-        buckweath_journy_goal: formData.journey_goal || healthDetails.buckwheatGoals,
+        lifestyle_activity_level: formData.lifestyle_activity || healthDetails.lifestyle,
+        buckwheat_journey_goal: formData.journey_goal || healthDetails.buckwheatGoals,
         message: formData.additional_message || healthDetails.additionalMessage,
         language: selectedLanguage || formData.language,
         is_agreed: isAgreed,

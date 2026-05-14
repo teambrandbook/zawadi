@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import type { AxiosError } from "axios";
 import { CalendarDays, Loader2, Trash2 } from "lucide-react";
 import api from "@/services/api";
 import AvailabilitySuggestionCard from "./AvailabilitySuggestionCard";
@@ -45,6 +46,19 @@ type BlockedDateForm = {
   reason: string;
 };
 
+type ApiErrorResponse = {
+  detail?: string;
+  error?: string;
+  message?: string;
+  non_field_errors?: string[];
+};
+
+type AvailabilityItem = {
+  day: WeekDayKey;
+  start_time: string;
+  end_time: string;
+};
+
 const WEEK_DAYS: Array<{ key: WeekDayKey; label: string }> = [
   { key: "monday", label: "Monday" },
   { key: "tuesday", label: "Tuesday" },
@@ -84,6 +98,35 @@ function getMinutesBetween(start: string, end: string) {
   const [startHour, startMinute] = start.split(":").map(Number);
   const [endHour, endMinute] = end.split(":").map(Number);
   return endHour * 60 + endMinute - (startHour * 60 + startMinute);
+}
+
+function normalizeTime(value: string) {
+  const match = value.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : value;
+}
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosError<ApiErrorResponse | Record<string, unknown> | Array<Record<string, unknown>>>;
+  const data = axiosError.response?.data;
+
+  if (!data) return fallback;
+  if (Array.isArray(data)) {
+    const firstError = data.find((item) => Object.keys(item).length > 0);
+    if (firstError) return Object.entries(firstError).map(([key, value]) => `${key}: ${String(value)}`).join(", ");
+    return fallback;
+  }
+  if ("detail" in data && data.detail) return String(data.detail);
+  if ("error" in data && data.error) return String(data.error);
+  if ("message" in data && data.message) return String(data.message);
+  if ("non_field_errors" in data && Array.isArray(data.non_field_errors)) {
+    return data.non_field_errors.join(", ");
+  }
+
+  const fieldErrors = Object.entries(data)
+    .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : String(value)}`)
+    .join(", ");
+
+  return fieldErrors || fallback;
 }
 
 function formatDateRange(fromDate: string, toDate: string) {
@@ -147,9 +190,10 @@ export default function UpdateAvailabilityPage() {
       setErrorMessage("");
 
       try {
-        const [settingsResponse, blockedDatesResponse] = await Promise.all([
+        const [settingsResponse, blockedDatesResponse, availabilityResponse] = await Promise.all([
           api.get("/consultant/settings/"),
           api.get("/consultant/blocked-dates/"),
+          api.get("/consultant/availability/"),
         ]);
 
         setSettings({
@@ -161,8 +205,23 @@ export default function UpdateAvailabilityPage() {
         });
 
         setBlockedDates(Array.isArray(blockedDatesResponse.data) ? blockedDatesResponse.data : []);
-      } catch {
-        setErrorMessage("Unable to load availability settings right now.");
+        if (Array.isArray(availabilityResponse.data)) {
+          const savedAvailability = availabilityResponse.data as AvailabilityItem[];
+          setWeekAvailability((current) =>
+            current.map((day) => {
+              const savedDay = savedAvailability.find((item) => item.day === day.day);
+              if (!savedDay) return { ...day, enabled: false };
+              return {
+                ...day,
+                enabled: true,
+                start_time: normalizeTime(savedDay.start_time),
+                end_time: normalizeTime(savedDay.end_time),
+              };
+            }),
+          );
+        }
+      } catch (error) {
+        setErrorMessage(getApiErrorMessage(error, "Unable to load availability settings right now."));
       } finally {
         setInitialLoading(false);
       }
@@ -256,12 +315,17 @@ export default function UpdateAvailabilityPage() {
   async function handleSaveAvailability() {
     const payload = workingDays.map((day) => ({
       day: day.day,
-      start_time: day.start_time,
-      end_time: day.end_time,
+      start_time: normalizeTime(day.start_time),
+      end_time: normalizeTime(day.end_time),
     }));
 
     if (!payload.length) {
       setErrorMessage("Select at least one available day before saving.");
+      return;
+    }
+    const invalidDay = payload.find((day) => getMinutesBetween(day.start_time, day.end_time) <= 0);
+    if (invalidDay) {
+      setErrorMessage(`${WEEK_DAYS.find((day) => day.key === invalidDay.day)?.label ?? invalidDay.day}: end time must be after start time.`);
       return;
     }
 
@@ -275,8 +339,8 @@ export default function UpdateAvailabilityPage() {
         api.put("/consultant/settings/", settings),
       ]);
       setStatusMessage("Availability and booking controls saved successfully.");
-    } catch {
-      setErrorMessage("Unable to save availability. Please check your times and try again.");
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, "Unable to save availability. Please check your times and try again."));
     } finally {
       setSavingAvailability(false);
     }

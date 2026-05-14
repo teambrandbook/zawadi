@@ -6,8 +6,8 @@ type Props = {
 export default function AddProductHeader({ onBackToProducts, title = "Add Product" }: Props) {
   return (
     <header className="space-y-1">
-      <h1 className="text-[20px] font-semibold text-[#0A4833]">{title}</h1>
-      <p className="text-[12px] text-[#98A2B3]">
+      <h1 className="text-[24px] font-semibold leading-7 text-[#0A4833]">{title}</h1>
+      <p className="text-[14px] tracking-[-0.5px] text-[#98A2B3]">
         {onBackToProducts ? (
           <button type="button" onClick={onBackToProducts} className="text-[#667085] hover:text-[#0A4833]">
             Products

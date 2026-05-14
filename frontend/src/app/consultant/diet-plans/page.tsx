@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import {
@@ -20,8 +20,9 @@ import {
   UtensilsCrossed,
   X,
 } from "lucide-react";
+import api from "@/services/api";
 
-type PlanStatus = "active" | "completed" | "draft" | "pending";
+type PlanStatus = "active" | "completed" | "draft" | "pending" | "paused" | "cancelled";
 
 type DietPlan = {
   id: string;
@@ -46,6 +47,28 @@ type StatCard = {
 type MealItem = {
   label: string;
   calories: string;
+};
+
+type DietPlanApiMeal = {
+  meal_type: string;
+  title?: string | null;
+  calories: number;
+};
+
+type DietPlanApiResponse = {
+  id: number;
+  title: string;
+  client_name?: string | null;
+  goal: string;
+  duration_days: number;
+  status: PlanStatus;
+  daily_calories: number;
+  description?: string | null;
+  instructions?: string | null;
+  recommended_foods?: string | null;
+  foods_to_avoid?: string | null;
+  updated_at: string;
+  meals: DietPlanApiMeal[];
 };
 
 const stats: StatCard[] = [
@@ -149,6 +172,63 @@ const dietPlans: DietPlan[] = [
   },
 ];
 
+function formatGoal(value: string) {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatMealType(value: string) {
+  return value
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function formatUpdatedAt(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Recently updated";
+  return `Updated ${date.toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  })}`;
+}
+
+function splitHighlights(...values: Array<string | null | undefined>) {
+  return values
+    .flatMap((value) => String(value ?? "").split(/\n|,/))
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+}
+
+function mapDietPlan(plan: DietPlanApiResponse): DietPlan {
+  const highlights = splitHighlights(
+    plan.description,
+    plan.recommended_foods,
+    plan.instructions,
+    plan.foods_to_avoid ? `Avoid: ${plan.foods_to_avoid}` : ""
+  );
+
+  return {
+    id: String(plan.id),
+    title: plan.title,
+    clientName: plan.client_name || "Not Assigned",
+    goal: formatGoal(plan.goal),
+    duration: `${plan.duration_days || 0} Days`,
+    status: plan.status,
+    updatedAt: formatUpdatedAt(plan.updated_at),
+    dailyCalories: `${plan.daily_calories || 0} cal`,
+    meals: plan.meals.map((meal) => ({
+      label: meal.title || formatMealType(meal.meal_type),
+      calories: `${meal.calories || 0} cal`,
+    })),
+    highlights: highlights.length > 0 ? highlights : ["No highlights added"],
+  };
+}
+
 function SectionCard({
   children,
   className = "",
@@ -219,8 +299,35 @@ function getPlanActions(status: PlanStatus) {
 }
 
 export default function ConsultantDietPlansPage() {
-  const [selectedPlan, setSelectedPlan] = useState<DietPlan>(dietPlans[0]);
+  const [plans, setPlans] = useState<DietPlan[]>(dietPlans);
+  const [selectedPlan, setSelectedPlan] = useState<DietPlan | null>(dietPlans[0]);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<DietPlanApiResponse[]>("/consultant/diet-plans/")
+      .then((response) => {
+        if (!isMounted) return;
+        const mappedPlans = response.data.map(mapDietPlan);
+        setPlans(mappedPlans);
+        setSelectedPlan(mappedPlans[0] ?? null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setPlans([]);
+        setSelectedPlan(null);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   function handleViewPlan(plan: DietPlan) {
     setSelectedPlan(plan);
@@ -292,8 +399,23 @@ export default function ConsultantDietPlansPage() {
               </div>
             </SectionCard>
 
-            {dietPlans.map((plan) => (
-              <SectionCard key={plan.id} className={`p-5 ${selectedPlan.id === plan.id ? "ring-2 ring-[#D8C092]" : ""}`}>
+            {isLoading ? (
+              <SectionCard className="p-5">
+                <p className="text-sm font-medium text-[#0A4833]">Loading diet plans...</p>
+              </SectionCard>
+            ) : null}
+
+            {!isLoading && plans.length === 0 ? (
+              <SectionCard className="p-5">
+                <p className="text-sm font-medium text-[#0A4833]">No diet plans found.</p>
+                <p className="mt-1 text-sm text-[rgba(10,72,51,0.6)]">
+                  Create a diet plan to show it here.
+                </p>
+              </SectionCard>
+            ) : null}
+
+            {plans.map((plan) => (
+              <SectionCard key={plan.id} className={`p-5 ${selectedPlan?.id === plan.id ? "ring-2 ring-[#D8C092]" : ""}`}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -349,22 +471,22 @@ export default function ConsultantDietPlansPage() {
               </div>
               <div>
                 <h2 className="text-xl font-semibold text-[#0A4833]">Plan Preview</h2>
-                <p className="mt-1 text-xs text-[rgba(10,72,51,0.6)]">{selectedPlan.title}</p>
+                <p className="mt-1 text-xs text-[rgba(10,72,51,0.6)]">{selectedPlan?.title || "Select a plan"}</p>
               </div>
             </div>
 
             <div className="mt-5 rounded-xl bg-[#F8FAF9] p-4">
               <div className="flex items-center justify-between gap-3 text-sm">
                 <span className="text-[#0A4833]">Client</span>
-                <span className="font-medium text-[#A88751]">{selectedPlan.clientName}</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan?.clientName || "-"}</span>
               </div>
               <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                 <span className="text-[#0A4833]">Goal</span>
-                <span className="font-medium text-[#A88751]">{selectedPlan.goal}</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan?.goal || "-"}</span>
               </div>
               <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                 <span className="text-[#0A4833]">Duration</span>
-                <span className="font-medium text-[#A88751]">{selectedPlan.duration}</span>
+                <span className="font-medium text-[#A88751]">{selectedPlan?.duration || "-"}</span>
               </div>
             </div>
 
@@ -375,12 +497,15 @@ export default function ConsultantDietPlansPage() {
               </div>
 
               <div className="mt-4 space-y-3">
-                {selectedPlan.meals.map((meal) => (
+                {(selectedPlan?.meals ?? []).map((meal) => (
                   <div key={meal.label} className="flex items-center justify-between rounded-lg bg-[#F8F4EC] px-3 py-3 text-sm">
                     <span className="text-[#0A4833]">{meal.label}</span>
                     <span className="font-medium text-[#A88751]">{meal.calories}</span>
                   </div>
                 ))}
+                {!selectedPlan ? (
+                  <div className="rounded-lg bg-[#F8F4EC] px-3 py-3 text-sm text-[#0A4833]">No plan selected</div>
+                ) : null}
               </div>
             </div>
 
@@ -390,7 +515,7 @@ export default function ConsultantDietPlansPage() {
                 <span>Daily Target</span>
               </div>
               <div className="mt-4 rounded-lg bg-[#F3F4F6] px-3 py-3 text-sm font-medium text-[#0A4833]">
-                {selectedPlan.dailyCalories}
+                {selectedPlan?.dailyCalories || "-"}
               </div>
             </div>
 
@@ -400,7 +525,7 @@ export default function ConsultantDietPlansPage() {
                 <span>Highlights</span>
               </div>
               <div className="mt-4 space-y-2">
-                {selectedPlan.highlights.map((item) => (
+                {(selectedPlan?.highlights ?? []).map((item) => (
                   <div key={item} className="rounded-lg bg-[#F8F4EC] px-3 py-2 text-sm text-[#0A4833]">
                     {item}
                   </div>
@@ -412,7 +537,7 @@ export default function ConsultantDietPlansPage() {
         </div>
       </main>
 
-      {isPreviewOpen ? (
+      {isPreviewOpen && selectedPlan ? (
         <div
           className="fixed inset-0 z-[90] overflow-y-auto bg-[#101828]/55 px-4 py-4 sm:py-6"
           onClick={() => setIsPreviewOpen(false)}

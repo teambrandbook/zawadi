@@ -33,6 +33,9 @@ type ApiEventDetail = {
   meeting_link?: string;
   max_attendees?: number | null;
   show_in_community?: boolean;
+  enable_registration?: boolean;
+  waitlist_enabled?: boolean;
+  approval_required?: boolean;
 };
 
 function asTime(value?: string | null) {
@@ -63,6 +66,9 @@ export default function CreateEventsPage({ eventId }: Props) {
     max_attendees: "",
     status: "published",
     show_in_community: true,
+    enable_registration: true,
+    waitlist_enabled: false,
+    approval_required: false,
     institutional_name: "",
     host_type: "Individual",
     timezone: "UTC",
@@ -98,6 +104,9 @@ export default function CreateEventsPage({ eventId }: Props) {
           max_attendees: event.max_attendees != null ? String(event.max_attendees) : "",
           status: event.status ?? "published",
           show_in_community: event.show_in_community ?? true,
+          enable_registration: event.enable_registration ?? true,
+          waitlist_enabled: event.waitlist_enabled ?? false,
+          approval_required: event.approval_required ?? false,
           institutional_name: event.host_speaker_name ?? "",
           host_type: "Individual",
           timezone: event.timezone ?? "UTC",

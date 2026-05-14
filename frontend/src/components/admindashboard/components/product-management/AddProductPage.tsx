@@ -28,6 +28,19 @@ type ApiProduct = {
   stock_quantity?: number;
   low_stock_alert?: number;
   stock_status?: string;
+  product_unit?: string;
+  unit_quantity?: string;
+  alternative_unit_enabled?: boolean;
+  allow_out_of_stock?: boolean;
+  enable_low_stock_alerts?: boolean;
+  variants?: {
+    variant_value?: string;
+    variant_name?: string;
+    variant_unit?: string;
+    cost?: string | number;
+    price?: string | number;
+    stock?: number;
+  }[];
 };
 
 const initialFormData: ProductFormData = {
@@ -47,6 +60,12 @@ const initialFormData: ProductFormData = {
   stock_quantity: "",
   low_stock_alert: "5",
   stock_status: "in_stock",
+  unit_quantity: "",
+  product_unit: "",
+  alternative_unit_enabled: false,
+  allow_out_of_stock: false,
+  enable_low_stock_alerts: false,
+  variants: [{ variant_value: "", variant_unit: "", cost: "", price: "", stock: "" }],
 };
 
 function toProductImageUrl(imagePath?: string | null) {
@@ -94,6 +113,20 @@ export default function AddProductPage() {
           stock_quantity: String(data.stock_quantity ?? ""),
           low_stock_alert: String(data.low_stock_alert ?? "5"),
           stock_status: String(data.stock_status ?? "in_stock"),
+          unit_quantity: String(data.unit_quantity ?? ""),
+          product_unit: String(data.product_unit ?? ""),
+          alternative_unit_enabled: Boolean(data.alternative_unit_enabled),
+          allow_out_of_stock: Boolean(data.allow_out_of_stock),
+          enable_low_stock_alerts: Boolean(data.enable_low_stock_alerts),
+          variants: data.variants?.length
+            ? data.variants.map((variant) => ({
+                variant_value: String(variant.variant_value ?? variant.variant_name ?? ""),
+                variant_unit: String(variant.variant_unit ?? ""),
+                cost: String(variant.cost ?? ""),
+                price: String(variant.price ?? ""),
+                stock: String(variant.stock ?? ""),
+              }))
+            : [{ variant_value: "", variant_unit: "", cost: "", price: "", stock: "" }],
         });
         setExistingImageUrl(toProductImageUrl(data.image));
       } catch {
@@ -121,23 +154,45 @@ export default function AddProductPage() {
     };
   }, [formData.image, previewImageUrl]);
 
-  async function handleSubmit() {
+  async function handleSubmit(overrideStatus?: string) {
     if (!formData.product_name.trim()) { toast.error("Product name is required."); return; }
     if (!formData.product_code.trim()) { toast.error("SKU / Product Code is required."); return; }
     if (!formData.base_price) { toast.error("Base price is required."); return; }
     if (!formData.short_description.trim()) { toast.error("Short description is required."); return; }
     if (!formData.category) { toast.error("Category is required."); return; }
 
+    const variants = formData.alternative_unit_enabled
+      ? formData.variants
+          .map((variant) => ({
+            variant_value: variant.variant_value.trim(),
+            variant_unit: variant.variant_unit,
+            cost: variant.cost || "0",
+            price: variant.price || variant.cost,
+            stock: variant.stock || "0",
+          }))
+          .filter((variant) => variant.variant_value || variant.price || variant.stock !== "0")
+      : [];
+
+    if (formData.alternative_unit_enabled && variants.some((variant) => !variant.variant_value || !variant.price)) {
+      toast.error("Variant value and MRP are required for product variants.");
+      return;
+    }
+
     const fd = new FormData();
     fd.append("product_name", formData.product_name.trim());
     fd.append("product_code", formData.product_code.trim());
     fd.append("category", formData.category);
-    fd.append("product_status", formData.product_status);
+    fd.append("product_status", overrideStatus || formData.product_status);
     fd.append("short_description", formData.short_description.trim());
     fd.append("base_price", formData.base_price);
     fd.append("stock_quantity", formData.stock_quantity || "0");
     fd.append("stock_status", formData.stock_status);
     fd.append("currency", formData.currency);
+    fd.append("product_unit", formData.product_unit);
+    fd.append("unit_quantity", formData.unit_quantity);
+    fd.append("alternative_unit_enabled", String(formData.alternative_unit_enabled));
+    fd.append("allow_out_of_stock", String(formData.allow_out_of_stock));
+    fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
     if (formData.image) fd.append("image", formData.image);
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
@@ -145,15 +200,16 @@ export default function AddProductPage() {
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
     if (formData.sale_price) fd.append("sale_price", formData.sale_price);
     if (formData.low_stock_alert) fd.append("low_stock_alert", formData.low_stock_alert);
+    if (variants.length) fd.append("variants", JSON.stringify(variants));
 
     setIsSubmitting(true);
     try {
       if (isEditMode && productId) {
         await api.patch(`/products/${productId}/`, fd);
-        toast.success("Product updated successfully.");
+        toast.success(`Product updated successfully${overrideStatus === "draft" ? " as draft" : ""}.`);
       } else {
         await api.post("/products/", fd);
-        toast.success("Product created successfully.");
+        toast.success(`Product created successfully${overrideStatus === "draft" ? " as draft" : ""}.`);
       }
       router.push("/admindashboard/products");
     } catch (err: unknown) {
@@ -171,8 +227,8 @@ export default function AddProductPage() {
   }
 
   return (
-    <section className="w-full bg-[#F6F7F9] p-4 lg:p-6">
-      <div className="mx-auto max-w-[1180px] space-y-4">
+    <section className="w-full bg-white px-4 py-5 lg:px-6">
+      <div className="mx-auto max-w-[1184px] space-y-4">
         <AddProductHeader
           title={isEditMode ? "Edit Product" : "Add Product"}
           onBackToProducts={() => router.push("/admindashboard/products")}
@@ -184,8 +240,16 @@ export default function AddProductPage() {
           </div>
         ) : null}
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <AddProductForm formData={formData} onChange={setFormData} />
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,816px)_272px]">
+          <div className="space-y-4">
+            <AddProductForm formData={formData} onChange={setFormData} />
+            <AddProductActions
+              onSubmit={() => handleSubmit("active")}
+              onDraft={() => handleSubmit("draft")}
+              isSubmitting={isSubmitting}
+              submitLabel={isEditMode ? "Update Product" : "Create Product"}
+            />
+          </div>
           <ProductPreviewCard
             productName={formData.product_name}
             subtitle={formData.product_subtitle || formData.short_description}
@@ -195,12 +259,6 @@ export default function AddProductPage() {
             imageUrl={previewImageUrl}
           />
         </div>
-
-        <AddProductActions
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          submitLabel={isEditMode ? "Update Product" : "Create Product"}
-        />
       </div>
     </section>
   );

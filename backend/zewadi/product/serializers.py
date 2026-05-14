@@ -6,12 +6,31 @@ from zewadi.validators import validate_image_upload
 class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductVariant
-        fields = ["id", "variant_name", "sku", "price", "stock"]
+        fields = [
+            "id",
+            "variant_value",
+            "variant_unit",
+            "cost",
+            "price",
+            "stock",
+        ]
+        read_only_fields = ["id"]
+
+    def to_internal_value(self, data):
+        data = data.copy()
+        if data.get("variant_unit"):
+            data["variant_unit"] = str(data["variant_unit"]).lower()
+        return super().to_internal_value(data)
 
 
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
+    brand_name = serializers.SerializerMethodField()
+    allow_out_of_stock = serializers.BooleanField(source="allow_orders_when_out_of_stock", read_only=True)
+
+    def get_brand_name(self, obj):
+        return obj.brand_name
 
     def get_image(self, obj):
         if not obj.image:
@@ -27,9 +46,13 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_name",
             "product_subtitle",
             "product_code",
+            "brand_name",
             "category",
             "product_status",
             "image",
+            "product_unit",
+            "unit_quantity",
+            "alternative_unit_enabled",
             "short_description",
             "full_description",
             "key_ingredients",
@@ -40,6 +63,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "stock_quantity",
             "low_stock_alert",
             "stock_status",
+            "allow_out_of_stock",
             "allow_orders_when_out_of_stock",
             "enable_low_stock_alerts",
             "variants",
@@ -51,53 +75,54 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductCreateSerializer(serializers.ModelSerializer):
     """
-    Used for create / update — accepts nested variants as writable input.
+    Create / Update Product with Multiple Variants
     """
+
     variants = ProductVariantSerializer(many=True, required=False)
-    image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
 
     class Meta:
         model = Product
-        fields = [
-            "product_name",
-            "product_subtitle",
-            "product_code",
-            "category",
-            "product_status",
-            "image",
-            "short_description",
-            "full_description",
-            "key_ingredients",
-            "health_benefits",
-            "base_price",
-            "sale_price",
-            "currency",
-            "stock_quantity",
-            "low_stock_alert",
-            "stock_status",
-            "allow_orders_when_out_of_stock",
-            "enable_low_stock_alerts",
-            "variants",
-        ]
+        fields = "__all__"
 
     def create(self, validated_data):
+
         variants_data = validated_data.pop("variants", [])
+
+        # Create Product
         product = Product.objects.create(**validated_data)
-        for variant in variants_data:
-            ProductVariant.objects.create(product=product, **variant)
+
+        # Create Multiple Variants
+        variant_objects = [
+            ProductVariant(product=product, **variant)
+            for variant in variants_data
+        ]
+
+        ProductVariant.objects.bulk_create(variant_objects)
+
         return product
 
     def update(self, instance, validated_data):
+
         variants_data = validated_data.pop("variants", None)
 
+        # Update Product
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
         instance.save()
 
+        # Update Variants
         if variants_data is not None:
-            # Replace all variants on a full update
+
+            # Delete old variants
             instance.variants.all().delete()
-            for variant in variants_data:
-                ProductVariant.objects.create(product=instance, **variant)
+
+            # Create new variants
+            variant_objects = [
+                ProductVariant(product=instance, **variant)
+                for variant in variants_data
+            ]
+
+            ProductVariant.objects.bulk_create(variant_objects)
 
         return instance

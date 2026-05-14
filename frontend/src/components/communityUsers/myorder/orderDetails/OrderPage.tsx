@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { ShoppingCart } from "lucide-react"; // Added for the icon
 import ProductDetails, { ProductDetailsCard } from "./ProductDetails";
 import PackSelector from "./PackSelector";
 import QuantitySelector from "./QuantitySelector";
@@ -12,10 +14,15 @@ import NeedHelpCard from "./NeedHelpCard";
 import { DeliveryForm, PackOption } from "./types";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+// Note: Ensure you have a 'setCartCount' action in your redux store or remove the dispatch if not using Redux
+// import { useDispatch } from "react-redux";
+// import { setCartCount } from "@/store/cartSlice";
 
 type ApiVariant = {
   id: number;
-  variant_name: string;
+  variant_value: string;
+  variant_unit: string;
+  cost?: string | number | null;
   price: string | number;
   stock: number;
 };
@@ -25,6 +32,9 @@ type ApiProduct = {
   product_name: string;
   short_description: string;
   base_price: string | number;
+  sale_price?: string | number | null;
+  product_unit?: string;
+  unit_quantity?: string | number;
   stock_quantity: number;
   image?: string | null;
   variants: ApiVariant[];
@@ -87,23 +97,27 @@ function toImageUrl(imagePath?: string | null): string {
 function toPacks(product: ApiProduct | null): PackOption[] {
   if (!product) return [];
 
-  if (product.variants?.length) {
-    return product.variants.map((variant) => ({
-      id: String(variant.id),
-      name: variant.variant_name,
-      price: toNumber(variant.price),
-      unitNote: `${variant.stock} in stock`,
-    }));
-  }
-
-  return [
+  const productUnit = [product.unit_quantity, product.product_unit].filter(Boolean).join(" ");
+  const packs: PackOption[] = [
     {
       id: `product-${product.id}-default`,
-      name: "Standard Pack",
-      price: toNumber(product.base_price),
-      unitNote: `${product.stock_quantity} in stock`,
+      name: productUnit || "Standard Pack",
+      price: toNumber(product.sale_price ?? product.base_price),
+      unitNote: `Cost ${toCurrency(product.base_price)}`,
+      badge: "Default",
     },
   ];
+
+  if (product.variants?.length) {
+    packs.push(...product.variants.map((variant) => ({
+      id: String(variant.id),
+      name: [variant.variant_value, variant.variant_unit].filter(Boolean).join(" ") || "Variant Pack",
+      price: toNumber(variant.price),
+      unitNote: `Cost ${toCurrency(variant.cost ?? 0)}`,
+    })));
+  }
+
+  return packs;
 }
 
 function toCurrency(value: string | number, currency = "USD"): string {
@@ -122,6 +136,7 @@ function toList<T>(data: T[] | PaginatedResponse<T>): T[] {
 export default function OrderPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  // const dispatch = useDispatch(); // Uncomment if using Redux
   const requestedProductId = searchParams.get("productId");
   const requestedQuantity = searchParams.get("quantity");
   const isCartCheckout = searchParams.get("cart") === "1";
@@ -136,6 +151,9 @@ export default function OrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   const [isLoadingCart, setIsLoadingCart] = useState(isCartCheckout);
+
+  // State for Add to Cart busy status
+  const [busyProductId, setBusyProductId] = useState<number | null>(null);
 
   const selectedProduct = useMemo(
     () => products.find((item) => String(item.id) === selectedProductId) ?? null,
@@ -180,7 +198,7 @@ export default function OrderPage() {
           setSelectedProductId(String((requestedProduct ?? productList[0]).id));
         }
       } catch {
-        if (isMounted) setStatusMessage("Unable to load products.");
+        if (isMounted) showStatus("Unable to load products.");
       } finally {
         if (isMounted) setIsLoadingProducts(false);
       }
@@ -209,7 +227,7 @@ export default function OrderPage() {
         setCartItems(response.data.items);
         setCartSummary(response.data.summary);
       } catch {
-        if (isMounted) setStatusMessage("Unable to load cart checkout.");
+        if (isMounted) showStatus("Unable to load cart checkout.");
       } finally {
         if (isMounted) setIsLoadingCart(false);
       }
@@ -246,6 +264,45 @@ export default function OrderPage() {
     setDeliveryForm((prev) => ({ ...prev, [field]: value }));
   }
 
+  function showStatus(message: string) {
+    setStatusMessage(message);
+    toast.error(message);
+  }
+
+  // Add to Cart Function
+  async function addToCart() {
+    if (!selectedProduct) return;
+
+    setBusyProductId(selectedProduct.id);
+    setStatusMessage("");
+    try {
+      const selectedVariant = selectedProduct.variants?.find(
+        (v) => String(v.id) === selectedPackId
+      );
+
+      const payload: { product_id: number; quantity: number; variant_id?: number } = {
+        product_id: selectedProduct.id,
+        quantity: quantity,
+      };
+      if (selectedVariant) payload.variant_id = selectedVariant.id;
+
+      const response = await api.post("/orders/cart/items/", payload);
+      const itemCount = response.data?.summary?.item_count;
+
+      // if (typeof itemCount === "number") {
+      //   dispatch(setCartCount(itemCount));
+      // }
+
+      toast.success("Added to cart!");
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      toast.error(detail || "Unable to add this product to your cart.");
+      setStatusMessage("Unable to add this product to your cart.");
+    } finally {
+      setBusyProductId(null);
+    }
+  }
+
   async function placeOrder() {
     const requiredFields: Array<keyof DeliveryForm> = [
       "fullName",
@@ -257,13 +314,13 @@ export default function OrderPage() {
     ];
     const missing = requiredFields.find((field) => !deliveryForm[field].trim());
     if (missing) {
-      setStatusMessage("Please complete all required delivery fields.");
+      showStatus("Please complete all required delivery fields.");
       return;
     }
 
     if (isCartCheckout) {
       if (!cartItems.length) {
-        setStatusMessage("Your cart is empty.");
+        showStatus("Your cart is empty.");
         return;
       }
 
@@ -286,7 +343,7 @@ export default function OrderPage() {
     }
 
     if (!selectedProduct || !selectedPack) {
-      setStatusMessage("Please select a product and pack.");
+      showStatus("Please select a product and pack.");
       return;
     }
     const selectedVariant = selectedProduct.variants?.find(
@@ -351,23 +408,6 @@ export default function OrderPage() {
           </div>
         ) : null}
 
-        {!isCartCheckout ? (
-          <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
-            <label className="mb-1 block text-xs text-[#0A4833]">Product</label>
-            <select
-              value={selectedProductId}
-              onChange={(event) => setSelectedProductId(event.target.value)}
-              className="h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F4F6] px-3 text-sm text-[#0A4833] outline-none focus:border-[#0A4833]"
-            >
-              {products.map((product) => (
-                <option key={product.id} value={String(product.id)}>
-                  {product.product_name}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : null}
-
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-5">
             {isCartCheckout ? (
@@ -393,7 +433,27 @@ export default function OrderPage() {
                 <QuantitySelector quantity={quantity} max={maxQuantity} onQuantityChange={setQuantity} />
               </>
             )}
-            <DeliveryInformation form={deliveryForm} onChange={onDeliveryChange} />
+
+            <div className="space-y-4">
+              <DeliveryInformation form={deliveryForm} onChange={onDeliveryChange} />
+
+              {/* BUTTON ALIGNED TO THE RIGHT */}
+              {/* BUTTON ALIGNED TO THE RIGHT WITH INCREASED WIDTH */}
+              {!isCartCheckout && selectedProduct && (
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={addToCart}
+                    disabled={maxQuantity === 0 || busyProductId === selectedProduct.id}
+                    /* Changed to w-full for 100% width, or use w-80 for a fixed large width */
+                    className="flex w-full md:w-80 items-center justify-center gap-2 rounded-lg bg-[#A88751] h-12 px-6 text-sm font-bold text-[#0A4833] transition hover:bg-[#E6C200] disabled:cursor-not-allowed disabled:bg-gray-300 shadow-sm"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    {busyProductId === selectedProduct.id ? "Adding..." : "Add to Cart First"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-4">

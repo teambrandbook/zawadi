@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ComponentType, ReactNode } from "react";
 import {
   Bell,
@@ -20,6 +20,7 @@ import {
   Video,
   X,
 } from "lucide-react";
+import api from "@/services/api";
 
 type ConsultationRequestData = {
   choose_section: string;
@@ -85,6 +86,26 @@ type ActionItem = {
   icon: ComponentType<{ className?: string }>;
   className: string;
 };
+
+type ApiBooking = {
+  id: number;
+  user_name?: string | null;
+  primary_goal?: string;
+  primary_wellness_goal?: string;
+  focuses_area?: string;
+  diet_preferences?: string;
+  lifestyle_activity_level?: string;
+  buckwheat_journey_goal?: string;
+  message?: string;
+  language?: string;
+  booked_date: string;
+  booked_slot: string;
+  status: string;
+  session_type?: string;
+};
+
+type ApiClient = { id: number };
+type ApiDietPlan = { id: number };
 
 const fieldLabels: Record<keyof ConsultationRequestData, string> = {
   choose_section: "Choose Section",
@@ -354,7 +375,98 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
   );
 }
 
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "C";
+}
+
+function formatStatus(value: string): "In Progress" | "Upcoming" {
+  return value === "confirmed" ? "In Progress" : "Upcoming";
+}
+
+function formatMode(value?: string): "Video" | "In Person" | "Phone" {
+  if (value === "audio") return "Phone";
+  return "Video";
+}
+
+function formatDate(value: string) {
+  const date = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function mapBookingToSchedule(item: ApiBooking): ConsultationScheduleItem {
+  const client = item.user_name || "Client";
+  return {
+    id: String(item.id),
+    client,
+    concern: item.primary_goal || item.primary_wellness_goal || "General Consultation",
+    time: item.booked_slot,
+    status: formatStatus(item.status),
+    mode: formatMode(item.session_type),
+    date: formatDate(item.booked_date),
+    location: item.session_type === "audio" ? "Phone consultation" : "Video room",
+    notes: item.message || "Review client consultation details and prepare guidance.",
+    avatar: initials(client),
+    consultantName: "You",
+    backendData: {
+      choose_section: item.primary_goal || "-",
+      primary_goal: item.primary_goal || "-",
+      language: item.language || "-",
+      date: item.booked_date,
+      time: item.booked_slot,
+      primary_wellness_goal: item.primary_wellness_goal || "-",
+      focus_area: item.focuses_area || "-",
+      allergies: "-",
+      diet_restriction: item.diet_preferences || "-",
+      lifestyle_activity: item.lifestyle_activity_level || "-",
+      journey_goal: item.buckwheat_journey_goal || "-",
+      additional_message: item.message || "-",
+    },
+  };
+}
+
 export default function ConsultantDashboardPage() {
+  const [bookings, setBookings] = useState<ApiBooking[]>([]);
+  const [clientCount, setClientCount] = useState(0);
+  const [dietPlanCount, setDietPlanCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    Promise.allSettled([
+      api.get<ApiBooking[]>("/consultant/bookings/"),
+      api.get<ApiClient[]>("/consultant/clients/"),
+      api.get<ApiDietPlan[]>("/consultant/diet-plans/"),
+    ]).then(([bookingsResponse, clientsResponse, dietPlansResponse]) => {
+      if (!isMounted) return;
+      setBookings(bookingsResponse.status === "fulfilled" && Array.isArray(bookingsResponse.value.data) ? bookingsResponse.value.data : []);
+      setClientCount(clientsResponse.status === "fulfilled" && Array.isArray(clientsResponse.value.data) ? clientsResponse.value.data.length : 0);
+      setDietPlanCount(dietPlansResponse.status === "fulfilled" && Array.isArray(dietPlansResponse.value.data) ? dietPlansResponse.value.data.length : 0);
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const scheduleItems = useMemo(() => bookings.slice(0, 4).map(mapBookingToSchedule), [bookings]);
+  const pendingCount = bookings.filter((item) => item.status === "pending").length;
+  const confirmedCount = bookings.filter((item) => item.status === "confirmed").length;
+  const summaryCards: SummaryCard[] = [
+    { label: "Today's Appointments", value: confirmedCount + pendingCount, icon: CalendarDays, iconColor: "text-[#B48A4A]" },
+    { label: "Pending Consultations", value: pendingCount, icon: Clock3, iconColor: "text-[#B48A4A]" },
+    { label: "Active Clients", value: clientCount, icon: Users, iconColor: "text-[#B48A4A]" },
+    { label: "Follow-ups Due", value: 0, icon: Bell, iconColor: "text-[#B48A4A]" },
+    { label: "Diet Plans Shared", value: dietPlanCount, icon: UtensilsCrossed, iconColor: "text-[#B48A4A]" },
+    { label: "Unread Messages", value: 0, icon: MessageSquareMore, iconColor: "text-[#B48A4A]" },
+  ];
+
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-5">
@@ -383,6 +495,10 @@ export default function ConsultantDashboardPage() {
           <div className="space-y-5">
             <SectionCard title="Today's Schedule">
               <div className="space-y-3 p-4">
+                {scheduleItems.length === 0 ? (
+                  <p className="px-1 py-3 text-sm text-[#667085]">No upcoming consultations yet.</p>
+                ) : null}
+
                 {scheduleItems.map((item) => (
                   <article
                     key={item.id}

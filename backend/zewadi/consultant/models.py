@@ -49,6 +49,7 @@ class ConsultationBooking(models.Model):
     buckwheat_journey_goal = models.CharField(max_length=255, blank=True)
     message = models.TextField(blank=True)
     language = models.CharField(max_length=50, default="English")
+    meeting_link = models.URLField(blank=True)
     is_agreed = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=BookingStatus.choices, default=BookingStatus.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -191,6 +192,31 @@ class DietPlanMealItem(models.Model):
 
     def __str__(self):
         return f"{self.food_name} ({self.meal.get_meal_type_display()})"
+
+
+class ConsultantNote(models.Model):
+    consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE, related_name="notes")
+    client = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="consultant_notes")
+    booking = models.ForeignKey(ConsultationBooking, on_delete=models.SET_NULL, null=True, blank=True, related_name="notes")
+    title = models.CharField(max_length=255)
+    note_type = models.CharField(max_length=100, blank=True)
+    priority_level = models.CharField(max_length=50, blank=True)
+    summary = models.TextField(blank=True)
+    observations = models.TextField(blank=True)
+    recommendations = models.TextField(blank=True)
+    food_restrictions = models.TextField(blank=True)
+    follow_up_instructions = models.TextField(blank=True)
+    follow_up_date = models.DateField(null=True, blank=True)
+    tags = models.TextField(blank=True)
+    internal_notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.title} - {self.client}"
     
 
 # consultent time setting section

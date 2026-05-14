@@ -1,10 +1,74 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import NoteDetailsPanel from "@/components/consultant/notes/NoteDetailsPanel";
 import NotesList from "@/components/consultant/notes/NotesList";
 import NotesStatsAndFilters from "@/components/consultant/notes/NotesStatsAndFilters";
 import type { BackendNoteItem } from "@/components/consultant/notes/noteTypes";
+import api from "@/services/api";
+
+type ApiNote = {
+  id: number;
+  client_name: string;
+  client_photo?: string | null;
+  title: string;
+  summary: string;
+  observations: string;
+  recommendations: string;
+  food_restrictions: string;
+  follow_up_instructions: string;
+  follow_up_date?: string | null;
+  priority_level?: string;
+  tags?: string;
+  updated_at: string;
+  created_at: string;
+};
+
+function getApiOrigin() {
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return apiBase.replace(/\/api\/?$/, "");
+}
+
+function mediaUrl(value?: string | null) {
+  if (!value) return "/recipe/recipe-2.webp";
+  if (value.startsWith("http")) return value;
+  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function formatDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function splitLines(value?: string) {
+  return String(value ?? "")
+    .split(/\n|,/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function mapNote(item: ApiNote): BackendNoteItem {
+  return {
+    id: String(item.id),
+    clientName: item.client_name || "Client",
+    clientAvatar: mediaUrl(item.client_photo),
+    noteDate: formatDate(item.created_at),
+    title: item.title,
+    summary: item.summary || "No summary added",
+    lastUpdated: formatDate(item.updated_at),
+    status: item.follow_up_date ? "Follow-up Required" : "Completed",
+    clientSummary: {
+      age: "-",
+      gender: "-",
+      goals: item.tags || "-",
+    },
+    sessionObservations: splitLines(item.observations),
+    foodRestrictions: splitLines(item.food_restrictions),
+    recommendations: splitLines(item.recommendations),
+    followUpInstructions: splitLines(item.follow_up_instructions),
+  };
+}
 
 const backendNotes: BackendNoteItem[] = [
   {
@@ -97,8 +161,30 @@ const backendNotes: BackendNoteItem[] = [
 ];
 
 export default function ConsultantNotesPage() {
-  const notesFromBackend = useMemo(() => backendNotes, []);
-  const [selectedNote, setSelectedNote] = useState<BackendNoteItem>(notesFromBackend[0]);
+  const [notesFromBackend, setNotesFromBackend] = useState<BackendNoteItem[]>([]);
+  const [selectedNote, setSelectedNote] = useState<BackendNoteItem | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    api
+      .get<ApiNote[]>("/consultant/notes/")
+      .then(({ data }) => {
+        if (!isMounted) return;
+        const mappedNotes = Array.isArray(data) ? data.map(mapNote) : [];
+        setNotesFromBackend(mappedNotes);
+        setSelectedNote(mappedNotes[0] ?? null);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setNotesFromBackend([]);
+        setSelectedNote(null);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
@@ -106,8 +192,16 @@ export default function ConsultantNotesPage() {
         <NotesStatsAndFilters />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_384px]">
-          <NotesList notes={notesFromBackend} selectedNoteId={selectedNote.id} onSelect={setSelectedNote} />
-          <NoteDetailsPanel note={selectedNote} />
+          {notesFromBackend.length > 0 ? (
+            <>
+              <NotesList notes={notesFromBackend} selectedNoteId={selectedNote?.id ?? ""} onSelect={setSelectedNote} />
+              {selectedNote ? <NoteDetailsPanel note={selectedNote} /> : null}
+            </>
+          ) : (
+            <section className="rounded-[14px] border border-[#DFDFDF] bg-white p-5 text-sm text-[#6B7280] xl:col-span-2">
+              No notes found. Add a note from an approved client consultation.
+            </section>
+          )}
         </div>
       </div>
     </main>

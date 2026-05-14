@@ -3,6 +3,7 @@ from decimal import Decimal
 from rest_framework import serializers
 
 from .models import CartItem, Order, OrderReview
+from product.models import Product, ProductVariant
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -46,6 +47,45 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         ]
+        extra_kwargs = {
+            "product_name": {"required": False},
+            "pack_name": {"required": False},
+        }
+
+    def _format_pack_name(self, value, unit):
+        parts = [str(part).strip() for part in (value, unit) if str(part).strip()]
+        return " ".join(parts)
+
+    def validate(self, attrs):
+        product_id = attrs.get("product_id")
+        variant_id = attrs.get("variant_id")
+
+        if not product_id:
+            return attrs
+
+        try:
+            product = Product.objects.get(pk=product_id)
+        except Product.DoesNotExist:
+            raise serializers.ValidationError({"product_id": "Product not found."})
+
+        attrs["product_name"] = product.product_name
+
+        if variant_id:
+            try:
+                variant = ProductVariant.objects.get(pk=variant_id, product=product)
+            except ProductVariant.DoesNotExist:
+                raise serializers.ValidationError({"variant_id": "Product variant not found."})
+            attrs["pack_name"] = self._format_pack_name(
+                variant.variant_value,
+                variant.variant_unit,
+            )
+        else:
+            attrs["pack_name"] = self._format_pack_name(
+                product.unit_quantity,
+                product.product_unit,
+            )
+
+        return attrs
 
     def create(self, validated_data):
         validated_data.pop("product_id", None)
@@ -54,30 +94,108 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
 
 class OrderListSerializer(serializers.ModelSerializer):
-    """Compact representation for listing a user's orders."""
+    product_image = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
         fields = [
+            "id",
             "order_id",
             "product_name",
+            "product_image",
+            "user_image",
             "pack_name",
+            "pack_price",
             "quantity",
+            "subtotal",
+            "delivery_charge",
             "total_amount",
-            "status",
+            "full_name",
+            "phone",
+            "email",
+            "city",
+            "postal_code",
+            "address",
+            "instructions",
             "payment_method",
             "payment_status",
+            "status",
             "created_at",
             "updated_at",
+            "user",
         ]
+        read_only_fields = [field.name for field in Order._meta.fields]
+
+    def get_product_image(self, obj):
+        product = Product.objects.filter(product_name=obj.product_name).only("image").first()
+        if not product or not product.image:
+            return None
+
+        request = self.context.get("request")
+        image_url = product.image.url
+        return request.build_absolute_uri(image_url) if request else image_url
+
+    def get_user_image(self, obj):
+        if not obj.user or not obj.user.photo:
+            return None
+
+        request = self.context.get("request")
+        image_url = obj.user.photo.url
+        return request.build_absolute_uri(image_url) if request else image_url
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
     """Full read-only representation of a single order."""
+    product_image = serializers.SerializerMethodField()
+    user_image = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = "__all__"
+        fields = [
+            "id",
+            "order_id",
+            "product_name",
+            "product_image",
+            "user_image",
+            "pack_name",
+            "pack_price",
+            "quantity",
+            "subtotal",
+            "delivery_charge",
+            "total_amount",
+            "full_name",
+            "phone",
+            "email",
+            "city",
+            "postal_code",
+            "address",
+            "instructions",
+            "payment_method",
+            "payment_status",
+            "status",
+            "created_at",
+            "updated_at",
+            "user",
+        ]
+        read_only_fields = [field.name for field in Order._meta.fields]
+
+    def get_product_image(self, obj):
+        product = Product.objects.filter(product_name=obj.product_name).only("image").first()
+        if not product or not product.image:
+            return None
+
+        request = self.context.get("request")
+        image_url = product.image.url
+        return request.build_absolute_uri(image_url) if request else image_url
+
+    def get_user_image(self, obj):
+        if not obj.user or not obj.user.photo:
+            return None
+
+        request = self.context.get("request")
+        image_url = obj.user.photo.url
+        return request.build_absolute_uri(image_url) if request else image_url
 
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
@@ -138,7 +256,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     stock_quantity = serializers.IntegerField(source="product.stock_quantity", read_only=True)
     stock_status = serializers.CharField(source="product.stock_status", read_only=True)
     variant_id = serializers.IntegerField(source="variant.id", read_only=True, allow_null=True)
-    variant_name = serializers.CharField(source="variant.variant_name", read_only=True, allow_null=True)
+    variant_name = serializers.CharField(source="variant.variant_value", read_only=True, allow_null=True)
     variant_stock = serializers.IntegerField(source="variant.stock", read_only=True, allow_null=True)
     unit_price = serializers.SerializerMethodField()
     line_total = serializers.SerializerMethodField()

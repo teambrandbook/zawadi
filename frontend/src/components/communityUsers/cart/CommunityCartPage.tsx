@@ -90,8 +90,9 @@ function toImageUrl(imagePath: string | null | undefined, index: number): string
 }
 
 function stockLabel(item: CartItem): { text: string; className: string } {
-  const stock = item.variant_stock ?? item.stock_quantity;
-  if (item.stock_status === "out_of_stock" || stock <= 0) {
+  const hasVariantStock = item.variant_stock !== null && item.variant_stock !== undefined;
+  const stock = hasVariantStock ? item.variant_stock ?? 0 : item.stock_quantity;
+  if ((!hasVariantStock && item.stock_status === "out_of_stock") || stock <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
   }
   if (stock <= 3) {
@@ -357,7 +358,7 @@ export default function CommunityCartPage() {
           <div className="mt-5 space-y-3">
             <button
               type="button"
-              onClick={() => router.push("/communityDashBoard/myorders/order?cart=1")}
+              onClick={() => router.push("/communityDashBoard/products/order?cart=1")}
               disabled={items.length === 0}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#0A4833] text-sm font-semibold text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
             >
