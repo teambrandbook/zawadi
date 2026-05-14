@@ -1,6 +1,9 @@
+import logging
 import os
 import uuid as _uuid
 import requests
+
+logger = logging.getLogger(__name__)
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -78,7 +81,8 @@ def get_or_create_google_user(email, name):
 
 
 def set_auth_cookies(response, refresh, access):
-    secure = os.getenv("DJANGO_SECURE_COOKIES", "False") == "True"
+    from django.conf import settings
+    secure = not settings.DEBUG
     response.set_cookie(
         key="refresh_token",
         value=str(refresh),
@@ -499,7 +503,7 @@ class LogoutAPIView(APIView):
             try:
                 RefreshToken(refresh_token).blacklist()
             except Exception:
-                pass
+                logger.warning("Logout: failed to blacklist token", exc_info=True)
 
         response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         response.delete_cookie("access_token")

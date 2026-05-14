@@ -17,7 +17,7 @@ def invalidate_product_cache(sender, instance, **kwargs):
     # Delete all product list keys (Redis/django-redis supports delete_pattern)
     # Fall back to deleting the default no-filter list key for LocMemCache (tests)
     try:
-        cache.delete_pattern("*:product_list:*")
+        cache.delete_pattern("product_list:*")
     except AttributeError:
         # LocMemCache does not support delete_pattern — delete default key only
         try:
