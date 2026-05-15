@@ -188,7 +188,7 @@ export default function ProductCards() {
 
   if (loading) {
     return (
-      <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
+      <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
         <div className="flex min-h-75 items-center justify-center text-sm text-[#0A4833]">
           Loading products...
         </div>
@@ -197,7 +197,7 @@ export default function ProductCards() {
   }
 
   return (
-    <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
+    <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
       <div className="mx-auto max-w-355.5">
         <div className="flex justify-center overflow-x-auto pb-2">
           <div className="flex min-w-max items-center gap-2">

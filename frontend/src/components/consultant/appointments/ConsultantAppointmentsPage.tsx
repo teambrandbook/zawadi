@@ -168,9 +168,9 @@ export default function ConsultantAppointmentsPage() {
         error !== null &&
         "response" in error &&
         typeof (error as { response?: { data?: { detail?: unknown; error?: unknown } } }).response?.data?.detail === "string"
-          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? "Unable to update this booking right now."
           : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
-            ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+            ? (error as { response?: { data?: { error?: string } } }).response?.data?.error ?? "Unable to update this booking right now."
             : "Unable to update this booking right now.";
       setStatusMessage(detail);
       return;
@@ -216,9 +216,9 @@ export default function ConsultantAppointmentsPage() {
         typeof (error as { response?: { data?: { meeting_link?: unknown; detail?: unknown; error?: unknown } } }).response?.data?.meeting_link === "object"
           ? ((error as { response?: { data?: { meeting_link?: string[] } } }).response?.data?.meeting_link ?? []).join(", ")
           : typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === "string"
-            ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
+            ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail ?? "Unable to share meeting link right now."
             : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
-              ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+              ? (error as { response?: { data?: { error?: string } } }).response?.data?.error ?? "Unable to share meeting link right now."
               : "Unable to share meeting link right now.";
       setStatusMessage(detail);
       return;

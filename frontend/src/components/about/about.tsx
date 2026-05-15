@@ -310,7 +310,7 @@ export default function About() {
 
 
     return (
-        <div className="bg-white text-[#121414]" ref={containerRef}>
+        <div className="bg-[#fffef5] text-[#121414]" ref={containerRef}>
             <ContentSection title="About Zewadi" subtitle="What is Zewadi" />
 
             <section className="pt-20 pb-32 sm:pt-28 sm:pb-40 lg:pt-40 lg:pb-56">
@@ -415,7 +415,7 @@ export default function About() {
                             type="button"
                             onClick={handlePrev}
                             aria-label="Previous slide"
-                            className="hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
+                            className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
                         >
                             <ArrowRight size={20} className="rotate-180" />
                         </button>
@@ -451,7 +451,26 @@ export default function About() {
                             type="button"
                             onClick={handleNext}
                             aria-label="Next slide"
-                            className="hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
+                            className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
+                        >
+                            <ArrowRight size={20} />
+                        </button>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-center gap-4 md:hidden">
+                        <button
+                            type="button"
+                            onClick={handlePrev}
+                            aria-label="Previous slide"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
+                        >
+                            <ArrowRight size={20} className="rotate-180" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleNext}
+                            aria-label="Next slide"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
                         >
                             <ArrowRight size={20} />
                         </button>

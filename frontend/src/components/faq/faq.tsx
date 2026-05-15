@@ -118,7 +118,7 @@ export default function Faq() {
   const [openQuestion, setOpenQuestion] = useState(leftFaqs[0].question);
 
   return (
-    <div className="bg-white">
+    <div className="bg-[#fffef5]">
       <ContentSection title="FAQ" subtitle="Frequently Asked Concerns" />
 
       <section className="mt-14 pb-12 pt-14 sm:mt-16 sm:pb-16 sm:pt-16">

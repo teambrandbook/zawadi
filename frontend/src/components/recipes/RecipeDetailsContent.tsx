@@ -26,7 +26,7 @@ export default function RecipeDetailsContent({
   }, []);
 
   return (
-    <main className="bg-white text-[#0e2207]">
+    <main className="bg-[#fffef5] text-[#0e2207]">
       {/* <ContentSection
         title="Zewadi Recipes"
         subtitle="Delicious Zewadi Buckwheat Recipes"

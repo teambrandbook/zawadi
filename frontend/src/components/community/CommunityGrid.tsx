@@ -65,7 +65,7 @@ const CommunityGrid = () => {
   if (!gridSection || !gridSection.items) return null;
 
   return (
-    <section ref={sectionRef} className="pt-24 pb-12 bg-white relative z-10">
+    <section ref={sectionRef} className="pt-24 pb-12 bg-[#fffef5] relative z-10">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {gridSection.items.map((item: GridItem, index: number) => {

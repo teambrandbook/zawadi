@@ -60,9 +60,6 @@ export type EventDetail = {
   created_at?: string;
   updated_at?: string;
   registration_count?: number;
-  enable_registration?: boolean;
-  waitlist_enabled?: boolean;
-  approval_required?: boolean;
 };
 
 export type CreateEventFormData = {
