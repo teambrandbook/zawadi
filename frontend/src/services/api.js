@@ -3,6 +3,7 @@ import axios from "axios";
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const ACCESS_TOKEN_KEY = "zawadi_access_token";
+const AUTH_ROUTES = ["/login", "/signup", "/register", "/otp", "/forgot-password"];
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -72,6 +73,11 @@ const processQueue = (error) => {
   failedQueue = [];
 };
 
+const isAuthRoute = () => {
+  if (typeof window === "undefined") return false;
+  return AUTH_ROUTES.some((route) => window.location.pathname.startsWith(route));
+};
+
 api.interceptors.response.use(
   (response) => {
     const token = response.data?.access;
@@ -122,8 +128,8 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         clearAccessToken();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        if (typeof window !== "undefined" && !isAuthRoute()) {
+          window.location.replace("/login");
         }
         return Promise.reject(refreshError);
       } finally {
