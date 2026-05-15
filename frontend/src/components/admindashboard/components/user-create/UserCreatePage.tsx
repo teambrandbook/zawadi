@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/redux/store";
 import { fetchRoles } from "@/redux/roleSlice";
-import { registerUser } from "@/redux/userSlice";
 import { toast } from "sonner";
 import AccountSetupSection from "./components/AccountSetupSection";
 import AddressSection from "./components/AddressSection";
@@ -189,8 +188,19 @@ export default function UserCreatePage() {
     });
 
     try {
-      await dispatch(registerUser(formData)).unwrap(); // ✅ send FormData
-      toast.success("User created successfully.");
+      setIsSubmitting(true);
+      const token = getAccessToken();
+      const config = token
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : undefined;
+
+      if (isEditMode && editUserId) {
+        await api.patch(`/supperadmin/users/${editUserId}/`, formData, config);
+        toast.success("User updated successfully.");
+      } else {
+        await api.post("/account/register/", formData, config);
+        toast.success("User created successfully.");
+      }
       router.push("/admindashboard/users");
     } catch {
       toast.error(isEditMode ? "Failed to update user." : "Failed to create user.");
