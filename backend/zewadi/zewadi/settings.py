@@ -217,7 +217,7 @@ if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT
     )
 
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
-
+# django-redis with IGNORE_EXCEPTIONS so cache misses degrade gracefully
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
