@@ -212,6 +212,7 @@ class LoginSerializer(serializers.Serializer):
             "user_id": user.user_id,
             "email": user.email,
             "role": user.role.lower(),
+            "user_type": getattr(getattr(user, "communityuser", None), "user_type", None),
             "access": str(refresh.access_token),
             "refresh": str(refresh),
         }
