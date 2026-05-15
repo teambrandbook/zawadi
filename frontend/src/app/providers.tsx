@@ -5,7 +5,6 @@ import { store } from "@/redux/store";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import api from "@/services/api";
-import { getAccessToken } from "@/services/api";
 import { setCredentials, fetchCartCount } from "@/redux/userSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
@@ -16,8 +15,6 @@ function AuthRehydrator() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    if (!getAccessToken()) return;
-
     api
       .get<{
         user_id?: string;

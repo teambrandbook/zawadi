@@ -10,7 +10,7 @@ import UserManagementHeader from "./components/UserManagementHeader";
 import UserStatsGrid from "./components/UserStatsGrid";
 import UserDetailsModal from "./components/UserDetailsModal";
 import UsersDataTable from "./components/UsersDataTable";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 
 function toUserPhotoUrl(photo?: string | null) {
@@ -130,13 +130,7 @@ export default function UserManagementDashboard() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const token = getAccessToken();
-
-        const res = await api.get("/supperadmin/users/", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await api.get("/supperadmin/users/");
 
         const users = mapApiUsers(extractRawUsers(res.data));
         console.log(users);

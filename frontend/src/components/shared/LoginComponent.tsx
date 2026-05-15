@@ -41,7 +41,8 @@ export default function LoginComponent() {
       const role = normalizeRole(data.role);
 
       // Fetch user_type — non-blocking; if it fails, route by role alone
-      let userType: "guest" | "member" | null = null;
+      let userType: "guest" | "member" | null =
+        data.user_type === "guest" || data.user_type === "member" ? data.user_type : null;
       try {
         const meRes = await api.get("/account/me/");
         userType = (meRes.data.user_type as "guest" | "member") ?? null;
@@ -56,7 +57,7 @@ export default function LoginComponent() {
         userType,
       }));
 
-      if (role === "admin") {
+      if (role === "admin" || role === "internal_staff") {
         router.push("/admindashboard");
       } else if (role === "consultant") {
         router.push("/consultant");

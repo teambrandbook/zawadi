@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 from unittest.mock import patch
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User, OTP
 from communityuser.models import CommunityUser, UserType
@@ -35,6 +36,23 @@ class AccountMeAPITests(APITestCase):
         self.assertEqual(response.data["email"], "community@example.com")
         self.assertEqual(response.data["role"], "community_user")
         self.assertEqual(response.data["full_name"], "Community User")
+
+    def test_me_accepts_access_token_cookie(self):
+        user = User.objects.create_user(
+            email="cookie-auth@example.com",
+            password="Pass@1234",
+            user_name="cookieauth",
+            full_name="Cookie Auth",
+            phone="+10000000007",
+            role="COMMUNITY_USER",
+        )
+        refresh = RefreshToken.for_user(user)
+        self.client.cookies["access_token"] = str(refresh.access_token)
+
+        response = self.client.get("/api/account/me/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["email"], "cookie-auth@example.com")
 
 
 class RegisterSecurityTests(APITestCase):
@@ -94,6 +112,49 @@ class RegisterSecurityTests(APITestCase):
         user = User.objects.get(email="admin-created@example.com")
         self.assertTrue(user.is_active)
         self.assertEqual(user.communityuser.user_type, UserType.MEMBER)
+
+    def test_internal_staff_with_user_create_permission_registers_managed_user(self):
+        role = Role.objects.create(role_name="User Manager")
+        RolePermission.objects.create(role=role, module="users", can_create=True)
+        staff = User.objects.create_user(
+            email="staff-user-manager@example.com",
+            password="Pass@1234",
+            user_name="staffmanager",
+            full_name="Staff Manager",
+            phone="+10000000008",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        payload = {
+            "email": "staff-created-consultant@example.com",
+            "password": "Pass@1234",
+            "full_name": "Staff Created Consultant",
+            "user_name": "staffcreatedconsultant",
+            "phone": "+10000000009",
+            "date_of_birth": "1990-01-01",
+            "gender": "FEMALE",
+            "role": "CONSULTANT",
+            "years_of_experience": 3,
+            "qualification": "Nutrition Diploma",
+            "languages_spoken": "English",
+            "experience_areas": "Wellness",
+            "session_type": "video",
+            "consultation_fee": 50,
+            "session_duration": 30,
+            "is_active": True,
+        }
+
+        with patch("accounts.views.send_otp_email") as send_otp_email:
+            response = self.client.post("/api/account/register/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data["requires_otp"])
+        send_otp_email.assert_not_called()
+        user = User.objects.get(email="staff-created-consultant@example.com")
+        self.assertEqual(user.role, "CONSULTANT")
+        self.assertTrue(user.is_active)
 
 
 class LoginAPITests(APITestCase):

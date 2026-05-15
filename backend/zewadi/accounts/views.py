@@ -81,14 +81,15 @@ def get_or_create_google_user(email, name):
 
 
 def set_auth_cookies(response, refresh, access):
-    secure = not settings.DEBUG
+    secure = getattr(settings, "AUTH_COOKIE_SECURE", not settings.DEBUG)
+    samesite = getattr(settings, "AUTH_COOKIE_SAMESITE", "Lax")
     domain = getattr(settings, "COOKIE_DOMAIN", None)
     response.set_cookie(
         key="refresh_token",
         value=str(refresh),
         httponly=True,
         secure=secure,
-        samesite="Lax",
+        samesite=samesite,
         max_age=7 * 24 * 60 * 60,
         domain=domain,
     )
@@ -97,7 +98,7 @@ def set_auth_cookies(response, refresh, access):
         value=access,
         httponly=False,
         secure=secure,
-        samesite="Lax",
+        samesite=samesite,
         max_age=30 * 60,
         domain=domain,
     )
@@ -117,16 +118,19 @@ class RegisterAPIView(APIView):
 
     def post(self, request):
         payload = request.data.copy()
-        is_admin_create = request.user.is_authenticated and request.user.role == "ADMIN"
+        is_managed_create = (
+            request.user.is_authenticated
+            and has_permission(request.user, "users", "create")
+        )
 
-        if not is_admin_create:
+        if not is_managed_create:
             payload["role"] = "COMMUNITY_USER"
             payload.pop("role_obj", None)
 
         serializer = RegisterSerializer(data=payload, context={"request": request})
         if serializer.is_valid():
             user = serializer.save()
-            if is_admin_create:
+            if is_managed_create:
                 user.is_active = parse_bool(payload.get("is_active", True))
                 user.save(update_fields=["is_active"])
                 return Response(
@@ -226,6 +230,7 @@ class OTPVerifyAPIView(APIView):
                         "user_id": user.user_id,
                         "email": user.email,
                         "role": user.role.lower(),
+                        "user_type": getattr(getattr(user, "communityuser", None), "user_type", None),
                     },
                     "access": access,
                 },
@@ -378,6 +383,7 @@ class LoginAPIView(APIView):
                         "user_id": data["user_id"],
                         "email": data["email"],
                         "role": data["role"],
+                        "user_type": data["user_type"],
                     },
                     "access": data["access"],
                 },
@@ -429,6 +435,7 @@ class GoogleLoginAPIView(APIView):
                     "user_id": user.user_id,
                     "email": user.email,
                     "role": user.role.lower(),
+                    "user_type": getattr(getattr(user, "communityuser", None), "user_type", None),
                 },
                 "access": access,
             },
@@ -512,7 +519,7 @@ class RefreshAPIView(APIView):
             refresh = RefreshToken(refresh_token)
             new_access = str(refresh.access_token)
             new_refresh = str(refresh)
-            response = Response({"message": "Token refreshed"})
+            response = Response({"message": "Token refreshed", "access": new_access})
             set_auth_cookies(response, new_refresh, new_access)
             return response
         except Exception:

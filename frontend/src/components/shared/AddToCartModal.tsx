@@ -66,13 +66,17 @@ export default function AddToCartModal({
 
       // 1. Register
       try {
-        await api.post("/account/register/", {
+        const registerRes = await api.post("/account/register/", {
           email: trimmedEmail,
           password,
           user_type: "guest",
           full_name: emailPrefix,
           user_name: `${emailPrefix}_${suffix}`,
         });
+        if (registerRes.data?.requires_otp) {
+          window.location.href = `/otp?email=${encodeURIComponent(trimmedEmail)}&purpose=EMAIL_VERIFICATION`;
+          return;
+        }
       } catch (err: unknown) {
         const errData = (err as { response?: { data?: { email?: string[] } } }).response?.data;
         if (errData?.email) {

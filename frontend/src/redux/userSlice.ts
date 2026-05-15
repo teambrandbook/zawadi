@@ -1,4 +1,4 @@
-import api from "@/services/api";
+import api, { clearAccessToken } from "@/services/api";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -57,6 +57,7 @@ export const loginUser = createAsyncThunk(
 
 export const logoutUser = createAsyncThunk("user/logout", async () => {
   await api.post("/account/logout/");
+  clearAccessToken();
 });
 
 export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () => {

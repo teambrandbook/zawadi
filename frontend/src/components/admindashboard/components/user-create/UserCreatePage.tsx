@@ -102,10 +102,7 @@ export default function UserCreatePage() {
 
       setIsLoadingUser(true);
       try {
-        const token = getAccessToken();
-        const res = await api.get(`/supperadmin/users/${editUserId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get(`/supperadmin/users/${editUserId}/`);
         const data = res.data as Record<string, unknown>;
 
         setForm((prev) => ({
