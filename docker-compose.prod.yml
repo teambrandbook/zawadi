@@ -73,7 +73,7 @@ services:
       - public
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=public"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.backend-http.rule=Host(`api.zewadi.com`)"
       - "traefik.http.routers.backend-http.entrypoints=web"
       - "traefik.http.routers.backend-http.middlewares=redirect-to-https"
@@ -106,7 +106,7 @@ services:
       - public
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=public"
+      - "traefik.docker.network=dokploy-network"
       - "traefik.http.routers.frontend-http.rule=Host(`app.zewadi.com`)"
       - "traefik.http.routers.frontend-http.entrypoints=web"
       - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
@@ -121,7 +121,8 @@ networks:
     driver: bridge
     internal: true
   public:
-    driver: bridge
+    external: true
+    name: dokploy-network
 
 volumes:
   postgres_data:
