@@ -62,19 +62,41 @@ class ProductListCreateView(APIView):
     def get(self, request):
 
     # If user has permission -> all products
-        if has_permission(request.user, "products", "view"):
-            products = Product.objects.all()
+        can_manage = has_permission(request.user, "products", "view")
+        if can_manage:
+            products = Product.objects.all().order_by("-created_at")
 
         # Else -> only active products
         else:
-            products = Product.objects.filter(product_status="active")
+            cache_key = "product_list:::-created_at:1"
+            try:
+                cached = cache.get(cache_key)
+                if cached is not None:
+                    return Response(cached, status=status.HTTP_200_OK)
+            except Exception:
+                pass
+            products = Product.objects.filter(product_status="active").order_by("-created_at")
 
-        serializer = ProductSerializer(
-            products,
-            many=True,
-        )
+        paginator = StandardPagination()
+        page = paginator.paginate_queryset(products, request)
+        if page is not None:
+            serializer = ProductSerializer(page, many=True, context={"request": request})
+            response = paginator.get_paginated_response(serializer.data)
+            if not can_manage:
+                try:
+                    cache.set(cache_key, response.data, timeout=600)
+                except Exception:
+                    pass
+            return response
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = ProductSerializer(products, many=True, context={"request": request})
+        data = serializer.data
+        if not can_manage:
+            try:
+                cache.set(cache_key, data, timeout=600)
+            except Exception:
+                pass
+        return Response(data, status=status.HTTP_200_OK)
     def post(self, request):
 
         # Permission Check

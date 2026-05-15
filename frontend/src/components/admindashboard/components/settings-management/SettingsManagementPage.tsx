@@ -24,6 +24,9 @@ const STORAGE_KEY = "zawadi_admin_settings";
 // MVP note: these admin settings are UI-only and persist in this browser.
 // They are not platform-wide settings until a backend settings API is added.
 type PersistedSettings = {
+  platformData: typeof platformInformationDefault;
+  localizationData: typeof localizationFormatDefault;
+  adminContactData: typeof adminContactDefault;
   securityData: typeof securityPrivacyDefault;
   systemData: typeof systemPreferencesDefault;
   lastSaved: string;
@@ -43,12 +46,25 @@ function loadFromStorage(): PersistedSettings | null {
 export default function SettingsManagementPage() {
   const [savedSettings] = useState(loadFromStorage);
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [platformData, setPlatformData] = useState(savedSettings?.platformData ?? platformInformationDefault);
+  const [localizationData, setLocalizationData] = useState(savedSettings?.localizationData ?? localizationFormatDefault);
+  const [adminContactData, setAdminContactData] = useState(savedSettings?.adminContactData ?? adminContactDefault);
   const [securityData, setSecurityData] = useState(savedSettings?.securityData ?? securityPrivacyDefault);
   const [systemData, setSystemData] = useState(savedSettings?.systemData ?? systemPreferencesDefault);
   const [lastSaved, setLastSaved] = useState(savedSettings?.lastSaved ?? "Not saved yet");
 
-  function persistToStorage(updatedSecurity: typeof securityPrivacyDefault, updatedSystem: typeof systemPreferencesDefault, savedAt: string) {
+  function persistToStorage(
+    updatedPlatform: typeof platformInformationDefault,
+    updatedLocalization: typeof localizationFormatDefault,
+    updatedAdminContact: typeof adminContactDefault,
+    updatedSecurity: typeof securityPrivacyDefault,
+    updatedSystem: typeof systemPreferencesDefault,
+    savedAt: string,
+  ) {
     const payload: PersistedSettings = {
+      platformData: updatedPlatform,
+      localizationData: updatedLocalization,
+      adminContactData: updatedAdminContact,
       securityData: updatedSecurity,
       systemData: updatedSystem,
       lastSaved: savedAt,
@@ -65,17 +81,23 @@ export default function SettingsManagementPage() {
       minute: "2-digit",
     }) + " by Admin User";
     setLastSaved(savedAt);
-    persistToStorage(securityData, systemData, savedAt);
+    persistToStorage(platformData, localizationData, adminContactData, securityData, systemData, savedAt);
     toast.success("Settings saved successfully! ✅");
   }
 
   function handleCancel() {
     const saved = loadFromStorage();
     if (saved) {
+      setPlatformData(saved.platformData ?? platformInformationDefault);
+      setLocalizationData(saved.localizationData ?? localizationFormatDefault);
+      setAdminContactData(saved.adminContactData ?? adminContactDefault);
       setSecurityData(saved.securityData ?? securityPrivacyDefault);
       setSystemData(saved.systemData ?? systemPreferencesDefault);
       toast.info("Changes reverted to last saved state.");
     } else {
+      setPlatformData(platformInformationDefault);
+      setLocalizationData(localizationFormatDefault);
+      setAdminContactData(adminContactDefault);
       setSecurityData(securityPrivacyDefault);
       setSystemData(systemPreferencesDefault);
       toast.info("Changes discarded.");
@@ -84,21 +106,23 @@ export default function SettingsManagementPage() {
 
   function handleReset() {
     if (activeTab === "general") {
-      setLastSaved("Not saved yet");
-      localStorage.removeItem(STORAGE_KEY);
-      toast.info("Settings reset to defaults.");
+      setPlatformData(platformInformationDefault);
+      setLocalizationData(localizationFormatDefault);
+      setAdminContactData(adminContactDefault);
+      persistToStorage(platformInformationDefault, localizationFormatDefault, adminContactDefault, securityData, systemData, lastSaved);
+      toast.info("General settings reset to defaults.");
       return;
     }
 
     if (activeTab === "security") {
       setSecurityData(securityPrivacyDefault);
-      persistToStorage(securityPrivacyDefault, systemData, lastSaved);
+      persistToStorage(platformData, localizationData, adminContactData, securityPrivacyDefault, systemData, lastSaved);
       toast.info("Security settings reset to defaults.");
       return;
     }
 
     setSystemData(systemPreferencesDefault);
-    persistToStorage(securityData, systemPreferencesDefault, lastSaved);
+    persistToStorage(platformData, localizationData, adminContactData, securityData, systemPreferencesDefault, lastSaved);
     toast.info("System preferences reset to defaults.");
   }
 
@@ -110,9 +134,18 @@ export default function SettingsManagementPage() {
 
         {activeTab === "general" ? (
           <>
-            <PlatformInformationCard data={platformInformationDefault} />
-            <LocalizationFormatCard data={localizationFormatDefault} />
-            <AdminContactDetailsCard data={adminContactDefault} />
+            <PlatformInformationCard
+              data={platformData}
+              onChange={(field, value) => setPlatformData((current) => ({ ...current, [field]: value }))}
+            />
+            <LocalizationFormatCard
+              data={localizationData}
+              onChange={(field, value) => setLocalizationData((current) => ({ ...current, [field]: value }))}
+            />
+            <AdminContactDetailsCard
+              data={adminContactData}
+              onChange={(field, value) => setAdminContactData((current) => ({ ...current, [field]: value }))}
+            />
             <SettingsPageActions
               lastSaved={lastSaved}
               onReset={handleReset}

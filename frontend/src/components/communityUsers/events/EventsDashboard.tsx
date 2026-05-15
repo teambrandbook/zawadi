@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -112,6 +112,7 @@ function formatDayAndTime(dateStr: string | null, timeStr?: string | null): { da
 }
 
 export default function EventsDashboard() {
+  const eventListRef = useRef<HTMLDivElement | null>(null);
   const [events, setEvents] = useState<EventListItem[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>("All Events");
@@ -260,6 +261,13 @@ export default function EventsDashboard() {
     }
   }
 
+  function handleExploreEvents() {
+    setActiveTab("All Events");
+    setActiveType("all");
+    setSearchTerm("");
+    eventListRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   return (
     <div className="flex-1 min-h-screen bg-white p-8">
       <div className="mb-8 flex items-end justify-between">
@@ -269,7 +277,11 @@ export default function EventsDashboard() {
             Stay connected with wellness sessions, community meetups, and expert-led events.
           </p>
         </div>
-        <button className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020]">
+        <button
+          type="button"
+          onClick={handleExploreEvents}
+          className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020]"
+        >
           <Search size={16} />
           <span>Explore Events</span>
         </button>
@@ -329,18 +341,16 @@ export default function EventsDashboard() {
         </div>
       </div>
 
-      <div className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
+      <div ref={eventListRef} className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
         <div className="flex space-x-2">
-          {tabs.map((tab, idx) => (
+          {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`rounded-md px-4 py-1.5 text-sm font-medium ${
                 activeTab === tab
                   ? "bg-[#06402B] text-white"
-                  : idx === 0
-                    ? "bg-[#06402B] text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >
               {tab}

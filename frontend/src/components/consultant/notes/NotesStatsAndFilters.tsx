@@ -10,14 +10,25 @@ import {
   Search,
 } from "lucide-react";
 
-const noteStats = [
-  { label: "Total Notes", value: "247", icon: FilePlus2, tone: "text-[#0A4833] bg-[#EBE1CF]" },
-  { label: "Recent Notes", value: "18", icon: MessageSquareText, tone: "text-[#0A4833] bg-[#EBE1CF]" },
-  { label: "Follow-up Notes", value: "12", icon: ClipboardList, tone: "text-[#A88751] bg-[#EBE1CF]" },
-  { label: "Pending Review", value: "5", icon: AlertTriangle, tone: "text-[#EF4444] bg-[#EBE1CF]" },
-];
+export type NotesStats = {
+  total: number;
+  recent: number;
+  followUp: number;
+  pendingReview: number;
+};
 
-export default function NotesStatsAndFilters() {
+type Props = {
+  stats: NotesStats;
+};
+
+export default function NotesStatsAndFilters({ stats }: Props) {
+  const noteStats = [
+    { label: "Total Notes", value: stats.total, icon: FilePlus2, tone: "text-[#0A4833] bg-[#EBE1CF]" },
+    { label: "Recent Notes", value: stats.recent, icon: MessageSquareText, tone: "text-[#0A4833] bg-[#EBE1CF]" },
+    { label: "Follow-up Notes", value: stats.followUp, icon: ClipboardList, tone: "text-[#A88751] bg-[#EBE1CF]" },
+    { label: "Pending Review", value: stats.pendingReview, icon: AlertTriangle, tone: "text-[#EF4444] bg-[#EBE1CF]" },
+  ];
+
   return (
     <section className="space-y-5">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">

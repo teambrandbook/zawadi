@@ -24,12 +24,15 @@ type ProductDetail = {
   keyIngredients: string;
   healthBenefits: string;
   basePrice: number;
-  salePrice: number | null;
+  mrpPrice: number;
+  sellingPrice: number;
+  discountPercent: number;
   currency: string;
   stockQuantity: number;
   lowStockAlert: number;
   stockStatus: string;
   variantNames: string[];
+  variants: ProductVariant[];
 };
 
 function toProductImageUrl(imagePath?: string | null) {
@@ -42,24 +45,14 @@ function toProductImageUrl(imagePath?: string | null) {
 // Updated to map complex variants for the table component
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiProduct(item: Record<string, any>, index: number): ProductRow {
-  const variants: ProductVariant[] = Array.isArray(item.variants)
-    ? item.variants.map((v: any) => ({
-        variant_value: String(v.variant_value ?? v.variant_name ?? ""),
-        variant_unit: String(v.variant_unit ?? ""),
-        cost: parseFloat(v.cost ?? 0),
-        price: parseFloat(v.price ?? 0),
-        stock: parseInt(v.stock ?? 0, 10),
-      }))
-    : [];
-
   return {
     id: String(item.id ?? `p-${index}`),
     name: String(item.product_name ?? item.name ?? "Unnamed Product"),
     subtitle: String(item.short_description ?? item.description ?? item.product_subtitle ?? item.subtitle ?? ""),
     sku: String(item.sku ?? item.product_code ?? `SKU-${index}`),
     category: String(item.category ?? "—"),
-    variants: variants, // Updated to match new ProductRow type
-    price: parseFloat(item.price ?? item.base_price ?? 0),
+    variants: [],
+    price: parseFloat(item.selling_price ?? item.sale_price ?? item.price ?? item.base_price ?? 0),
     stockUnits: parseInt(item.stock_quantity ?? item.stock ?? 0, 10),
     stockStatus: String(item.stock_status ?? ""),
     lowStockAlert: parseInt(item.low_stock_alert ?? 0, 10),
@@ -84,8 +77,10 @@ function mapApiProductDetail(item: Record<string, any>): ProductDetail {
     fullDescription: String(item.full_description ?? ""),
     keyIngredients: String(item.key_ingredients ?? ""),
     healthBenefits: String(item.health_benefits ?? ""),
-    basePrice: parseFloat(item.base_price ?? item.price ?? 0),
-    salePrice: item.sale_price != null && item.sale_price !== "" ? parseFloat(item.sale_price) : null,
+    basePrice: parseFloat(item.cost_price ?? item.base_price ?? item.price ?? 0),
+    mrpPrice: parseFloat(item.mrp_price ?? item.sale_price ?? item.base_price ?? 0),
+    sellingPrice: parseFloat(item.selling_price ?? item.sale_price ?? item.base_price ?? 0),
+    discountPercent: parseFloat(item.discount_percent ?? 0),
     currency: String(item.currency ?? "USD"),
     stockQuantity: parseInt(item.stock_quantity ?? item.stock ?? 0, 10),
     lowStockAlert: parseInt(item.low_stock_alert ?? 0, 10),
@@ -97,15 +92,22 @@ function mapApiProductDetail(item: Record<string, any>): ProductDetail {
           )
           .filter(Boolean)
       : [],
+    variants: Array.isArray(item.variants)
+      ? item.variants.map((variant: Record<string, unknown>) => ({
+          variant_value: String(variant.variant_value ?? variant.variant_name ?? ""),
+          variant_unit: String(variant.variant_unit ?? ""),
+          cost: parseFloat(String(variant.cost ?? 0)),
+          price: parseFloat(String(variant.price ?? 0)),
+          stock: parseInt(String(variant.stock ?? 0), 10),
+        }))
+      : [],
   };
 }
 
 function toCsv(rows: ProductRow[]) {
-  const header = ["Name", "SKU", "Category", "Variants", "Price", "Stock", "Status", "Sales", "Featured"];
+  const header = ["Name", "SKU", "Category", "Pack Policy", "Selling Price", "Stock", "Status", "Sales", "Featured"];
   const body = rows.map((p) => {
-    const variantString = p.variants
-      .map((v) => `${v.variant_value} ${v.variant_unit}`)
-      .join(" | ");
+    const variantString = "Separate SKU";
       
     return [
       p.name, 
@@ -187,12 +189,13 @@ function ProductDetailsDialog({
         { label: "SKU", value: product.sku || "—" },
         { label: "Category", value: product.category || "—" },
         { label: "Status", value: product.status || "—" },
-        { label: "Base Price", value: `${product.currency} ${product.basePrice.toFixed(2)}` },
-        { label: "Sale Price", value: product.salePrice != null ? `${product.currency} ${product.salePrice.toFixed(2)}` : "—" },
+        { label: "Cost Price", value: `${product.currency} ${product.basePrice.toFixed(2)}` },
+        { label: "MRP", value: `${product.currency} ${product.mrpPrice.toFixed(2)}` },
+        { label: "Selling Price", value: `${product.currency} ${product.sellingPrice.toFixed(2)}` },
+        { label: "Discount", value: product.discountPercent > 0 ? `${product.discountPercent.toFixed(0)}%` : "—" },
         { label: "Stock Quantity", value: String(product.stockQuantity) },
         { label: "Low Stock Alert", value: String(product.lowStockAlert) },
         { label: "Stock Status", value: product.stockStatus || "—" },
-        { label: "Variants", value: product.variantNames.join(", ") || "—" },
         { label: "Short Description", value: product.shortDescription || "—" },
         { label: "Full Description", value: product.fullDescription || "—" },
         { label: "Key Ingredients", value: product.keyIngredients || "—" },
@@ -229,6 +232,39 @@ function ProductDetailsDialog({
                   <p className="mt-1 whitespace-pre-wrap text-sm text-[#0A4833]">{row.value}</p>
                 </div>
               ))}
+              <div className="rounded-lg border border-[#E5E7EB] bg-[#FCFCFD] p-3 sm:col-span-2">
+                <p className="text-xs font-medium uppercase tracking-wide text-[#98A2B3]">Pack/SKU Policy</p>
+                {false ? (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+                      <thead className="bg-[#F3F4F6] text-xs uppercase text-[#6B7280]">
+                        <tr>
+                          <th className="border border-[#E5E7EB] px-3 py-2">Variant</th>
+                          <th className="border border-[#E5E7EB] px-3 py-2">Unit</th>
+                          <th className="border border-[#E5E7EB] px-3 py-2">Cost</th>
+                          <th className="border border-[#E5E7EB] px-3 py-2">MRP</th>
+                          <th className="border border-[#E5E7EB] px-3 py-2">Stock</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {product!.variants.map((variant, index) => (
+                          <tr key={`${variant.variant_value}-${variant.variant_unit}-${index}`} className="text-[#0A4833]">
+                            <td className="border border-[#E5E7EB] px-3 py-2">{variant.variant_value || "—"}</td>
+                            <td className="border border-[#E5E7EB] px-3 py-2">{variant.variant_unit || "—"}</td>
+                            <td className="border border-[#E5E7EB] px-3 py-2">{product!.currency} {variant.cost.toFixed(2)}</td>
+                            <td className="border border-[#E5E7EB] px-3 py-2">{product!.currency} {variant.price.toFixed(2)}</td>
+                            <td className="border border-[#E5E7EB] px-3 py-2">{variant.stock} units</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-sm text-[#0A4833]">
+                    Create each pack or size as a separate product with its own SKU, stock, and pricing.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         ) : (

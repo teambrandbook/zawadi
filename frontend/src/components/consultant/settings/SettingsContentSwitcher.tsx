@@ -31,6 +31,8 @@ type Props = {
   securityPreferences: SecurityPreference[];
   recoveryFields: RecoveryField[];
   preferencesData: PreferencesSettingsData;
+  onAccountFieldChange: (label: string, value: string) => void;
+  onAccountPasswordChange: (fieldId: string, value: string) => void;
   onSecurityPasswordChange: (fieldId: string, value: string) => void;
   onToggleNotificationPreference: (preferenceId: string) => void;
   onToggleNotificationChannel: (channelId: string) => void;
@@ -69,6 +71,8 @@ export default function SettingsContentSwitcher({
   securityPreferences,
   recoveryFields,
   preferencesData,
+  onAccountFieldChange,
+  onAccountPasswordChange,
   onSecurityPasswordChange,
   onToggleNotificationPreference,
   onToggleNotificationChannel,
@@ -97,6 +101,8 @@ export default function SettingsContentSwitcher({
       <AccountSettingsContent
         accountFields={accountFields}
         passwordFields={passwordFields}
+        onAccountFieldChange={onAccountFieldChange}
+        onPasswordFieldChange={onAccountPasswordChange}
         onSave={onSaveAccount}
         onReset={onResetAccount}
       />

@@ -1,6 +1,7 @@
 from django.test import TestCase, override_settings
 from django.core.cache import cache
 from rest_framework.test import APIClient
+from .serializers import ProductCreateSerializer
 from .models import Product, ProductStatus
 
 CACHE_SETTINGS = {
@@ -18,7 +19,33 @@ def make_product(name="Test Product", status=ProductStatus.ACTIVE):
         category="food",
         product_status=status,
         base_price="10.00",
+        cost_price="10.00",
+        mrp_price="10.00",
+        selling_price="10.00",
+        short_description="Test product",
     )
+
+
+class ProductPricingValidationTest(TestCase):
+    def test_selling_price_cannot_exceed_mrp(self):
+        serializer = ProductCreateSerializer(
+            data={
+                "product_name": "Invalid Price",
+                "product_code": "BAD-001",
+                "category": "food",
+                "product_status": "active",
+                "short_description": "Invalid pricing",
+                "cost_price": "50.00",
+                "mrp_price": "100.00",
+                "selling_price": "120.00",
+                "base_price": "50.00",
+                "sale_price": "120.00",
+                "stock_quantity": 5,
+            }
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn("selling_price", serializer.errors)
 
 
 @override_settings(CACHES=CACHE_SETTINGS)

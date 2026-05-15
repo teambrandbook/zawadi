@@ -5,6 +5,8 @@ import type { AvailabilityConfig, AvailabilitySlot } from "./profileTypes";
 type Props = {
   settings: AvailabilityConfig;
   slots: AvailabilitySlot[];
+  sessionDuration?: string;
+  onSessionDurationChange?: (value: string) => void;
 };
 
 function TimeField({ value, muted = false }: { value: string; muted?: boolean }) {
@@ -23,7 +25,7 @@ function TimeField({ value, muted = false }: { value: string; muted?: boolean })
   );
 }
 
-export default function AvailabilityCard({ settings, slots }: Props) {
+export default function AvailabilityCard({ settings, slots, sessionDuration, onSessionDurationChange }: Props) {
   return (
     <section className="rounded-[12px] border border-[#E7E5E4] bg-white p-5 shadow-[0px_1px_2px_rgba(16,24,40,0.05)] sm:p-6">
       <div className="flex items-center gap-2 text-[#0A4833]">
@@ -34,10 +36,20 @@ export default function AvailabilityCard({ settings, slots }: Props) {
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <article>
           <p className="text-xs font-medium text-[#4B5563]">Consultation Duration</p>
-          <div className="mt-2 flex h-11 items-center justify-between rounded-[8px] border border-[#F0ECE5] bg-[#FEFDFC] px-4 text-[15px] text-[#111827]">
-            <span>{settings.consultationDuration}</span>
-            <ChevronDown className="h-4 w-4 text-[#111827]" />
-          </div>
+          {onSessionDurationChange ? (
+            <input
+              type="number"
+              min="1"
+              value={sessionDuration ?? ""}
+              onChange={(event) => onSessionDurationChange(event.target.value)}
+              className="mt-2 h-11 w-full rounded-[8px] border border-[#F0ECE5] bg-[#FEFDFC] px-4 text-[15px] text-[#111827] outline-none transition focus:border-[#A38355] focus:ring-2 focus:ring-[#EBE1CF]"
+            />
+          ) : (
+            <div className="mt-2 flex h-11 items-center justify-between rounded-[8px] border border-[#F0ECE5] bg-[#FEFDFC] px-4 text-[15px] text-[#111827]">
+              <span>{settings.consultationDuration}</span>
+              <ChevronDown className="h-4 w-4 text-[#111827]" />
+            </div>
+          )}
         </article>
 
         <article>

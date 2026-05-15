@@ -55,6 +55,7 @@ type ConsultationScheduleItem = {
 type SummaryCard = {
   label: string;
   value: number | string;
+  href: string;
   icon: ComponentType<{ className?: string }>;
   iconColor: string;
 };
@@ -138,12 +139,11 @@ const backendConsultationData: ConsultationRequestData = {
 };
 
 const summaryCards: SummaryCard[] = [
-  { label: "Today's Appointments", value: 8, icon: CalendarDays, iconColor: "text-[#B48A4A]" },
-  { label: "Pending Consultations", value: 12, icon: Clock3, iconColor: "text-[#B48A4A]" },
-  { label: "Active Clients", value: 45, icon: Users, iconColor: "text-[#B48A4A]" },
-  { label: "Follow-ups Due", value: 6, icon: Bell, iconColor: "text-[#B48A4A]" },
-  { label: "Diet Plans Shared", value: 23, icon: UtensilsCrossed, iconColor: "text-[#B48A4A]" },
-  { label: "Unread Messages", value: 4, icon: MessageSquareMore, iconColor: "text-[#B48A4A]" },
+  { label: "Today's Appointments", value: 8, href: "/consultant/appointments", icon: CalendarDays, iconColor: "text-[#B48A4A]" },
+  { label: "Pending Consultations", value: 12, href: "/consultant/consultation", icon: Clock3, iconColor: "text-[#B48A4A]" },
+  { label: "Active Clients", value: 45, href: "/consultant/clients", icon: Users, iconColor: "text-[#B48A4A]" },
+  { label: "Follow-ups Due", value: 6, href: "/consultant/notes", icon: Bell, iconColor: "text-[#B48A4A]" },
+  { label: "Diet Plans Shared", value: 23, href: "/consultant/diet-plans", icon: UtensilsCrossed, iconColor: "text-[#B48A4A]" },
 ];
 
 const scheduleItems: ConsultationScheduleItem[] = [
@@ -459,25 +459,25 @@ export default function ConsultantDashboardPage() {
   const pendingCount = bookings.filter((item) => item.status === "pending").length;
   const confirmedCount = bookings.filter((item) => item.status === "confirmed").length;
   const summaryCards: SummaryCard[] = [
-    { label: "Today's Appointments", value: confirmedCount + pendingCount, icon: CalendarDays, iconColor: "text-[#B48A4A]" },
-    { label: "Pending Consultations", value: pendingCount, icon: Clock3, iconColor: "text-[#B48A4A]" },
-    { label: "Active Clients", value: clientCount, icon: Users, iconColor: "text-[#B48A4A]" },
-    { label: "Follow-ups Due", value: 0, icon: Bell, iconColor: "text-[#B48A4A]" },
-    { label: "Diet Plans Shared", value: dietPlanCount, icon: UtensilsCrossed, iconColor: "text-[#B48A4A]" },
-    { label: "Unread Messages", value: 0, icon: MessageSquareMore, iconColor: "text-[#B48A4A]" },
+    { label: "Today's Appointments", value: confirmedCount + pendingCount, href: "/consultant/appointments", icon: CalendarDays, iconColor: "text-[#B48A4A]" },
+    { label: "Pending Consultations", value: pendingCount, href: "/consultant/consultation", icon: Clock3, iconColor: "text-[#B48A4A]" },
+    { label: "Active Clients", value: clientCount, href: "/consultant/clients", icon: Users, iconColor: "text-[#B48A4A]" },
+    { label: "Follow-ups Due", value: 0, href: "/consultant/notes", icon: Bell, iconColor: "text-[#B48A4A]" },
+    { label: "Diet Plans Shared", value: dietPlanCount, href: "/consultant/diet-plans", icon: UtensilsCrossed, iconColor: "text-[#B48A4A]" },
   ];
 
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           {summaryCards.map((card) => {
             const Icon = card.icon;
 
             return (
-              <article
+              <Link
                 key={card.label}
-                className="rounded-[14px] border border-[#D1D5DB] bg-white px-4 py-4 shadow-[0_4px_16px_rgba(10,72,51,0.03)]"
+                href={card.href}
+                className="rounded-[14px] border border-[#D1D5DB] bg-white px-4 py-4 shadow-[0_4px_16px_rgba(10,72,51,0.03)] transition hover:border-[#B48A4A] hover:shadow-[0_8px_22px_rgba(10,72,51,0.08)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#B48A4A]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -486,7 +486,7 @@ export default function ConsultantDashboardPage() {
                   </div>
                   <Icon className={`h-6 w-6 shrink-0 ${card.iconColor}`} />
                 </div>
-              </article>
+              </Link>
             );
           })}
         </div>

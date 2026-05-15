@@ -6,10 +6,21 @@ type Props = {
   imageAlt: string;
   hint: string;
   isUploading?: boolean;
+  isSaving?: boolean;
   onPhotoChange: (file: File) => void;
+  onSave?: () => void;
 };
 
-export default function ProfilePhotoCard({ name, imageSrc, imageAlt, hint, isUploading = false, onPhotoChange }: Props) {
+export default function ProfilePhotoCard({
+  name,
+  imageSrc,
+  imageAlt,
+  hint,
+  isUploading = false,
+  isSaving = false,
+  onPhotoChange,
+  onSave,
+}: Props) {
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) {
@@ -19,7 +30,15 @@ export default function ProfilePhotoCard({ name, imageSrc, imageAlt, hint, isUpl
   }
 
   return (
-    <section className="rounded-[12px] border border-[#DFDFDF] bg-white px-5 py-6 shadow-[0px_1px_2px_rgba(16,24,40,0.05)] sm:px-6">
+    <section className="relative rounded-[12px] border border-[#DFDFDF] bg-white px-5 py-6 shadow-[0px_1px_2px_rgba(16,24,40,0.05)] sm:px-6">
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={isUploading || isSaving}
+        className="absolute right-5 top-5 inline-flex h-9 min-w-[104px] items-center justify-center rounded-[8px] bg-[#0A4833] px-6 text-sm font-semibold text-white transition hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:bg-[#A7B5AF] sm:right-6"
+      >
+        {isSaving ? "Saving..." : "Save"}
+      </button>
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <div className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
           <div className="h-full w-full overflow-hidden rounded-full border-4 border-[#EBE1CF] bg-[#F7F4EE]">

@@ -20,8 +20,12 @@ type Product = {
   category: string;
   base_price: string;
   sale_price: string | null;
+  mrp_price?: string | number;
+  selling_price?: string | number;
+  discount_percent?: string | number;
   image: string | null;
   stock_status: string;
+  stock_quantity: number;
   created_at?: string;
 };
 
@@ -65,7 +69,12 @@ function ProductCard({
   product: Product;
   onAddToCart: (id: number) => void;
 }) {
-  const price = product.sale_price || product.base_price;
+  const price = product.selling_price ?? product.sale_price ?? product.base_price;
+  const mrp = Number(product.mrp_price ?? 0);
+  const selling = Number(price);
+  const discounted = mrp > selling;
+  const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
+  const lowStock = !outOfStock && product.stock_quantity <= 5;
   const badgeText = isNewProduct(product.created_at) ? "New" : product.category;
   return (
     <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
@@ -92,6 +101,14 @@ function ProductCard({
             ₹{price}
           </p>
         </div>
+        {discounted ? (
+          <div className="mt-1 flex items-center gap-2">
+            <span className="text-sm text-[#9ca3af] line-through">₹{product.mrp_price}</span>
+            <span className="text-xs font-bold text-[#15803D]">
+              {Number(product.discount_percent ?? 0).toFixed(0)}% off
+            </span>
+          </div>
+        ) : null}
 
         <div className="mt-2.5">
           <Rating />
@@ -100,15 +117,19 @@ function ProductCard({
         <p className="mt-4 text-[13px] leading-[1.6] text-[#6b7280] sm:text-[14px]">
           {product.product_subtitle || "Premium quality product for your wellness journey."}
         </p>
+        <p className={`mt-3 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
+          {outOfStock ? "Out of stock" : lowStock ? `Only ${product.stock_quantity} left` : "In stock"}
+        </p>
 
         <div className="mt-auto flex gap-2 pt-6">
           <button
             type="button"
             onClick={() => onAddToCart(product.id)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] sm:text-[16px]"
+            disabled={outOfStock}
+            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[16px]"
           >
             <FaBagShopping size={18} />
-            Add to Cart
+            {outOfStock ? "Out of Stock" : "Add to Cart"}
           </button>
           <Link
             href={`/products/details?id=${product.id}`}
