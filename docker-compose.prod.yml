@@ -74,9 +74,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
+      - "traefik.http.routers.backend-http.rule=Host(`api.zewadi.com`)"
+      - "traefik.http.routers.backend-http.entrypoints=web"
+      - "traefik.http.routers.backend-http.middlewares=redirect-to-https"
       - "traefik.http.routers.backend.rule=Host(`api.zewadi.com`)"
       - "traefik.http.routers.backend.entrypoints=websecure"
       - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.services.backend.loadbalancer.server.port=8000"
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health/').read()\" 2>/dev/null || exit 1"]
@@ -103,9 +107,13 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=public"
+      - "traefik.http.routers.frontend-http.rule=Host(`app.zewadi.com`)"
+      - "traefik.http.routers.frontend-http.entrypoints=web"
+      - "traefik.http.routers.frontend-http.middlewares=redirect-to-https"
       - "traefik.http.routers.frontend.rule=Host(`app.zewadi.com`)"
       - "traefik.http.routers.frontend.entrypoints=websecure"
       - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
       - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
 networks:
