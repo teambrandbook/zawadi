@@ -93,7 +93,7 @@ class RegisterSerializer(serializers.Serializer):
     session_duration = serializers.IntegerField(required=False)
 
     def validate_email(self, value):
-        email = User.objects.normalize_email(value)
+        email = User.objects.normalize_email(value.strip()).lower()
         if User.objects.filter(email__iexact=email).exists():
             raise serializers.ValidationError("A user with this email already exists.")
         return email
@@ -188,8 +188,9 @@ class LoginSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def validate(self, data):
+        email = User.objects.normalize_email(data["email"].strip()).lower()
         try:
-            user_obj = User.objects.get(email__iexact=data["email"])
+            user_obj = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
             raise serializers.ValidationError("Invalid credentials")
 
@@ -198,7 +199,11 @@ class LoginSerializer(serializers.Serializer):
                 "Please verify your email before logging in. Check your inbox for a verification code."
             )
 
-        user = authenticate(email=data["email"], password=data["password"])
+        user = authenticate(
+            request=self.context.get("request"),
+            username=user_obj.email,
+            password=data["password"],
+        )
         if not user:
             raise serializers.ValidationError("Invalid credentials")
 
