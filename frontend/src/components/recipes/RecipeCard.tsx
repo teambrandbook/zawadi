@@ -1,10 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Heart, PlayCircle } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowRight, PlayCircle } from "lucide-react";
 import { type Recipe } from "@/components/recipes/recipeTypes";
-
-const favoriteStorageKey = (recipeId: string) => `zewadi:favorite-recipes:${recipeId}`;
 
 export default function RecipeCard({
   recipe,
@@ -14,19 +11,6 @@ export default function RecipeCard({
   reverse?: boolean;
 }) {
   const benefits = recipe.benefits ?? [];
-  const [isFavorite, setIsFavorite] = useState(false);
-
-  useEffect(() => {
-    setIsFavorite(localStorage.getItem(favoriteStorageKey(recipe.id)) === "true");
-  }, [recipe.id]);
-
-  function toggleFavorite() {
-    setIsFavorite((current) => {
-      const next = !current;
-      localStorage.setItem(favoriteStorageKey(recipe.id), String(next));
-      return next;
-    });
-  }
 
   return (
     <article
@@ -43,7 +27,6 @@ export default function RecipeCard({
           src={recipe.image}
           alt={recipe.title}
           fill
-          unoptimized
           className="object-cover"
         />
 
@@ -87,33 +70,17 @@ export default function RecipeCard({
           </>
         )}
 
-        <div className="mt-6 flex items-center gap-15">
-          {/* Learn More Button */}
-          <Link
-            href={`/recipes/${recipe.id}`}
-            className="relative inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
-          >
-            <span>Learn More</span>
+        {/* Learn More Button */}
+        <Link
+          href={`/recipes/${recipe.id}`}
+          className="relative mt-6 inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
+        >
+          <span>Learn More</span>
 
-            <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
-              <ArrowRight className="h-4 w-4 text-white" />
-            </span>
-          </Link>
-
-          <button
-  type="button"
-  aria-label={isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
-  aria-pressed={isFavorite}
-  onClick={toggleFavorite}
-  className={`flex h-10 w-10 items-center justify-center rounded-full transition ${
-    isFavorite
-      ? "bg-[#1f4d3a] text-white hover:bg-[#163a2b]"
-      : "bg-[#1f4d3a] text-white hover:bg-[#163a2b]"
-  }`}
->
-  <Heart className={`h-5 w-5 ${isFavorite ? "fill-white" : ""}`} />
-</button>
-        </div>
+          <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
+            <ArrowRight className="h-4 w-4 text-white" />
+          </span>
+        </Link>
       </div>
     </article>
   );

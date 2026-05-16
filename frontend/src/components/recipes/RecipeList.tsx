@@ -10,24 +10,6 @@ import { getImageUrl } from "@/lib/utils";
 
 const ALL_CATEGORY = "SHOW ALL";
 const DEFAULT_CATEGORY = ALL_CATEGORY;
-const FALLBACK_IMAGES = [
-  "/recipe/recipe-1.webp",
-  "/recipe/recipe-2.webp",
-  "/recipe/recipe-3.webp",
-  "/recipe/recipe-4.webp",
-  "/recipe/lunch-1.webp",
-  "/recipe/lunch-2.webp",
-  "/recipe/lunch-3.webp",
-  "/recipe/lunch-4.webp",
-  "/recipe/dessert-1.webp",
-  "/recipe/dessert-2.webp",
-  "/recipe/dessert-3.webp",
-  "/recipe/dessert-4.webp",
-  "/recipe/dinner-1.webp",
-  "/recipe/dinner-2.webp",
-  "/recipe/dinner-3.webp",
-  "/recipe/dinner-4.webp",
-];
 
 type BackendRecipe = {
   slug?: string;
@@ -35,8 +17,6 @@ type BackendRecipe = {
   title: string;
   category?: string;
   cover_image?: string | null;
-  cover_image_url?: string | null;
-  image?: string | null;
   short_description?: string;
   video_url?: string | null;
 };
@@ -48,30 +28,25 @@ type BackendRecipesResponse =
       results?: BackendRecipe[];
     };
 
-function fallbackImage(index = 0) {
-  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
-}
-
-function mediaUrl(recipe: BackendRecipe, index = 0) {
-  const value = recipe.cover_image || recipe.cover_image_url || recipe.image;
-  if (!value) return fallbackImage(index);
+function mediaUrl(value?: string | null) {
+  if (!value) return "/recipe/recipe-1.webp";
   return getImageUrl(value);
 }
 
-function mapBackendRecipe(recipe: BackendRecipe, index = 0): Recipe {
+function mapBackendRecipe(recipe: BackendRecipe): Recipe {
   const category = String(recipe.category || "BREAKFAST").toUpperCase();
   return {
     id: recipe.slug || String(recipe.id),
     title: recipe.title,
     description: recipe.short_description || "",
-    image: mediaUrl(recipe, index),
+    image: mediaUrl(recipe.cover_image),
     categories: [category],
     benefits: [],
     videoUrl: recipe.video_url ?? null,
   };
 }
 
-export default function RecipeList({ recipes: initialRecipes = [] }: { recipes?: Recipe[] }) {
+export default function RecipeList({ recipes: initialRecipes }: { recipes: Recipe[] }) {
   const [recipes, setRecipes] = useState(initialRecipes);
   const [isLoading, setIsLoading] = useState(initialRecipes.length === 0);
   const [activeCategory, setActiveCategory] = useState(DEFAULT_CATEGORY);
@@ -104,6 +79,8 @@ export default function RecipeList({ recipes: initialRecipes = [] }: { recipes?:
     .get<BackendRecipesResponse>("/recipes/published/")
     .then(({ data }) => {
 
+      console.log("RECIPES API DATA:", data);
+
       const raw = Array.isArray(data)
         ? data
         : Array.isArray(data?.data)
@@ -112,13 +89,17 @@ export default function RecipeList({ recipes: initialRecipes = [] }: { recipes?:
             ? data.results
             : [];
 
+      console.log("RAW RECIPES:", raw);
+
       if (mounted) {
         setRecipes(raw.map(mapBackendRecipe));
       }
     })
     .catch((error) => {
-      console.error("Failed to load published recipes:", error);
-      if (mounted && initialRecipes.length === 0) setRecipes([]);
+
+      console.log("API ERROR:", error);
+
+      if (mounted) setRecipes([]);
     })
     .finally(() => {
       if (mounted) setIsLoading(false);
@@ -130,7 +111,7 @@ export default function RecipeList({ recipes: initialRecipes = [] }: { recipes?:
 }, []);
 
   return (
-    <section className="bg-[#FFFEF5] px- pb-24 pt-16 sm:px-6 md:pb-32 md:pt-20 lg:px-23">
+    <section className="bg-[#fffef5] px- pb-24 pt-16 sm:px-6 md:pb-32 md:pt-20 lg:px-23">
       <div className="mx-auto max-w-[1920px]">
         <RecipeFilter
           categories={categories}
