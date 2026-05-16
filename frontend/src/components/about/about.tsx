@@ -71,6 +71,7 @@ const desktopStoryPositions = [
 export default function About() {
     const containerRef = useRef<HTMLDivElement>(null);
     const storyItemsRef = useRef<(HTMLDivElement | null)[]>([]);
+    const storyTextRef = useRef<HTMLParagraphElement>(null);
     const [rotation, setRotation] = useState(0);
     const [isMobileStoryLayout, setIsMobileStoryLayout] = useState(false);
     const touchStartX = useRef(0);
@@ -220,6 +221,16 @@ export default function About() {
         });
     }, [isMobileStoryLayout, rotation]);
 
+    useLayoutEffect(() => {
+        if (!storyTextRef.current) return;
+
+        gsap.fromTo(
+            storyTextRef.current,
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 1.30, ease: "power2.out", overwrite: "auto" }
+        );
+    }, [activeStoryIndex]);
+
     useEffect(() => {
         const ctx = gsap.context(() => {
             const tl = gsap.timeline({
@@ -327,7 +338,7 @@ export default function About() {
                                         className="h-full w-full object-cover -scale-x-100"
                                     />
                                 </div>
-                                <div className="intro-health-card shrink-0 rounded-[20px] border border-[#83cd20] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
+                                <div className="intro-health-card shrink-0 rounded-[20px] border border-[#1A4331] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1A4331] text-white sm:h-12 sm:w-12">
                                             <Leaf size={18} className="sm:w-5 sm:h-5" />
@@ -476,7 +487,10 @@ export default function About() {
                         </button>
                     </div>
 
-                    <p className="mx-auto mt-8 max-w-[840px] text-sm font-semibold leading-6 text-[#cecece] sm:text-[1.15rem] sm:leading-8">
+                    <p
+                        ref={storyTextRef}
+                        className="mx-auto mt-8 max-w-[840px] text-sm font-semibold leading-6 text-[#cecece] sm:text-[1.15rem] sm:leading-8"
+                    >
                         {storySlides[activeStoryIndex].body}
                     </p>
                 </div>

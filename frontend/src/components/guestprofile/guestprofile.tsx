@@ -7,14 +7,13 @@ import {
   Camera,
   Clock3,
   Heart,
-  Leaf,
   UserRound,
   ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/services/api";
+import api, { getAccessToken } from "@/services/api";
 import { toast } from "sonner";
 
 type UserProfile = {
@@ -43,9 +42,9 @@ type SavedAddress = {
 };
 
 const menuItems = [
-  { label: "My Profile", Icon: UserRound, active: true },
-  { label: "Orders", Icon: ReceiptText },
-  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png" },
+  { label: "My Profile", Icon: UserRound, href: "#personal-info", active: true },
+  { label: "Orders", Icon: ReceiptText, href: "/guestprofile/history" },
+  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png", href: "#my-recipes" },
 ];
 
 const recipes = [
@@ -72,6 +71,8 @@ const recipes = [
   },
 ];
 
+let guestProfileRedirectInFlight = false;
+
 export default function GuestProfile() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -85,13 +86,29 @@ export default function GuestProfile() {
   const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const redirectToLogin = useCallback(() => {
+    if (guestProfileRedirectInFlight) return;
+    guestProfileRedirectInFlight = true;
+    router.replace(`/login?next=${encodeURIComponent("/guestprofile")}`);
+    window.setTimeout(() => {
+      guestProfileRedirectInFlight = false;
+    }, 1000);
+  }, [router]);
+
   useEffect(() => {
-    Promise.all([
-      api.get("/account/me/"),
-      api.get("/orders/"),
-      api.get("/community/addresses/"),
-    ])
-      .then(([meRes, ordersRes, addrRes]) => {
+    if (!getAccessToken()) {
+      redirectToLogin();
+      return;
+    }
+
+    async function loadProfile() {
+      try {
+        const meRes = await api.get("/account/me/");
+        const [ordersRes, addrRes] = await Promise.all([
+          api.get("/orders/"),
+          api.get("/community/addresses/"),
+        ]);
+
         setProfile(meRes.data);
         setEditName(meRes.data.full_name ?? "");
         setEditPhone(meRes.data.phone ?? "");
@@ -100,10 +117,16 @@ export default function GuestProfile() {
           : (ordersRes.data.results ?? []);
         setOrders(list.slice(0, 3));
         setAddresses(addrRes.data ?? []);
-      })
-      .catch(() => toast.error("Could not load profile."))
-      .finally(() => setLoading(false));
-  }, []);
+      } catch {
+        toast.error("Please login to view your profile.");
+        redirectToLogin();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadProfile();
+  }, [redirectToLogin]);
 
   async function handleUpgrade() {
     setUpgrading(true);
@@ -184,10 +207,10 @@ export default function GuestProfile() {
             </div>
 
             <nav className="mt-10 space-y-2">
-              {menuItems.map(({ label, Icon, iconSrc, active }) => (
-                <button
+              {menuItems.map(({ label, Icon, iconSrc, href, active }) => (
+                <Link
                   key={label}
-                  type="button"
+                  href={href}
                   className={cn(
                     "flex w-full items-center gap-4 rounded-[15px] p-4 text-left text-base font-semibold transition",
                     active ? "bg-[#1f4d3a] text-white" : "text-[#1f4d3a] hover:bg-[#f6f5f0]"
@@ -199,21 +222,9 @@ export default function GuestProfile() {
                     <Icon size={16} />
                   ) : null}
                   {label}
-                </button>
+                </Link>
               ))}
             </nav>
-          </section>
-
-          <section className="relative overflow-hidden rounded-[20px] bg-[#1f4d3a] p-8 text-white">
-            <div className="absolute -bottom-8 -right-8 size-24 rounded-full bg-white/10" />
-            <p className="text-lg font-bold leading-7">Guest Account</p>
-            <p className="mt-5 text-[32px] font-bold leading-10">
-              {profile?.user_type || "guest"}
-            </p>
-            <div className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-[#d8c29a]">
-              <Leaf size={14} />
-              Free Tier
-            </div>
           </section>
         </aside>
 
@@ -293,7 +304,7 @@ export default function GuestProfile() {
           )}
 
           {/* Recipes Panel */}
-          <section className="overflow-hidden rounded-[25px] border border-[#e3dbd8] bg-white shadow-sm">
+          <section id="my-recipes" className="scroll-mt-28 overflow-hidden rounded-[25px] border border-[#e3dbd8] bg-white shadow-sm">
             <div className="flex border-b border-[#e3dbd8]">
               <button
                 type="button"
@@ -344,7 +355,7 @@ export default function GuestProfile() {
           </section>
 
           {/* Personal Information */}
-          <section id="personal-info" className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+          <section id="personal-info" className="scroll-mt-28 rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[28px] font-bold leading-[42px] text-[#121414]">
                 Personal Information

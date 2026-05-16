@@ -160,6 +160,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     let isMounted = true;
 
     async function loadProfile() {
+      if (!getAccessToken()) return;
+
       try {
         const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {

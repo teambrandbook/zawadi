@@ -83,11 +83,11 @@ function FaqCard({
     <button
       type="button"
       onClick={onClick}
-      className={`h-full w-full rounded-[18px] border text-left shadow-[0_0_45px_rgba(0,0,0,0.04)] transition-colors ${
+      className={`w-full rounded-[18px] border text-left shadow-[0_0_45px_rgba(0,0,0,0.04)] transition-colors ${
         isOpen ? "border-[#1f4d3a] bg-[#f1f5eb]" : "border-[#e3dbd8] bg-white"
       }`}
     >
-      <div className="flex h-full items-start justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
+      <div className="flex items-start justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5">
         <div className="min-w-0">
           <h3 className="text-[15px] font-semibold leading-relaxed text-[#1f4d3a] sm:text-[16px]">
             {item.question}
@@ -116,6 +116,19 @@ function FaqCard({
 
 export default function Faq() {
   const [openQuestion, setOpenQuestion] = useState(leftFaqs[0].question);
+  const allFaqs = faqRows.flatMap((row) => [row.left, row.right].filter(Boolean));
+  const renderFaqCard = (item: FaqItem) => (
+    <FaqCard
+      key={item.question}
+      item={item}
+      isOpen={openQuestion === item.question}
+      onClick={() =>
+        setOpenQuestion((current) =>
+          current === item.question ? "" : item.question
+        )
+      }
+    />
+  );
 
   return (
     <div className="bg-[#fffef5]">
@@ -123,26 +136,15 @@ export default function Faq() {
 
       <section className="mt-14 pb-12 pt-14 sm:mt-16 sm:pb-16 sm:pt-16">
         <div className="container mx-auto px-4 sm:px-6">
-          <div className="mx-auto grid max-w-[1040px] gap-4">
-            {faqRows.map((row) => (
-              <div
-                key={row.left.question}
-                className="grid gap-4 lg:grid-cols-2 lg:items-stretch"
-              >
-                {[row.left, row.right].filter(Boolean).map((item) => (
-                  <FaqCard
-                    key={item.question}
-                    item={item}
-                    isOpen={openQuestion === item.question}
-                    onClick={() =>
-                      setOpenQuestion((current) =>
-                        current === item.question ? "" : item.question
-                      )
-                    }
-                  />
-                ))}
-              </div>
-            ))}
+          <div className="mx-auto max-w-[1040px]">
+            <div className="grid gap-4 lg:hidden">
+              {allFaqs.map(renderFaqCard)}
+            </div>
+
+            <div className="hidden gap-4 lg:grid lg:grid-cols-2 lg:items-start">
+              <div className="grid gap-4">{leftFaqs.map(renderFaqCard)}</div>
+              <div className="grid gap-4">{rightFaqs.map(renderFaqCard)}</div>
+            </div>
           </div>
         </div>
       </section>
