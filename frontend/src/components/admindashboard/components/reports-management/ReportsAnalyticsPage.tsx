@@ -109,8 +109,8 @@ export default function ReportsAnalyticsPage() {
     const fetchAll = async () => {
       try {
         const [statsRes, reportsRes] = await Promise.all([
-          api.get("/supperadmin/stats/"),
-          api.get("/supperadmin/reports/"),
+          api.get("/superadmin/stats/"),
+          api.get("/superadmin/reports/"),
         ]);
         setStats(statsRes.data ?? {});
         setReports(reportsRes.data ?? null);

@@ -26,7 +26,7 @@ export default function AdminOverviewDashboard() {
     const fetchStats = async () => {
       setIsLoading(true);
       try {
-        const res = await api.get("/supperadmin/stats/");
+        const res = await api.get("/superadmin/stats/");
         setStats(res.data);
       } catch {
         setFetchError("Failed to load dashboard stats");

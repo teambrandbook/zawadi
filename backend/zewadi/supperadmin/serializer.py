@@ -36,14 +36,28 @@ def normalize_permission_data(permission):
 class CommunityUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityUser
-        fields = "__all__"
+        fields = [
+            "id", "user_type", "wellness_interests", "diet_preference",
+            "preferred_communication", "notification_preferences",
+        ]
+
 
 class UserSerializer(serializers.ModelSerializer):
     communityuser = CommunityUserSerializer(read_only=True)
+    user_type = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = "__all__"
+        fields = [
+            "id", "user_id", "email", "full_name", "user_name", "phone",
+            "role", "role_obj", "is_active", "date_of_birth", "gender",
+            "location", "photo", "date_joined", "last_login",
+            "user_type", "communityuser",
+        ]
+
+    def get_user_type(self, obj):
+        cu = getattr(obj, "communityuser", None)
+        return cu.user_type if cu is not None else None
 
 class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for admin partial user updates — only safe editable fields."""
