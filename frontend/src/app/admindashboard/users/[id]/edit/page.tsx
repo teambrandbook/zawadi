@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, Loader2 } from "lucide-react";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 
 type UserForm = {
   full_name: string;
@@ -65,10 +65,7 @@ export default function UserEditPage() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const token = getAccessToken();
-        const res = await api.get(`/supperadmin/users/${userId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await api.get(`/supperadmin/users/${userId}/`);
         const data = res.data;
         setForm({
           full_name: String(data.full_name ?? data.name ?? ""),
@@ -97,11 +94,9 @@ export default function UserEditPage() {
 
     setIsSaving(true);
     try {
-      const token = getAccessToken();
       await api.patch(
         `/supperadmin/users/${userId}/`,
-        form,
-        { headers: { Authorization: `Bearer ${token}` } }
+        form
       );
       toast.success("User updated successfully! ✅");
       router.push("/admindashboard/users");

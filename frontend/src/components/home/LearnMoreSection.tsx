@@ -56,6 +56,7 @@ const LearnMoreSection = () => {
                   loop
                   muted
                   playsInline
+                  preload="none"
                   className="w-full h-full object-cover"
                 >
                   <source src="/home/learnMoreBg.webm" type="video/webm" />

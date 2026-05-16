@@ -6,7 +6,7 @@ import BasicRoleInformationCard from "./components/BasicRoleInformationCard";
 import CreateRoleHeader from "./components/CreateRoleHeader";
 import PermissionsMatrixCard from "./components/PermissionsMatrixCard";
 import { toast } from "sonner";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 
 type ApiError = {
   response?: {
@@ -151,12 +151,7 @@ export default function CreateRolePage() {
       setError("");
 
       try {
-        const token = getAccessToken();
-        const res = await api.get<ApiRole>(`/supperadmin/roles/${roleId}/`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await api.get<ApiRole>(`/supperadmin/roles/${roleId}/`);
 
         const data = res.data;
         setRoleName(String(data.role_name ?? ""));
@@ -228,20 +223,10 @@ export default function CreateRolePage() {
     };
 
     try {
-      const token = getAccessToken(); // ✅ get token
-
       if (isEditMode) {
-        await api.patch(`/supperadmin/roles/${roleId}/`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.patch(`/supperadmin/roles/${roleId}/`, payload);
       } else {
-        await api.post("/supperadmin/roles/", payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        await api.post("/supperadmin/roles/", payload);
       }
 
       toast.success(isEditMode ? "Role updated successfully." : "Role created successfully.");
