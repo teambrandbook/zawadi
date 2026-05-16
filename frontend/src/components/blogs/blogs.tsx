@@ -199,7 +199,7 @@ export default function Blogs() {
   }, []);
 
   return (
-    <div ref={containerRef} className="bg-white">
+    <div ref={containerRef} className="bg-[#fffef5]">
       <ContentSection title="Blogs" subtitle="Zewadi Blogs" />
 
       <section className="pb-20 pt-10 sm:pb-24 sm:pt-20">
