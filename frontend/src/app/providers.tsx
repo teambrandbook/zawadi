@@ -15,9 +15,7 @@ function AuthRehydrator() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    const authRoutes = ["/login", "/signup", "/register", "/otp", "/forgot-password"];
-    const isAuthRoute = authRoutes.some((route) => window.location.pathname.startsWith(route));
-    if (isAuthRoute && !getAccessToken()) return;
+    if (!getAccessToken()) return;
 
     api
       .get<{
