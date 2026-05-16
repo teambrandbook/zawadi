@@ -1,9 +1,12 @@
 import Home from "@/components/communityUsers/home/Home";
+import GuestGate from "@/components/shared/GuestGate";
 
 export default function HomePage() {
   return (
-    <div>
-      <Home/>
-    </div>
+    <GuestGate>
+      <div>
+        <Home/>
+      </div>
+    </GuestGate>
   );
 }

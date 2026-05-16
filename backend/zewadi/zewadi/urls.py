@@ -30,7 +30,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/health/", health_check, name="health_check"),
     path("api/account/", include("accounts.urls")),
-    path("api/supperadmin/", include("supperadmin.urls")),
+    path("api/superadmin/", include("supperadmin.urls")),
     path("api/products/", include("product.urls")),
     path("api/orders/", include("orders.urls")),
     path("api/recipes/", include("recipes.urls")),

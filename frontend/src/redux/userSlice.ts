@@ -69,6 +69,18 @@ export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () =
   }
 });
 
+export const upgradeToMember = createAsyncThunk(
+  "user/upgradeToMember",
+  async (_, { rejectWithValue }) => {
+    try {
+      await api.patch("/account/upgrade/");
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: unknown } };
+      return rejectWithValue(error.response?.data ?? "Upgrade failed");
+    }
+  }
+);
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const userSlice = createSlice({
@@ -148,6 +160,11 @@ const userSlice = createSlice({
       .addCase(fetchCartCount.rejected, (state) => {
         state.cartCount = 0;
       });
+
+    // upgradeToMember
+    builder.addCase(upgradeToMember.fulfilled, (state) => {
+      state.userType = "member";
+    });
 
     // register (just tracks loading/error; does not auto-login)
     builder
