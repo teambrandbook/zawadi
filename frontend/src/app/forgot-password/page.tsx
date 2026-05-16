@@ -192,24 +192,33 @@ export default function ForgotPasswordPage() {
                 </div>
 
                 {/* Step progress */}
-                <div className="flex flex-col gap-2.5 pt-1">
+                <div className="flex flex-col pt-1">
                   {STEPS.map((s, i) => (
-                    <div key={s} className="flex items-center gap-3">
-                      <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${
-                        i < currentIndex
-                          ? "bg-[#9f8151] text-white"
-                          : i === currentIndex
-                          ? "bg-white text-[#0a4833] shadow-lg"
-                          : "border border-white/20 text-white/30"
-                      }`}>
-                        {i < currentIndex ? (
-                          <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                        ) : i + 1}
+                    <div key={s} className="flex items-start gap-3">
+                      {/* Circle + connector column */}
+                      <div className="flex flex-col items-center">
+                        <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold transition-all duration-300 ${
+                          i < currentIndex
+                            ? "bg-[#9f8151] text-white"
+                            : i === currentIndex
+                            ? "bg-white text-[#0a4833] shadow-lg"
+                            : "border border-white/20 text-white/30"
+                        }`}>
+                          {i < currentIndex ? (
+                            <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                            </svg>
+                          ) : i + 1}
+                        </div>
+                        {i < STEPS.length - 1 && (
+                          <div className={`my-1 h-6 w-px transition-all duration-300 ${
+                            i < currentIndex ? "bg-[#9f8151]/50" : "bg-white/10"
+                          }`} />
+                        )}
                       </div>
 
-                      <div className="flex-1">
+                      {/* Label */}
+                      <div className={`pb-1 ${i < STEPS.length - 1 ? "pb-3" : ""}`}>
                         <p className={`text-[11px] font-semibold transition-colors ${
                           i === currentIndex ? "text-white" : i < currentIndex ? "text-[#9f8151]" : "text-white/25"
                         }`}>
@@ -221,12 +230,6 @@ export default function ForgotPasswordPage() {
                           {i === 0 ? "Enter your email" : i === 1 ? "Enter 6-digit code" : "Choose new password"}
                         </p>
                       </div>
-
-                      {i < STEPS.length - 1 && (
-                        <div className={`absolute ml-3.5 mt-7 h-5 w-px translate-x-[-50%] transition-all duration-300 ${
-                          i < currentIndex ? "bg-[#9f8151]/60" : "bg-white/10"
-                        }`} style={{ marginLeft: "13px", marginTop: "28px", position: "relative", left: "-100%" }} />
-                      )}
                     </div>
                   ))}
                 </div>
@@ -263,7 +266,7 @@ export default function ForgotPasswordPage() {
                 {step === "request" && (
                   <form onSubmit={handleRequest} className="space-y-4">
                     <div className="mb-1">
-                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#0a4833]/8">
+                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8f0ec]">
                         <Mail className="h-5 w-5 text-[#0a4833]" strokeWidth={1.8} />
                       </div>
                       <h1 className="text-[22px] font-bold tracking-tight text-[#0a4833]">
@@ -317,7 +320,7 @@ export default function ForgotPasswordPage() {
                 {step === "otp" && (
                   <form onSubmit={handleVerifyOtp} className="space-y-5">
                     <div className="mb-1">
-                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#0a4833]/8">
+                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8f0ec]">
                         <ShieldCheck className="h-5 w-5 text-[#0a4833]" strokeWidth={1.8} />
                       </div>
                       <h1 className="text-[22px] font-bold tracking-tight text-[#0a4833]">
@@ -382,7 +385,7 @@ export default function ForgotPasswordPage() {
                 {step === "confirm" && (
                   <form onSubmit={handleConfirm} className="space-y-4">
                     <div className="mb-1">
-                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#0a4833]/8">
+                      <div className="mb-3 hidden lg:flex h-10 w-10 items-center justify-center rounded-xl bg-[#e8f0ec]">
                         <ShieldCheck className="h-5 w-5 text-[#0a4833]" strokeWidth={1.8} />
                       </div>
                       <h1 className="text-[22px] font-bold tracking-tight text-[#0a4833]">
