@@ -4,6 +4,13 @@ const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 const ACCESS_TOKEN_KEY = "zawadi_access_token";
 const AUTH_ROUTES = ["/login", "/signup", "/register", "/otp", "/forgot-password"];
+const PROTECTED_ROUTES = [
+  "/admindashboard",
+  "/communityDashBoard",
+  "/consultant",
+  "/guestprofile",
+  "/checkout",
+];
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -78,6 +85,11 @@ const isAuthRoute = () => {
   return AUTH_ROUTES.some((route) => window.location.pathname.startsWith(route));
 };
 
+const isProtectedRoute = () => {
+  if (typeof window === "undefined") return false;
+  return PROTECTED_ROUTES.some((route) => window.location.pathname.startsWith(route));
+};
+
 api.interceptors.response.use(
   (response) => {
     const token = response.data?.access;
@@ -128,7 +140,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError);
         clearAccessToken();
-        if (typeof window !== "undefined" && !isAuthRoute()) {
+        if (isProtectedRoute() && !isAuthRoute()) {
           window.location.replace("/login");
         }
         return Promise.reject(refreshError);
