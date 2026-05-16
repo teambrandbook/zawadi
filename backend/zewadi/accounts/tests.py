@@ -1,8 +1,9 @@
 from django.test import TestCase
 from django.utils import timezone
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User, OTP
@@ -358,3 +359,68 @@ class OTPModelTest(TestCase):
         otp = OTP.generate(self.user, OTP.PURPOSE_PASSWORD_RESET)
         result = OTP.verify(self.user, otp.code, OTP.PURPOSE_PASSWORD_RESET)
         self.assertIsNotNone(result.reset_token)
+
+
+class GoogleCallbackRedirectTest(TestCase):
+    def _make_user(self, role, user_type=None):
+        email = f"test_{role.lower()}@test.com"
+        user = User.objects.create_user(
+            email=email, password="pw", role=role, is_active=True
+        )
+        if role.upper() == "COMMUNITY_USER":
+            from communityuser.models import CommunityUser, UserType
+            CommunityUser.objects.create(
+                user=user,
+                user_type=user_type or UserType.GUEST,
+            )
+        return user
+
+    def _mock_google_exchange(self, mock_post, mock_get, email, name="Test User"):
+        mock_token_resp = MagicMock()
+        mock_token_resp.json.return_value = {"access_token": "fake-token"}
+        mock_post.return_value = mock_token_resp
+
+        mock_user_resp = MagicMock()
+        mock_user_resp.json.return_value = {"email": email, "name": name}
+        mock_get.return_value = mock_user_resp
+
+    @patch("accounts.views.google_credentials_configured", return_value=True)
+    @patch("accounts.views.requests.get")
+    @patch("accounts.views.requests.post")
+    def test_admin_redirects_to_admindashboard(self, mock_post, mock_get, mock_creds):
+        self._make_user("ADMIN")
+        self._mock_google_exchange(mock_post, mock_get, "test_admin@test.com")
+        res = self.client.get(
+            reverse("google-callback"),
+            {"code": "fake-code"},
+            HTTP_HOST="localhost",
+        )
+        self.assertIn("/admindashboard", res["Location"])
+
+    @patch("accounts.views.google_credentials_configured", return_value=True)
+    @patch("accounts.views.requests.get")
+    @patch("accounts.views.requests.post")
+    def test_guest_redirects_to_products(self, mock_post, mock_get, mock_creds):
+        from communityuser.models import UserType
+        self._make_user("COMMUNITY_USER", UserType.GUEST)
+        self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        res = self.client.get(
+            reverse("google-callback"),
+            {"code": "fake-code"},
+            HTTP_HOST="localhost",
+        )
+        self.assertIn("/products", res["Location"])
+
+    @patch("accounts.views.google_credentials_configured", return_value=True)
+    @patch("accounts.views.requests.get")
+    @patch("accounts.views.requests.post")
+    def test_member_redirects_to_communityDashBoard(self, mock_post, mock_get, mock_creds):
+        from communityuser.models import UserType
+        self._make_user("COMMUNITY_USER", UserType.MEMBER)
+        self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        res = self.client.get(
+            reverse("google-callback"),
+            {"code": "fake-code"},
+            HTTP_HOST="localhost",
+        )
+        self.assertIn("/communityDashBoard", res["Location"])

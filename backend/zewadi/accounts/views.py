@@ -74,9 +74,14 @@ def get_or_create_google_user(email, name):
         user_name=email.split("@")[0][:20],
         phone="",
         role="COMMUNITY_USER",
+        is_active=True,
     )
     user.set_unusable_password()
     user.save()
+    CommunityUser.objects.get_or_create(
+        user=user,
+        defaults={"user_type": UserType.GUEST},
+    )
     return user
 
 
@@ -528,7 +533,19 @@ class GoogleCallbackAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
-        response = redirect(f"{get_frontend_url()}/communityDashBoard")
+        role = user.role.lower() if hasattr(user.role, 'lower') else str(user.role).lower()
+        user_type = getattr(getattr(user, "communityuser", None), "user_type", None)
+
+        if role in ("admin", "internal_staff"):
+            redirect_path = "/admindashboard"
+        elif role == "consultant":
+            redirect_path = "/consultant"
+        elif role == "community_user" and str(user_type).lower() == "guest":
+            redirect_path = "/products"
+        else:
+            redirect_path = "/communityDashBoard"
+
+        response = redirect(f"{get_frontend_url()}{redirect_path}")
         set_auth_cookies(response, refresh, access)
         return response
 
