@@ -3,6 +3,7 @@ from decimal import Decimal
 from rest_framework.test import APITestCase
 
 from accounts.models import User
+from notifications.models import Notification, UserNotificationReceipt
 from orders.models import Order
 from product.models import Product, ProductStatus, ProductVariant
 
@@ -106,3 +107,52 @@ class ProductLevelPricingAndStockTests(APITestCase):
         order.refresh_from_db()
         self.assertEqual(order.selling_price, Decimal("120.00"))
         self.assertEqual(order.mrp_price, Decimal("150.00"))
+
+    def test_checkout_creates_low_stock_notification_for_admin_and_internal_staff(self):
+        admin = User.objects.create_user(
+            email="admin@example.com",
+            password="Pass@1234",
+            user_name="admin",
+            full_name="Admin",
+            phone="1234567891",
+            role="ADMIN",
+        )
+        internal_staff = User.objects.create_user(
+            email="staff@example.com",
+            password="Pass@1234",
+            user_name="staff",
+            full_name="Staff",
+            phone="1234567892",
+            role="INTERNAL_STAFF",
+        )
+        product = make_product(
+            product_code="BWH-CHECKOUT-LOW",
+            stock_quantity=6,
+            low_stock_alert=4,
+        )
+        self.client.post(
+            "/api/orders/cart/items/",
+            {"product_id": product.id, "quantity": 2},
+            format="json",
+        )
+
+        response = self.client.post(
+            "/api/orders/cart/checkout/",
+            {
+                "full_name": "Buyer",
+                "phone": "1234567890",
+                "email": "buyer@example.com",
+                "city": "Mumbai",
+                "postal_code": "400001",
+                "address": "Test address",
+                "payment_method": "cod",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        notification = Notification.objects.get(title="Low Stock Alert - Buckwheat 500g")
+        self.assertEqual(notification.body, "Product 'Buckwheat 500g' (BWH-CHECKOUT-LOW) stock is low. Current stock is 4.")
+        self.assertTrue(UserNotificationReceipt.objects.filter(user=admin, notification=notification).exists())
+        self.assertTrue(UserNotificationReceipt.objects.filter(user=internal_staff, notification=notification).exists())
+        self.assertFalse(UserNotificationReceipt.objects.filter(user=self.user, notification=notification).exists())

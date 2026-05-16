@@ -3,6 +3,10 @@ export type FilterOption = {
   label: string;
 };
 
+export type ReportPeriod = "today" | "week" | "month" | "last_3_months" | "custom";
+
+export type ReportModule = "all" | "orders" | "users" | "consultations" | "events" | "content";
+
 export type KpiCard = {
   id: string;
   label: string;
@@ -28,6 +32,7 @@ export type ReportRow = {
   reportType: string;
   dateRange: string;
   records: string;
+  total?: number;
   status: "Ready" | "Processing";
   updatedAt: string;
 };

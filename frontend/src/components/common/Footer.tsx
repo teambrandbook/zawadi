@@ -6,12 +6,12 @@ import Image from "next/image";
 import * as Brands from "./BrandIcons";
 import navData from "@/data/navigation.json";
 
-type SocialPlatform = "Facebook" | "Instagram" | "TikTok" | "Linkedin";
+type SocialPlatform = "Facebook" | "Instagram" | "X" | "Linkedin";
 
 const iconMap: Record<SocialPlatform, React.ComponentType<{ size?: number; className?: string }>> = {
   Facebook: Brands.Facebook,
   Instagram: Brands.Instagram,
-  TikTok: Brands.TikTok,
+  X: Brands.X,
   Linkedin: Brands.Linkedin,
 };
 

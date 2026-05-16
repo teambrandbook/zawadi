@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { productCarouselAnimation } from "@/utils/animations";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import gsap from "gsap";
 
 const products = [
   { image: "/home/productImg1.webp", text: "Bridging the gap between technology and agriculture to redefine your food experience." },
@@ -13,6 +14,7 @@ const products = [
 
 const ProductSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const productTextRef = useRef<HTMLParagraphElement>(null);
   const wheelLockRef = useRef(false);
   const wheelDeltaRef = useRef(0);
   const wheelResetTimeoutRef = useRef<number | null>(null);
@@ -77,6 +79,14 @@ const ProductSection = () => {
       activeIndex,
       setIsAnimating
     );
+
+    if (productTextRef.current) {
+      gsap.fromTo(
+        productTextRef.current,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }
+      );
+    }
   }, [activeIndex]);
 
   useEffect(() => {
@@ -158,7 +168,10 @@ const ProductSection = () => {
           </button>
         </div>
 
-        <p className="mx-auto mt-6 max-w-[600px] text-center text-sm text-[#fdf6ee]/80">
+        <p
+          ref={productTextRef}
+          className="mx-auto mt-6 max-w-[600px] text-center text-sm text-[#fdf6ee]/80"
+        >
           {products[activeIndex].text}
         </p>
       </div>
