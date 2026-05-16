@@ -4,7 +4,7 @@ import Image from 'next/image';
 const NewsletterSection = () => {
   return (
     // White background + spacing
-    <section className="w-full bg-white ">
+    <section className="w-full bg-[#fffef5] ">
 
       {/* Inner Green Box */}
       <div className=" rounded-md overflow-hidden">

@@ -65,7 +65,7 @@ export default function UserEditPage() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const res = await api.get(`/supperadmin/users/${userId}/`);
+        const res = await api.get(`/superadmin/users/${userId}/`);
         const data = res.data;
         setForm({
           full_name: String(data.full_name ?? data.name ?? ""),
@@ -95,7 +95,7 @@ export default function UserEditPage() {
     setIsSaving(true);
     try {
       await api.patch(
-        `/supperadmin/users/${userId}/`,
+        `/superadmin/users/${userId}/`,
         form
       );
       toast.success("User updated successfully! ✅");

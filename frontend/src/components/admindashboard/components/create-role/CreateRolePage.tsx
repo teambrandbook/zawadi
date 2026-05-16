@@ -151,7 +151,7 @@ export default function CreateRolePage() {
       setError("");
 
       try {
-        const res = await api.get<ApiRole>(`/supperadmin/roles/${roleId}/`);
+        const res = await api.get<ApiRole>(`/superadmin/roles/${roleId}/`);
 
         const data = res.data;
         setRoleName(String(data.role_name ?? ""));
@@ -224,9 +224,9 @@ export default function CreateRolePage() {
 
     try {
       if (isEditMode) {
-        await api.patch(`/supperadmin/roles/${roleId}/`, payload);
+        await api.patch(`/superadmin/roles/${roleId}/`, payload);
       } else {
-        await api.post("/supperadmin/roles/", payload);
+        await api.post("/superadmin/roles/", payload);
       }
 
       toast.success(isEditMode ? "Role updated successfully." : "Role created successfully.");

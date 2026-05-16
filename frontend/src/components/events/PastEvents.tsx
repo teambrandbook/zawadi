@@ -7,7 +7,7 @@ import { pastEvents } from './eventsData';
 export default function PastEventsSection() {
 
   return (
-    <section className="w-full px-4 py-16 sm:px-6 lg:px-10 bg-white">
+    <section className="w-full px-4 py-16 sm:px-6 lg:px-10 bg-[#fffef5]">
       {/* Main Rounded Container */}
       <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#f1f5eb] px-6 py-12 md:px-60 md:py-20">
 

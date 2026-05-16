@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const CommunitySection = () => {
   return (
-    <section className="relative w-full py-20 lg:py-32 bg-[#FFFEF5] overflow-hidden">
+    <section className="relative w-full py-20 lg:py-32 bg-[#fffef5] overflow-hidden">
       <div className="container mx-auto px-6 lg:px-50 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
         {/* Left Content */}

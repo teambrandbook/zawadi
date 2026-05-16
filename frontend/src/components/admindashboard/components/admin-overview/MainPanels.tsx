@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Briefcase, CalendarPlus2, CirclePlus, ClipboardCheck, Megaphone, Stethoscope } from "lucide-react";
 import api from "@/services/api";
 
 const quickActions = [
-  { label: "Add Product", Icon: CirclePlus },
-  { label: "Create Event", Icon: CalendarPlus2 },
-  { label: "Add Nutritionist", Icon: Stethoscope },
-  { label: "Review Content", Icon: ClipboardCheck },
-  { label: "Manage Orders", Icon: Briefcase },
-  { label: "Send Alert", Icon: Megaphone },
+  { label: "Add Product", Icon: CirclePlus, href: "/admindashboard/products/add" },
+  { label: "Create Event", Icon: CalendarPlus2, href: "/admindashboard/events/create" },
+  { label: "Add Nutritionist", Icon: Stethoscope, href: "/admindashboard/nutritionist/addnutritonist" },
+  { label: "Review Content", Icon: ClipboardCheck, href: "/admindashboard/blog" },
+  { label: "Manage Orders", Icon: Briefcase, href: "/admindashboard/orders" },
+  { label: "Send Alert", Icon: Megaphone, href: "/admindashboard/notifications/create" },
 ];
 
 type RecentOrder = {
@@ -42,6 +43,15 @@ function statusColor(status: string) {
   return "text-[#2563EB]";
 }
 
+function statusLabel(status: string) {
+  return status
+    .replace(/_/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1).toLowerCase()}`)
+    .join(" ");
+}
+
 export default function MainPanels() {
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,14 +81,15 @@ export default function MainPanels() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Quick Actions</h3>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          {quickActions.map(({ label, Icon }) => (
-            <button
+          {quickActions.map(({ label, Icon, href }) => (
+            <Link
               key={label}
+              href={href}
               className="flex h-[74px] flex-col items-center justify-center rounded-md bg-[#EDE4D3] text-xs text-[#4B5563] hover:bg-[#E6DABF]"
             >
               <Icon className="mb-1 h-4 w-4 text-[#A88751]" />
               {label}
-            </button>
+            </Link>
           ))}
         </div>
       </article>
@@ -86,7 +97,9 @@ export default function MainPanels() {
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-semibold text-[#0A4833]">Recent Orders</h3>
-          <button className="text-xs text-[#A88751] hover:underline">View All</button>
+          <Link href="/admindashboard/orders" className="text-xs text-[#A88751] hover:underline">
+            View All
+          </Link>
         </div>
 
         {isLoading && (
@@ -116,9 +129,16 @@ export default function MainPanels() {
                     <td className="px-2 py-2">{order.id}</td>
                     <td className="px-2 py-2">{order.customer}</td>
                     <td className="px-2 py-2">{order.product}</td>
-                    <td className={`px-2 py-2 ${statusColor(order.status)}`}>{order.status}</td>
+                    <td className={`px-2 py-2 ${statusColor(order.status)}`}>{statusLabel(order.status)}</td>
                     <td className="px-2 py-2 font-medium text-[#111827]">{order.amount}</td>
-                    <td className="px-2 py-2 text-[#A88751]">View</td>
+                    <td className="px-2 py-2">
+                      <Link
+                        href={`/admindashboard/orders?order=${encodeURIComponent(order.id)}`}
+                        className="text-[#A88751] hover:underline"
+                      >
+                        View
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -1,9 +1,12 @@
 import MyRecipy from "@/components/communityUsers/myrecipy/MyRecipy";
+import GuestGate from "@/components/shared/GuestGate";
 
 export default function Recipy() {
   return (
-    <div>
+    <GuestGate>
+      <div>
         <MyRecipy/>
-    </div>
+      </div>
+    </GuestGate>
   );
 }

@@ -37,12 +37,25 @@ export const summaryCards = [
 
 export const PER_PAGE = 10;
 export const STATUS_OPTIONS: Array<"All Status" | UserStatus> = ["All Status", "Active", "Inactive"];
-export const ROLE_OPTIONS = ["All Role", "admin", "user"] as const;
+export const ROLE_OPTIONS = ["All Role", "admin", "internal_staff", "community_user", "guest", "member"] as const;
 export const PERIOD_OPTIONS = ["Last 30 days", "Last 7 days", "Last 90 days"] as const;
+
+export function displayRole(user: Pick<UserRecord, "role" | "communityuser">): string {
+  const r = user.role.toLowerCase();
+  if (r === "community_user") {
+    const ut = user.communityuser?.user_type?.toLowerCase();
+    if (ut === "member") return "Member";
+    if (ut === "guest") return "Guest";
+    return "Community User";
+  }
+  if (r === "admin") return "Admin";
+  if (r === "internal_staff") return "Internal Staff";
+  return user.role;
+}
 
 export function toCsv(rows: UserRecord[]) {
   const header = ["Full Name", "User ID", "Email", "Phone", "Role", "Status", "Activity", "Last Login"];
-  const values = rows.map((row) => [row.fullName, row.userId, row.email, row.phone, row.role, row.status, row.activity, row.lastLogin]);
+  const values = rows.map((row) => [row.fullName, row.userId, row.email, row.phone, displayRole(row), row.status, row.activity, row.lastLogin]);
   return [header, ...values]
     .map((line) => line.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
     .join("\n");

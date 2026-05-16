@@ -89,7 +89,7 @@ export default function RecentOrdersTable({
 
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
-      <div className="flex items-center justify-between border-b border-[#DFDFDF] px-4 py-3">
+      <div className="flex items-center justify-between gap-3 border-b border-[#DFDFDF] px-4 py-3">
         <h3 className="text-[28px] font-semibold text-[#0A4833]">
           Recent Orders
         </h3>
@@ -102,39 +102,50 @@ export default function RecentOrdersTable({
         </label>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
+      <div className="w-full overflow-hidden">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
+          <colgroup>
+            <col className="w-[4%]" />
+            <col className="w-[14%]" />
+            <col className="w-[25%]" />
+            <col className="w-[20%]" />
+            <col className="w-[13%]" />
+            <col className="w-[9%]" />
+            <col className="w-[8%]" />
+            <col className="w-[7%]" />
+          </colgroup>
+
           <thead className="bg-[#E9E0D0] text-[#6B7280]">
             <tr>
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 <input type="checkbox" />
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Order ID
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Customer
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Product
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Date
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Amount
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Status
               </th>
 
-              <th className="px-4 py-3">
+              <th className="px-2 py-3 align-middle">
                 Actions
               </th>
             </tr>
@@ -144,56 +155,59 @@ export default function RecentOrdersTable({
             {rows.map((row) => (
               <tr
                 key={row.id}
-                className="border-t border-[#DFDFDF]"
+                className="border-t border-[#DFDFDF] align-middle"
               >
-                <td className="px-4 py-4">
+                <td className="px-2 py-4 align-middle">
                   <input type="checkbox" />
                 </td>
 
-                <td className="px-4 py-4 font-medium text-[#0A4833]">
+                <td className="truncate px-2 py-4 align-middle font-medium text-[#0A4833]">
                   {row.id}
                 </td>
 
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-2">
+                <td className="px-2 py-4 align-middle">
+                  <div className="flex min-w-0 items-center gap-2">
                     <img
                       src={row.avatar}
-                      alt={row.customer}
-                      className="h-8 w-8 rounded-full object-cover"
+                      alt=""
+                      onError={(event) => {
+                        event.currentTarget.src = "/userdash/myrecipy/my-recipes-icon.png";
+                      }}
+                      className="h-8 w-8 shrink-0 rounded-full bg-[#EFE7D6] object-cover"
                     />
 
-                    <div>
-                      <p className="text-[#111827]">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-[#111827]">
                         {row.customer}
                       </p>
 
-                      <p className="text-xs text-[#6B7280]">
+                      <p className="truncate text-xs text-[#6B7280]">
                         {row.email}
                       </p>
                     </div>
                   </div>
                 </td>
 
-                <td className="px-4 py-4">
-                  <p className="text-[#111827]">
+                <td className="px-2 py-4 align-middle">
+                  <p className="truncate font-medium text-[#111827]">
                     {row.product}
                   </p>
 
-                  <p className="text-xs text-[#374151]">
+                  <p className="truncate text-xs text-[#374151]">
                     {row.pack}
                   </p>
                 </td>
 
-                <td className="px-4 py-4 text-[#6B7280]">
+                <td className="truncate px-2 py-4 align-middle text-[#6B7280]">
                   {row.date}
                 </td>
 
-                <td className="px-4 py-4 font-semibold text-[#9F8151]">
+                <td className="truncate px-2 py-4 align-middle font-semibold text-[#9F8151]">
                   {row.amount}
                 </td>
 
                 <td
-                  className={`px-4 py-4 text-xs font-semibold ${statusColor(
+                  className={`truncate px-2 py-4 align-middle text-xs font-semibold ${statusColor(
                     row.status
                   )}`}
                 >
@@ -208,14 +222,14 @@ export default function RecentOrdersTable({
                   </button>
                 </td>
 
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-2">
+                <td className="px-2 py-4 align-middle">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       onClick={() =>
                         onViewDetails(row.id)
                       }
-                      className="text-[#0A4833] hover:text-[#083927]"
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-[#0A4833] hover:bg-[#E8F2EE] hover:text-[#083927]"
                       aria-label="View order details"
                     >
                       <Eye className="h-4 w-4" />
@@ -226,7 +240,7 @@ export default function RecentOrdersTable({
                       onClick={() =>
                         onOpenStatus(row.id)
                       }
-                      className="text-[#A88751] hover:text-[#8F7348]"
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-[#A88751] hover:bg-[#F3EBDC] hover:text-[#8F7348]"
                       aria-label="Edit status"
                     >
                       <Pencil className="h-4 w-4" />
@@ -237,7 +251,7 @@ export default function RecentOrdersTable({
                       onClick={() =>
                         onDelete(row.id)
                       }
-                      className="text-[#DC2626] hover:text-[#B91C1C]"
+                      className="flex h-7 w-7 items-center justify-center rounded-md text-[#DC2626] hover:bg-[#FEE2E2] hover:text-[#B91C1C]"
                       aria-label="Delete order"
                     >
                       <Trash2 className="h-4 w-4" />

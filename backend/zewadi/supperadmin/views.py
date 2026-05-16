@@ -733,8 +733,8 @@ class UserListAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # ✅ exclude consultants
-        users = User.objects.exclude(role="CONSULTANT")
+        # exclude consultants; select_related to avoid N+1 on communityuser
+        users = User.objects.exclude(role="CONSULTANT").select_related("communityuser")
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(users, request)
@@ -758,7 +758,7 @@ class UserDetailAPIView(APIView):
 
     def get_object(self, user_id):
         try:
-            return User.objects.get(pk=user_id)
+            return User.objects.select_related("communityuser").get(pk=user_id)
         except User.DoesNotExist:
             return None
 

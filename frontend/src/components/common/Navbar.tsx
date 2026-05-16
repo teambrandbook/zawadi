@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import navData from "@/data/navigation.json";
 import gsap from "@/lib/gsap";
@@ -258,6 +258,29 @@ const Navbar = () => {
                         >
                           My Orders
                         </Link>
+
+                        {role === "community_user" && (
+                          <Link
+                            href="/communityDashBoard"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                          >
+                            {userType === "member" ? (
+                              <>
+                                <LayoutDashboard size={14} className="shrink-0 text-[#0a4833]" />
+                                Community Dashboard
+                              </>
+                            ) : (
+                              <>
+                                <Lock size={14} className="shrink-0 text-gray-400" />
+                                <span>Community Dashboard</span>
+                                <span className="ml-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                                  Members only
+                                </span>
+                              </>
+                            )}
+                          </Link>
+                        )}
                       </div>
 
                       <div className="border-t border-gray-100 mx-1" />

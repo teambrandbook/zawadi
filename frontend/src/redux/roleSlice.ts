@@ -2,7 +2,7 @@ import api from "@/services/api";
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 export const fetchRoles = createAsyncThunk("roles/fetch", async () => {
-  const res = await api.get("/supperadmin/roles/");
+  const res = await api.get("/superadmin/roles/");
   return res.data;
 });
 

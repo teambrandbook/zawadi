@@ -8,7 +8,7 @@ import ProductCards from "@/components/productcards/productcards";
 
 export default function ProductsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#fffef5]">
       <Navbar/>
       <ProductHero />
       <ProductCards />
