@@ -37,6 +37,10 @@ type Product = {
   short_description: string;
   base_price: string | number;
   sale_price?: string | number | null;
+  cost_price?: string | number;
+  mrp_price?: string | number;
+  selling_price?: string | number;
+  discount_percent?: string | number;
   currency: string;
   stock_quantity: number;
   stock_status: string;
@@ -65,6 +69,8 @@ const categoryLabels: Record<string, string> = {
   supplement: "Wellness Essentials",
   other: "Buckwheat Collection",
 };
+
+const LOW_STOCK_THRESHOLD = 5;
 
 function toList<T>(data: T[] | PaginatedResponse<T>): T[] {
   return Array.isArray(data) ? data : data.results ?? [];
@@ -107,22 +113,38 @@ function isNewProduct(createdAt?: string): boolean {
 }
 
 function getPackLabel(product: Product): string {
-  const variant = getCartVariant(product);
-  if (variant?.variant_name) return variant.variant_name;
   if (product.stock_status === "out_of_stock") return "Out of stock";
   if (product.stock_quantity <= 0) return "Stock pending";
   return `${product.stock_quantity} in stock`;
 }
 
-function getCartVariant(product: Product): ProductVariant | undefined {
-  return product.variants?.find((variant) => variant.stock > 0) ?? product.variants?.[0];
+function getSellingPrice(product: Product): string | number | null | undefined {
+  return product.selling_price ?? product.sale_price ?? product.base_price;
 }
 
 function isProductOutOfStock(product: Product): boolean {
-  if (product.variants?.length) {
-    return product.variants.every((variant) => variant.stock <= 0);
+  return product.stock_status === "out_of_stock" || toNumber(product.stock_quantity) <= 0;
+}
+
+function hasDiscount(product: Product): boolean {
+  return toNumber(product.mrp_price) > toNumber(getSellingPrice(product));
+}
+
+function stockMessage(product: Product): { text: string; className: string } | null {
+  const stockQuantity = toNumber(product.stock_quantity);
+  if (isProductOutOfStock(product)) {
+    return {
+      text: "Out of stock",
+      className: "border-[#FECACA] bg-[#FEF2F2] text-[#B91C1C]",
+    };
   }
-  return product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
+  if (stockQuantity <= LOW_STOCK_THRESHOLD) {
+    return {
+      text: `Only ${stockQuantity} left`,
+      className: "border-[#FED7AA] bg-[#FFF7ED] text-[#C2410C]",
+    };
+  }
+  return null;
 }
 
 export default function CommunityProductsPage() {
@@ -181,8 +203,8 @@ export default function CommunityProductsPage() {
         return new Date(b.created_at ?? 0).getTime() - new Date(a.created_at ?? 0).getTime();
       }
 
-      const aPrice = toNumber(a.sale_price ?? a.base_price);
-      const bPrice = toNumber(b.sale_price ?? b.base_price);
+      const aPrice = toNumber(getSellingPrice(a));
+      const bPrice = toNumber(getSellingPrice(b));
       if (sortBy === "price-low") return aPrice - bPrice;
       if (sortBy === "price-high") return bPrice - aPrice;
       return a.id - b.id;
@@ -190,15 +212,15 @@ export default function CommunityProductsPage() {
   }, [activeFilter, products, sortBy]);
 
   async function addToCart(product: Product) {
+    if (isProductOutOfStock(product)) return;
+
     setBusyProductId(product.id);
     setStatusMessage("");
     try {
-      const variant = getCartVariant(product);
-      const payload: { product_id: number; quantity: number; variant_id?: number } = {
+      const payload: { product_id: number; quantity: number } = {
         product_id: product.id,
         quantity: 1,
       };
-      if (variant) payload.variant_id = variant.id;
 
       const response = await api.post("/orders/cart/items/", payload);
       const itemCount = response.data?.summary?.item_count;
@@ -332,9 +354,11 @@ export default function CommunityProductsPage() {
         ) : (
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {filteredProducts.map((product, index) => {
-              const price = product.sale_price ?? product.base_price;
+              const price = getSellingPrice(product);
               const outOfStock = isProductOutOfStock(product);
               const productIsNew = isNewProduct(product.created_at);
+              const discounted = hasDiscount(product);
+              const stock = stockMessage(product);
 
               return (
                 <article
@@ -371,11 +395,28 @@ export default function CommunityProductsPage() {
                     <p className="mt-1 line-clamp-3 min-h-[60px] text-sm leading-5 text-[#4B5563]">
                       {product.short_description}
                     </p>
+                    {stock && (
+                      <p className={`mt-2 inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${stock.className}`}>
+                        {stock.text}
+                      </p>
+                    )}
 
                     <div className="mt-auto flex items-center justify-between">
-                      <strong className="text-lg font-bold text-[#0A4833]">
-                        {toCurrency(price, product.currency)}
-                      </strong>
+                      <div>
+                        <strong className="text-lg font-bold text-[#0A4833]">
+                          {toCurrency(price, product.currency)}
+                        </strong>
+                        {discounted ? (
+                          <div className="mt-0.5 flex items-center gap-2">
+                            <span className="text-xs text-[#9CA3AF] line-through">
+                              {toCurrency(product.mrp_price, product.currency)}
+                            </span>
+                            <span className="text-xs font-medium text-[#16A34A]">
+                              {toNumber(product.discount_percent).toFixed(0)}% off
+                            </span>
+                          </div>
+                        ) : null}
+                      </div>
                       <span className="text-xs text-[#6B7280]">{product.unit_quantity} {product.product_unit}</span>
                     </div>
 

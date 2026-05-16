@@ -9,7 +9,6 @@ import DietPlanView, {
   type NutritionGuidance,
   type WeeklySummary,
 } from "./components/DietPlanView";
-import FullDietPlanDetails from "./components/FullDietPlanDetails";
 
 type MealItem = {
   food_name: string;
@@ -192,16 +191,6 @@ export default function DietPlanPageContent() {
         onMarkComplete={() => setMessage("Meal marked as complete.")}
         onTrackProgress={() => setMessage("Opening progress tracker.")}
       />
-
-      <section className="mx-auto mb-6 max-w-[1120px] px-4 lg:px-8">
-        <div className="mb-4">
-          <h2 className="text-2xl font-bold text-[#0A4833]">Full Plan Details</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">
-            Detailed plan information based on the diet plan creation fields.
-          </p>
-        </div>
-        <FullDietPlanDetails plan={plan} />
-      </section>
 
       {message && (
         <div className="mx-auto mb-6 max-w-[1120px] px-4 lg:px-8">

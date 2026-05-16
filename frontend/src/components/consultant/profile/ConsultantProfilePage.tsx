@@ -61,6 +61,23 @@ type ConsultantProfileUpdateResponse = {
   data: ConsultantProfileApiResponse;
 };
 
+type ConsultantProfileForm = {
+  full_name: string;
+  user_name: string;
+  email: string;
+  phone: string;
+  location: string;
+  qualification: string;
+  years_of_experience: string;
+  short_bio: string;
+  experience_areas: string;
+  languages_spoken: string;
+  session_type: string;
+  session_duration: string;
+  consultation_fee: string;
+  certifications: string;
+};
+
 const fallbackProfile: ConsultantProfileData = {
   name: "Consultant",
   imageSrc: "/about/about-1.1.webp",
@@ -117,6 +134,23 @@ const dayLabels: Record<string, string> = {
   friday: "Friday",
   saturday: "Saturday",
   sunday: "Sunday",
+};
+
+const emptyProfileForm: ConsultantProfileForm = {
+  full_name: "",
+  user_name: "",
+  email: "",
+  phone: "",
+  location: "",
+  qualification: "",
+  years_of_experience: "",
+  short_bio: "",
+  experience_areas: "",
+  languages_spoken: "",
+  session_type: "video",
+  session_duration: "",
+  consultation_fee: "",
+  certifications: "",
 };
 
 function displayValue(value: string | number | null | undefined) {
@@ -194,6 +228,25 @@ function mapProfile(profile: ConsultantProfileApiResponse): ConsultantProfileDat
   };
 }
 
+function mapProfileForm(profile: ConsultantProfileApiResponse): ConsultantProfileForm {
+  return {
+    full_name: profile.full_name || "",
+    user_name: profile.user_name || "",
+    email: profile.email || "",
+    phone: profile.phone || "",
+    location: profile.location || "",
+    qualification: profile.qualification || "",
+    years_of_experience: profile.years_of_experience ? String(profile.years_of_experience) : "",
+    short_bio: profile.short_bio || "",
+    experience_areas: profile.experience_areas || "",
+    languages_spoken: profile.languages_spoken || "",
+    session_type: profile.session_type || "video",
+    session_duration: profile.session_duration ? String(profile.session_duration) : "",
+    consultation_fee: profile.consultation_fee ? String(profile.consultation_fee) : "",
+    certifications: profile.certifications || "",
+  };
+}
+
 function mapSettings(settings: ConsultantSettingsApiResponse): VisibilityControl[] {
   return [
     {
@@ -242,7 +295,10 @@ export default function ConsultantProfilePage() {
   const [consultantSettings, setConsultantSettings] = useState<ConsultantSettingsApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState<ConsultantProfileForm>(emptyProfileForm);
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     async function loadConsultantProfile() {
@@ -259,6 +315,7 @@ export default function ConsultantProfilePage() {
         ]);
 
         const mappedProfile = mapProfile(profileResponse.data);
+        setProfileForm(mapProfileForm(profileResponse.data));
 
         if (settingsResponse.status === "fulfilled") {
           mappedProfile.visibilityControls = mapSettings(settingsResponse.value.data);
@@ -314,6 +371,52 @@ export default function ConsultantProfilePage() {
       setErrorMessage("Unable to update profile photo. Please try another image.");
     } finally {
       setIsUploadingPhoto(false);
+    }
+  }
+
+  function handleProfileFieldChange(field: string, value: string) {
+    setProfileForm((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  }
+
+  async function handleSaveProfile() {
+    setIsSavingProfile(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const payload = {
+        full_name: profileForm.full_name,
+        user_name: profileForm.user_name,
+        phone: profileForm.phone,
+        location: profileForm.location,
+        qualification: profileForm.qualification,
+        years_of_experience: Number(profileForm.years_of_experience) || 0,
+        short_bio: profileForm.short_bio,
+        experience_areas: profileForm.experience_areas,
+        languages_spoken: profileForm.languages_spoken,
+        session_type: profileForm.session_type,
+        session_duration: Number(profileForm.session_duration) || 0,
+        consultation_fee: Number(profileForm.consultation_fee) || 0,
+        certifications: profileForm.certifications,
+      };
+      const response = await api.patch<ConsultantProfileUpdateResponse>("/consultant/profile/", payload);
+      const updatedProfile = mapProfile(response.data.data);
+
+      setConsultantProfile((current) => ({
+        ...updatedProfile,
+        weeklyAvailability: current.weeklyAvailability,
+        visibilityControls: current.visibilityControls,
+        blockedDates: current.blockedDates,
+      }));
+      setProfileForm(mapProfileForm(response.data.data));
+      setSuccessMessage("Profile updated successfully.");
+    } catch {
+      setErrorMessage("Unable to save profile details right now.");
+    } finally {
+      setIsSavingProfile(false);
     }
   }
 
@@ -375,22 +478,39 @@ export default function ConsultantProfilePage() {
           </div>
         ) : null}
 
+        {successMessage ? (
+          <div className="rounded-[10px] border border-[#BBF7D0] bg-[#F0FDF4] px-4 py-3 text-sm font-medium text-[#15803D]">
+            {successMessage}
+          </div>
+        ) : null}
+
         <ProfilePhotoCard
           name={consultantProfile.name}
           imageSrc={consultantProfile.imageSrc}
           imageAlt={consultantProfile.imageAlt}
           hint={consultantProfile.photoHint}
           isUploading={isUploadingPhoto}
+          isSaving={isSavingProfile}
           onPhotoChange={handlePhotoChange}
+          onSave={handleSaveProfile}
         />
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <BasicDetailsCard details={consultantProfile.basicDetails} />
-          <ProfessionalDetailsCard details={consultantProfile.professionalProfile} />
+          <BasicDetailsCard details={consultantProfile.basicDetails} values={profileForm} onChange={handleProfileFieldChange} />
+          <ProfessionalDetailsCard
+            details={consultantProfile.professionalProfile}
+            values={profileForm}
+            onChange={handleProfileFieldChange}
+          />
         </div>
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.65fr)_minmax(300px,0.85fr)]">
-          <AvailabilityCard settings={consultantProfile.availability} slots={consultantProfile.weeklyAvailability} />
+          <AvailabilityCard
+            settings={consultantProfile.availability}
+            slots={consultantProfile.weeklyAvailability}
+            sessionDuration={profileForm.session_duration}
+            onSessionDurationChange={(value) => handleProfileFieldChange("session_duration", value)}
+          />
           <VisibilityControlsCard
             controls={visibilityControls}
             blockedDates={consultantProfile.blockedDates}

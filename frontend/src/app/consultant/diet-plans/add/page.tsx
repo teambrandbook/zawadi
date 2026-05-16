@@ -53,6 +53,38 @@ type ClientOption = {
   gender?: string | null;
 };
 
+type DietPlanApiItem = {
+  food_name: string;
+  quantity: string;
+  calories: number;
+};
+
+type DietPlanApiMeal = {
+  meal_type: string;
+  title?: string | null;
+  time?: string | null;
+  calories: number;
+  notes?: string | null;
+  sort_order: number;
+  items: DietPlanApiItem[];
+};
+
+type DietPlanApiResponse = {
+  id: number;
+  client: number;
+  title: string;
+  goal: string;
+  status: "draft" | "active";
+  description?: string | null;
+  instructions?: string | null;
+  foods_to_avoid?: string | null;
+  recommended_foods?: string | null;
+  daily_calories: number;
+  start_date: string;
+  duration_days: number;
+  meals: DietPlanApiMeal[];
+};
+
 const mealSections: MealConfig[] = [
   { key: "breakfast", label: "Breakfast", calorieTag: "350 cal", dotClassName: "bg-[#F97316]" },
   { key: "midMorningSnack", label: "Mid-Morning Snack", calorieTag: "150 cal", dotClassName: "bg-[#EAB308]" },
@@ -84,6 +116,64 @@ const initialState: FormState = {
     dinner: { item: "", quantity: "", calories: "" },
   },
 };
+
+const mealKeyByApiType: Record<string, MealKey> = {
+  breakfast: "breakfast",
+  mid_morning: "midMorningSnack",
+  lunch: "lunch",
+  evening_snack: "eveningSnack",
+  dinner: "dinner",
+};
+
+function goalLabel(value: string) {
+  const map: Record<string, string> = {
+    weight_loss: "Weight Loss",
+    muscle_gain: "Muscle Gain",
+    maintenance: "Maintenance",
+    general_wellness: "Detox",
+  };
+  return map[value] ?? "Weight Loss";
+}
+
+function durationLabel(days: number) {
+  const allowed = [7, 14, 30, 60];
+  const safeDays = allowed.includes(days) ? days : 7;
+  return `${safeDays} Days`;
+}
+
+function formFromPlan(plan: DietPlanApiResponse): FormState {
+  const [exerciseRecommendations = "", sleepHydration = "", personalizedAdvice = ""] = (plan.instructions || "").split(/\n\n+/);
+  const meals = { ...initialState.meals };
+
+  plan.meals.forEach((meal) => {
+    const key = mealKeyByApiType[meal.meal_type];
+    if (!key) return;
+    const firstItem = meal.items?.[0];
+    meals[key] = {
+      item: firstItem?.food_name || meal.notes || meal.title || "",
+      quantity: firstItem?.quantity || "",
+      calories: String(firstItem?.calories || meal.calories || ""),
+    };
+  });
+
+  return {
+    clientId: String(plan.client || ""),
+    planTitle: plan.title || "",
+    goal: goalLabel(plan.goal),
+    duration: durationLabel(plan.duration_days || 7),
+    startDate: plan.start_date || "",
+    dailyCalories: plan.daily_calories ? String(plan.daily_calories) : "",
+    difficulty: initialState.difficulty,
+    buckwheatProducts: plan.recommended_foods || "",
+    buckwheatServing: "",
+    benefitsNote: plan.description || "",
+    foodsToAvoid: plan.foods_to_avoid || "",
+    exerciseRecommendations,
+    sleepHydration,
+    personalizedAdvice,
+    meals,
+  };
+}
 
 function SectionCard({
   title,
@@ -258,6 +348,8 @@ export default function ConsultantDietAddPage() {
   const [form, setForm] = useState<FormState>(initialState);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState<"create" | "edit" | "assign">("create");
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
 
   const preview = useMemo(
     () => ({
@@ -290,16 +382,31 @@ export default function ConsultantDietAddPage() {
   }
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const nextMode = params.get("mode");
+    const planId = params.get("id");
+
+    if ((nextMode === "edit" || nextMode === "assign") && planId) {
+      setMode(nextMode);
+      setEditingPlanId(planId);
+      api
+        .get<DietPlanApiResponse>(`/consultant/diet-plans/${planId}/`)
+        .then(({ data }) => setForm(formFromPlan(data)))
+        .catch(() => toast.error("Could not load diet plan details."));
+    }
+  }, []);
+
+  useEffect(() => {
     api
       .get<ClientOption[]>("/consultant/clients/")
       .then(({ data }) => {
         setClients(data);
         if (data.length > 0) {
-          setForm((current) => current.clientId ? current : { ...current, clientId: String(data[0].id) });
+          setForm((current) => current.clientId || editingPlanId ? current : { ...current, clientId: String(data[0].id) });
         }
       })
       .catch(() => toast.error("Could not load clients."));
-  }, []);
+  }, [editingPlanId]);
 
   const selectedClient = clients.find((client) => String(client.id) === form.clientId);
 
@@ -352,7 +459,7 @@ export default function ConsultantDietAddPage() {
 
     setIsSubmitting(true);
     try {
-      await api.post("/consultant/diet-plans/create/", {
+      const payload = {
         client: Number(form.clientId),
         title: form.planTitle.trim(),
         goal: goalValue(form.goal),
@@ -366,8 +473,22 @@ export default function ConsultantDietAddPage() {
         end_date: endDateFrom(form.startDate, days),
         duration_days: days,
         meals,
-      });
-      toast.success(status === "active" ? "Diet plan created." : "Draft diet plan saved.");
+      };
+
+      if (editingPlanId) {
+        await api.patch(`/consultant/diet-plans/${editingPlanId}/`, payload);
+      } else {
+        await api.post("/consultant/diet-plans/create/", payload);
+      }
+
+      const successText = editingPlanId
+        ? mode === "assign"
+          ? "Diet plan assigned."
+          : "Diet plan updated."
+        : status === "active"
+          ? "Diet plan created."
+          : "Draft diet plan saved.";
+      toast.success(successText);
       router.push("/consultant/diet-plans");
     } catch (error: unknown) {
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
@@ -386,7 +507,9 @@ export default function ConsultantDietAddPage() {
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_272px]">
           <div className="space-y-5">
             <header className="space-y-2">
-              <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#0A4833]">Create Diet Plan</h1>
+              <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#0A4833]">
+                {mode === "assign" ? "Assign Diet Plan" : mode === "edit" ? "Edit Diet Plan" : "Create Diet Plan"}
+              </h1>
               <p className="text-sm text-[rgba(10,72,51,0.65)]">
                 Build a personalized wellness meal plan tailored to your client&apos;s goals and lifestyle.
               </p>
@@ -581,11 +704,19 @@ export default function ConsultantDietAddPage() {
 
             <div className="flex flex-wrap gap-3">
               <ActionButton variant="primary" icon={<Check className="h-4 w-4" />} onClick={() => submitDietPlan("active")} disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Diet Plan"}
+                {isSubmitting
+                  ? "Saving..."
+                  : mode === "assign"
+                    ? "Assign Plan"
+                    : mode === "edit"
+                      ? "Update Diet Plan"
+                      : "Create Diet Plan"}
               </ActionButton>
-              <ActionButton variant="secondary" icon={<Save className="h-4 w-4" />} onClick={() => submitDietPlan("draft")} disabled={isSubmitting}>
-                Save as Draft
-              </ActionButton>
+              {mode !== "assign" ? (
+                <ActionButton variant="secondary" icon={<Save className="h-4 w-4" />} onClick={() => submitDietPlan("draft")} disabled={isSubmitting}>
+                  Save as Draft
+                </ActionButton>
+              ) : null}
               <ActionButton variant="outline" icon={<Eye className="h-4 w-4" />}>
                 Preview Plan
               </ActionButton>

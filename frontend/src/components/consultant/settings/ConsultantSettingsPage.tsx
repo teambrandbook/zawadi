@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
 import SettingsContentSwitcher from "./SettingsContentSwitcher";
 import SettingsTabs from "./SettingsTabs";
 import type {
@@ -31,6 +32,23 @@ const accountInfoFromBackend: AccountInfoField[] = [
   { label: "Full Name", value: "Dr. Sarah Johnson" },
   { label: "Specialization", value: "Nutritional Therapy" },
 ];
+
+type ConsultantProfileApiResponse = {
+  full_name: string;
+  user_name: string;
+  email: string;
+  phone: string;
+  qualification: string;
+  experience_areas: string;
+};
+
+type ConsultantSettingsApiResponse = {
+  accept_new: boolean;
+  allow_same_day: boolean;
+  show_profile: boolean;
+  auto_close_full_day: boolean;
+  followup_priority: boolean;
+};
 
 const passwordFieldsFromBackend: PasswordField[] = [
   { id: "current-password", label: "Current Password", value: "", placeholder: "" },
@@ -341,9 +359,60 @@ const preferencesDataFromBackend: PreferencesSettingsData = {
   ],
 };
 
+function accountFieldsFromProfile(profile: ConsultantProfileApiResponse): AccountInfoField[] {
+  return [
+    { label: "Email Address", value: profile.email || "" },
+    { label: "Phone Number", value: profile.phone || "" },
+    { label: "Full Name", value: profile.full_name || profile.user_name || "" },
+    { label: "Specialization", value: profile.experience_areas || profile.qualification || "" },
+  ];
+}
+
+function applyBackendSettingsToNotifications(
+  sections: NotificationPreferenceSection[],
+  settings: ConsultantSettingsApiResponse,
+) {
+  const values: Record<string, boolean> = {
+    "new-consultation-assigned": settings.accept_new,
+    "consultation-reminder": settings.allow_same_day,
+    "follow-up-reminders": settings.followup_priority,
+  };
+
+  return sections.map((section) => ({
+    ...section,
+    items: section.items.map((item) => ({
+      ...item,
+      enabled: values[item.id] ?? item.enabled,
+    })),
+  }));
+}
+
+function applyBackendSettingsToPreferences(data: PreferencesSettingsData, settings: ConsultantSettingsApiResponse) {
+  const toggleValues: Record<string, boolean> = {
+    "auto-open-client-profile": settings.show_profile,
+    "priority-client-highlight": settings.followup_priority,
+    "auto-save-draft-plans": settings.auto_close_full_day,
+  };
+  const toggleList = (items: typeof data.dashboardToggles) =>
+    items.map((item) => ({
+      ...item,
+      enabled: toggleValues[item.id] ?? item.enabled,
+    }));
+
+  return {
+    ...data,
+    consultationToggles: toggleList(data.consultationToggles),
+    dietPlanToggles: toggleList(data.dietPlanToggles),
+  };
+}
+
 export default function ConsultantSettingsPage() {
   const [activeTab, setActiveTab] = useState<ConsultantSettingsTabId>("account");
   const [statusMessage, setStatusMessage] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [accountFields, setAccountFields] = useState(accountInfoFromBackend);
+  const [accountPasswordFields, setAccountPasswordFields] = useState(passwordFieldsFromBackend);
+  const [consultantSettings, setConsultantSettings] = useState<ConsultantSettingsApiResponse | null>(null);
   const [notificationPreferenceSections, setNotificationPreferenceSections] = useState(notificationPreferenceSectionsFromBackend);
   const [notificationChannels, setNotificationChannels] = useState(notificationChannelsFromBackend);
   const [notificationTiming, setNotificationTiming] = useState(notificationTimingFromBackend);
@@ -353,23 +422,148 @@ export default function ConsultantSettingsPage() {
   const [securityPreferences, setSecurityPreferences] = useState(securityPreferencesFromBackend);
   const [preferencesData, setPreferencesData] = useState(preferencesDataFromBackend);
 
-  function saveAccountSettings() {
-    setStatusMessage("Account settings are ready to connect to the backend save endpoint.");
+  useEffect(() => {
+    let isMounted = true;
+
+    Promise.allSettled([
+      api.get<ConsultantProfileApiResponse>("/consultant/profile/"),
+      api.get<ConsultantSettingsApiResponse>("/consultant/settings/"),
+    ]).then(([profileResult, settingsResult]) => {
+      if (!isMounted) return;
+
+      if (profileResult.status === "fulfilled") {
+        setAccountFields(accountFieldsFromProfile(profileResult.value.data));
+      }
+
+      if (settingsResult.status === "fulfilled") {
+        const settings = settingsResult.value.data;
+        setConsultantSettings(settings);
+        setNotificationPreferenceSections((current) => applyBackendSettingsToNotifications(current, settings));
+        setPreferencesData((current) => applyBackendSettingsToPreferences(current, settings));
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  function changeAccountField(label: string, value: string) {
+    setAccountFields((current) =>
+      current.map((field) =>
+        field.label === label
+          ? {
+              ...field,
+              value,
+            }
+          : field,
+      ),
+    );
+  }
+
+  function changeAccountPasswordField(fieldId: string, value: string) {
+    setAccountPasswordFields((current) =>
+      current.map((field) =>
+        field.id === fieldId
+          ? {
+              ...field,
+              value,
+            }
+          : field,
+      ),
+    );
+  }
+
+  function accountValue(label: string) {
+    return accountFields.find((field) => field.label === label)?.value || "";
+  }
+
+  async function saveAccountSettings() {
+    setIsSaving(true);
+    setStatusMessage("");
+
+    try {
+      await api.patch("/consultant/profile/", {
+        full_name: accountValue("Full Name"),
+        phone: accountValue("Phone Number"),
+        experience_areas: accountValue("Specialization"),
+      });
+      setAccountPasswordFields(passwordFieldsFromBackend);
+      setStatusMessage("Account settings saved.");
+    } catch {
+      setStatusMessage("Could not save account settings.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function resetAccountSettings() {
-    setStatusMessage("Account settings reset action is ready for backend defaults.");
+    api
+      .get<ConsultantProfileApiResponse>("/consultant/profile/")
+      .then(({ data }) => {
+        setAccountFields(accountFieldsFromProfile(data));
+        setAccountPasswordFields(passwordFieldsFromBackend);
+        setStatusMessage("Account settings reset.");
+      })
+      .catch(() => setStatusMessage("Could not reset account settings."));
+  }
+
+  function buildSettingsPayloadFromCurrent(): ConsultantSettingsApiResponse {
+    const notificationEnabled = (id: string) =>
+      notificationPreferenceSections
+        .flatMap((section) => section.items)
+        .find((item) => item.id === id)?.enabled ?? true;
+    const preferenceEnabled = (id: string) =>
+      [
+        ...preferencesData.dashboardToggles,
+        ...preferencesData.consultationToggles,
+        ...preferencesData.dietPlanToggles,
+        ...preferencesData.communicationToggles,
+      ].find((item) => item.id === id)?.enabled ?? false;
+
+    return {
+      accept_new: notificationEnabled("new-consultation-assigned"),
+      allow_same_day: notificationEnabled("consultation-reminder"),
+      show_profile: preferenceEnabled("auto-open-client-profile"),
+      auto_close_full_day: preferenceEnabled("auto-save-draft-plans"),
+      followup_priority:
+        notificationEnabled("follow-up-reminders") || preferenceEnabled("priority-client-highlight"),
+    };
+  }
+
+  async function saveConsultantSettings(successMessage: string) {
+    setIsSaving(true);
+    setStatusMessage("");
+
+    try {
+      const payload = buildSettingsPayloadFromCurrent();
+      const { data } = await api.put<{ data: ConsultantSettingsApiResponse }>("/consultant/settings/", payload);
+      setConsultantSettings(data.data);
+      setStatusMessage(successMessage);
+    } catch {
+      setStatusMessage("Could not save settings.");
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function saveNotificationSettings() {
-    setStatusMessage("Notification settings are ready to connect to the backend save endpoint.");
+    void saveConsultantSettings("Notification settings saved.");
   }
 
   function resetNotificationSettings() {
     setNotificationPreferenceSections(notificationPreferenceSectionsFromBackend);
     setNotificationChannels(notificationChannelsFromBackend);
     setNotificationTiming(notificationTimingFromBackend);
-    setStatusMessage("Notification settings reset to default values.");
+    const fallback = consultantSettings ?? {
+      accept_new: true,
+      allow_same_day: true,
+      show_profile: true,
+      auto_close_full_day: true,
+      followup_priority: false,
+    };
+    setNotificationPreferenceSections(applyBackendSettingsToNotifications(notificationPreferenceSectionsFromBackend, fallback));
+    setStatusMessage("Notification settings reset.");
   }
 
   function toggleNotificationPreference(preferenceId: string) {
@@ -472,8 +666,38 @@ export default function ConsultantSettingsPage() {
     );
   }
 
-  function saveSecuritySettings() {
-    setStatusMessage("Security settings are ready to connect to the backend save endpoint.");
+  async function saveSecuritySettings() {
+    const currentPassword = securityPasswordFields.find((field) => field.id === "current-password")?.value;
+    const newPassword = securityPasswordFields.find((field) => field.id === "new-password")?.value;
+    const confirmPassword = securityPasswordFields.find((field) => field.id === "confirm-new-password")?.value;
+
+    if (newPassword || confirmPassword || currentPassword) {
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        setStatusMessage("Fill all password fields to change password.");
+        return;
+      }
+      if (newPassword !== confirmPassword) {
+        setStatusMessage("New password and confirm password do not match.");
+        return;
+      }
+      setIsSaving(true);
+      setStatusMessage("");
+      try {
+        await api.post("/account/change-password/", {
+          current_password: currentPassword,
+          new_password: newPassword,
+        });
+        setSecurityPasswordFields(securityPasswordFieldsFromBackend);
+        setStatusMessage("Password changed successfully.");
+      } catch {
+        setStatusMessage("Could not change password. Check current password.");
+      } finally {
+        setIsSaving(false);
+      }
+      return;
+    }
+
+    setStatusMessage("Security preferences saved locally.");
   }
 
   function resetSecuritySettings() {
@@ -485,7 +709,10 @@ export default function ConsultantSettingsPage() {
   }
 
   function logoutOtherDevices() {
-    setStatusMessage("Other device logout is ready to connect to the backend security endpoint.");
+    api
+      .post("/account/logout-all/")
+      .then(() => setStatusMessage("Other devices logged out."))
+      .catch(() => setStatusMessage("Could not logout other devices."));
   }
 
   function changePreferenceSelect(fieldId: string, value: string) {
@@ -578,12 +805,19 @@ export default function ConsultantSettingsPage() {
   }
 
   function savePreferences() {
-    setStatusMessage("Preferences settings are ready to connect to the backend save endpoint.");
+    void saveConsultantSettings("Preferences saved.");
   }
 
   function resetPreferences() {
-    setPreferencesData(preferencesDataFromBackend);
-    setStatusMessage("Preferences settings reset to default values.");
+    const fallback = consultantSettings ?? {
+      accept_new: true,
+      allow_same_day: true,
+      show_profile: true,
+      auto_close_full_day: true,
+      followup_priority: false,
+    };
+    setPreferencesData(applyBackendSettingsToPreferences(preferencesDataFromBackend, fallback));
+    setStatusMessage("Preferences reset.");
   }
 
   return (
@@ -598,8 +832,8 @@ export default function ConsultantSettingsPage() {
 
           <SettingsContentSwitcher
             activeTab={activeTab}
-            accountFields={accountInfoFromBackend}
-            passwordFields={passwordFieldsFromBackend}
+            accountFields={accountFields}
+            passwordFields={accountPasswordFields}
             securityPasswordFields={securityPasswordFields}
             notificationPreferenceSections={notificationPreferenceSections}
             notificationChannels={notificationChannels}
@@ -610,6 +844,8 @@ export default function ConsultantSettingsPage() {
             securityPreferences={securityPreferences}
             recoveryFields={recoveryFieldsFromBackend}
             preferencesData={preferencesData}
+            onAccountFieldChange={changeAccountField}
+            onAccountPasswordChange={changeAccountPasswordField}
             onSecurityPasswordChange={changeSecurityPassword}
             onToggleNotificationPreference={toggleNotificationPreference}
             onToggleNotificationChannel={toggleNotificationChannel}
@@ -636,7 +872,7 @@ export default function ConsultantSettingsPage() {
 
           {statusMessage ? (
             <div className="rounded-[10px] border border-[#D8C9AE] bg-[#F8F3E9] px-4 py-3 text-sm font-medium text-[#0A4833]">
-              {statusMessage}
+              {isSaving ? "Saving..." : statusMessage}
             </div>
           ) : null}
         </div>

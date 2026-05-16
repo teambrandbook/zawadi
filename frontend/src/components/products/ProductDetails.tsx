@@ -36,12 +36,17 @@ type Product = {
   health_benefits: string;
   base_price: string;
   sale_price: string | null;
+  cost_price?: string | number;
+  mrp_price?: string | number;
+  selling_price?: string | number;
+  discount_percent?: string | number;
   currency: string;
   image: string | null;
   product_unit?: string;
   unit_quantity?: string;
+  stock_quantity: number;
   stock_status: string;
-  variants: ProductVariant[];
+  variants?: ProductVariant[];
 };
 
 function productImageUrl(path: string | null): string {
@@ -71,27 +76,25 @@ function toPacks(product: Product | null): PackOption[] {
     {
       id: `product-${product.id}-default`,
       name: productUnit || "Standard Pack",
-      price: toNumber(product.sale_price ?? product.base_price),
-      unitNote: `Cost ${toCurrency(product.base_price, product.currency || "INR")}`,
-      badge: "Default",
+      price: toNumber(product.selling_price ?? product.sale_price ?? product.base_price),
+      unitNote:
+        product.mrp_price && toNumber(product.mrp_price) > toNumber(product.selling_price ?? product.sale_price ?? product.base_price)
+          ? `MRP ${toCurrency(product.mrp_price, product.currency || "INR")}`
+          : "Single SKU",
     },
   ];
 
-  if (product.variants?.length) {
-    packs.push(
-      ...product.variants.map((variant) => ({
-        id: String(variant.id),
-        name:
-          [variant.variant_value ?? variant.variant_name, variant.variant_unit]
-            .filter(Boolean)
-            .join(" ") || "Variant Pack",
-        price: toNumber(variant.price),
-        unitNote: `Cost ${toCurrency(variant.cost ?? 0, product.currency || "INR")}`,
-      }))
-    );
-  }
-
   return packs;
+}
+
+function stockMessage(product: Product): { text: string; className: string } {
+  if (product.stock_status === "out_of_stock" || product.stock_quantity <= 0) {
+    return { text: "Out of stock", className: "text-red-600" };
+  }
+  if (product.stock_quantity <= 5) {
+    return { text: `Only ${product.stock_quantity} left`, className: "text-[#EA580C]" };
+  }
+  return { text: "In stock", className: "text-[#16A34A]" };
 }
 
 const ProductDetails = () => {
@@ -165,12 +168,8 @@ const ProductDetails = () => {
       return;
     }
     try {
-      const selectedVariant = product.variants?.find(
-        (variant) => String(variant.id) === selectedPackId
-      );
       const res = await api.post("/orders/cart/items/", {
         product_id: product.id,
-        ...(selectedVariant ? { variant_id: selectedVariant.id } : {}),
         quantity,
       });
       toast.success("Added to cart!");
@@ -199,11 +198,10 @@ const ProductDetails = () => {
     );
   }
 
-  const displayPrice = product.sale_price || product.base_price;
+  const displayPrice = product.selling_price ?? product.sale_price ?? product.base_price;
+  const isDiscounted = toNumber(product.mrp_price) > toNumber(displayPrice);
   const packs = toPacks(product);
-  const selectedVariant = product.variants?.find(
-    (variant) => String(variant.id) === selectedPackId
-  );
+  const stock = stockMessage(product);
   const benefits = product.health_benefits
     ? product.health_benefits.split("\n").filter(Boolean)
     : [];
@@ -237,7 +235,24 @@ const ProductDetails = () => {
               {product.product_subtitle && (
                 <p className="text-base text-[#6b7280]">{product.product_subtitle}</p>
               )}
-              <p className="mt-2 text-xl font-bold text-gray-900">₹{displayPrice}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-3">
+                <p className="text-xl font-bold text-gray-900">
+                  {toCurrency(displayPrice, product.currency || "INR")}
+                </p>
+                {isDiscounted ? (
+                  <>
+                    <span className="text-sm text-gray-400 line-through">
+                      {toCurrency(product.mrp_price, product.currency || "INR")}
+                    </span>
+                    <span className="rounded-full bg-[#EAFBF0] px-2 py-1 text-xs font-semibold text-[#15803D]">
+                      {toNumber(product.discount_percent).toFixed(0)}% off
+                    </span>
+                  </>
+                ) : null}
+              </div>
+              <p className={`mt-3 text-sm font-semibold ${stock.className}`}>
+                {stock.text}
+              </p>
             </div>
 
             {product.short_description && (
@@ -297,9 +312,10 @@ const ProductDetails = () => {
               <button
                 type="button"
                 onClick={handleAddToCart}
+                disabled={product.stock_quantity <= 0 || product.stock_status === "out_of_stock"}
                 className="flex flex-1 items-center justify-center rounded-lg bg-[#1A4331] px-10 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
               >
-                Add To Cart
+                {product.stock_quantity <= 0 || product.stock_status === "out_of_stock" ? "Out of Stock" : "Add To Cart"}
               </button>
 
               <button
@@ -339,7 +355,6 @@ const ProductDetails = () => {
           <AddToCartModal
             isOpen={modalOpen}
             productId={product.id}
-            variantId={selectedVariant?.id}
             quantity={quantity}
             onClose={() => setModalOpen(false)}
             onSuccess={() => setModalOpen(false)}

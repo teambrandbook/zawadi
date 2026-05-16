@@ -36,7 +36,7 @@ export default function OrderStats() {
           return s === "delivered" || s === "shipped";
         }).length;
         const revenue = raw.reduce((sum, o) => {
-          const amt = parseFloat(o.total_amount ?? o.amount ?? 0);
+          const amt = parseFloat(o.subtotal ?? o.total_amount ?? o.amount ?? 0);
           return sum + (Number.isNaN(amt) ? 0 : amt);
         }, 0);
 
