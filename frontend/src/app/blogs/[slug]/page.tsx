@@ -86,7 +86,7 @@ export default async function BlogDetailPage({
   const paragraphs = contentParagraphs(blog.content);
 
   return (
-    <div className="bg-white">
+    <div className="bg-[#fffef5]">
       <Navbar />
       <ContentSection title="Blogs" subtitle="Zewadi Blogs" />
 

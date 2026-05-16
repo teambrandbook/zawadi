@@ -6,18 +6,15 @@ import {
   ArrowRight,
   Camera,
   ChevronRight,
-  Medal,
-  Settings,
   UserRound,
   ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { label: "My Profile", Icon: UserRound, href: "/guestprofile", active: true },
-  { label: "Orders", Icon: ReceiptText, href: "/guestprofile/history" },
-  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png", href: "/guestprofile" },
-  { label: "Settings", Icon: Settings, href: "#" },
+  { label: "My Profile", Icon: UserRound, href: "/guestprofile#personal-info" },
+  { label: "Orders", Icon: ReceiptText, href: "/guestprofile/history", active: true },
+  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png", href: "/guestprofile#my-recipes" },
 ];
 
 const orders = [
@@ -113,16 +110,6 @@ function ProfileSidebar() {
             </Link>
           ))}
         </nav>
-      </section>
-
-      <section className="relative overflow-hidden rounded-[20px] bg-[#1f4d3a] p-6 text-white sm:p-8">
-        <div className="absolute -bottom-10 -right-10 size-[120px] rounded-full bg-white/10" />
-        <p className="text-xl font-bold leading-8">Member Since</p>
-        <p className="mt-4 text-[32px] font-extrabold leading-[48px]">2022</p>
-        <div className="mt-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.05em] text-[#d8c29a]">
-          <Medal size={14} />
-          Gold Tier Member
-        </div>
       </section>
     </aside>
   );

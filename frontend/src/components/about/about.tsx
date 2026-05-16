@@ -71,6 +71,7 @@ const desktopStoryPositions = [
 export default function About() {
     const containerRef = useRef<HTMLDivElement>(null);
     const storyItemsRef = useRef<(HTMLDivElement | null)[]>([]);
+    const storyTextRef = useRef<HTMLParagraphElement>(null);
     const [rotation, setRotation] = useState(0);
     const [isMobileStoryLayout, setIsMobileStoryLayout] = useState(false);
     const touchStartX = useRef(0);
@@ -220,6 +221,16 @@ export default function About() {
         });
     }, [isMobileStoryLayout, rotation]);
 
+    useLayoutEffect(() => {
+        if (!storyTextRef.current) return;
+
+        gsap.fromTo(
+            storyTextRef.current,
+            { opacity: 0, y: 12 },
+            { opacity: 1, y: 0, duration: 1.30, ease: "power2.out", overwrite: "auto" }
+        );
+    }, [activeStoryIndex]);
+
     useEffect(() => {
         const ctx = gsap.context(() => {
             const tl = gsap.timeline({
@@ -310,7 +321,7 @@ export default function About() {
 
 
     return (
-        <div className="bg-white text-[#121414]" ref={containerRef}>
+        <div className="bg-[#fffef5] text-[#121414]" ref={containerRef}>
             <ContentSection title="About Zewadi" subtitle="What is Zewadi" />
 
             <section className="pt-20 pb-32 sm:pt-28 sm:pb-40 lg:pt-40 lg:pb-56">
@@ -327,7 +338,7 @@ export default function About() {
                                         className="h-full w-full object-cover -scale-x-100"
                                     />
                                 </div>
-                                <div className="intro-health-card shrink-0 rounded-[20px] border border-[#83cd20] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
+                                <div className="intro-health-card shrink-0 rounded-[20px] border border-[#1A4331] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
                                     <div className="flex items-center gap-2 sm:gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1A4331] text-white sm:h-12 sm:w-12">
                                             <Leaf size={18} className="sm:w-5 sm:h-5" />
@@ -415,7 +426,7 @@ export default function About() {
                             type="button"
                             onClick={handlePrev}
                             aria-label="Previous slide"
-                            className="hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
+                            className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
                         >
                             <ArrowRight size={20} className="rotate-180" />
                         </button>
@@ -451,13 +462,35 @@ export default function About() {
                             type="button"
                             onClick={handleNext}
                             aria-label="Next slide"
-                            className="hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
+                            className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
                         >
                             <ArrowRight size={20} />
                         </button>
                     </div>
 
-                    <p className="mx-auto mt-8 max-w-[840px] text-sm font-semibold leading-6 text-[#cecece] sm:text-[1.15rem] sm:leading-8">
+                    <div className="mt-5 flex items-center justify-center gap-4 md:hidden">
+                        <button
+                            type="button"
+                            onClick={handlePrev}
+                            aria-label="Previous slide"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
+                        >
+                            <ArrowRight size={20} className="rotate-180" />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleNext}
+                            aria-label="Next slide"
+                            className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
+                        >
+                            <ArrowRight size={20} />
+                        </button>
+                    </div>
+
+                    <p
+                        ref={storyTextRef}
+                        className="mx-auto mt-8 max-w-[840px] text-sm font-semibold leading-6 text-[#cecece] sm:text-[1.15rem] sm:leading-8"
+                    >
                         {storySlides[activeStoryIndex].body}
                     </p>
                 </div>

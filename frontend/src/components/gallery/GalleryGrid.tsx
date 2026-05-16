@@ -39,7 +39,7 @@ const GalleryGrid = () => {
   if (!mounted) return null;
 
   return (
-    <section className="pt-40 pb-20 md:pt-48 bg-white min-h-screen">
+    <section className="pt-40 pb-20 md:pt-48 bg-[#fffef5] min-h-screen">
       <div className="container mx-auto px-6">
         
         {/* Category Filters */}

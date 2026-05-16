@@ -57,7 +57,7 @@ const CommunityStats = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} className="py-24 bg-white overflow-hidden">
+    <section ref={sectionRef} className="py-24 bg-[#fffef5] overflow-hidden">
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
 

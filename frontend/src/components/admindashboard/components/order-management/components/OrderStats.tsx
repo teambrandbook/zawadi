@@ -1,14 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Clock3, DollarSign, ShoppingCart, Truck } from "lucide-react";
+import { Clock3, ShoppingCart, Truck } from "lucide-react";
 import api from "@/services/api";
 
 type OrderStatsData = {
   total: number;
   pending: number;
   delivered: number;
-  revenue: number;
 };
 
 export default function OrderStats() {
@@ -35,18 +34,15 @@ export default function OrderStats() {
           const s = String(o.status ?? "").toLowerCase();
           return s === "delivered" || s === "shipped";
         }).length;
-        const revenue = raw.reduce((sum, o) => {
-          const amt = parseFloat(o.subtotal ?? o.total_amount ?? o.amount ?? 0);
-          return sum + (Number.isNaN(amt) ? 0 : amt);
-        }, 0);
 
-        setStats({ total, pending, delivered, revenue });
+        setStats({ total, pending, delivered });
       } catch {
-        // Silent fail — keep null stats
+        // Silent fail - keep null stats
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchStats();
   }, []);
 
@@ -55,36 +51,29 @@ export default function OrderStats() {
   const cards = [
     {
       label: "Total Orders",
-      value: stats != null ? fmt(stats.total) : isLoading ? "…" : "—",
+      value: stats != null ? fmt(stats.total) : isLoading ? "..." : "-",
       Icon: ShoppingCart,
       iconBg: "bg-[#F4ECE0]",
       iconColor: "text-[#A88751]",
     },
     {
       label: "Pending Orders",
-      value: stats != null ? fmt(stats.pending) : isLoading ? "…" : "—",
+      value: stats != null ? fmt(stats.pending) : isLoading ? "..." : "-",
       Icon: Clock3,
       iconBg: "bg-[#FFF4CC]",
       iconColor: "text-[#E4B300]",
     },
     {
       label: "Delivered Today",
-      value: stats != null ? fmt(stats.delivered) : isLoading ? "…" : "—",
+      value: stats != null ? fmt(stats.delivered) : isLoading ? "..." : "-",
       Icon: Truck,
       iconBg: "bg-[#EAFBEF]",
       iconColor: "text-[#22C55E]",
     },
-    {
-      label: "Total Revenue",
-      value: stats != null ? `$${fmt(Math.round(stats.revenue))}` : isLoading ? "…" : "—",
-      Icon: DollarSign,
-      iconBg: "bg-[#F4ECE0]",
-      iconColor: "text-[#A88751]",
-    },
   ] as const;
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {cards.map(({ label, value, Icon, iconBg, iconColor }) => (
         <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between">
