@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import Providers from "@/app/providers";
 import Preloader from "./Preloader";
 
@@ -15,6 +16,11 @@ const MAX_WAIT_MS = 3000;
 
 export default function AppWrapper({ children }) {
   const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const isDashboardPage =
+    pathname?.startsWith("/admindashboard") ||
+    pathname?.startsWith("/communityDashBoard") ||
+    pathname?.startsWith("/consultant");
 
   useEffect(() => {
     let done = false;
@@ -49,12 +55,23 @@ export default function AppWrapper({ children }) {
     return () => clearTimeout(timer);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.toggle(
+      "dashboard-native-scrollbar",
+      Boolean(isDashboardPage)
+    );
+
+    return () => {
+      document.documentElement.classList.remove("dashboard-native-scrollbar");
+    };
+  }, [isDashboardPage]);
+
   if (loading) return <Preloader />;
 
   return (
     <Providers>
       {children}
-      <FloatingScrollbar />
+      {!isDashboardPage && <FloatingScrollbar />}
     </Providers>
   );
 }
