@@ -17,13 +17,13 @@ export default function CommunityLayout({ children }: Props) {
     <div className="min-h-screen">
 
       {/* Navbar */}
-      <div className="fixed top-0 left-0 w-full h-16 z-50 bg-white shadow">
+      <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">
         <Navbar onMenuClick={() => setIsOpen(true)} />
       </div>
       
 
       {/* ✅ Desktop Sidebar */}
-      <div className="hidden lg:block fixed top-16 left-0 w-64 h-[calc(100vh-4rem)] bg-white border-r z-40">
+      <div className="hidden lg:block fixed top-20 left-0 w-64 h-[calc(100vh-5rem)] bg-white border-r z-40">
         <UserDashboard />
       </div>
 
@@ -50,7 +50,7 @@ export default function CommunityLayout({ children }: Props) {
       </div>
 
       {/* ✅ Main Content */}
-      <div className="pt-16 lg:pl-64 bg-white min-h-screen">
+      <div className="pt-20 lg:pl-64 bg-white min-h-screen">
         {children}
       </div>
     </div>
