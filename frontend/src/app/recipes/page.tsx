@@ -13,7 +13,7 @@ import RecipeList from "@/components/recipes/RecipeList";
 
 export default function RecipesPage() {
   return (
-    <main className="bg-white text-[#0e2207]">
+    <main className="bg-[#FFFEF5] text-[#0e2207]">
       <Navbar/>
      <ContentSection title="Zewadi Recipes" subtitle="Delicious Zewadi Buckwheat Recipes"/> 
       <RecipeList recipes={[]} />

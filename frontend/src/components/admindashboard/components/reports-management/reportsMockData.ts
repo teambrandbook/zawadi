@@ -4,7 +4,7 @@ export const filterOptions: FilterOption[] = [
   { id: "today", label: "Today" },
   { id: "week", label: "This Week" },
   { id: "month", label: "This Month" },
-  { id: "quarter", label: "Last 3 Months" },
+  { id: "last_3_months", label: "Last 3 Months" },
   { id: "custom", label: "Custom Range" },
 ];
 

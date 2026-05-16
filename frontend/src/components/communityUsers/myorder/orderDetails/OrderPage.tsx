@@ -137,7 +137,8 @@ function isProductOutOfStock(product: ApiProduct): boolean {
 }
 
 function isCartItemOutOfStock(item: CartItem): boolean {
-  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity ?? 0) <= 0;
+  const stock = toNumber(item.stock_quantity ?? 0);
+  return item.stock_status === "out_of_stock" || stock <= 0 || item.quantity > stock;
 }
 
 export default function OrderPage() {

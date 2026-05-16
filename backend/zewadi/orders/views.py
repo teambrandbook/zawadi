@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, BasePermission
+from notifications.utils import send_low_stock_notification
 
 from decimal import Decimal, ROUND_HALF_UP
 
@@ -73,6 +74,8 @@ def _validate_and_decrement_stock(product, variant, quantity):
 
     product.stock_quantity -= quantity
     _update_product_stock_status(product)
+
+    send_low_stock_notification(product)
 
 
 def _cart_summary(items):

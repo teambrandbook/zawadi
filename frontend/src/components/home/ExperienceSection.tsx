@@ -14,7 +14,7 @@ const ExperienceSection = () => {
   }, []);
 
   return (
-    <section className="relative w-full py-24 lg:py-32 bg-white overflow-hidden">
+    <section className="relative w-full py-24 lg:py-32 bg-[#FFFEF5] overflow-hidden">
       <div className="container mx-auto px-6 lg:px-12 flex flex-col items-center">
         <h2 className="text-black text-4xl lg:text-[48px] font-semibold font-['Playfair_Display'] text-center mb-6 max-w-[600px]">
           The Experience of Zewadi

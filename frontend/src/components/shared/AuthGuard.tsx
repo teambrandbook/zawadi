@@ -7,7 +7,7 @@ import type { AppDispatch } from "@/redux/store";
 import { clearCredentials, setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
 
-type GuardRole = "admin" | "consultant" | "community_user";
+type GuardRole = "admin" | "internal_staff" | "consultant" | "community_user";
 
 type MeResponse = {
   user_id?: string;
@@ -19,6 +19,7 @@ type MeResponse = {
 
 const roleHome: Record<GuardRole, string> = {
   admin: "/admindashboard",
+  internal_staff: "/admindashboard",
   consultant: "/consultant",
   community_user: "/communityDashBoard",
 };
@@ -33,6 +34,7 @@ function getRoleHome(role: GuardRole, userType?: "guest" | "member" | null): str
 function normalizeRole(role?: string | null): GuardRole | null {
   const normalized = String(role ?? "").toLowerCase();
   if (normalized === "admin") return "admin";
+  if (normalized === "internal_staff") return "internal_staff";
   if (normalized === "consultant") return "consultant";
   if (normalized === "community_user") return "community_user";
   return null;

@@ -145,7 +145,7 @@ const HistorySection = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full bg-white py-20 lg:py-32"
+      className="relative w-full bg-[#FFFEF5] py-20 lg:py-32"
     >
       <div className="container mx-auto px-6 lg:px-12">
         <div className="relative w-full overflow-hidden rounded-[40px] bg-[#244d3a] p-8 lg:rounded-[50px] lg:p-20">

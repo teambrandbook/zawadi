@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const MeaningSection = () => {
   return (
-    <section className="relative w-full py-20 lg:py-32 bg-white overflow-hidden lg:px-20">
+    <section className="relative w-full py-20 lg:py-32 bg-[#FFFEF5] overflow-hidden lg:px-20">
       <div className="container mx-auto px-6 lg:px-32">
         <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
 

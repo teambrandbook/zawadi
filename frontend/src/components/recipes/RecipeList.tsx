@@ -111,7 +111,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
 }, []);
 
   return (
-    <section className="bg-white px- pb-24 pt-16 sm:px-6 md:pb-32 md:pt-20 lg:px-23">
+    <section className="bg-[#FFFEF5] px- pb-24 pt-16 sm:px-6 md:pb-32 md:pt-20 lg:px-23">
       <div className="mx-auto max-w-[1920px]">
         <RecipeFilter
           categories={categories}

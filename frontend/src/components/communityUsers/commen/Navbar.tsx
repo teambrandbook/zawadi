@@ -66,6 +66,10 @@ function isCommunityRole(role: string): boolean {
   return role.toLowerCase() === "community_user";
 }
 
+function canReceiveNotifications(role: string): boolean {
+  return ["admin", "internal_staff", "community_user", "consultant"].includes(role.toLowerCase());
+}
+
 function getInitials(name: string, email: string): string {
   const nameInitials = name
     .trim()
@@ -138,18 +142,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
+  const hasNotificationInbox = canReceiveNotifications(user.role);
   // ref kept for future use (e.g. click-outside on bell area)
   const _bellRef = useRef<HTMLDivElement>(null);
 
   const fetchUnreadCount = useCallback(async () => {
-    if (!isCommunityUser) return;
+    if (!hasNotificationInbox) return;
     try {
       const { data } = await api.get<{ count: number }>("/notifications/inbox/unread-count/");
       setUnreadCount(data.count ?? 0);
     } catch {
       // silently ignore
     }
-  }, [isCommunityUser]);
+  }, [hasNotificationInbox]);
 
   useEffect(() => {
     void fetchUnreadCount();
