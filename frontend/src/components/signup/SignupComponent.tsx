@@ -96,7 +96,7 @@ export default function SignupComponent() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = `${API_BASE_URL}/account/google/login/`;
+    window.location.href = new URL("/account/google/login/", API_BASE_URL).href;
   };
 
   return (
@@ -140,7 +140,6 @@ export default function SignupComponent() {
           </div>
         </div>
 
-        {/* ✅ Added onSubmit here */}
         <form onSubmit={handleSubmit} className="space-y-3">
 
           <div>
