@@ -96,7 +96,7 @@ export default function SignupComponent() {
   };
 
   const handleGoogleSignup = () => {
-    window.location.href = new URL("/account/google/login/", API_BASE_URL).href;
+    window.location.href = `${API_BASE_URL}/account/google/login/`;
   };
 
   return (

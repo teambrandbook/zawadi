@@ -132,7 +132,7 @@ class RegisterSecurityTests(APITestCase):
             "email": "staff-created-consultant@example.com",
             "password": "Pass@1234",
             "full_name": "Staff Created Consultant",
-            "user_name": "staffcreatedconsultant",
+            "user_name": "staffcreated",
             "phone": "+10000000009",
             "date_of_birth": "1990-01-01",
             "gender": "FEMALE",
