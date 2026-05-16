@@ -147,7 +147,7 @@ export default function LoginComponent() {
                     </div>
                   </div>
 
-                  <a href="/forgot-password" className="text-sm text-green-800 hover:underline block text-right">
+                  <a href="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 transition-colors block text-right">
                     Forgot password?
                   </a>
 
