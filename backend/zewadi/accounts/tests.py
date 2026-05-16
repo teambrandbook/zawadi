@@ -367,7 +367,7 @@ class GoogleCallbackRedirectTest(TestCase):
         user = User.objects.create_user(
             email=email, password="pw", role=role, is_active=True
         )
-        if role.upper() == "COMMUNITY_USER":
+        if role == "COMMUNITY_USER":
             from communityuser.models import CommunityUser, UserType
             CommunityUser.objects.create(
                 user=user,

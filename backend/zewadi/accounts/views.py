@@ -533,14 +533,15 @@ class GoogleCallbackAPIView(APIView):
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
-        role = user.role.lower() if hasattr(user.role, 'lower') else str(user.role).lower()
-        user_type = getattr(getattr(user, "communityuser", None), "user_type", None)
+        role = user.role.lower()
+        cu = getattr(user, "communityuser", None)
+        user_type = getattr(cu, "user_type", None)
 
         if role in ("admin", "internal_staff"):
             redirect_path = "/admindashboard"
         elif role == "consultant":
             redirect_path = "/consultant"
-        elif role == "community_user" and str(user_type).lower() == "guest":
+        elif role == "community_user" and user_type == UserType.GUEST:
             redirect_path = "/products"
         else:
             redirect_path = "/communityDashBoard"
