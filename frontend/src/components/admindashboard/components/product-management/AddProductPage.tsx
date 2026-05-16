@@ -18,6 +18,7 @@ type ApiProduct = {
   category?: string;
   product_status?: string;
   image?: string | null;
+  alternative_images?: string[];
   short_description?: string;
   full_description?: string | null;
   key_ingredients?: string | null;
@@ -53,6 +54,8 @@ const initialFormData: ProductFormData = {
   category: "",
   product_status: "draft",
   image: null,
+  alternative_images: [null, null, null, null],
+  alternative_image_urls: [],
   short_description: "",
   full_description: "",
   key_ingredients: "",
@@ -109,6 +112,8 @@ export default function AddProductPage() {
           category: String(data.category ?? ""),
           product_status: String(data.product_status ?? "draft"),
           image: null,
+          alternative_images: [null, null, null, null],
+          alternative_image_urls: (data.alternative_images ?? []).slice(0, 4).map((image) => toProductImageUrl(image) ?? image),
           short_description: String(data.short_description ?? ""),
           full_description: String(data.full_description ?? ""),
           key_ingredients: String(data.key_ingredients ?? ""),
@@ -197,6 +202,9 @@ export default function AddProductPage() {
     fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
     if (formData.image) fd.append("image", formData.image);
+    formData.alternative_images.filter((image): image is File => Boolean(image)).forEach((image) => {
+      fd.append("alternative_images", image);
+    });
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());

@@ -16,7 +16,7 @@ export default function RecipesPage() {
     <main className="bg-[#FFFEF5] text-[#0e2207]">
       <Navbar/>
      <ContentSection title="Zewadi Recipes" subtitle="Delicious Zewadi Buckwheat Recipes"/> 
-      <RecipeList recipes={[]} />
+      <RecipeList />
       <Footer/>
     </main>
   );

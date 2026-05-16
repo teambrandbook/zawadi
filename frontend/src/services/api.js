@@ -2,13 +2,43 @@ import axios from "axios";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const ACCESS_TOKEN_KEY = "zawadi_access_token";
+const AUTH_ROUTES = ["/login", "/signup", "/register", "/otp", "/forgot-password"];
 
 const api = axios.create({
   baseURL: BASE_URL,
-  withCredentials: true, // sends HttpOnly refresh_token cookie on every request
+  withCredentials: true,
 });
 
+// ─── Access token store ───────────────────────────────────────────────────────
+let _memoryToken = null;
+
+export const setAccessToken = (token) => {
+  _memoryToken = token || null;
+  if (typeof window !== "undefined" && token) {
+    window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
+  }
+};
+
+export const clearAccessToken = () => {
+  _memoryToken = null;
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    document.cookie = "access_token=; Max-Age=0; path=/";
+  }
+};
+
 export const getAccessToken = () => {
+  if (_memoryToken) return _memoryToken;
+  if (typeof window !== "undefined") {
+    const stored = window.localStorage.getItem(ACCESS_TOKEN_KEY);
+    if (stored) {
+      _memoryToken = stored;
+      return stored;
+    }
+  }
+
+  // Fallback: cookie (works when COOKIE_DOMAIN=.zewadi.com is set in production)
   if (typeof document === "undefined") return null;
   const match = document.cookie
     .split("; ")
@@ -43,19 +73,36 @@ const processQueue = (error) => {
   failedQueue = [];
 };
 
+const isAuthRoute = () => {
+  if (typeof window === "undefined") return false;
+  return AUTH_ROUTES.some((route) => window.location.pathname.startsWith(route));
+};
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const token = response.data?.access;
+    if (typeof token === "string" && token) {
+      setAccessToken(token);
+    }
+
+    if (response.config?.url?.includes("/account/logout/")) {
+      clearAccessToken();
+    }
+
+    return response;
+  },
   async (error) => {
     const original = error.config;
+    if (!original) {
+      return Promise.reject(error);
+    }
 
-    // Only attempt refresh for 401s, and never for the refresh/login endpoints
     const isAuthEndpoint =
       original.url?.includes("/account/refresh/") ||
       original.url?.includes("/account/login/");
 
     if (error.response?.status === 401 && !original._retry && !isAuthEndpoint) {
       if (isRefreshing) {
-        // Queue this request until the refresh resolves
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -67,20 +114,22 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        // Refresh — no Authorization header needed, uses HttpOnly cookie
-        await axios.post(
+        const refreshResponse = await axios.post(
           `${BASE_URL}/account/refresh/`,
           {},
           { withCredentials: true }
         );
-        // New access_token cookie is now set by the server
+        // Capture the new access token from the response body
+        const newToken = refreshResponse.data?.access;
+        if (newToken) setAccessToken(newToken);
+
         processQueue(null);
-        return api(original); // retry original request with new token
+        return api(original);
       } catch (refreshError) {
         processQueue(refreshError);
-        // Refresh token is expired/invalid — force logout
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        clearAccessToken();
+        if (typeof window !== "undefined" && !isAuthRoute()) {
+          window.location.replace("/login");
         }
         return Promise.reject(refreshError);
       } finally {

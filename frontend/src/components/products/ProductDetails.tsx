@@ -11,8 +11,6 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import AddToCartModal from "@/components/shared/AddToCartModal";
-import PackSelector from "@/components/communityUsers/myorder/orderDetails/PackSelector";
-import type { PackOption } from "@/components/communityUsers/myorder/orderDetails/types";
 import { setCartCount } from "@/redux/userSlice";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
@@ -47,6 +45,7 @@ type Product = {
   stock_quantity: number;
   stock_status: string;
   variants?: ProductVariant[];
+  alternative_images?: string[];
 };
 
 function productImageUrl(path: string | null): string {
@@ -68,25 +67,6 @@ function toCurrency(value: string | number | null | undefined, currency = "INR")
   }).format(toNumber(value));
 }
 
-function toPacks(product: Product | null): PackOption[] {
-  if (!product) return [];
-
-  const productUnit = [product.unit_quantity, product.product_unit].filter(Boolean).join(" ");
-  const packs: PackOption[] = [
-    {
-      id: `product-${product.id}-default`,
-      name: productUnit || "Standard Pack",
-      price: toNumber(product.selling_price ?? product.sale_price ?? product.base_price),
-      unitNote:
-        product.mrp_price && toNumber(product.mrp_price) > toNumber(product.selling_price ?? product.sale_price ?? product.base_price)
-          ? `MRP ${toCurrency(product.mrp_price, product.currency || "INR")}`
-          : "Single SKU",
-    },
-  ];
-
-  return packs;
-}
-
 function stockMessage(product: Product): { text: string; className: string } {
   if (product.stock_status === "out_of_stock" || product.stock_quantity <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
@@ -106,7 +86,7 @@ const ProductDetails = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [selectedPackId, setSelectedPackId] = useState("");
+  const [selectedImage, setSelectedImage] = useState("");
   const [mounted, setMounted] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -126,7 +106,6 @@ const ProductDetails = () => {
       .get(`/products/${productId}/`)
       .then((res) => {
         setProduct(res.data);
-        setSelectedPackId(`product-${res.data.id}-default`);
       })
       .catch(() => {
         toast.error("Could not load product.");
@@ -160,6 +139,11 @@ const ProductDetails = () => {
 
     return () => ctx.revert();
   }, [mounted, product]);
+
+  useEffect(() => {
+    if (!product) return;
+    setSelectedImage(productImageUrl(product.image));
+  }, [product]);
 
   async function handleAddToCart() {
     if (!product) return;
@@ -200,11 +184,14 @@ const ProductDetails = () => {
 
   const displayPrice = product.selling_price ?? product.sale_price ?? product.base_price;
   const isDiscounted = toNumber(product.mrp_price) > toNumber(displayPrice);
-  const packs = toPacks(product);
   const stock = stockMessage(product);
   const benefits = product.health_benefits
     ? product.health_benefits.split("\n").filter(Boolean)
     : [];
+  const galleryImages = Array.from(
+    new Set([productImageUrl(product.image), ...(product.alternative_images ?? []).map(productImageUrl)])
+  );
+  const activeImage = selectedImage || productImageUrl(product.image);
 
   return (
     <section ref={sectionRef} className="py-20 lg:py-32">
@@ -217,13 +204,37 @@ const ProductDetails = () => {
               className="relative aspect-4/3 overflow-hidden rounded-2xl bg-gray-100 opacity-0 shadow-sm transition-all duration-700 hover:shadow-2xl"
             >
               <Image
-                src={productImageUrl(product.image)}
+                src={activeImage}
                 alt={product.product_name}
                 fill
                 unoptimized
                 className="object-cover"
               />
             </div>
+            {galleryImages.length > 1 ? (
+              <div className="grid grid-cols-5 gap-3">
+                {galleryImages.map((image, index) => (
+                  <button
+                    key={`${image}-${index}`}
+                    type="button"
+                    aria-label={`View ${product.product_name} image ${index + 1}`}
+                    onClick={() => setSelectedImage(image)}
+                    className={`relative aspect-square overflow-hidden rounded-xl border bg-gray-100 transition ${
+                      activeImage === image ? "border-[#1A4331] ring-2 ring-[#1A4331]/20" : "border-gray-200"
+                    }`}
+                  >
+                    <Image
+                      src={image}
+                      alt={`${product.product_name} thumbnail ${index + 1}`}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      sizes="88px"
+                    />
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           {/* Right: Product Info */}
@@ -272,19 +283,6 @@ const ProductDetails = () => {
                     </li>
                   ))}
                 </ul>
-              </div>
-            )}
-
-            {/* Pack selector */}
-            {packs.length > 0 && (
-              <div className="product-info-stagger opacity-0">
-                <PackSelector
-                  packs={packs}
-                  selectedPackId={selectedPackId || packs[0].id}
-                  onSelectPack={setSelectedPackId}
-                  currency={product.currency || "INR"}
-                  locale="en-IN"
-                />
               </div>
             )}
 

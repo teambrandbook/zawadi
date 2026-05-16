@@ -37,12 +37,18 @@ export default function OtpPage() {
       const { data } = await api.post("/account/otp/verify/", { email, code, purpose });
 
       if (purpose === "EMAIL_VERIFICATION") {
+        const userType =
+          data.data.user_type === "guest" || data.data.user_type === "member"
+            ? data.data.user_type
+            : null;
+
         dispatch(setCredentials({
           userId: data.data.user_id,
           role: data.data.role,
           email: data.data.email,
+          userType,
         }));
-        router.replace("/communityDashBoard");
+        router.replace(userType === "guest" ? "/products" : "/communityDashBoard");
       } else {
         router.replace(`/forgot-password?step=confirm&reset_token=${data.reset_token}&email=${encodeURIComponent(email)}`);
       }

@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Play, Utensils } from "lucide-react";
+import { Heart, Play, Utensils } from "lucide-react";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+
+const favoriteStorageKey = (recipeId: string) => `zewadi:favorite-recipes:${recipeId}`;
 
 export default function RecipeDetailsContent({
   recipe,
@@ -13,6 +15,7 @@ export default function RecipeDetailsContent({
 }) {
   const ingredients = recipe.ingredients ?? [];
   const steps = recipe.steps ?? [];
+  const [isFavorite, setIsFavorite] = useState(false);
   const nutrition = recipe.nutrition ?? {
     calories: "—",
     fat: "—",
@@ -24,6 +27,18 @@ export default function RecipeDetailsContent({
     imageAnimationtopdown(".recipe-detail-image-topdown");
     fadeIn(".fade-in")
   }, []);
+
+  useEffect(() => {
+    setIsFavorite(localStorage.getItem(favoriteStorageKey(recipe.id)) === "true");
+  }, [recipe.id]);
+
+  function toggleFavorite() {
+    setIsFavorite((current) => {
+      const next = !current;
+      localStorage.setItem(favoriteStorageKey(recipe.id), String(next));
+      return next;
+    });
+  }
 
   return (
     <main className="bg-white text-[#0e2207]">
@@ -60,6 +75,30 @@ export default function RecipeDetailsContent({
                   </span>
                 </a>
               ) : null}
+
+              <button
+                type="button"
+                aria-label={
+                  isFavorite
+                    ? `Remove ${recipe.title} from favorites`
+                    : `Add ${recipe.title} to favorites`
+                }
+                aria-pressed={isFavorite}
+                onClick={toggleFavorite}
+                className={`absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full shadow-md transition hover:scale-105 ${
+                  isFavorite
+                    ? "bg-[#1f4d3a] text-white"
+                    : "bg-white text-[#1f4d3a]"
+                }`}
+              >
+                <Heart
+                  className={`h-5 w-5 ${
+                    isFavorite
+                      ? "fill-white text-white"
+                      : "fill-transparent text-[#1f4d3a]"
+                  }`}
+                />
+              </button>
             </div>
 
             <div className=" pt-1">

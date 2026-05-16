@@ -81,23 +81,35 @@ def get_or_create_google_user(email, name):
 
 
 def set_auth_cookies(response, refresh, access):
-    secure = not settings.DEBUG
+    secure = getattr(settings, "AUTH_COOKIE_SECURE", not settings.DEBUG)
+    samesite = getattr(settings, "AUTH_COOKIE_SAMESITE", "Lax")
+    domain = getattr(settings, "COOKIE_DOMAIN", None)
     response.set_cookie(
         key="refresh_token",
         value=str(refresh),
         httponly=True,
         secure=secure,
-        samesite="Lax",
+        samesite=samesite,
         max_age=7 * 24 * 60 * 60,
+        domain=domain,
     )
     response.set_cookie(
         key="access_token",
         value=access,
         httponly=False,
         secure=secure,
-        samesite="Lax",
+        samesite=samesite,
         max_age=30 * 60,
+        domain=domain,
     )
+
+
+def parse_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
 
 class RegisterAPIView(APIView):
@@ -106,13 +118,31 @@ class RegisterAPIView(APIView):
 
     def post(self, request):
         payload = request.data.copy()
-        if not request.user.is_authenticated or request.user.role != "ADMIN":
+        is_managed_create = (
+            request.user.is_authenticated
+            and has_permission(request.user, "users", "create")
+        )
+
+        if not is_managed_create:
             payload["role"] = "COMMUNITY_USER"
             payload.pop("role_obj", None)
 
-        serializer = RegisterSerializer(data=payload)
+        serializer = RegisterSerializer(data=payload, context={"request": request})
         if serializer.is_valid():
             user = serializer.save()
+            if is_managed_create:
+                user.is_active = parse_bool(payload.get("is_active", True))
+                user.save(update_fields=["is_active"])
+                return Response(
+                    {
+                        "message": "User created successfully.",
+                        "user_id": user.user_id,
+                        "email": user.email,
+                        "requires_otp": False,
+                    },
+                    status=status.HTTP_201_CREATED,
+                )
+
             otp = OTP.generate(user, OTP.PURPOSE_EMAIL_VERIFICATION)
             send_otp_email(user.email, otp.code, OTP.PURPOSE_EMAIL_VERIFICATION)
             return Response(
@@ -200,6 +230,7 @@ class OTPVerifyAPIView(APIView):
                         "user_id": user.user_id,
                         "email": user.email,
                         "role": user.role.lower(),
+                        "user_type": getattr(getattr(user, "communityuser", None), "user_type", None),
                     },
                     "access": access,
                 },
@@ -369,7 +400,7 @@ class LoginAPIView(APIView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+        serializer = LoginSerializer(data=request.data, context={"request": request})
         if serializer.is_valid():
             data = serializer.validated_data
             response = Response(
@@ -379,6 +410,7 @@ class LoginAPIView(APIView):
                         "user_id": data["user_id"],
                         "email": data["email"],
                         "role": data["role"],
+                        "user_type": data["user_type"],
                     },
                     "access": data["access"],
                 },
@@ -430,6 +462,7 @@ class GoogleLoginAPIView(APIView):
                     "user_id": user.user_id,
                     "email": user.email,
                     "role": user.role.lower(),
+                    "user_type": getattr(getattr(user, "communityuser", None), "user_type", None),
                 },
                 "access": access,
             },
@@ -513,7 +546,7 @@ class RefreshAPIView(APIView):
             refresh = RefreshToken(refresh_token)
             new_access = str(refresh.access_token)
             new_refresh = str(refresh)
-            response = Response({"message": "Token refreshed"})
+            response = Response({"message": "Token refreshed", "access": new_access})
             set_auth_cookies(response, new_refresh, new_access)
             return response
         except Exception:
@@ -531,9 +564,10 @@ class LogoutAPIView(APIView):
             except Exception:
                 logger.warning("Logout: failed to blacklist token", exc_info=True)
 
+        domain = getattr(settings, "COOKIE_DOMAIN", None)
         response = Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response.delete_cookie("access_token", domain=domain)
+        response.delete_cookie("refresh_token", domain=domain)
         return response
 
 
@@ -546,9 +580,10 @@ class LogoutAllAPIView(APIView):
         for token in tokens:
             BlacklistedToken.objects.get_or_create(token=token)
 
+        domain = getattr(settings, "COOKIE_DOMAIN", None)
         response = Response({"message": "All sessions logged out."}, status=status.HTTP_200_OK)
-        response.delete_cookie("access_token")
-        response.delete_cookie("refresh_token")
+        response.delete_cookie("access_token", domain=domain)
+        response.delete_cookie("refresh_token", domain=domain)
         return response
 
 

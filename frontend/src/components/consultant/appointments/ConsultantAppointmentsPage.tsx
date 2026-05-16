@@ -163,14 +163,15 @@ export default function ConsultantAppointmentsPage() {
         is_accept: isAccept,
       });
     } catch (error: unknown) {
+      const responseData =
+        typeof error === "object" && error !== null && "response" in error
+          ? (error as { response?: { data?: { detail?: unknown; error?: unknown } } }).response?.data
+          : undefined;
       const detail =
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof (error as { response?: { data?: { detail?: unknown; error?: unknown } } }).response?.data?.detail === "string"
-          ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-          : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
-            ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        typeof responseData?.detail === "string"
+          ? responseData.detail
+          : typeof responseData?.error === "string"
+            ? responseData.error
             : "Unable to update this booking right now.";
       setStatusMessage(detail);
       return;
@@ -209,16 +210,19 @@ export default function ConsultantAppointmentsPage() {
       });
       data = response.data;
     } catch (error: unknown) {
+      const responseData =
+        typeof error === "object" && error !== null && "response" in error
+          ? (error as {
+              response?: { data?: { meeting_link?: unknown; detail?: unknown; error?: unknown } };
+            }).response?.data
+          : undefined;
       const detail =
-        typeof error === "object" &&
-        error !== null &&
-        "response" in error &&
-        typeof (error as { response?: { data?: { meeting_link?: unknown; detail?: unknown; error?: unknown } } }).response?.data?.meeting_link === "object"
-          ? ((error as { response?: { data?: { meeting_link?: string[] } } }).response?.data?.meeting_link ?? []).join(", ")
-          : typeof (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail === "string"
-            ? (error as { response?: { data?: { detail?: string } } }).response?.data?.detail
-            : typeof (error as { response?: { data?: { error?: unknown } } }).response?.data?.error === "string"
-              ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
+        Array.isArray(responseData?.meeting_link)
+          ? responseData.meeting_link.join(", ")
+          : typeof responseData?.detail === "string"
+            ? responseData.detail
+            : typeof responseData?.error === "string"
+              ? responseData.error
               : "Unable to share meeting link right now.";
       setStatusMessage(detail);
       return;

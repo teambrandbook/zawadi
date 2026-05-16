@@ -6,11 +6,11 @@ import { animateSequence } from '@/utils/animations';
 
 const ExperienceSection = () => {
   useEffect(() => {
-    animateSequence('.experience-zoom-item', 0.0);
-    animateSequence('.experience-lines-zoom-item', 0.2);
-    animateSequence('.experience-dot-zoom-item', 0.5);
-    animateSequence('.experience-card-item', 1);
-    animateSequence('.experience-number-dot', 0.8);
+    animateSequence('.experience-zoom-item', 0.0, 0.55, 0.1);
+    animateSequence('.experience-lines-zoom-item', 0.1, 0.55, 0.1);
+    animateSequence('.experience-dot-zoom-item', 0.24, 0.55, 0.1);
+    animateSequence('.experience-card-item', 0.42, 0.55, 0.1);
+    animateSequence('.experience-number-dot', 0.34, 0.55, 0.1);
   }, []);
 
   return (

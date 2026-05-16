@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
-import api from "@/services/api";
+import api, { getAccessToken } from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -111,12 +111,11 @@ function getUserFromTokenCookie(): UserInfo {
     return fallbackUserInfo;
   }
 
-  const match = document.cookie.split("; ").find((c) => c.startsWith("access_token="));
-  if (!match) {
+  const token = getAccessToken();
+  if (!token) {
     return fallbackUserInfo;
   }
 
-  const token = decodeURIComponent(match.split("=")[1]);
   const payload = decodeJwtPayload(token);
   if (!payload) {
     return fallbackUserInfo;

@@ -7,10 +7,14 @@ import sys as _sys
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+
+def env_bool(name, default=False):
+    return os.getenv(name, str(default)).strip().lower() in {"1", "true", "yes", "on"}
+
 # ─── Security ────────────────────────────────────────────────────────────────
 
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-in-production")
-DEBUG = os.getenv("DEBUG", "False") == "True"
+DEBUG = env_bool("DEBUG", False)
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
 # ─── Applications ─────────────────────────────────────────────────────────────
@@ -59,6 +63,9 @@ CORS_ALLOW_CREDENTIALS = True
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
 FRONTEND_URL = os.getenv("FRONTEND_URL", CORS_ALLOWED_ORIGINS[0] if CORS_ALLOWED_ORIGINS else "http://localhost:3000")
+COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None  # e.g. ".zewadi.com" in production
+AUTH_COOKIE_SECURE = env_bool("AUTH_COOKIE_SECURE", not DEBUG)
+AUTH_COOKIE_SAMESITE = os.getenv("AUTH_COOKIE_SAMESITE", "Lax")
 
 # ─── CSRF ─────────────────────────────────────────────────────────────────────
 
@@ -138,7 +145,7 @@ REST_FRAMEWORK = {
         "rest_framework.permissions.IsAuthenticated",
     ],
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        "accounts.authentication.CookieJWTAuthentication",
     ],
     "DEFAULT_THROTTLE_CLASSES": [
         "rest_framework.throttling.AnonRateThrottle",
@@ -196,10 +203,15 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 # Enable in production via env vars (requires HTTPS)
-SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "False") == "True"
+SECURE_SSL_REDIRECT = env_bool("SECURE_SSL_REDIRECT", False)
 SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "0"))
 SECURE_HSTS_INCLUDE_SUBDOMAINS = SECURE_HSTS_SECONDS > 0
 SECURE_HSTS_PRELOAD = SECURE_HSTS_SECONDS > 0
+
+# Trust the X-Forwarded-Proto header from Traefik so request.build_absolute_uri()
+# returns https:// in production (required for correct Google OAuth redirect URIs).
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
 
 # ─── Upload Size Limits ───────────────────────────────────────────────────────
 
@@ -217,7 +229,7 @@ if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT
     )
 
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
-
+# django-redis with IGNORE_EXCEPTIONS so cache misses degrade gracefully
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",

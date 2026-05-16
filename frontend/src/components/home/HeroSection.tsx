@@ -33,6 +33,7 @@ const HeroSection = () => {
             src="/Patterns-03.webp"
             alt=""
             fill
+            priority
             className="object-cover object-center"
           />
         </div>
@@ -41,6 +42,7 @@ const HeroSection = () => {
           loop
           muted
           playsInline
+          preload="metadata"
           className="absolute inset-0 w-full h-full object-cover"
         >
           <source src="/home/heroBg.webm" type="video/webm" />

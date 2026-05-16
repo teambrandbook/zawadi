@@ -21,5 +21,8 @@ export function getImageUrl(path: string | null | undefined): string {
     }
     return path;
   }
+  if (path.startsWith("/") && !path.startsWith("/media/")) {
+    return path;
+  }
   return `${base}${path.startsWith("/") ? "" : "/"}${path}`;
 }

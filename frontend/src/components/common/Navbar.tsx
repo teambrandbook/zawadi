@@ -86,7 +86,7 @@ const Navbar = () => {
     "U";
 
   function getProfileRoutes() {
-    if (role === "admin") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
+    if (role === "admin" || role === "internal_staff") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
     if (role === "consultant") return { profile: "/consultant/profile", orders: "/consultant/appointments" };
     if (userType === "guest") return { profile: "/guestprofile", orders: "/guestprofile/history" };
     return { profile: "/communityDashBoard", orders: "/communityDashBoard/myorders" };

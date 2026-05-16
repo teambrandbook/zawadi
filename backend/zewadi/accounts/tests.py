@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
+from unittest.mock import patch
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from accounts.models import User, OTP
 from communityuser.models import CommunityUser, UserType
@@ -35,11 +37,26 @@ class AccountMeAPITests(APITestCase):
         self.assertEqual(response.data["role"], "community_user")
         self.assertEqual(response.data["full_name"], "Community User")
 
+    def test_me_accepts_access_token_cookie(self):
+        user = User.objects.create_user(
+            email="cookie-auth@example.com",
+            password="Pass@1234",
+            user_name="cookieauth",
+            full_name="Cookie Auth",
+            phone="+10000000007",
+            role="COMMUNITY_USER",
+        )
+        refresh = RefreshToken.for_user(user)
+        self.client.cookies["access_token"] = str(refresh.access_token)
+
+        response = self.client.get("/api/account/me/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["email"], "cookie-auth@example.com")
+
 
 class RegisterSecurityTests(APITestCase):
     def test_public_register_forces_community_user_role(self):
-        from unittest.mock import patch
-
         payload = {
             "email": "new-user@example.com",
             "password": "Pass@1234",
@@ -60,6 +77,106 @@ class RegisterSecurityTests(APITestCase):
         from accounts.models import User as UserModel
         user = UserModel.objects.get(email="new-user@example.com")
         self.assertEqual(user.role, "COMMUNITY_USER")
+
+    def test_admin_register_creates_active_user_without_otp(self):
+        admin = User.objects.create_user(
+            email="admin@example.com",
+            password="Pass@1234",
+            user_name="admin",
+            full_name="Admin User",
+            phone="+10000000000",
+            role="ADMIN",
+            is_staff=True,
+        )
+        self.client.force_authenticate(user=admin)
+
+        payload = {
+            "email": "admin-created@example.com",
+            "password": "Pass@1234",
+            "full_name": "Admin Created",
+            "user_name": "admincreated",
+            "phone": "+10000000005",
+            "date_of_birth": "1998-01-01",
+            "gender": "MALE",
+            "role": "COMMUNITY_USER",
+            "user_type": UserType.MEMBER,
+            "is_active": True,
+        }
+
+        with patch("accounts.views.send_otp_email") as send_otp_email:
+            response = self.client.post("/api/account/register/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data["requires_otp"])
+        send_otp_email.assert_not_called()
+        user = User.objects.get(email="admin-created@example.com")
+        self.assertTrue(user.is_active)
+        self.assertEqual(user.communityuser.user_type, UserType.MEMBER)
+
+    def test_internal_staff_with_user_create_permission_registers_managed_user(self):
+        role = Role.objects.create(role_name="User Manager")
+        RolePermission.objects.create(role=role, module="users", can_create=True)
+        staff = User.objects.create_user(
+            email="staff-user-manager@example.com",
+            password="Pass@1234",
+            user_name="staffmanager",
+            full_name="Staff Manager",
+            phone="+10000000008",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        payload = {
+            "email": "staff-created-consultant@example.com",
+            "password": "Pass@1234",
+            "full_name": "Staff Created Consultant",
+            "user_name": "staffcreatedconsultant",
+            "phone": "+10000000009",
+            "date_of_birth": "1990-01-01",
+            "gender": "FEMALE",
+            "role": "CONSULTANT",
+            "years_of_experience": 3,
+            "qualification": "Nutrition Diploma",
+            "languages_spoken": "English",
+            "experience_areas": "Wellness",
+            "session_type": "video",
+            "consultation_fee": 50,
+            "session_duration": 30,
+            "is_active": True,
+        }
+
+        with patch("accounts.views.send_otp_email") as send_otp_email:
+            response = self.client.post("/api/account/register/", payload, format="json")
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertFalse(response.data["requires_otp"])
+        send_otp_email.assert_not_called()
+        user = User.objects.get(email="staff-created-consultant@example.com")
+        self.assertEqual(user.role, "CONSULTANT")
+        self.assertTrue(user.is_active)
+
+
+class LoginAPITests(APITestCase):
+    def test_login_accepts_email_with_different_case_after_verification(self):
+        User.objects.create_user(
+            email="MixedCase@Example.com",
+            password="Pass@1234",
+            full_name="Mixed Case",
+            user_name="mixedcase",
+            phone="+10000000006",
+            role="COMMUNITY_USER",
+            is_active=True,
+        )
+
+        response = self.client.post(
+            "/api/account/login/",
+            {"email": "mixedcase@example.com", "password": "Pass@1234"},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["data"]["email"], "MixedCase@example.com")
 
 
 class MeSerializerTest(APITestCase):

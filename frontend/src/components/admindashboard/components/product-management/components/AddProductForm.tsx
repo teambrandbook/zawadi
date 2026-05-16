@@ -25,6 +25,8 @@ export type ProductFormData = {
   category: string;
   product_status: string;
   image: File | null;
+  alternative_images: (File | null)[];
+  alternative_image_urls: string[];
   short_description: string;
   full_description: string;
   key_ingredients: string;
@@ -196,6 +198,12 @@ export default function AddProductForm({ formData, onChange }: Props) {
     return (value: string | boolean) => onChange({ ...formData, [field]: value });
   }
 
+  function setAlternativeImage(index: number, file: File | null) {
+    const nextImages = Array.from({ length: 4 }, (_, imageIndex) => formData.alternative_images?.[imageIndex] ?? null);
+    nextImages[index] = file;
+    onChange({ ...formData, alternative_images: nextImages });
+  }
+
   function setVariant(index: number, field: keyof ProductVariantFormData) {
     return (value: string) => {
       const variants = formData.variants.map((variant, variantIndex) =>
@@ -256,6 +264,52 @@ export default function AddProductForm({ formData, onChange }: Props) {
           <span className="block text-[12px] tracking-[-0.5px] text-[#6B7280]">Recommended size: 800x800px. Supports JPG, PNG formats.</span>
           <input type="file" accept="image/*" onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })} className="sr-only" />
         </label>
+
+        <div className="mt-6">
+          <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Alternative Images" />
+          {formData.alternative_image_urls?.length ? (
+            <p className="-mt-3 mb-3 text-[12px] tracking-[-0.4px] text-[#6B7280]">
+              Selecting new alternative images will replace the saved gallery.
+            </p>
+          ) : null}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => {
+              const file = formData.alternative_images?.[index] ?? null;
+              const existingImageUrl = formData.alternative_image_urls?.[index] ?? null;
+
+              return (
+                <label
+                  key={index}
+                  className="flex min-h-[100px] cursor-pointer flex-col items-center justify-center rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-3 py-4 text-center transition hover:border-[#0A4833]/50"
+                >
+                  {existingImageUrl && !file ? (
+                    <span className="relative block h-10 w-10 overflow-hidden rounded-[6px] bg-white">
+                      <img src={existingImageUrl} alt={`Existing alternative image ${index + 1}`} className="h-full w-full object-cover" />
+                    </span>
+                  ) : (
+                    <UploadCloud className="h-8 w-8 text-[#9F8151]" />
+                  )}
+                  <span className="mt-2 line-clamp-2 max-w-full text-[11px] font-semibold leading-4 tracking-[-0.4px] text-[#0A4833]">
+                    {file
+                      ? file.name
+                      : existingImageUrl
+                        ? `Existing image ${index + 1}`
+                        : "Drag and drop images here, or click to browse"}
+                  </span>
+                  <span className="mt-1 text-[9px] leading-3 tracking-[-0.3px] text-[#6B7280]">
+                    Recommended size: 800x800px. Supports JPG, PNG formats.
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => setAlternativeImage(index, event.target.files?.[0] ?? null)}
+                    className="sr-only"
+                  />
+                </label>
+              );
+            })}
+          </div>
+        </div>
       </Card>
 
       <Card>
