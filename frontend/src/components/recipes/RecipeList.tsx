@@ -219,7 +219,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
         ) : filteredRecipes.length === 0 ? (
           <p className="mt-16 text-center text-sm text-[#6B7280]">No published recipes found.</p>
         ) : (
-          <div className="mt-16 space-y-20 md:mt-20 md:space-y-28 lg:space-y-[96px]">
+          <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12 md:mt-14 md:space-y-14 lg:mt-16 lg:space-y-[96px]">
             {filteredRecipes.map((recipe, index: number) => (
               <RecipeCard
                 key={recipe.id}

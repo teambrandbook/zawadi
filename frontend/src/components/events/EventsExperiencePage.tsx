@@ -20,11 +20,11 @@ export default function EventsExperiencePage() {
       leftReveal(".left-move")
     }, []);
   return (
-    <div className="bg-[#fffef5] pb-24  text-[#0e2207]">
+    <div className="bg-[#fffef5] pb-24 max-sm:px-5 text-[#0e2207]">
       <ContentSection title="Zewadi Events" subtitle="Zewadi Community Events " />
       <MomentsSection />
       <CommunitySection />
-      <UpcomingEvents />
+      <UpcomingEvents /> 
       <PastEvents />
       <EventTestimonials />
     </div>

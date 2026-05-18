@@ -235,7 +235,7 @@ export const productCarouselAnimation = (
   const isSmScreen = window.matchMedia(
     "(min-width: 640px) and (max-width: 1023px)"
   ).matches;
-  const sideOffset = isMobileScreen ? 150 : isSmScreen ? 180 : 220;
+  const sideOffset = isMobileScreen ? 100 : isSmScreen ? 165 : 220;
 
   cards.forEach((card, i) => {
     let pos = i - activeIndex;
@@ -259,7 +259,7 @@ export const productCarouselAnimation = (
     // 👉 RIGHT CARD
     else if (pos === 1) {
       x = sideOffset;
-      scale = 0.9;
+      scale = 1.1;
       opacity = 0.6;
       zIndex = 20;
     }
@@ -267,7 +267,7 @@ export const productCarouselAnimation = (
     // 👉 LEFT CARD
       else if (pos === -1) {
         x = -sideOffset;
-        scale = 0.9;
+        scale = 1.1;
         opacity = 0.6;
         zIndex = 20;
       }
