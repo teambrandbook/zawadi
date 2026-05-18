@@ -288,7 +288,7 @@ const ProductDetails = () => {
 
             <div className="product-info-stagger flex flex-wrap items-center gap-6 pt-4 opacity-0">
               {/* Quantity Selector */}
-              <div className="flex items-center overflow-hidden rounded-lg border border-gray-200">
+              <div className="flex w-fit items-center overflow-hidden rounded-lg border border-gray-200">
                 <button
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   className="p-3 transition-colors hover:bg-gray-50"
@@ -311,7 +311,7 @@ const ProductDetails = () => {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={product.stock_quantity <= 0 || product.stock_status === "out_of_stock"}
-                className="flex flex-1 items-center justify-center rounded-lg bg-[#1A4331] px-10 py-3.5 font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+                className="col-span-2 row-start-2 flex w-full items-center justify-center rounded-lg bg-[#1A4331] px-8 py-3.5 text-center font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98] sm:col-span-1 sm:row-auto sm:w-auto sm:flex-1 sm:px-10"
               >
                 {product.stock_quantity <= 0 || product.stock_status === "out_of_stock" ? "Out of Stock" : "Add To Cart"}
               </button>
@@ -320,7 +320,7 @@ const ProductDetails = () => {
                 type="button"
                 aria-label="Save to wishlist"
                 onClick={() => toast.info("Wishlist coming soon!")}
-                className="rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
+                className="justify-self-end rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
               >
                 <Heart size={20} />
               </button>
