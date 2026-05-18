@@ -154,8 +154,17 @@ class UploadSignatureView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        if not settings.CLOUDINARY_API_SECRET:
+            return Response(
+                {"error": "Cloudinary is not configured on this server."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         folder = UPLOAD_FOLDER_MAP[upload_type]
         timestamp = int(time.time())
+        # Upload preset is excluded from signing because it is set to "unsigned" mode
+        # in Cloudinary. If the preset is changed to "signed" mode, add
+        # &upload_preset=<preset> to this string (sorted alphabetically).
         params_to_sign = f"folder={folder}&timestamp={timestamp}"
         signature = hashlib.sha1(
             (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
