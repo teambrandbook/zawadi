@@ -40,7 +40,7 @@ const ContentSection = ({
 
         <div
           className={cn(
-            "relative -mb-px max-w-[440px] rounded-t-[24px] bg-white px-7 py-7 sm:px-10 sm:py-10",
+            "relative -mb-px max-w-[440px] rounded-t-[24px] bg-[#fffef5] px-7 py-7 sm:px-10 sm:py-10",
             cardClassName
           )}
         >

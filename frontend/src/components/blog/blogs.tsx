@@ -61,7 +61,7 @@ const popularPosts = [
 
 export default function Blogs() {
   return (
-    <div className="bg-white">
+    <div className="bg-[#fffef5]">
       <section className="bg-[#1f4d3a] pt-20 sm:pt-24 pb-0">
         <div className="container mx-auto px-4 sm:px-6">
           <div className="h-[140px] sm:h-[180px]" />

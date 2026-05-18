@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
@@ -132,6 +133,7 @@ function toCsv(rows: Order[]) {
 }
 
 export default function OrdersDashboard() {
+  const searchParams = useSearchParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -187,6 +189,24 @@ export default function OrdersDashboard() {
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    const orderId = searchParams.get("order");
+
+    if (!orderId || orders.length === 0) {
+      return;
+    }
+
+    const matchingOrder = orders.find((order) => order.id === orderId);
+
+    if (matchingOrder) {
+      setDetailsOrderId(orderId);
+      setDetailsOpen(true);
+    } else {
+      setSearch(orderId);
+      setPage(1);
+    }
+  }, [orders, searchParams]);
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {

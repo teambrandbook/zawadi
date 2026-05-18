@@ -6,15 +6,15 @@ import { animateSequence } from '@/utils/animations';
 
 const ExperienceSection = () => {
   useEffect(() => {
-    animateSequence('.experience-zoom-item', 0.0);
-    animateSequence('.experience-lines-zoom-item', 0.2);
-    animateSequence('.experience-dot-zoom-item', 0.5);
-    animateSequence('.experience-card-item', 1);
-    animateSequence('.experience-number-dot', 0.8);
+    animateSequence('.experience-zoom-item', 0.0, 0.55, 0.1);
+    animateSequence('.experience-lines-zoom-item', 0.1, 0.55, 0.1);
+    animateSequence('.experience-dot-zoom-item', 0.24, 0.55, 0.1);
+    animateSequence('.experience-card-item', 0.42, 0.55, 0.1);
+    animateSequence('.experience-number-dot', 0.34, 0.55, 0.1);
   }, []);
 
   return (
-    <section className="relative w-full py-24 lg:py-32 bg-white overflow-hidden">
+    <section className="relative w-full py-24 lg:py-32 bg-[#fffef5] overflow-hidden">
       <div className="container mx-auto px-6 lg:px-12 flex flex-col items-center">
         <h2 className="text-black text-4xl lg:text-[48px] font-semibold font-['Playfair_Display'] text-center mb-6 max-w-[600px]">
           The Experience of Zewadi

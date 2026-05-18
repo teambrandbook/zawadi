@@ -5,7 +5,7 @@ import ProductDetails from "@/components/products/ProductDetails";
 
 export default function ProductDetailsPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#fffef5]">
       <Navbar />
       <Suspense
         fallback={

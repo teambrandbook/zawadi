@@ -1,16 +1,50 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Play, Utensils } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Heart, Play, Utensils } from "lucide-react";
+import { useSelector } from "react-redux";
+import { toast } from "sonner";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+import api, { getAccessToken } from "@/services/api";
+import type { RootState } from "@/redux/store";
+
+type FavoriteRecipeItem = {
+  id?: number | string;
+  recipe?: {
+    id?: number | string;
+  };
+};
+
+type FavoriteRecipesResponse =
+  | FavoriteRecipeItem[]
+  | {
+      data?: FavoriteRecipeItem[];
+      results?: FavoriteRecipeItem[];
+    };
+
+function favoriteListFromResponse(data: FavoriteRecipesResponse): FavoriteRecipeItem[] {
+  return Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.results)
+    ? data.results
+    : [];
+}
 
 export default function RecipeDetailsContent({
   recipe,
 }: {
   recipe: Recipe;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [favoritePending, setFavoritePending] = useState(false);
   const ingredients = recipe.ingredients ?? [];
   const steps = recipe.steps ?? [];
   const nutrition = recipe.nutrition ?? {
@@ -25,8 +59,63 @@ export default function RecipeDetailsContent({
     fadeIn(".fade-in")
   }, []);
 
+  useEffect(() => {
+    if (!isAuthenticated && !getAccessToken()) {
+      setIsFavorite(false);
+      return;
+    }
+
+    let mounted = true;
+
+    api
+      .get<FavoriteRecipesResponse>("/recipes/favorites/")
+      .then(({ data }) => {
+        if (!mounted) return;
+
+        const favoriteRecipeIds = favoriteListFromResponse(data).map((item) =>
+          String(item.recipe?.id ?? item.id)
+        );
+        setIsFavorite(favoriteRecipeIds.includes(recipe.id));
+      })
+      .catch(() => {
+        if (mounted) setIsFavorite(false);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [isAuthenticated, recipe.id]);
+
+  const handleToggleFavorite = async () => {
+    if (!isAuthenticated && !getAccessToken()) {
+      router.push(`/login?next=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
+    if (favoritePending) return;
+
+    const nextValue = !isFavorite;
+    setIsFavorite(nextValue);
+    setFavoritePending(true);
+
+    try {
+      if (nextValue) {
+        await api.post(`/recipes/${recipe.id}/favorite/`);
+        toast.success("Recipe saved to favorites.");
+      } else {
+        await api.delete(`/recipes/${recipe.id}/favorite/`);
+        toast.success("Recipe removed from favorites.");
+      }
+    } catch {
+      setIsFavorite(!nextValue);
+      toast.error("Could not update favorite. Please try again.");
+    } finally {
+      setFavoritePending(false);
+    }
+  };
+
   return (
-    <main className="bg-white text-[#0e2207]">
+    <main className="bg-[#fffef5] text-[#0e2207]">
       {/* <ContentSection
         title="Zewadi Recipes"
         subtitle="Delicious Zewadi Buckwheat Recipes"
@@ -60,6 +149,23 @@ export default function RecipeDetailsContent({
                   </span>
                 </a>
               ) : null}
+
+              <button
+                type="button"
+                aria-label={isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
+                aria-pressed={isFavorite}
+                disabled={favoritePending}
+                onClick={handleToggleFavorite}
+                className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1f4d3a] shadow-md transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                <Heart
+                  className={`h-5 w-5 transition-all duration-200 ${
+                    isFavorite
+                      ? "fill-[#1f4d3a] stroke-[#1f4d3a]"
+                      : "fill-transparent stroke-[#1f4d3a]"
+                  }`}
+                />
+              </button>
             </div>
 
             <div className=" pt-1">

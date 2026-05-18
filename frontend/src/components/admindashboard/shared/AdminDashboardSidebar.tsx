@@ -7,7 +7,6 @@ import {
   Home, 
   Users, 
   ShoppingBag,
-  ShoppingCart,
   Package, 
   Utensils, 
   MessageSquare, 
@@ -32,7 +31,6 @@ const navigation = [
       { name: "Dashboard", icon: Home, href: "/admindashboard" },
       { name: "Users", icon: Users, href: "/admindashboard/users" }, 
       { name: "Orders", icon: ShoppingBag, href: "/admindashboard/orders" },
-      { name: "Carts", icon: ShoppingCart, href: "/admindashboard/carts" },
       { name: "Products", icon: Package, href: "/admindashboard/products" },
     ],
   },
@@ -69,15 +67,15 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
   }
 
   return (
-    <aside className="w-72 h-full bg-white p-6 flex flex-col overflow-y-auto custom-scrollbar">
+    <aside className="sidebar-scrollbar-hidden w-72 h-full overflow-y-auto bg-white p-5 flex flex-col">
       {navigation.map((group, idx) => (
-        <div key={idx} className={`mb-8 ${idx === 0 ? "pt-8" : ""}`}>
+        <div key={idx} className={`${idx === navigation.length - 1 ? "" : "mb-5"} ${idx === 0 ? "pt-4" : ""}`}>
           
-          <h3 className="text-[#06402B] font-bold text-lg mb-6 px-2 pt-12">
+          <h3 className="text-[#06402B] font-bold text-sm mb-3 px-2">
             {group.section}
           </h3>
 
-          <div className="space-y-4">
+          <div className="space-y-2.5">
             {group.items.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
@@ -98,17 +96,17 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
                 >
                   {/* Icon */}
                   <div className={`
-                    flex items-center justify-center w-11 h-11 rounded-full transition-all shrink-0
+                    flex items-center justify-center w-9 h-9 rounded-full transition-all shrink-0
                     ${active 
                       ? 'bg-[#06402B] text-white' 
                       : 'bg-[#EFE7D6] text-[#06402B] group-hover:bg-[#e5dbc4]'}
                   `}>
-                    <Icon size={20} />
+                    <Icon size={18} />
                   </div>
 
                   {/* Label */}
                   <div className={`
-                    flex-1 py-2.5 px-6 rounded-full font-medium text-sm transition-all flex items-center justify-center
+                    flex-1 py-2 px-5 rounded-full font-medium text-sm transition-all flex items-center justify-center
                     ${active 
                       ? 'bg-[#06402B] text-white' 
                       : 'bg-[#EFE7D6] text-[#06402B] group-hover:bg-[#e5dbc4]'}

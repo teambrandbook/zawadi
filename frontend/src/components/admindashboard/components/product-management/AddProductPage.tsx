@@ -19,6 +19,7 @@ type ApiProduct = {
   category?: string;
   product_status?: string;
   image?: string | null;
+  alternative_images?: string[];
   short_description?: string;
   full_description?: string | null;
   key_ingredients?: string | null;
@@ -54,6 +55,8 @@ const initialFormData: ProductFormData = {
   category: "",
   product_status: "draft",
   image: null,
+  alternative_images: [null, null, null, null],
+  alternative_image_urls: [],
   short_description: "",
   full_description: "",
   key_ingredients: "",
@@ -112,6 +115,8 @@ export default function AddProductPage() {
           category: String(data.category ?? ""),
           product_status: String(data.product_status ?? "draft"),
           image: null,
+          alternative_images: [null, null, null, null],
+          alternative_image_urls: (data.alternative_images ?? []).slice(0, 4).map((image) => toProductImageUrl(image) ?? image),
           short_description: String(data.short_description ?? ""),
           full_description: String(data.full_description ?? ""),
           key_ingredients: String(data.key_ingredients ?? ""),

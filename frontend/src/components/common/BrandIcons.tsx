@@ -100,21 +100,17 @@ export const Facebook = ({ size = 24, className = "", ...props }: BrandIconProps
   </svg>
 );
 
-export const TikTok = ({ size = 24, className = "", ...props }: BrandIconProps) => (
+export const X = ({ size = 24, className = "", ...props }: BrandIconProps) => (
   <svg
     width={size}
     height={size}
     viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
+    fill="currentColor"
     className={className}
     aria-hidden="true"
     {...props}
   >
-    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    <path d="M13.98 10.16 22.12 1h-1.93l-7.07 7.96L7.47 1H1l8.53 12.02L1 22.62h1.93l7.45-8.39 5.95 8.39h6.47l-8.82-12.46Zm-2.64 2.97-.86-1.19L3.6 2.4h2.95l5.56 7.72.86 1.19 7.22 10.03h-2.95l-5.9-8.21Z" />
   </svg>
 );
 

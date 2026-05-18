@@ -2,8 +2,10 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { productCarouselAnimation } from "@/utils/animations";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import gsap from "gsap";
 
 const products = [
   { image: "/home/productImg1.webp", text: "Bridging the gap between technology and agriculture to redefine your food experience." },
@@ -13,9 +15,12 @@ const products = [
 
 const ProductSection = () => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const productTextRef = useRef<HTMLParagraphElement>(null);
   const wheelLockRef = useRef(false);
   const wheelDeltaRef = useRef(0);
   const wheelResetTimeoutRef = useRef<number | null>(null);
+  const touchStartXRef = useRef(0);
+  const touchStartYRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -69,6 +74,30 @@ const ProductSection = () => {
     }, 520);
   };
 
+  const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
+    const touch = event.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLElement>) => {
+    if (isAnimating) return;
+
+    const touch = event.changedTouches[0];
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+
+    if (Math.abs(deltaX) < 45 || Math.abs(deltaX) < Math.abs(deltaY)) {
+      return;
+    }
+
+    if (deltaX < 0) {
+      next();
+    } else {
+      prev();
+    }
+  };
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -77,6 +106,14 @@ const ProductSection = () => {
       activeIndex,
       setIsAnimating
     );
+
+    if (productTextRef.current) {
+      gsap.fromTo(
+        productTextRef.current,
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 1.5, ease: "power2.out" }
+      );
+    }
   }, [activeIndex]);
 
   useEffect(() => {
@@ -91,6 +128,8 @@ const ProductSection = () => {
     <section
       ref={containerRef}
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
       className="relative w-full overflow-hidden bg-[#1f4b3f] py-12 lg:py-16"
     >
       <div className="pointer-events-none absolute inset-0 opacity-10">
@@ -109,17 +148,17 @@ const ProductSection = () => {
             Our Product
           </h2>
           
-          {/* Mobile Arrows (Top Right) - Hidden on sm and up */}
-          <div className="flex gap-2 sm:hidden">
+          <div className="flex items-center gap-2">
+            {/* Mobile Arrows (Top Right) - Hidden on sm and up */}
             <button
               onClick={prev}
-              className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00]"
+              className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
               <ArrowLeft className="h-5 w-5 text-[#fdf6ee]" />
             </button>
             <button
               onClick={next}
-              className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00]"
+              className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
               <ArrowRight className="h-5 w-5 text-[#fdf6ee]" />
             </button>
@@ -158,7 +197,20 @@ const ProductSection = () => {
           </button>
         </div>
 
-        <p className="mx-auto mt-6 max-w-[600px] text-center text-sm text-[#fdf6ee]/80">
+        <div className="mt-8 flex justify-center sm:mt-10">
+          <Link
+            href="/products"
+            className="inline-flex h-10 items-center gap-2 rounded-full border border-[#fdf6ee]/30 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[#fdf6ee] transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:px-5"
+          >
+            View Product
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <p
+          ref={productTextRef}
+          className="mx-auto mt-6 max-w-[600px] text-center text-sm text-[#fdf6ee]/80"
+        >
           {products[activeIndex].text}
         </p>
       </div>

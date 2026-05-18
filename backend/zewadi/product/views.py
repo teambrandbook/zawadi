@@ -38,6 +38,10 @@ def _product_payload_from_request(request):
     # image is now a URLField (Cloudinary URL posted as a string in request.data)
     # request.FILES is no longer used for image uploads
 
+    alternative_images = request.FILES.getlist("alternative_images")
+    if alternative_images:
+        payload["alternative_images"] = alternative_images
+
     if "allow_out_of_stock" in payload and "allow_orders_when_out_of_stock" not in payload:
         payload["allow_orders_when_out_of_stock"] = payload.get("allow_out_of_stock")
 
@@ -64,7 +68,7 @@ class ProductListCreateView(APIView):
     # If user has permission -> all products
         can_manage = has_permission(request.user, "products", "view")
         if can_manage:
-            products = Product.objects.all().order_by("-created_at")
+            products = Product.objects.prefetch_related("alternative_images").all().order_by("-created_at")
 
         # Else -> only active products
         else:
@@ -75,7 +79,7 @@ class ProductListCreateView(APIView):
                     return Response(cached, status=status.HTTP_200_OK)
             except Exception:
                 pass
-            products = Product.objects.filter(product_status="active").order_by("-created_at")
+            products = Product.objects.prefetch_related("alternative_images").filter(product_status="active").order_by("-created_at")
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
@@ -110,12 +114,18 @@ class ProductListCreateView(APIView):
         serializer = ProductCreateSerializer(data=payload, context={"request": request})
 
         if serializer.is_valid():
-            serializer.save()
+            product = serializer.save()
+            try:
+                cache.delete(f"product_detail:{product.id}")
+                cache.delete("product_list:::-created_at:1")
+            except Exception:
+                pass
+            out = ProductSerializer(product, context={"request": request})
 
             return Response(
                 {
                     "message": "Product created successfully",
-                    "data": serializer.data
+                    "data": out.data
                 },
                 status=status.HTTP_201_CREATED
             )
@@ -136,7 +146,7 @@ class ProductDetailView(APIView):
 
     def _get_object(self, pk):
         try:
-            return Product.objects.prefetch_related("variants").get(pk=pk)
+            return Product.objects.prefetch_related("variants", "alternative_images").get(pk=pk)
         except Product.DoesNotExist:
             return None
 
@@ -189,6 +199,11 @@ class ProductDetailView(APIView):
         )
         if serializer.is_valid():
             product = serializer.save()
+            try:
+                cache.delete(f"product_detail:{pk}")
+                cache.delete("product_list:::-created_at:1")
+            except Exception:
+                pass
             out = ProductSerializer(product, context={"request": request})
             return Response(
                 {"message": "Product updated successfully", "data": out.data},

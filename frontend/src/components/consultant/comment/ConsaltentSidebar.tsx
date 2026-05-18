@@ -35,7 +35,7 @@ function ConsultantSidebar({ onClose }: Props) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-72 h-full md:pt-25 bg-white p-6 flex flex-col space-y-4 overflow-y-auto shrink-0">
+    <aside className="sidebar-scrollbar-hidden w-72 h-full overflow-y-auto bg-white p-5 md:pt-20 flex flex-col space-y-3 shrink-0">
       {menuItems.map((item) => {
         const Icon = item.icon;
 
@@ -57,7 +57,7 @@ function ConsultantSidebar({ onClose }: Props) {
           >
             {/* Icon */}
             <div
-              className={`flex shrink-0 items-center justify-center w-12 h-12 rounded-full transition-all ${
+              className={`flex shrink-0 items-center justify-center w-10 h-10 rounded-full transition-all ${
                 isActive
                   ? "bg-[#06402B] text-white"
                   : "bg-[#EBE3D1] text-[#06402B] group-hover:bg-[#d8cfb8]"
@@ -68,7 +68,7 @@ function ConsultantSidebar({ onClose }: Props) {
 
             {/* Label */}
             <div
-              className={`flex-1 whitespace-nowrap overflow-hidden text-ellipsis py-3 px-4 rounded-full font-semibold text-sm transition-all ${
+              className={`flex-1 whitespace-nowrap overflow-hidden text-ellipsis py-2.5 px-4 rounded-full font-semibold text-sm transition-all ${
                 isActive
                   ? "bg-[#06402B] text-white"
                   : "bg-[#EBE3D1] text-[#06402B] group-hover:bg-[#d8cfb8]"

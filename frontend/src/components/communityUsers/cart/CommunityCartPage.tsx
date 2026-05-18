@@ -91,17 +91,19 @@ function toImageUrl(imagePath: string | null | undefined, index: number): string
 
 function stockLabel(item: CartItem): { text: string; className: string } {
   const stock = item.stock_quantity;
+  const remainingStock = Math.max(stock - item.quantity, 0);
   if (item.stock_status === "out_of_stock" || stock <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
   }
   if (stock <= 5) {
-    return { text: `Only ${stock} left`, className: "text-[#EA580C]" };
+    return { text: `Only ${remainingStock} left`, className: "text-[#EA580C]" };
   }
   return { text: "In Stock", className: "text-[#16A34A]" };
 }
 
 function isCartItemOutOfStock(item: CartItem): boolean {
-  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity) <= 0;
+  const stock = toNumber(item.stock_quantity);
+  return item.stock_status === "out_of_stock" || stock <= 0 || item.quantity > stock;
 }
 
 export default function CommunityCartPage() {
@@ -285,7 +287,7 @@ export default function CommunityCartPage() {
                               <button
                                 type="button"
                                 onClick={() => updateQuantity(item, item.quantity + 1)}
-                                disabled={busyItemId === item.id}
+                                disabled={busyItemId === item.id || item.quantity >= item.stock_quantity}
                                 className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DFDFDF] text-[#374151] disabled:opacity-50"
                                 aria-label={`Increase ${item.product_name} quantity`}
                               >

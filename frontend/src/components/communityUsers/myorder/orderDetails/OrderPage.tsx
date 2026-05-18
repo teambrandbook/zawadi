@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ShoppingCart } from "lucide-react"; // Added for the icon
 import ProductDetails, { ProductDetailsCard } from "./ProductDetails";
-import PackSelector from "./PackSelector";
 import QuantitySelector from "./QuantitySelector";
 import DeliveryInformation from "./DeliveryInformation";
 import OrderSummary from "./OrderSummary";
@@ -41,6 +40,7 @@ type ApiProduct = {
   stock_quantity: number;
   stock_status?: string;
   image?: string | null;
+  alternative_images?: string[];
   variants?: ApiVariant[];
 };
 
@@ -137,7 +137,8 @@ function isProductOutOfStock(product: ApiProduct): boolean {
 }
 
 function isCartItemOutOfStock(item: CartItem): boolean {
-  return item.stock_status === "out_of_stock" || toNumber(item.stock_quantity ?? 0) <= 0;
+  const stock = toNumber(item.stock_quantity ?? 0);
+  return item.stock_status === "out_of_stock" || stock <= 0 || item.quantity > stock;
 }
 
 export default function OrderPage() {
@@ -428,16 +429,10 @@ export default function OrderPage() {
                     productName={selectedProduct.product_name}
                     productDescription={selectedProduct.short_description}
                     productImage={toImageUrl(selectedProduct.image)}
+                    alternativeImages={(selectedProduct.alternative_images ?? []).map(toImageUrl)}
                   />
                 ) : (
                   <ProductDetails />
-                )}
-                {packs.length > 0 ? (
-                  <PackSelector packs={packs} selectedPackId={selectedPackId} onSelectPack={setSelectedPackId} />
-                ) : (
-                  <div className="rounded-lg border border-[#DFDFDF] bg-white px-4 py-3 text-sm text-[#6B7280]">
-                    No packs available for this product right now.
-                  </div>
                 )}
                 <QuantitySelector quantity={quantity} max={maxQuantity} onQuantityChange={setQuantity} />
               </>

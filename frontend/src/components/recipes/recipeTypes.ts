@@ -7,6 +7,7 @@ export type RecipeNutrition = {
 
 export type Recipe = {
   id: string;
+  slug?: string;
   title: string;
   description: string;
   benefits?: string[];

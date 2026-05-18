@@ -3,27 +3,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { historySliderAnimation } from "@/utils/animations";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 
 const historyItems = [
   {
     image: "/home/historyImg1.webp",
-    text:
-      "Zewadi started with one simple belief: food should feel warm, personal, and worth gathering around.",
+    text: "Zewadi started with one simple belief: food should feel warm, personal, and worth gathering around.",
   },
   {
     image: "/home/historyImg4.webp",
-    text:
-      "As the idea grew, each dish became part of a bigger story about comfort, care, and everyday connection.",
+    text: "As the idea grew, each dish became part of a bigger story about comfort, care, and everyday connection.",
   },
   {
     image: "/home/historyImg2.webp",
-    text:
-      "The journey kept expanding through shared tables, thoughtful details, and moments people wanted to come back to.",
+    text: "The journey kept expanding through shared tables, thoughtful details, and moments people wanted to come back to.",
   },
   {
     image: "/home/historyImg3.webp",
-    text:
-      "Today, Zewadi continues to grow by turning simple meals into memorable experiences for the people around it.",
+    text: "Today, Zewadi continues to grow by turning simple meals into memorable experiences for the people around it.",
   },
 ];
 
@@ -34,7 +31,10 @@ const HistorySection = () => {
   const wheelLockRef = useRef(false);
   const wheelDeltaRef = useRef(0);
   const wheelResetTimeoutRef = useRef<number | null>(null);
-  const touchStartYRef = useRef<number | null>(null);
+  const touchStartRef = useRef({ x: 0, y: 0 });
+  const touchLastRef = useRef({ x: 0, y: 0 });
+  const touchGestureRef = useRef<"horizontal" | "vertical" | null>(null);
+  const swipeLockRef = useRef(false);
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -50,6 +50,22 @@ const HistorySection = () => {
   const prev = () => {
     setSlideDirection(-1);
     setActiveIndex((prev) => (prev - 1 + historyItems.length) % historyItems.length);
+  };
+
+  const moveSlide = (direction: 1 | -1) => {
+    if (swipeLockRef.current) return;
+
+    swipeLockRef.current = true;
+
+    if (direction > 0) {
+      next();
+    } else {
+      prev();
+    }
+
+    window.setTimeout(() => {
+      swipeLockRef.current = false;
+    }, 520);
   };
 
   const isSmallScreen = () => window.matchMedia("(max-width: 1023px)").matches;
@@ -116,18 +132,59 @@ const HistorySection = () => {
     }, 560);
   };
 
-  const handleTouchStart = (event: React.TouchEvent<HTMLElement>) => {
-    touchStartYRef.current = event.touches[0]?.clientY ?? null;
+  const handleTouchStart = (e: React.TouchEvent<HTMLElement>) => {
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+    touchLastRef.current = touchStartRef.current;
+    touchGestureRef.current = null;
   };
 
-  const handleTouchMove = (event: React.TouchEvent<HTMLElement>) => {
-    if (!isSmallScreen() || !isSectionCentered()) {
-      return;
+  const handleTouchMove = (e: React.TouchEvent<HTMLElement>) => {
+    if (e.touches.length !== 1) return;
+
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStartRef.current.x;
+    const deltaY = touch.clientY - touchStartRef.current.y;
+
+    touchLastRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+    };
+
+    if (!touchGestureRef.current && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > 10) {
+      touchGestureRef.current =
+        Math.abs(deltaX) > Math.abs(deltaY) * 1.15 ? "horizontal" : "vertical";
+    }
+
+    if (touchGestureRef.current === "horizontal") {
+      e.preventDefault();
     }
   };
 
-  const handleTouchEnd = () => {
-    touchStartYRef.current = null;
+  const handleTouchEnd = (e: React.TouchEvent<HTMLElement>) => {
+    const touch = e.changedTouches[0];
+    const touchEndX = touch?.clientX ?? touchLastRef.current.x;
+    const touchEndY = touch?.clientY ?? touchLastRef.current.y;
+
+    const deltaX = touchEndX - touchStartRef.current.x;
+    const deltaY = touchEndY - touchStartRef.current.y;
+    const minSwipeDistance = 44;
+
+    if (
+      touchGestureRef.current === "horizontal" &&
+      Math.abs(deltaX) > minSwipeDistance &&
+      Math.abs(deltaX) > Math.abs(deltaY) * 1.15
+    ) {
+      moveSlide(deltaX < 0 ? 1 : -1);
+    }
+
+    touchGestureRef.current = null;
   };
 
   useEffect(() => {
@@ -145,7 +202,11 @@ const HistorySection = () => {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full bg-white py-20 lg:py-32"
+      onTouchCancel={() => {
+        touchGestureRef.current = null;
+      }}
+      className="relative w-full bg-[#fffef5] py-20 lg:py-32 select-none touch-pan-y"
+      style={{ touchAction: "pan-y" }}
     >
       <div className="container mx-auto px-6 lg:px-12">
         <div className="relative w-full overflow-hidden rounded-[40px] bg-[#244d3a] p-8 lg:rounded-[50px] lg:p-20">
@@ -168,34 +229,35 @@ const HistorySection = () => {
               </p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex gap-4 self-end lg:self-auto">
               <button
-                onClick={prev}
+                onClick={() => moveSlide(-1)}
                 aria-label="Previous history slide"
-                className="flex h-[45px] w-[45px] items-center justify-center rounded-full border border-white/50 text-white transition-colors hover:bg-[#b47800]"
+                className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:w-11"
               >
-                <span aria-hidden="true" className="text-lg leading-none">
-                  &larr;
-                </span>
+                <ArrowLeft className="h-5 w-5 text-[#fdf6ee]" />
               </button>
 
               <button
-                onClick={next}
+                onClick={() => moveSlide(1)}
                 aria-label="Next history slide"
-                className="flex h-[45px] w-[45px] items-center justify-center rounded-full border border-white/50 text-white transition-colors hover:bg-[#b47800]"
+                className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:w-11"
               >
-                <span aria-hidden="true" className="text-lg leading-none">
-                  &rarr;
-                </span>
+                <ArrowRight className="h-5 w-5 text-[#fdf6ee]" />
               </button>
             </div>
           </div>
 
+          {/* Timeline Dots */}
           <div className="relative z-10 my-10 flex items-center justify-between ml-10 md:pl-18 lg:my-12 lg:pl-50">
             {historyItems.map((_, i) => (
               <div key={i} className="flex flex-1 items-center">
-                <div
-                  className={`timeline-dot z-10 flex h-8 w-8 items-center justify-center rounded-full ${
+                <button
+                  onClick={() => {
+                    setSlideDirection(i > activeIndex ? 1 : -1);
+                    setActiveIndex(i);
+                  }}
+                  className={`timeline-dot z-10 flex h-8 w-8 items-center justify-center rounded-full transition-colors duration-300 ${
                     i === activeIndex ? "dot-active bg-[#b47800]" : "bg-white"
                   }`}
                 >
@@ -204,16 +266,17 @@ const HistorySection = () => {
                       i === activeIndex ? "bg-white" : "bg-[#244d3a]"
                     }`}
                   />
-                </div>
+                </button>
 
                 {i !== historyItems.length - 1 && <div className="h-[1px] flex-1 bg-white/30" />}
               </div>
             ))}
           </div>
 
+          {/* Mobile Display */}
           <div className="relative z-10 min-h-[380px] overflow-hidden lg:hidden">
             <div
-              key={historyItems[activeIndex].image}
+              key={activeIndex} 
               data-history-card
               className="active-card relative z-10 h-[380px] w-full"
             >
@@ -223,6 +286,7 @@ const HistorySection = () => {
                   alt={`Zewadi history moment ${activeIndex + 1}`}
                   fill
                   className="object-cover"
+                  priority
                 />
               </div>
 
@@ -232,6 +296,7 @@ const HistorySection = () => {
             </div>
           </div>
 
+          {/* Desktop Display */}
           <div className="relative z-10 hidden overflow-hidden lg:flex lg:min-h-[420px] lg:items-end lg:gap-6">
             {historyItems.map((item, i) => {
               const isActive = i === activeIndex;

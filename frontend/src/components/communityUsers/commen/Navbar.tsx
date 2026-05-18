@@ -66,6 +66,10 @@ function isCommunityRole(role: string): boolean {
   return role.toLowerCase() === "community_user";
 }
 
+function canReceiveNotifications(role: string): boolean {
+  return ["admin", "internal_staff", "community_user", "consultant"].includes(role.toLowerCase());
+}
+
 function getInitials(name: string, email: string): string {
   const nameInitials = name
     .trim()
@@ -137,18 +141,19 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
+  const hasNotificationInbox = canReceiveNotifications(user.role);
   // ref kept for future use (e.g. click-outside on bell area)
   const _bellRef = useRef<HTMLDivElement>(null);
 
   const fetchUnreadCount = useCallback(async () => {
-    if (!isCommunityUser) return;
+    if (!hasNotificationInbox) return;
     try {
       const { data } = await api.get<{ count: number }>("/notifications/inbox/unread-count/");
       setUnreadCount(data.count ?? 0);
     } catch {
       // silently ignore
     }
-  }, [isCommunityUser]);
+  }, [hasNotificationInbox]);
 
   useEffect(() => {
     void fetchUnreadCount();
@@ -160,6 +165,8 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     let isMounted = true;
 
     async function loadProfile() {
+      if (!getAccessToken()) return;
+
       try {
         const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {
@@ -228,27 +235,25 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
       {/* Logo */}
       <div className="absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0 lg:flex items-center">
-        <div className="relative w-24 lg:w-60 flex-shrink-0">
+        <div className="relative h-20 w-[96px] flex-shrink-0 lg:w-[190px]">
           <Link
             href="/"
-            className="absolute top-[-40px] left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 w-24 lg:w-32 h-28 lg:h-36 bg-[#F5E6CA] rounded-b-3xl shadow-lg flex flex-col items-center justify-center pt-8 pb-4 border-x border-b border-black/5 hover:bg-[#ebd8b4] transition-colors group z-20"
+            className="absolute left-1/2 top-0 z-20 flex h-[96px] w-[96px] -translate-x-1/2 items-center justify-center overflow-hidden rounded-b-[20px] bg-[#EBE1CF] p-3 shadow-[0_3px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#E3D6BE] lg:left-0 lg:h-[111px] lg:w-[124px] lg:translate-x-0 lg:p-4"
+            aria-label="Go to Zewadi home"
           >
-            <div className="relative w-12 h-12 lg:w-20 lg:h-20  overflow-hidden mb-1 bg-white">
-              <Image
-                src="/logo/zewadi-logo.webp"
-                alt="ZEWADI Logo"
-                fill
-                className="object-cover group-hover:scale-110 transition-transform"
-              />
-            </div>
-            <span className="text-[#0A4834] font-bold tracking-[0.2em] text-[7px] lg:text-[10px] uppercase mt-1">
-              ZEWADI
-            </span>
+            <Image
+              src="/logo/zewadi-logo.webp"
+              alt="ZEWADI Logo"
+              width={112}
+              height={84}
+              priority
+              className="h-auto w-[112%] max-w-none object-contain [filter:brightness(0)_saturate(100%)_invert(22%)_sepia(36%)_saturate(868%)_hue-rotate(108deg)_brightness(91%)_contrast(93%)]"
+            />
           </Link>
         </div>
 
         {/* Welcome Greeting (Desktop Only) */}
-        <div className="hidden lg:flex flex-col min-w-0 ml-4">
+        <div className="hidden lg:flex flex-col min-w-0 ml-5">
           <h1 className="text-xl font-bold text-gray-900 leading-tight truncate">
             Hi, {user.firstName || "there"}
           </h1>

@@ -7,8 +7,9 @@ import {
   ArrowRight,
   Banknote,
   ChevronRight,
+  CreditCard,
+  MapPin,
   Plus,
-  Truck,
 } from "lucide-react";
 import { FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
 import { useEffect, useState } from "react";
@@ -34,6 +35,30 @@ type SavedAddress = {
   address_line: string;
   city: string;
   postal_code: string;
+};
+
+type CartItem = {
+  id: number;
+  product_name: string;
+  product_subtitle?: string;
+  image?: string | null;
+  currency?: string;
+  quantity: number;
+  line_total: string | number;
+};
+
+type CartSummary = {
+  subtotal: string;
+  shipping: string;
+  tax: string;
+  total: string;
+};
+
+const emptySummary: CartSummary = {
+  subtotal: "0.00",
+  shipping: "0.00",
+  tax: "0.00",
+  total: "0.00",
 };
 
 const addOns = [
@@ -64,44 +89,48 @@ const paymentIcons = [
   { label: "Apple Pay", Icon: FaCcApplePay, className: "text-[#111827]" },
 ];
 
+function formatMoney(value: string | number) {
+  return money.format(Number(value) || 0);
+}
+
 function CheckoutBreadcrumb() {
   return (
-    <nav aria-label="Checkout progress" className="flex flex-wrap items-center gap-2 text-sm">
-      <Link href="/cart" className="font-medium text-[#6b7280] transition hover:text-[#1f4d3a]">
+    <nav aria-label="Checkout progress" className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+      <Link href="/cart" className="text-[#8B918A] transition hover:text-[#1f4d3a]">
         Cart
       </Link>
-      <ChevronRight size={13} className="text-[#9ca3af]" />
-      <span className="font-bold text-[#1f4d3a]">Payment</span>
-      <ChevronRight size={13} className="text-[#9ca3af]" />
-      <span className="font-medium text-[#6b7280] opacity-50">Confirmation</span>
+      <ChevronRight size={11} className="text-[#A6ADA5]" />
+      <span className="text-[#1f4d3a]">Payment</span>
+      <ChevronRight size={11} className="text-[#A6ADA5]" />
+      <span className="text-[#A6ADA5]">Confirmation</span>
     </nav>
   );
 }
 
 function AddOnCard({ product }: { product: (typeof addOns)[number] }) {
   return (
-    <article className="rounded-2xl border border-[#f3f4f6] bg-white p-4 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">
-      <div className="relative flex h-[172px] items-center justify-center overflow-hidden rounded-xl bg-[#f9fafb] p-5">
+    <article className="rounded-[12px] border border-[#ECEDE7] bg-white p-3 shadow-[0_10px_24px_rgba(15,65,45,0.06)]">
+      <div className="relative flex h-[118px] items-center justify-center overflow-hidden rounded-[10px] bg-[#F6F7F5] p-4">
         <Image
           src={product.image}
           alt={product.name}
           fill
-          sizes="(min-width: 1024px) 360px, 90vw"
+          sizes="(min-width: 1024px) 320px, 90vw"
           className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
         />
       </div>
       <div className="mt-3">
-        <h3 className="text-base font-bold leading-6 text-[#1f4d3a]">{product.name}</h3>
-        <p className="text-xs leading-[18px] text-[#6b7280]">{product.variant}</p>
+        <h3 className="text-[12px] font-bold leading-4 text-[#143F2F]">{product.name}</h3>
+        <p className="text-[10px] leading-4 text-[#8A928C]">{product.variant}</p>
       </div>
-      <div className="mt-5 flex items-center justify-between">
-        <p className="text-base font-bold leading-6 text-[#1f4d3a]">{money.format(product.price)}</p>
+      <div className="mt-3 flex items-center justify-between">
+        <p className="text-[12px] font-bold leading-4 text-[#143F2F]">{money.format(product.price)}</p>
         <button
           type="button"
           aria-label={`Add ${product.name}`}
-          className="flex size-8 items-center justify-center rounded-full border border-[#e5e7eb] text-[#1f4d3a] transition hover:border-[#1f4d3a] hover:bg-[#1f4d3a] hover:text-white"
+          className="flex size-6 items-center justify-center rounded-full border border-[#DDE2DA] text-[#1f4d3a] transition hover:border-[#1f4d3a] hover:bg-[#1f4d3a] hover:text-white"
         >
-          <Plus size={14} strokeWidth={2.8} />
+          <Plus size={11} strokeWidth={2.8} />
         </button>
       </div>
     </article>
@@ -115,6 +144,8 @@ export default function Payment() {
   const [showForm, setShowForm] = useState(false);
   const [saveAddress, setSaveAddress] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartSummary, setCartSummary] = useState<CartSummary>(emptySummary);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
@@ -137,6 +168,17 @@ export default function Payment() {
       })
       .catch(() => {
         setShowForm(true);
+      });
+
+    api
+      .get<{ items?: CartItem[]; summary?: CartSummary }>("/orders/cart/")
+      .then((res) => {
+        setCartItems(res.data.items ?? []);
+        setCartSummary(res.data.summary ?? emptySummary);
+      })
+      .catch(() => {
+        setCartItems([]);
+        setCartSummary(emptySummary);
       });
   }, []);
 
@@ -254,47 +296,44 @@ export default function Payment() {
   }
 
   return (
-    <main className="bg-[#fffef5] px-4 pb-24 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
-      <div className="mx-auto max-w-[1100px]">
+    <main className="bg-[#fffef5] px-4 pb-24 pt-28 sm:px-6 md:pt-36 lg:px-12 xl:px-24">
+      <div className="mx-auto max-w-[980px]">
         <CheckoutBreadcrumb />
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_350px]">
-          <div className="space-y-8">
+        <div className="mt-5 grid gap-7 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-start">
+          <div className="space-y-5">
             <header>
-              <h1 className="text-3xl font-bold leading-9 text-[#1f4d3a]">Shipping & Payment</h1>
-              <p className="mt-2 text-base leading-6 text-[#6b7280]">
+              <h1 className="text-[24px] font-bold leading-8 text-[#1f4d3a]">Payment Method</h1>
+              <p className="mt-1 text-[12px] leading-5 text-[#7C857E]">
                 Complete your purchase by providing your delivery details.
               </p>
             </header>
 
-            {/* Shipping Address Section */}
-            <section className="rounded-2xl border border-[#f3f4f6] bg-white p-5 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:p-8">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <h2 className="text-lg font-bold leading-7 text-[#1f4d3a]">Shipping Address</h2>
+            <section className="rounded-[14px] border border-[#ECEDE7] bg-white p-4 shadow-[0_12px_28px_rgba(15,65,45,0.07)] sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-[13px] font-bold leading-5 text-[#143F2F]">Shipping Address</h2>
                 {savedAddresses.length > 0 && !showForm && (
                   <button
                     type="button"
                     onClick={() => { setShowForm(true); setSelectedAddressId(null); }}
-                    className="inline-flex items-center gap-1 self-start text-sm font-bold text-[#1f4d3a] transition hover:text-[#1a4331]"
+                    className="inline-flex items-center gap-1 self-start text-[11px] font-bold text-[#1f4d3a] transition hover:text-[#1a4331]"
                   >
-                    <Plus size={14} strokeWidth={2.8} />
-                    Use Different Address
+                    <Plus size={12} strokeWidth={2.8} />
+                    Add New Address
                   </button>
                 )}
               </div>
 
-              {/* Saved addresses */}
               {savedAddresses.length > 0 && !showForm && (
-                <div className="mt-4">
-                  <p className="text-xs font-bold uppercase text-[#374151] mb-2">Saved Addresses</p>
+                <div className="mt-3">
                   <div className="space-y-2">
                     {savedAddresses.map((addr) => (
                       <label
                         key={addr.id}
-                        className={`flex items-start gap-3 rounded-lg border-2 p-3 cursor-pointer transition-all ${
+                        className={`flex cursor-pointer items-start gap-3 rounded-[10px] border px-3 py-3 transition-all ${
                           selectedAddressId === addr.id
-                            ? "border-[#0a4833] bg-[#f0faf5]"
-                            : "border-gray-200 bg-white"
+                            ? "border-[#D7E5DC] bg-[#F7FAF6]"
+                            : "border-[#ECEDE7] bg-[#F8F9F7]"
                         }`}
                       >
                         <input
@@ -305,9 +344,10 @@ export default function Payment() {
                           onChange={() => setSelectedAddressId(addr.id)}
                           className="mt-0.5 accent-[#0a4833]"
                         />
-                        <div className="text-xs text-[#374151]">
-                          <p className="font-semibold">{addr.label || "Saved Address"}</p>
-                          <p>
+                        <MapPin size={14} className="mt-0.5 shrink-0 text-[#1f4d3a]" />
+                        <div className="text-[11px] leading-4 text-[#6B746E]">
+                          <p className="font-bold text-[#143F2F]">{addr.label || "Saved Address"}</p>
+                          <p className="mt-0.5">
                             {addr.full_name} - {addr.phone}
                           </p>
                           <p>
@@ -320,24 +360,23 @@ export default function Payment() {
                 </div>
               )}
 
-              {/* New address form */}
               {showForm && (
-                <div className="mt-4 space-y-4">
+                <div className="mt-4 space-y-3">
                   {savedAddresses.length > 0 && (
                     <button
                       type="button"
                       onClick={() => { setShowForm(false); setSelectedAddressId(savedAddresses[0].id); }}
-                      className="text-xs text-[#0a4833] underline"
+                      className="text-[11px] font-semibold text-[#0a4833] underline"
                     >
                       Use a saved address
                     </button>
                   )}
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block">
-                      <span className="text-sm font-medium leading-[21px] text-[#4b5563]">Full Name</span>
-                      <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                      <span className="text-[11px] font-medium leading-4 text-[#66706A]">Full Name</span>
+                      <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                         <input
-                          className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                          className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                           placeholder="Jane Doe"
                           value={form.full_name}
                           onChange={(e) => handleFormChange("full_name", e.target.value)}
@@ -345,10 +384,10 @@ export default function Payment() {
                       </span>
                     </label>
                     <label className="block">
-                      <span className="text-sm font-medium leading-[21px] text-[#4b5563]">Phone</span>
-                      <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                      <span className="text-[11px] font-medium leading-4 text-[#66706A]">Phone</span>
+                      <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                         <input
-                          className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                          className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                           placeholder="+91 9876543210"
                           value={form.phone}
                           onChange={(e) => handleFormChange("phone", e.target.value)}
@@ -357,22 +396,22 @@ export default function Payment() {
                     </label>
                   </div>
                   <label className="block">
-                    <span className="text-sm font-medium leading-[21px] text-[#4b5563]">Address</span>
-                    <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                    <span className="text-[11px] font-medium leading-4 text-[#66706A]">Address</span>
+                    <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                       <input
-                        className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                        className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                         placeholder="123 Main Street"
                         value={form.address}
                         onChange={(e) => handleFormChange("address", e.target.value)}
                       />
                     </span>
                   </label>
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block">
-                      <span className="text-sm font-medium leading-[21px] text-[#4b5563]">City</span>
-                      <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                      <span className="text-[11px] font-medium leading-4 text-[#66706A]">City</span>
+                      <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                         <input
-                          className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                          className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                           placeholder="Mumbai"
                           value={form.city}
                           onChange={(e) => handleFormChange("city", e.target.value)}
@@ -380,10 +419,10 @@ export default function Payment() {
                       </span>
                     </label>
                     <label className="block">
-                      <span className="text-sm font-medium leading-[21px] text-[#4b5563]">Postal Code</span>
-                      <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                      <span className="text-[11px] font-medium leading-4 text-[#66706A]">Postal Code</span>
+                      <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                         <input
-                          className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                          className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                           placeholder="400001"
                           value={form.postal_code}
                           onChange={(e) => handleFormChange("postal_code", e.target.value)}
@@ -392,10 +431,10 @@ export default function Payment() {
                     </label>
                   </div>
                   <label className="block">
-                    <span className="text-sm font-medium leading-[21px] text-[#4b5563]">Delivery Instructions (optional)</span>
-                    <span className="mt-2 flex min-h-[54px] items-center rounded-xl border border-[#e5e7eb] bg-[#f9fafb] px-4 py-3 focus-within:border-[#1f4d3a]">
+                    <span className="text-[11px] font-medium leading-4 text-[#66706A]">Delivery Instructions (optional)</span>
+                    <span className="mt-1.5 flex min-h-[42px] items-center rounded-[9px] border border-[#E7EAE5] bg-[#F7F8F7] px-3 py-2 focus-within:border-[#1f4d3a]">
                       <input
-                        className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#1f4d3a] outline-none placeholder:text-[#9ca3af]"
+                        className="min-w-0 flex-1 bg-transparent text-[12px] leading-5 text-[#1f4d3a] outline-none placeholder:text-[#A0A7A2]"
                         placeholder="Leave at door, etc."
                         value={form.instructions}
                         onChange={(e) => handleFormChange("instructions", e.target.value)}
@@ -407,80 +446,135 @@ export default function Payment() {
                       type="checkbox"
                       checked={saveAddress}
                       onChange={(e) => setSaveAddress(e.target.checked)}
-                      className="accent-[#0a4833] size-4"
+                      className="size-3.5 accent-[#0a4833]"
                     />
-                    <span className="text-sm leading-[21px] text-[#4b5563]">Save this address for future orders</span>
+                    <span className="text-[11px] leading-4 text-[#66706A]">Save address for future purchases</span>
                   </label>
                 </div>
               )}
             </section>
 
-            {/* Payment Method */}
-            <section className="rounded-2xl border border-[#f3f4f6] bg-white p-5 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:p-8">
-              <h2 className="text-lg font-bold leading-7 text-[#1f4d3a] mb-4">Payment Method</h2>
-              <div className="flex h-24 w-full max-w-[200px] flex-col items-center justify-center gap-1 rounded-2xl border-2 border-[#1f4d3a] bg-white px-5 text-center text-[#1f4d3a]">
-                <Banknote size={23} />
-                <span className="mt-2 text-[13px] font-medium leading-[14px]">COD</span>
-                <span className="text-[10px] leading-3 text-[#9ca3af]">Pay on delivery</span>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="flex min-h-[72px] items-center justify-center gap-2 rounded-[12px] border border-[#1f4d3a] bg-white px-4 text-center text-[#1f4d3a] shadow-[0_8px_18px_rgba(15,65,45,0.04)]">
+                <Banknote size={18} />
+                <div>
+                  <p className="text-[12px] font-bold leading-4">COD</p>
+                  <p className="text-[10px] leading-4 text-[#8A928C]">Pay on delivery</p>
+                </div>
               </div>
-            </section>
-
-            {/* Place Order Button */}
-            <button
-              type="button"
-              onClick={handlePlaceOrder}
-              disabled={submitting}
-              className="flex h-[58px] w-full items-center justify-center gap-2 rounded-2xl bg-[#1f4d3a] text-lg font-bold text-white transition hover:bg-[#1a4331] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {submitting ? "Placing Order..." : "Place Order"}
-              {!submitting && <ArrowRight size={17} />}
-            </button>
+              <div className="flex min-h-[72px] items-center justify-center gap-2 rounded-[12px] border border-[#E7EAE5] bg-white px-4 text-center text-[#9AA39D] shadow-[0_8px_18px_rgba(15,65,45,0.04)]">
+                <CreditCard size={18} />
+                <div>
+                  <p className="text-[12px] font-bold leading-4">Card</p>
+                  <p className="text-[10px] leading-4">Coming soon</p>
+                </div>
+              </div>
+            </div>
 
             <Link
               href="/cart"
-              className="inline-flex items-center gap-2 text-base font-bold leading-6 text-[#1f4d3a] transition hover:text-[#1a4331]"
+              className="inline-flex items-center gap-2 text-[12px] font-bold leading-5 text-[#1f4d3a] transition hover:text-[#1a4331]"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={13} />
               Back to Cart
             </Link>
           </div>
 
-          {/* Order Summary Sidebar */}
           <aside className="space-y-4 lg:sticky lg:top-28">
-            <section className="rounded-3xl border border-[#f3f4f6] bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.05)] sm:p-8">
-              <h2 className="text-2xl font-bold leading-9 text-[#1f4d3a]">Order Summary</h2>
+            <section className="rounded-[14px] border border-[#ECEDE7] bg-white p-5 shadow-[0_16px_36px_rgba(15,65,45,0.08)]">
+              <h2 className="text-[16px] font-bold leading-6 text-[#143F2F]">Order Summary</h2>
 
-              <div className="mt-6 flex items-center gap-3 rounded-xl border border-[#e5e7eb] bg-[#f9fafb] p-3">
-                <Truck size={18} className="text-[#1f4d3a]" />
-                <p className="text-sm text-[#4b5563]">
-                  Cash on Delivery - Pay when your order arrives
-                </p>
+              <div className="mt-5 space-y-3 text-[11px] leading-4 text-[#7C857E]">
+                <div className="flex items-center justify-between gap-4">
+                  <span>Subtotal</span>
+                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.subtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span>Shipping</span>
+                  <span className="font-bold text-[#143F2F]">
+                    {Number(cartSummary.shipping) === 0 ? "Free" : formatMoney(cartSummary.shipping)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-4">
+                  <span>Estimated Tax</span>
+                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.tax)}</span>
+                </div>
               </div>
 
+              <div className="mt-4 flex items-center gap-2 rounded-[9px] bg-[#F5F7F4] p-1.5">
+                <input
+                  aria-label="Promo code"
+                  placeholder="Promo code"
+                  className="min-w-0 flex-1 bg-transparent px-2 text-[11px] text-[#143F2F] outline-none placeholder:text-[#A3AAA5]"
+                />
+                <button type="button" className="rounded-[7px] bg-[#1f4d3a] px-3 py-1.5 text-[10px] font-bold text-white">
+                  Apply
+                </button>
+              </div>
+
+              <div className="mt-5 flex items-center justify-between border-t border-[#ECEDE7] pt-4">
+                <span className="text-[12px] font-bold text-[#143F2F]">Total</span>
+                <span className="text-[22px] font-bold leading-7 text-[#1f4d3a]">{formatMoney(cartSummary.total)}</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handlePlaceOrder}
+                disabled={submitting}
+                className="mt-4 flex h-[42px] w-full items-center justify-center gap-2 rounded-[9px] bg-[#1f4d3a] text-[12px] font-bold text-white transition hover:bg-[#1a4331] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {submitting ? "Placing Order..." : "Complete Payment"}
+                {!submitting && <ArrowRight size={13} />}
+              </button>
+
               <div
-                className="mt-6 flex flex-wrap items-center justify-center gap-2"
+                className="mt-4 flex flex-wrap items-center justify-center gap-2 text-[#9AA39D]"
                 aria-label="Accepted payment methods"
               >
                 {paymentIcons.map(({ label, Icon, className }) => (
                   <span
                     key={label}
-                    className="inline-flex h-8 min-w-12 items-center justify-center rounded-md border border-[#e5e7eb] bg-white px-2 shadow-sm"
+                    className="inline-flex h-4 min-w-5 items-center justify-center"
                     title={label}
                     aria-label={label}
                   >
-                    <Icon className={`text-2xl ${className}`} aria-hidden="true" />
+                    <Icon className={`text-base opacity-45 ${className}`} aria-hidden="true" />
                   </span>
                 ))}
               </div>
             </section>
+
+            {cartItems[0] ? (
+              <section className="rounded-[12px] border border-[#ECEDE7] bg-white p-3 shadow-[0_10px_24px_rgba(15,65,45,0.06)]">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-[8px] bg-[#F5F7F4]">
+                    <Image
+                      src={cartItems[0].image || "/product/p-1.webp"}
+                      alt={cartItems[0].product_name}
+                      fill
+                      sizes="48px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[11px] font-bold leading-4 text-[#143F2F]">{cartItems[0].product_name}</p>
+                    <p className="text-[10px] leading-4 text-[#8A928C]">Quantity: {cartItems[0].quantity}</p>
+                  </div>
+                  <p className="text-[10px] font-bold text-[#143F2F]">{formatMoney(cartItems[0].line_total)}</p>
+                </div>
+                {cartItems.length > 1 ? (
+                  <p className="mt-2 text-center text-[10px] text-[#8A928C]">+{cartItems.length - 1} more item{cartItems.length > 2 ? "s" : ""}</p>
+                ) : null}
+              </section>
+            ) : null}
           </aside>
         </div>
 
-        <section className="mt-16 pt-4">
-          <h2 className="text-2xl font-bold leading-8 text-[#1f4d3a]">
+        <section className="mt-14 pt-2">
+          <h2 className="text-[16px] font-bold leading-6 text-[#143F2F]">
             Complete your order with these
           </h2>
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
             {addOns.map((product) => (
               <AddOnCard key={product.name} product={product} />
             ))}

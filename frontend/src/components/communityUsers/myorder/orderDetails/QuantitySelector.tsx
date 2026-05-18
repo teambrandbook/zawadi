@@ -10,6 +10,7 @@ const LOW_STOCK_THRESHOLD = 5;
 
 export default function QuantitySelector({ quantity, max, onQuantityChange }: Props) {
   const isOutOfStock = max <= 0;
+  const remainingStock = Math.max(max - quantity, 0);
   const showStockText = max <= LOW_STOCK_THRESHOLD;
 
   return (
@@ -24,7 +25,7 @@ export default function QuantitySelector({ quantity, max, onQuantityChange }: Pr
                 : "border-[#FED7AA] bg-[#FFF7ED] text-[#C2410C]"
             }`}
           >
-            {isOutOfStock ? "Out of stock" : `Only ${max} left`}
+            {isOutOfStock ? "Out of stock" : `Only ${remainingStock} left`}
           </p>
         )}
       </div>

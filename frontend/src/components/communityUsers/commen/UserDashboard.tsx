@@ -37,7 +37,7 @@ const UserDashboard = ({ onClose }: Props) => {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 h-full bg-white p-6 md:pt-30 flex flex-col space-y-4 overflow-y-auto">
+    <aside className="sidebar-scrollbar-hidden w-64 h-full overflow-y-auto bg-white p-5 md:pt-24 flex flex-col space-y-3">
 
       {/* 🔥 remove pt-20 (handled by layout now) */}
 
@@ -65,7 +65,7 @@ const UserDashboard = ({ onClose }: Props) => {
             {/* Icon */}
             <div
               className={`
-                flex items-center justify-center w-12 h-12 rounded-full transition-all
+                flex items-center justify-center w-10 h-10 rounded-full transition-all
                 ${
                   isActive
                     ? 'bg-[#06402B] text-white'
@@ -79,7 +79,7 @@ const UserDashboard = ({ onClose }: Props) => {
             {/* Label */}
             <div
               className={`
-                flex-1 py-3 px-6 rounded-full font-semibold text-sm transition-all
+                flex-1 py-2.5 px-5 rounded-full font-semibold text-sm transition-all
                 ${
                   isActive
                     ? 'bg-[#06402B] text-white'

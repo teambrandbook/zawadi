@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Recipe, RecipeIngredient, RecipeStep
+from .models import FavoriteRecipe, Recipe, RecipeIngredient, RecipeStep
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -56,3 +56,11 @@ class RecipeAdmin(admin.ModelAdmin):
             "classes": ["collapse"],
         }),
     ]
+
+
+@admin.register(FavoriteRecipe)
+class FavoriteRecipeAdmin(admin.ModelAdmin):
+    list_display = ["user", "recipe", "created_at"]
+    list_filter = ["created_at"]
+    search_fields = ["user__email", "user__full_name", "recipe__title"]
+    readonly_fields = ["created_at"]

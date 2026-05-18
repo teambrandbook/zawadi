@@ -1,6 +1,11 @@
 import { Download } from "lucide-react";
 
-export default function ReportsHeader() {
+type ReportsHeaderProps = {
+  onExport: () => void;
+  isExporting?: boolean;
+};
+
+export default function ReportsHeader({ onExport, isExporting = false }: ReportsHeaderProps) {
   return (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
       <div>
@@ -10,9 +15,14 @@ export default function ReportsHeader() {
         </p>
       </div>
 
-      <button className="inline-flex items-center gap-2 self-start rounded-md border border-[#9C7A4D] bg-[#9C7A4D] px-4 py-2 text-sm font-medium text-white">
+      <button
+        type="button"
+        onClick={onExport}
+        disabled={isExporting}
+        className="inline-flex items-center gap-2 self-start rounded-md border border-[#9C7A4D] bg-[#9C7A4D] px-4 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-60"
+      >
         <Download size={14} />
-        Export Report
+        {isExporting ? "Exporting..." : "Export Report"}
       </button>
     </div>
   );

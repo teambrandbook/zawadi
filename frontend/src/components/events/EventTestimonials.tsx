@@ -3,7 +3,7 @@ import { MoveLeft, MoveRight } from "lucide-react";
 
 export default function EventTestimonials() {
   return (
-    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8">
+    <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1100px]">
         {/* Header */}
         <div className="mb-12 text-center">

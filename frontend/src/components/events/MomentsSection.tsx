@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export default function MomentsSection() {
   return (
-    <section className="bg-white px-4 pb-10 pt-6 sm:px-6 md:pb-14 md:pt-8 lg:px-0">
+    <section className="bg-[#fffef5] px-4 pb-10 pt-6 sm:px-6 md:pb-14 md:pt-8 lg:px-0">
       <div className="mx-auto max-w-[1200px] pt-20">
         <div className="relative overflow-hidden rounded-[12px]">
 

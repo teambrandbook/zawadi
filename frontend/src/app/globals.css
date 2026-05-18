@@ -36,6 +36,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html:not(.dashboard-native-scrollbar),
+html:not(.dashboard-native-scrollbar) body,
+html:not(.dashboard-native-scrollbar) :root,
+html:not(.dashboard-native-scrollbar) * {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html:not(.dashboard-native-scrollbar)::-webkit-scrollbar,
+html:not(.dashboard-native-scrollbar) body::-webkit-scrollbar,
+html:not(.dashboard-native-scrollbar) :root::-webkit-scrollbar,
+html:not(.dashboard-native-scrollbar) *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.sidebar-scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-scrollbar-hidden::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 .glass-morphism {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);

@@ -7,14 +7,13 @@ import {
   Camera,
   Clock3,
   Heart,
-  Leaf,
   UserRound,
   ReceiptText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { cn, getImageUrl } from "@/lib/utils";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/services/api";
+import api, { getAccessToken } from "@/services/api";
 import { toast } from "sonner";
 
 type UserProfile = {
@@ -42,41 +41,86 @@ type SavedAddress = {
   postal_code: string;
 };
 
+type BackendFavoriteRecipe = {
+  id: number | string;
+  slug?: string;
+  title: string;
+  cover_image?: string | null;
+  prep_time_minutes?: number | string | null;
+  cooking_time_minutes?: number | string | null;
+  difficulty_level?: string | null;
+};
+
+type BackendFavoriteItem = {
+  id: number | string;
+  recipe: BackendFavoriteRecipe;
+};
+
+type FavoriteRecipesResponse =
+  | BackendFavoriteItem[]
+  | {
+      data?: BackendFavoriteItem[];
+      results?: BackendFavoriteItem[];
+    };
+
+type FavoriteRecipeCard = {
+  id: string;
+  slug?: string;
+  title: string;
+  image: string;
+  time: string;
+  level: string;
+};
+
 const menuItems = [
-  { label: "My Profile", Icon: UserRound, active: true },
-  { label: "Orders", Icon: ReceiptText },
-  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png" },
+  { label: "My Profile", Icon: UserRound, href: "#personal-info", active: true },
+  { label: "Orders", Icon: ReceiptText, href: "/guestprofile/history" },
+  { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png", href: "#my-recipes" },
 ];
 
-const recipes = [
-  {
-    title: "Autumn Harvest Salad",
-    image: "/recipe/lunch-1.webp",
-    time: "25 mins",
-    level: "Easy",
-    saved: true,
-  },
-  {
-    title: "Zewadi Roots Stew",
-    image: "/recipe/dinner-2.webp",
-    time: "45 mins",
-    level: "Medium",
-    saved: false,
-  },
-  {
-    title: "Morning Energy Bowl",
-    image: "/recipe/recipe-3.webp",
-    time: "10 mins",
-    level: "Quick",
-    saved: true,
-  },
-];
+function favoriteListFromResponse(data: FavoriteRecipesResponse): BackendFavoriteItem[] {
+  return Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.results)
+    ? data.results
+    : [];
+}
+
+function formatDifficulty(value?: string | null) {
+  if (!value) return "Easy";
+  return value
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function mapFavoriteRecipe(item: BackendFavoriteItem): FavoriteRecipeCard {
+  const recipe = item.recipe;
+  const prep = Number(recipe.prep_time_minutes ?? 0);
+  const cooking = Number(recipe.cooking_time_minutes ?? 0);
+  const totalMinutes = prep + cooking;
+
+  return {
+    id: String(recipe.id),
+    slug: recipe.slug || String(recipe.id),
+    title: recipe.title,
+    image: recipe.cover_image ? getImageUrl(recipe.cover_image) : "/recipe/recipe-1.webp",
+    time: totalMinutes > 0 ? `${totalMinutes} mins` : "Recipe",
+    level: formatDifficulty(recipe.difficulty_level),
+  };
+}
+
+let guestProfileRedirectInFlight = false;
 
 export default function GuestProfile() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [favoriteRecipes, setFavoriteRecipes] = useState<FavoriteRecipeCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [upgrading, setUpgrading] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -85,13 +129,30 @@ export default function GuestProfile() {
   const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const redirectToLogin = useCallback(() => {
+    if (guestProfileRedirectInFlight) return;
+    guestProfileRedirectInFlight = true;
+    router.replace(`/login?next=${encodeURIComponent("/guestprofile")}`);
+    window.setTimeout(() => {
+      guestProfileRedirectInFlight = false;
+    }, 1000);
+  }, [router]);
+
   useEffect(() => {
-    Promise.all([
-      api.get("/account/me/"),
-      api.get("/orders/"),
-      api.get("/community/addresses/"),
-    ])
-      .then(([meRes, ordersRes, addrRes]) => {
+    if (!getAccessToken()) {
+      redirectToLogin();
+      return;
+    }
+
+    async function loadProfile() {
+      try {
+        const meRes = await api.get("/account/me/");
+        const [ordersRes, addrRes, favoritesRes] = await Promise.all([
+          api.get("/orders/"),
+          api.get("/community/addresses/"),
+          api.get<FavoriteRecipesResponse>("/recipes/favorites/"),
+        ]);
+
         setProfile(meRes.data);
         setEditName(meRes.data.full_name ?? "");
         setEditPhone(meRes.data.phone ?? "");
@@ -100,10 +161,17 @@ export default function GuestProfile() {
           : (ordersRes.data.results ?? []);
         setOrders(list.slice(0, 3));
         setAddresses(addrRes.data ?? []);
-      })
-      .catch(() => toast.error("Could not load profile."))
-      .finally(() => setLoading(false));
-  }, []);
+        setFavoriteRecipes(favoriteListFromResponse(favoritesRes.data).map(mapFavoriteRecipe));
+      } catch {
+        toast.error("Please login to view your profile.");
+        redirectToLogin();
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    void loadProfile();
+  }, [redirectToLogin]);
 
   async function handleUpgrade() {
     setUpgrading(true);
@@ -116,6 +184,19 @@ export default function GuestProfile() {
     } finally {
       setUpgrading(false);
       setShowUpgradeModal(false);
+    }
+  }
+
+  async function handleRemoveFavorite(recipeId: string) {
+    const currentFavorites = favoriteRecipes;
+    setFavoriteRecipes((prev) => prev.filter((recipe) => recipe.id !== recipeId));
+
+    try {
+      await api.delete(`/recipes/${recipeId}/favorite/`);
+      toast.success("Recipe removed from favorites.");
+    } catch {
+      setFavoriteRecipes(currentFavorites);
+      toast.error("Could not remove favorite. Please try again.");
     }
   }
 
@@ -184,10 +265,10 @@ export default function GuestProfile() {
             </div>
 
             <nav className="mt-10 space-y-2">
-              {menuItems.map(({ label, Icon, iconSrc, active }) => (
-                <button
+              {menuItems.map(({ label, Icon, iconSrc, href, active }) => (
+                <Link
                   key={label}
-                  type="button"
+                  href={href}
                   className={cn(
                     "flex w-full items-center gap-4 rounded-[15px] p-4 text-left text-base font-semibold transition",
                     active ? "bg-[#1f4d3a] text-white" : "text-[#1f4d3a] hover:bg-[#f6f5f0]"
@@ -199,21 +280,9 @@ export default function GuestProfile() {
                     <Icon size={16} />
                   ) : null}
                   {label}
-                </button>
+                </Link>
               ))}
             </nav>
-          </section>
-
-          <section className="relative overflow-hidden rounded-[20px] bg-[#1f4d3a] p-8 text-white">
-            <div className="absolute -bottom-8 -right-8 size-24 rounded-full bg-white/10" />
-            <p className="text-lg font-bold leading-7">Guest Account</p>
-            <p className="mt-5 text-[32px] font-bold leading-10">
-              {profile?.user_type || "guest"}
-            </p>
-            <div className="mt-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.08em] text-[#d8c29a]">
-              <Leaf size={14} />
-              Free Tier
-            </div>
           </section>
         </aside>
 
@@ -293,7 +362,7 @@ export default function GuestProfile() {
           )}
 
           {/* Recipes Panel */}
-          <section className="overflow-hidden rounded-[25px] border border-[#e3dbd8] bg-white shadow-sm">
+          <section id="my-recipes" className="scroll-mt-28 overflow-hidden rounded-[25px] border border-[#e3dbd8] bg-white shadow-sm">
             <div className="flex border-b border-[#e3dbd8]">
               <button
                 type="button"
@@ -310,41 +379,64 @@ export default function GuestProfile() {
             </div>
 
             <div className="grid gap-8 p-6 sm:p-8 lg:grid-cols-3 lg:p-10">
-              {recipes.map((recipe) => (
-                <article key={recipe.title}>
-                  <div className="relative h-60 overflow-hidden rounded-[20px]">
-                    <Image
-                      src={recipe.image}
-                      alt={recipe.title}
-                      fill
-                      sizes="(min-width: 1024px) 300px, 90vw"
-                      className="object-cover transition duration-500 hover:scale-105"
-                    />
-                    <button
-                      type="button"
-                      aria-label={`${recipe.saved ? "Saved" : "Save"} ${recipe.title}`}
-                      className={cn(
-                        "absolute right-4 top-4 flex size-10 items-center justify-center rounded-full shadow-sm",
-                        recipe.saved ? "bg-white text-[#1f4d3a]" : "bg-white/80 text-[#acacac]"
-                      )}
-                    >
-                      <Heart size={17} fill={recipe.saved ? "currentColor" : "none"} />
-                    </button>
-                  </div>
-                  <h3 className="mt-4 text-xl font-bold leading-8 text-[#121414]">{recipe.title}</h3>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-5 text-[#3f4e50]">
-                    <Clock3 size={14} />
-                    <span>{recipe.time}</span>
-                    <span className="px-2">•</span>
-                    <span>{recipe.level}</span>
-                  </div>
-                </article>
-              ))}
+              {favoriteRecipes.length === 0 ? (
+                <div className="col-span-full flex min-h-56 flex-col items-center justify-center rounded-[20px] bg-[#fffef5] p-8 text-center">
+                  <p className="text-lg font-bold text-[#121414]">No favorite recipes yet</p>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-[#3f4e50]">
+                    Save recipes from the recipes page and they will appear here.
+                  </p>
+                  <Link
+                    href="/recipes"
+                    className="mt-5 inline-flex items-center rounded-full bg-[#1f4d3a] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a4331]"
+                  >
+                    Explore Recipes
+                  </Link>
+                </div>
+              ) : (
+                favoriteRecipes.map((recipe) => (
+                  <article key={recipe.id}>
+                    <div className="relative h-60 overflow-hidden rounded-[20px]">
+                      <Link
+                        href={`/recipes/${recipe.slug || recipe.id}`}
+                        className="absolute inset-0 block"
+                      >
+                        <Image
+                          src={recipe.image}
+                          alt={recipe.title}
+                          fill
+                          unoptimized
+                          sizes="(min-width: 1024px) 300px, 90vw"
+                          className="object-cover transition duration-500 hover:scale-105"
+                        />
+                      </Link>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${recipe.title} from favorites`}
+                        onClick={() => handleRemoveFavorite(recipe.id)}
+                        className="absolute right-4 top-4 flex size-10 items-center justify-center rounded-full bg-white text-[#1f4d3a] shadow-sm"
+                      >
+                        <Heart size={17} fill="currentColor" />
+                      </button>
+                    </div>
+                    <Link href={`/recipes/${recipe.slug || recipe.id}`}>
+                      <h3 className="mt-4 text-xl font-bold leading-8 text-[#121414] transition hover:text-[#1f4d3a]">
+                        {recipe.title}
+                      </h3>
+                    </Link>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-sm leading-5 text-[#3f4e50]">
+                      <Clock3 size={14} />
+                      <span>{recipe.time}</span>
+                      <span className="px-2">•</span>
+                      <span>{recipe.level}</span>
+                    </div>
+                  </article>
+                ))
+              )}
             </div>
           </section>
 
           {/* Personal Information */}
-          <section id="personal-info" className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+          <section id="personal-info" className="scroll-mt-28 rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8 lg:p-10">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-[28px] font-bold leading-[42px] text-[#121414]">
                 Personal Information

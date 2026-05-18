@@ -10,7 +10,7 @@ export const metadata = {
 
 export default function BlogsPage() {
   return (
-    <div>
+    <div className="min-h-screen bg-[#fffef5]">
       <Navbar/>
       <Blogs />
       <Footer/>

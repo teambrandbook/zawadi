@@ -90,7 +90,7 @@ const CommunityOverview = () => {
   if (!overviewSection) return null;
 
   return (
-    <section ref={sectionRef} className="py-24 bg-white">
+    <section ref={sectionRef} className="py-24 bg-[#fffef5]">
       <div className="container mx-auto px-4 md:px-6">
         
         {/* Outer Relative Layout to protect floating cards from clipPath */}

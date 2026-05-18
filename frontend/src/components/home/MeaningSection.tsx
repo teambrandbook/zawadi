@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 const MeaningSection = () => {
   return (
-    <section className="relative w-full py-20 lg:py-32 bg-white overflow-hidden lg:px-20">
+    <section className="relative w-full py-20 lg:py-32 bg-[#fffef5] overflow-hidden lg:px-20">
       <div className="container mx-auto px-6 lg:px-32">
         <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
 
@@ -33,7 +33,7 @@ const MeaningSection = () => {
             </p>
 
             {/* Horizontal Image - Height Adjusted */}
-            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 overflow-hidden shadow-sm">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 overflow-hidden shadow-sm pt-85">
               <Image
                 src="/home/meaningImg2.webp"
                 alt="Shared meals"

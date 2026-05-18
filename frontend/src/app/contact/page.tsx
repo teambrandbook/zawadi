@@ -8,7 +8,7 @@ import Footer from "@/components/common/Footer";
 
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#fffef5]">
       <Navbar/>
       <ContactHero />
       <ContactForm />

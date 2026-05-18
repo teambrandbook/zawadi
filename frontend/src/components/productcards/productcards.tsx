@@ -84,7 +84,7 @@ function ProductCard({
           alt={product.product_name}
           fill
           unoptimized
-          sizes="(min-width: 1280px) 402px, (min-width: 768px) 45vw, 90vw"
+          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <span className="absolute left-4 top-4 rounded-full bg-[#f2c94c] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-black">
@@ -188,7 +188,7 @@ export default function ProductCards() {
 
   if (loading) {
     return (
-      <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
+      <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
         <div className="flex min-h-75 items-center justify-center text-sm text-[#0A4833]">
           Loading products...
         </div>
@@ -197,7 +197,7 @@ export default function ProductCards() {
   }
 
   return (
-    <section className="bg-[#fbfaf2] px-6 py-20 sm:px-8 lg:px-20">
+    <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
       <div className="mx-auto max-w-355.5">
         <div className="flex justify-center overflow-x-auto pb-2">
           <div className="flex min-w-max items-center gap-2">
@@ -224,7 +224,7 @@ export default function ProductCards() {
             No products found.
           </div>
         ) : (
-          <div className="mt-9 grid grid-cols-1 justify-items-center gap-x-9 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
+          <div className="mt-9 grid grid-cols-1 justify-items-center gap-x-6 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
             {filtered.map((product) => (
               <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
             ))}
