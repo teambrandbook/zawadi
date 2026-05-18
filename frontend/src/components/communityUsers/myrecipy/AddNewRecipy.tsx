@@ -2,7 +2,9 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChangeEvent, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import api from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import {
   ActionArea,
   AddLinkSection,
@@ -112,6 +114,7 @@ export default function AddNewRecipy() {
   const searchParams = useSearchParams();
   const recipeId = searchParams.get("id");
   const isEditMode = Boolean(recipeId);
+  const { upload: uploadCoverImage, isUploading: isImageUploading } = useCloudinaryUpload("recipe_cover");
   const [draft, setDraft] = useState<DraftModel>(emptyDraft);
   const [checklist, setChecklist] = useState<ReviewChecklist>({
     isOriginal: false,
@@ -119,6 +122,7 @@ export default function AddNewRecipy() {
     hasClearSteps: false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -183,7 +187,9 @@ export default function AddNewRecipy() {
             : [""],
         });
         setImageFile(null);
-        setImagePreview(toRecipeImageUrl(recipe.cover_image));
+        const existingImageUrl = toRecipeImageUrl(recipe.cover_image);
+        setImagePreview(existingImageUrl);
+        if (existingImageUrl) setCoverImageUrl(existingImageUrl);
         setMessage("");
       } catch {
         if (isMounted) {
@@ -235,6 +241,9 @@ export default function AddNewRecipy() {
     setImageFile(file);
     setImagePreview(preview);
     setMessage("Image selected.");
+    uploadCoverImage(file)
+      .then((url) => setCoverImageUrl(url))
+      .catch(() => { /* error handled in hook */ });
   }
 
   function onImageChange(event: ChangeEvent<HTMLInputElement>) {
@@ -258,6 +267,7 @@ export default function AddNewRecipy() {
   function removeImage() {
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImageFile(null);
+    setCoverImageUrl("");
     setImagePreview(null);
     setMessage("Image removed.");
   }
@@ -332,7 +342,7 @@ export default function AddNewRecipy() {
     formData.append("protein", draft.protein.trim());
     formData.append("video_url", draft.videoUrl.trim());
     formData.append("status", status);
-    if (imageFile) formData.append("cover_image", imageFile);
+    if (coverImageUrl) formData.append("cover_image", coverImageUrl);
     formData.append(
       "ingredients",
       JSON.stringify(
@@ -375,6 +385,7 @@ export default function AddNewRecipy() {
       setMessage("Nutrition facts are required.");
       return;
     }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
     setIsSubmitting(true);
     setMessage(status === "pending" ? "Submitting recipe for approval..." : "Saving recipe as draft...");
     const formData = buildRecipeFormData(status);
