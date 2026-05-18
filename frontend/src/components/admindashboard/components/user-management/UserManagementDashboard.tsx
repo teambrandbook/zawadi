@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { initialUsers, PER_PAGE, toCsv } from "./userManagementShared";
+import { displayRole, initialUsers, PER_PAGE, toCsv } from "./userManagementShared";
 import type { UserRecord } from "./userManagementShared";
 import UserFiltersBar from "./components/UserFiltersBar";
 import UserManagementHeader from "./components/UserManagementHeader";
@@ -130,7 +130,7 @@ export default function UserManagementDashboard() {
       setIsLoading(true);
       setFetchError(null);
       try {
-        const res = await api.get("/supperadmin/users/");
+        const res = await api.get("/superadmin/users/");
 
         const users = mapApiUsers(extractRawUsers(res.data));
         console.log(users);
@@ -155,7 +155,10 @@ export default function UserManagementDashboard() {
         user.userId.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesStatus = statusFilter === "All Status" || user.status === statusFilter;
-      const matchesRole = roleFilter === "All Role" || user.role.toLowerCase() === roleFilter.toLowerCase();
+      const matchesRole =
+        roleFilter === "All Role" ||
+        user.role.toLowerCase() === roleFilter.toLowerCase() ||
+        displayRole(user).toLowerCase() === roleFilter.toLowerCase();
 
       return matchesSearch && matchesStatus && matchesRole;
     });
@@ -245,7 +248,7 @@ export default function UserManagementDashboard() {
 
     setIsDeletingUser(true);
     try {
-      await api.delete(`/supperadmin/users/${deleteTarget.id}/`);
+      await api.delete(`/superadmin/users/${deleteTarget.id}/`);
       setUsers((prev) => prev.filter((user) => user.id !== deleteTarget.id));
       setSelectedIds((prev) => prev.filter((id) => id !== deleteTarget.id));
       setSelectedUser((prev) => (prev?.id === deleteTarget.id ? null : prev));

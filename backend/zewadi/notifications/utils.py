@@ -1,4 +1,6 @@
 from django.utils import timezone
+from .models import Notification, UserNotificationReceipt
+from accounts.models import User
 
 
 def create_receipts_for_notification(notification) -> None:
@@ -55,3 +57,52 @@ def send_user_notification(user, title: str, body: str, notification_type: str =
         UserNotificationReceipt.objects.create(user=user, notification=notification)
     except Exception:
         pass
+def send_low_stock_notification(product):
+    if not product.enable_low_stock_alerts:
+        return
+
+    if product.stock_quantity > product.low_stock_alert:
+        return
+
+    title = f"Low Stock Alert - {product.product_name}"
+
+    # Avoid creating repeated alerts while the same product is already low.
+    existing_notification = Notification.objects.filter(
+        title=title,
+        notification_type="ALERT",
+        status="SENT",
+    ).first()
+
+    if existing_notification:
+        return
+
+    notification = Notification.objects.create(
+        title=title,
+        body=(
+            f"Product '{product.product_name}' ({product.product_code}) stock is low. "
+            f"Current stock is {product.stock_quantity}."
+        ),
+        notification_type="ALERT",
+        target_role="admin",
+        status="SENT",
+        sent_at=timezone.now(),
+    )
+
+    users = User.objects.filter(
+        role__in=["ADMIN", "INTERNAL_STAFF"]
+    )
+
+    receipts = []
+    for user in users:
+        receipts.append(
+            UserNotificationReceipt(
+                user=user,
+                notification=notification,
+                is_read=False,
+            )
+        )
+
+    UserNotificationReceipt.objects.bulk_create(
+        receipts,
+        ignore_conflicts=True
+    )

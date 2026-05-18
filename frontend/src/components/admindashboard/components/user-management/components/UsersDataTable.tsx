@@ -2,7 +2,7 @@
 
 // 1. Added Trash2 to the imports
 import { ChevronLeft, ChevronRight, Eye, Pencil, Trash2, UserCheck, UserMinus } from "lucide-react";
-import { statusClass } from "../userManagementShared";
+import { displayRole, statusClass } from "../userManagementShared";
 import type { UserRecord } from "../userManagementShared";
 
 type Props = {
@@ -74,7 +74,7 @@ export default function UsersDataTable({
                 <td className="px-4 py-4 text-[#4B5563]">{user.userId}</td>
                 <td className="px-4 py-4 text-[#4B5563]">{user.email}</td>
                 <td className="px-4 py-4 text-[#4B5563]">{user.phone}</td>
-                <td className="px-4 py-4 text-[#4B5563]">{user.role}</td>
+                <td className="px-4 py-4 text-[#4B5563]">{displayRole(user)}</td>
 
                 <td className={`px-4 py-4 text-xs font-medium ${statusClass(user.status)}`}>{user.status}</td>
 

@@ -102,7 +102,7 @@ export default function UserCreatePage() {
 
       setIsLoadingUser(true);
       try {
-        const res = await api.get(`/supperadmin/users/${editUserId}/`);
+        const res = await api.get(`/superadmin/users/${editUserId}/`);
         const data = res.data as Record<string, unknown>;
 
         setForm((prev) => ({
@@ -192,7 +192,7 @@ export default function UserCreatePage() {
         : undefined;
 
       if (isEditMode && editUserId) {
-        await api.patch(`/supperadmin/users/${editUserId}/`, formData, config);
+        await api.patch(`/superadmin/users/${editUserId}/`, formData, config);
         toast.success("User updated successfully.");
       } else {
         await api.post("/account/register/", formData, config);

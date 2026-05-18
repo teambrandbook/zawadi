@@ -55,7 +55,7 @@ export default function Providers({
     <Provider store={store}>
       <AuthRehydrator />
       {children}
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position="bottom-right" richColors closeButton />
     </Provider>
   );
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { HeartPulse, Leaf, ShieldCheck, UtensilsCrossed, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 const productHighlights = [
   {
@@ -34,33 +35,65 @@ type ProductDetailsProps = {
   productName?: string;
   productDescription?: string;
   productImage?: string;
+  alternativeImages?: string[];
 };
 
 export function ProductDetailsCard({
   productName = "ZEWADI Product",
   productDescription = "Premium wellness product from ZEWADI, crafted to support your healthy lifestyle and daily nutrition.",
   productImage = "/product/product-1.webp",
+  alternativeImages = [],
 }: ProductDetailsProps) {
+  const galleryImages = useMemo(
+    () => Array.from(new Set([productImage, ...alternativeImages].filter(Boolean))),
+    [alternativeImages, productImage]
+  );
+  const [selectedImage, setSelectedImage] = useState(productImage);
+
+  useEffect(() => {
+    setSelectedImage(productImage);
+  }, [productImage]);
+
   return (
     <section className="rounded-[28px] border border-[#E6E0D6] bg-white p-5 shadow-[0_8px_30px_rgba(15,68,47,0.06)] lg:p-7">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.1fr_0.95fr] lg:items-center">
-        <div className="relative overflow-hidden rounded-[24px] bg-[#EFE2C9] px-4 pb-10 pt-4 sm:px-6 sm:pt-6">
-          <div className="absolute left-4 top-3 h-14 w-14 rounded-full bg-white/30 blur-[1px] sm:left-5 sm:top-4 sm:h-16 sm:w-16" />
-          <div className="relative mx-auto flex h-[250px] w-full max-w-[300px] items-center justify-center sm:h-[280px]">
-            <Image
-              src={productImage}
-              alt={productName}
-              fill
-              unoptimized
-              className="object-contain p-6"
-              sizes="(max-width: 1024px) 100vw, 420px"
-            />
+        <div className="space-y-3">
+          <div className="relative overflow-hidden rounded-[24px] bg-[#EFE2C9] px-4 pb-10 pt-4 sm:px-6 sm:pt-6">
+            <div className="absolute left-4 top-3 h-14 w-14 rounded-full bg-white/30 blur-[1px] sm:left-5 sm:top-4 sm:h-16 sm:w-16" />
+            <div className="relative mx-auto flex h-[250px] w-full max-w-[300px] items-center justify-center sm:h-[280px]">
+              <Image
+                src={selectedImage}
+                alt={productName}
+                fill
+                unoptimized
+                className="object-contain p-6"
+                sizes="(max-width: 1024px) 100vw, 420px"
+              />
+            </div>
+
+            <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#0D5A41] px-4 py-2 text-xs font-semibold text-white shadow-[0_6px_18px_rgba(13,90,65,0.24)]">
+              <Leaf className="h-3.5 w-3.5" />
+              100% Organic
+            </div>
           </div>
 
-          <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 items-center gap-2 rounded-full bg-[#0D5A41] px-4 py-2 text-xs font-semibold text-white shadow-[0_6px_18px_rgba(13,90,65,0.24)]">
-            <Leaf className="h-3.5 w-3.5" />
-            100% Organic
-          </div>
+          {galleryImages.length > 1 ? (
+            <div className="grid grid-cols-5 gap-2">
+              {galleryImages.map((image, index) => (
+                <button
+                  key={`${image}-${index}`}
+                  type="button"
+                  aria-label={`View ${productName} image ${index + 1}`}
+                  onClick={() => setSelectedImage(image)}
+                  className={`relative aspect-square overflow-hidden rounded-[10px] border bg-[#F8F3E9] transition ${
+                    selectedImage === image ? "border-[#0A4833] ring-2 ring-[#0A4833]/20" : "border-[#E6E0D6]"
+                  }`}
+                >
+                  <Image src={image} alt={`${productName} thumbnail ${index + 1}`} fill unoptimized className="object-cover" sizes="72px" />
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
 
         <div className="flex-1">

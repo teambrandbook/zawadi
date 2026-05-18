@@ -336,7 +336,12 @@ export const leftReveal = (selector: string) => {
  * selector: the class to target
  * delay: time in seconds to wait before starting
  */
-export const animateSequence = (selector: string, delay: number = 0) => {
+export const animateSequence = (
+  selector: string,
+  delay: number = 0,
+  duration: number = 0.8,
+  stagger: number = 0.2
+) => {
   const elements = gsap.utils.toArray<HTMLElement>(selector);
 
   if (elements.length === 0) return;
@@ -350,10 +355,10 @@ export const animateSequence = (selector: string, delay: number = 0) => {
     {
       scale: 1,
       opacity: 1,
-      duration: 0.8,
+      duration,
       delay: delay, // The key to sequencing
       ease: "power3.out",
-      stagger: 0.2,
+      stagger,
       scrollTrigger: {
         trigger: elements[0],
         start: "top 70%",

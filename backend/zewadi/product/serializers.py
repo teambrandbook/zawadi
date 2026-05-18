@@ -1,6 +1,9 @@
 from rest_framework import serializers
-from .models import Product, ProductVariant
+from .models import Product, ProductImage, ProductVariant
 from zewadi.validators import validate_image_upload
+
+
+MAX_ALTERNATIVE_IMAGES = 4
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -26,6 +29,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 class ProductSerializer(serializers.ModelSerializer):
     variants = ProductVariantSerializer(many=True, read_only=True)
     image = serializers.SerializerMethodField()
+    alternative_images = serializers.SerializerMethodField()
     brand_name = serializers.SerializerMethodField()
     allow_out_of_stock = serializers.BooleanField(source="allow_orders_when_out_of_stock", read_only=True)
     discount_amount = serializers.SerializerMethodField()
@@ -40,6 +44,16 @@ class ProductSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         image_url = obj.image.url
         return request.build_absolute_uri(image_url) if request else image_url
+
+    def get_alternative_images(self, obj):
+        request = self.context.get("request")
+        urls = []
+        for product_image in obj.alternative_images.all():
+            if not product_image.image:
+                continue
+            image_url = product_image.image.url
+            urls.append(request.build_absolute_uri(image_url) if request else image_url)
+        return urls
 
     def get_discount_amount(self, obj):
         return f"{obj.discount_amount:.2f}"
@@ -58,6 +72,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "category",
             "product_status",
             "image",
+            "alternative_images",
             "product_unit",
             "unit_quantity",
             "alternative_unit_enabled",
@@ -92,6 +107,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     """
 
     variants = ProductVariantSerializer(many=True, required=False)
+    alternative_images = serializers.ListField(
+        child=serializers.ImageField(validators=[validate_image_upload]),
+        write_only=True,
+        required=False,
+        allow_empty=True,
+    )
 
     class Meta:
         model = Product
@@ -137,25 +158,43 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"selling_price": "Selling price cannot be negative."})
         return attrs
 
+    def validate_alternative_images(self, value):
+        if len(value) > MAX_ALTERNATIVE_IMAGES:
+            raise serializers.ValidationError(f"Upload no more than {MAX_ALTERNATIVE_IMAGES} alternative images.")
+        return value
+
     def create(self, validated_data):
 
         # Variants remain in the database for compatibility, but this v1 flow
         # treats each sellable pack as a separate product/SKU.
         validated_data.pop("variants", [])
+        alternative_images = validated_data.pop("alternative_images", [])
 
         # Create Product
         product = Product.objects.create(**validated_data)
+        self._replace_alternative_images(product, alternative_images)
 
         return product
 
     def update(self, instance, validated_data):
 
         validated_data.pop("variants", None)
+        alternative_images = validated_data.pop("alternative_images", None)
 
         # Update Product
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
+        if alternative_images is not None:
+            self._replace_alternative_images(instance, alternative_images)
 
         return instance
+
+    def _replace_alternative_images(self, product, images):
+        if images is None:
+            return
+
+        product.alternative_images.all().delete()
+        for index, image in enumerate(images):
+            ProductImage.objects.create(product=product, image=image, sort_order=index)

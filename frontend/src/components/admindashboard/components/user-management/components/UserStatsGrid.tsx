@@ -31,7 +31,7 @@ export default function UserStatsGrid({ users }: Props) {
 
     const fetchUsers = async () => {
       try {
-        const res = await api.get("/supperadmin/users/");
+        const res = await api.get("/superadmin/users/");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const raw: Record<string, any>[] = Array.isArray(res.data)
           ? res.data

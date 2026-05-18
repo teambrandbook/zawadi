@@ -19,7 +19,6 @@ const loginSchema = z.object({
 
 export default function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
-  const [loginType, setLoginType] = useState<"guest" | "member">("member");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const router = useRouter();
@@ -110,35 +109,6 @@ export default function LoginComponent() {
                   </p>
                 </div>
 
-                <div className="flex flex-col items-center mb-4 font-mulish">
-                  <h2 className="text-[#0a4833] text-xs font-bold uppercase tracking-widest mb-2">
-                    Login as
-                  </h2>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setLoginType("guest")}
-                      className={`w-[130px] h-[40px] rounded-lg border-2 text-sm font-semibold transition-all ${loginType === "guest"
-                        ? "border-[#9f8151] bg-[#fdfaf3] text-[#9f8151]"
-                        : "border-gray-200 bg-white text-gray-400 opacity-60"
-                        }`}
-                    >
-                      Guest
-                    </button>
-                    <span className="text-[#0a4833] text-lg font-bold italic">or</span>
-                    <button
-                      type="button"
-                      onClick={() => setLoginType("member")}
-                      className={`w-[130px] h-[40px] rounded-lg text-sm font-semibold transition-all ${loginType === "member"
-                        ? "bg-[#0a4833] text-white shadow-md"
-                        : "bg-gray-100 text-gray-400 opacity-60"
-                        }`}
-                    >
-                      Member
-                    </button>
-                  </div>
-                </div>
-
                 <form className="space-y-3" onSubmit={handleLogin}>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold uppercase text-[#374151]">
@@ -177,7 +147,7 @@ export default function LoginComponent() {
                     </div>
                   </div>
 
-                  <a href="/forgot-password" className="text-sm text-green-800 hover:underline block text-right">
+                  <a href="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 transition-colors block text-right">
                     Forgot password?
                   </a>
 

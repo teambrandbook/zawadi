@@ -1,19 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { AlertTriangle, PackageX } from "lucide-react";
 import api from "@/services/api";
-
-type CartItem = {
-  id: string | number;
-  user_name?: string | null;
-  user_email?: string | null;
-  product_name?: string | null;
-  quantity?: string | number | null;
-  line_total?: string | number | null;
-  stock_quantity?: string | number | null;
-};
 
 type ProductItem = {
   id: string | number;
@@ -40,14 +29,6 @@ function numberValue(value: unknown) {
   return Number.isFinite(numeric) ? numeric : 0;
 }
 
-function money(value: unknown) {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 2,
-  }).format(numberValue(value));
-}
-
 function stockText(stock: number) {
   if (stock <= 0) return "Out of stock";
   if (stock <= 5) return `Only ${stock} left`;
@@ -55,7 +36,6 @@ function stockText(stock: number) {
 }
 
 export default function CartAndStockPanels() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [products, setProducts] = useState<ProductItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -65,19 +45,11 @@ export default function CartAndStockPanels() {
     const fetchDashboardData = async () => {
       setIsLoading(true);
       try {
-        const [cartRes, productRes] = await Promise.allSettled([
-          api.get("/orders/admin/cart/"),
-          api.get("/products/"),
-        ]);
+        const productRes = await api.get("/products/");
 
         if (!mounted) return;
 
-        if (cartRes.status === "fulfilled") {
-          setCartItems(toList<CartItem>(cartRes.value.data));
-        }
-        if (productRes.status === "fulfilled") {
-          setProducts(toList<ProductItem>(productRes.value.data));
-        }
+        setProducts(toList<ProductItem>(productRes.data));
       } finally {
         if (mounted) setIsLoading(false);
       }
@@ -98,57 +70,10 @@ export default function CartAndStockPanels() {
     [products],
   );
 
-  const recentCartItems = cartItems.slice(0, 5);
-  const cartValue = cartItems.reduce((sum, item) => sum + numberValue(item.line_total), 0);
   const outOfStockCount = lowStockProducts.filter((product) => numberValue(product.stock_quantity) <= 0).length;
 
   return (
-    <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h3 className="text-xl font-semibold text-[#0A4833]">Active Carts</h3>
-            <p className="text-sm text-[#6B7280]">
-              {cartItems.length} items, {money(cartValue)} current cart value
-            </p>
-          </div>
-          <Link href="/admindashboard/carts" className="text-xs font-semibold text-[#A88751] hover:underline">
-            View All
-          </Link>
-        </div>
-
-        {isLoading && <p className="mt-4 text-sm text-[#6B7280]">Loading carts...</p>}
-
-        {!isLoading && recentCartItems.length === 0 && (
-          <p className="mt-4 text-sm text-[#6B7280]">No active cart items.</p>
-        )}
-
-        {!isLoading && recentCartItems.length > 0 && (
-          <div className="mt-3 space-y-3">
-            {recentCartItems.map((item) => {
-              const stock = numberValue(item.stock_quantity);
-              return (
-                <div key={item.id} className="flex items-center justify-between gap-3 border-b border-[#F4F4F4] pb-3 last:border-0 last:pb-0">
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#111827]">{item.product_name || "Product"}</p>
-                    <p className="truncate text-xs text-[#6B7280]">{item.user_name || item.user_email || "Customer"}</p>
-                    {stock <= 5 && (
-                      <p className={`mt-1 text-xs font-semibold ${stock <= 0 ? "text-[#B91C1C]" : "text-[#C2410C]"}`}>
-                        {stockText(stock)}
-                      </p>
-                    )}
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-semibold text-[#111827]">x{numberValue(item.quantity)}</p>
-                    <p className="text-xs text-[#6B7280]">{money(item.line_total)}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </article>
-
+    <section>
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
