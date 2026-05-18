@@ -13,5 +13,5 @@ const ProductHero = () => {
     />
   );
 };
-
+/*  */
 export default ProductHero;

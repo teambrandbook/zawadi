@@ -62,6 +62,14 @@ function isNewProduct(createdAt?: string): boolean {
   return createdDate.getTime() >= thirtyDaysAgo;
 }
 
+function formatCategoryLabel(category: string): string {
+  return category
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function ProductCard({
   product,
   onAddToCart,
@@ -75,7 +83,7 @@ function ProductCard({
   const discounted = mrp > selling;
   const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
-  const badgeText = isNewProduct(product.created_at) ? "New" : product.category;
+  const badgeText = isNewProduct(product.created_at) ? "New" : formatCategoryLabel(product.category);
   return (
     <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
       <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
@@ -213,7 +221,7 @@ export default function ProductCards() {
                     : "text-[#6b7280] hover:bg-white hover:text-[#1f4d3a]"
                 )}
               >
-                {category}
+                {formatCategoryLabel(category)}
               </button>
             ))}
           </div>

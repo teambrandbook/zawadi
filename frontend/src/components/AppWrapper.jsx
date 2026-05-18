@@ -78,6 +78,7 @@ export default function AppWrapper({ children }) {
 
 function FloatingScrollbar() {
   const trackRef = useRef(null);
+  const thumbBleed = 3;
   const dragStartRef = useRef({
     pointerY: 0,
     thumbTop: 0,
@@ -181,15 +182,15 @@ function FloatingScrollbar() {
           100
       )}
       onPointerDown={handleTrackPointerDown}
-      className="fixed right-6 top-1/2 z-[1200] hidden h-[170px] w-[10px] -translate-y-1/2 cursor-pointer rounded-full bg-[#E9E4D8]/90 shadow-[0_8px_22px_rgba(15,47,34,0.14)] md:block"
+      className="fixed right-6 top-1/2 z-[1200] hidden h-[170px] w-[10px] -translate-y-1/2 cursor-pointer overflow-hidden rounded-full bg-[#E9E4D8]/90 shadow-[0_8px_22px_rgba(15,47,34,0.14)] md:block"
     >
       <div
         onPointerDown={handleThumbPointerDown}
         onPointerMove={handleThumbPointerMove}
         className="absolute left-1/2 w-[6px] -translate-x-1/2 cursor-grab touch-none rounded-full bg-[#1A4331] shadow-[0_4px_12px_rgba(26,67,49,0.32)] active:cursor-grabbing"
         style={{
-          height: `${scrollState.thumbHeight}px`,
-          top: `${scrollState.thumbTop}px`,
+          height: `${scrollState.thumbHeight + thumbBleed * 2}px`,
+          top: `${scrollState.thumbTop - thumbBleed}px`,
         }}
       />
     </div>
