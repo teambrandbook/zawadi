@@ -57,12 +57,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
     author_photo = serializers.SerializerMethodField()
 
     def get_cover_image(self, obj):
-        image = getattr(obj, "cover_image", None)
-        if not image:
-            return None
-        request = self.context.get("request")
-        image_url = image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        return getattr(obj, "cover_image", None) or None
 
     def get_author_name(self, obj):
         user = obj.author
@@ -70,12 +65,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
         return full_name or getattr(user, "email", "Unknown")
 
     def get_author_photo(self, obj):
-        photo = getattr(obj.author, "photo", None)
-        if not photo:
-            return None
-        request = self.context.get("request")
-        photo_url = photo.url
-        return request.build_absolute_uri(photo_url) if request else photo_url
+        return getattr(obj.author, "photo", None) or None
 
     class Meta:
         model = Recipe
@@ -135,12 +125,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     
 
     def get_cover_image(self, obj):
-        image = getattr(obj, "cover_image", None)
-        if not image:
-            return None
-        request = self.context.get("request")
-        image_url = image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        return getattr(obj, "cover_image", None) or None
 
     def get_nutrition(self, obj):
         return {

@@ -11,7 +11,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -669,7 +669,7 @@ class LogoutAllAPIView(APIView):
 
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         serializer = MeSerializer(request.user, context={"request": request})
@@ -701,8 +701,8 @@ class MeAPIView(APIView):
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         changed = [f for f in ("full_name", "phone") if f in request.data]
-        if "photo" in request.FILES:
-            user.photo = request.FILES["photo"]
+        if "photo" in request.data:
+            user.photo = request.data.get("photo") or ""
             changed.append("photo")
         if changed:
             changed.append("updated_at")

@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import Blog, BlogTag
-from zewadi.validators import validate_image_upload
-
 
 class TagsListField(serializers.ListField):
     def get_value(self, dictionary):
@@ -72,14 +70,6 @@ class BlogListSerializer(serializers.ModelSerializer):
 
         return obj.likes.count()
 
-    def _absolute_url(self, value):
-        if not value:
-            return None
-
-        request = self.context.get("request")
-        url = value.url if hasattr(value, "url") else str(value)
-        return request.build_absolute_uri(url) if request else url
-
     def get_author_name(self, obj):
 
         if obj.author:
@@ -88,12 +78,10 @@ class BlogListSerializer(serializers.ModelSerializer):
         return None
 
     def get_author_image(self, obj):
-        photo = getattr(getattr(obj, "author", None), "photo", None)
-        return self._absolute_url(photo) if photo else None
+        return getattr(getattr(obj, "author", None), "photo", None) or None
 
     def get_cover_image(self, obj):
-        image = getattr(obj, "cover_image", None)
-        return self._absolute_url(image) if image else None
+        return getattr(obj, "cover_image", None) or None
 
 # class BlogDetailSerializer(serializers.ModelSerializer):
 #     tags = BlogTagSerializer(many=True, read_only=True)
@@ -135,7 +123,7 @@ class BlogListSerializer(serializers.ModelSerializer):
 
 
 class BlogSerializer(serializers.ModelSerializer):
-    cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
+    cover_image = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     tags = TagsListField(
         child=serializers.CharField(max_length=60),
         write_only=True,
@@ -190,22 +178,13 @@ class BlogSerializer(serializers.ModelSerializer):
     def get_total_likes(self, obj):
         return obj.likes.count()
 
-    def _absolute_url(self, value):
-        if not value:
-            return None
-
-        request = self.context.get("request")
-        url = value.url if hasattr(value, "url") else str(value)
-        return request.build_absolute_uri(url) if request else url
-
     def get_author_name(self, obj):
         if obj.author:
             return getattr(obj.author, "full_name", None) or obj.author.get_full_name() or obj.author.email
         return None
 
     def get_author_image(self, obj):
-        photo = getattr(getattr(obj, "author", None), "photo", None)
-        return self._absolute_url(photo) if photo else None
+        return getattr(getattr(obj, "author", None), "photo", None) or None
 
     def create(self, validated_data):
         tag_names = validated_data.pop("tags", [])
