@@ -18,6 +18,26 @@ const iconMap: Record<SocialPlatform, React.ComponentType<{ size?: number; class
 const Footer = () => {
   const { footer, socials } = navData;
 
+  const handleFooterNavigation = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    event.preventDefault();
+
+    const destination = new URL(href, window.location.origin);
+    const currentPath = `${window.location.pathname}${window.location.search}`;
+    const nextPath = `${destination.pathname}${destination.search}${destination.hash}`;
+
+    if (href === "#") return;
+
+    if (`${destination.pathname}${destination.search}` === currentPath) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      return;
+    }
+
+    window.location.assign(nextPath);
+  };
+
   return (
     <footer className="relative overflow-hidden bg-[#1A4331] pb-12 pt-24 text-white">
       <div className="pointer-events-none absolute inset-0 select-none opacity-100">
@@ -83,12 +103,13 @@ const Footer = () => {
               <ul className="space-y-4">
                 {footer.quickLinks.map((item) => (
                   <li key={item.name}>
-                    <Link
+                    <a
                       href={item.href}
+                      onClick={(event) => handleFooterNavigation(event, item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -100,12 +121,13 @@ const Footer = () => {
               <ul className="space-y-4">
                 {footer.innerPages.map((item) => (
                   <li key={item.name}>
-                    <Link
+                    <a
                       href={item.href}
+                      onClick={(event) => handleFooterNavigation(event, item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -117,12 +139,13 @@ const Footer = () => {
               <ul className="space-y-4">
                 {footer.support.map((item) => (
                   <li key={item.name}>
-                    <Link
+                    <a
                       href={item.href}
+                      onClick={(event) => handleFooterNavigation(event, item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>

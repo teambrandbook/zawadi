@@ -463,7 +463,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="pb-10 sm:py-12">
+            <section className="pt-16 pb-10 sm:py-12">
                 <div className="container mx-auto px-4 sm:px-6 lg:pl-32 lg:pr-6 xl:pl-48">
                     <h2 className={sectionTitleClass}>Our Approach</h2>
 
@@ -545,10 +545,10 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="testimonial-section pb-12 pt-12 sm:pt-16 lg:pt-20 sm:pb-24 lg:pb-32">
-                <div className="container mx-auto px-4 sm:px-6">
-                    <div className="flex justify-center mb-8 pt-4 sm:pt-6">
-                        <div className="relative inline-flex items-center gap-5 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-7 py-2.5 shadow-sm">
+            <section className="testimonial-section bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+                <div className="mx-auto max-w-[1120px]">
+                    <div className="mb-8 flex justify-center">
+                        <div className="relative inline-flex max-w-full items-center gap-4 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-5 py-2.5 shadow-sm sm:gap-5 sm:px-7">
                             <div
                                 className="pointer-events-none absolute inset-0 opacity-10"
                                 style={{
@@ -557,7 +557,7 @@ export default function About() {
                                     backgroundPosition: "center",
                                 }}
                             />
-                            <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">
+                            <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 sm:tracking-[0.3em]">
                                 Client Testimonials
                             </p>
                             <div className="relative z-10 h-3 w-px bg-white/20" />
@@ -565,51 +565,48 @@ export default function About() {
                         </div>
                     </div>
 
-                    <h2 className="testimonial-heading mx-auto text-center font-serif font-bold text-[2.2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]">
-                        Real Stories from Everyday<br />Moments
+                    <h2 className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]">
+                        Real Stories from Everyday<br className="hidden sm:block" /> Moments
                     </h2>
 
-                    <div className="relative mx-auto mt-12 grid max-w-[1140px] gap-8 lg:min-h-[380px] lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center lg:gap-0 lg:-translate-x-[3%]">
-                        <div className="testimonial-card relative z-20 -translate-x-[2%] overflow-hidden rounded-[32px] bg-[#f2f6ee] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.04)] sm:p-14 min-[768px]:max-[1024px]:translate-x-0 lg:max-w-[540px] lg:translate-x-[31%]">
-                            {/* Large Background Quote Marks - Centered */}
-                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[#1f4d3a]/5 translate-x-12">
+                    <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center">
+                        <div className="testimonial-card order-2 mt-8 relative z-20 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-10 md:p-14 lg:order-1 lg:mt-0 lg:-mr-28 lg:w-[58%]">
+                            <div className="pointer-events-none absolute inset-0 flex translate-x-6 items-center justify-center text-[#1f4d3a]/5 sm:translate-x-12">
                                 <svg width="280" height="200" viewBox="0 0 340 240" fill="none" stroke="currentColor" strokeWidth="8" xmlns="http://www.w3.org/2000/svg">
-                                    {/* Left Quote */}
                                     <path d="M115 130V220H25V130C25 70 65 30 115 30V80C95 80 85 95 85 110H115V130Z" />
-                                    {/* Right Quote */}
                                     <path d="M265 130V220H175V130C175 70 215 30 265 30V80C245 80 235 95 235 110H265V130Z" />
                                 </svg>
                             </div>
 
-                            <p className="relative z-10 max-w-[36ch] text-[1.1rem] font-medium leading-[1.6] text-[#1f4d3a] sm:text-[1.35rem] sm:leading-[1.5]">
+                            <p className="relative z-10 max-w-[36ch] text-[1.05rem] font-medium leading-[1.65] text-[#1f4d3a] sm:text-[1.35rem] sm:leading-[1.5]">
                                 Zewadi products truly changed the way I look at everyday food
-                                simple, high-quality, and made to fit effortlessly into my
+                                - simple, high-quality, and made to fit effortlessly into my
                                 life.
                             </p>
 
-                            <div className="relative z-10 mt-12 flex items-center justify-between">
+                            <div className="relative z-10 mt-10 flex items-center justify-between gap-4 sm:mt-12">
                                 <div className="flex items-center gap-4">
-                                    <div className="h-14 w-14 rounded-full bg-[#d9d9d9] sm:h-16 sm:w-16" />
+                                    <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9] sm:h-16 sm:w-16" />
                                     <div>
-                                        <p className="text-lg font-bold text-[#1a4331] sm:text-xl">
+                                        <p className="text-base font-bold text-[#1a4331] sm:text-xl">
                                             Hamna Zaid
                                         </p>
                                         <p className="text-xs font-medium text-[#727272] sm:text-sm">Happy Customer</p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex shrink-0 items-center gap-2">
                                     <button
                                         type="button"
                                         aria-label="Previous testimonial"
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1a4331] transition-all hover:bg-white/80 shadow-sm"
+                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1a4331] shadow-sm transition-all hover:bg-white/80 sm:h-12 sm:w-12"
                                     >
                                         <ArrowRight size={16} className="rotate-180" />
                                     </button>
                                     <button
                                         type="button"
                                         aria-label="Next testimonial"
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a4331] text-white transition-all hover:bg-[#1a4331]/90 shadow-sm"
+                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a4331] text-white shadow-sm transition-all hover:bg-[#1a4331]/90 sm:h-12 sm:w-12"
                                     >
                                         <ArrowRight size={16} />
                                     </button>
@@ -617,13 +614,13 @@ export default function About() {
                             </div>
                         </div>
 
-                        <div className="testimonial-image relative z-10 overflow-hidden rounded-[32px] lg:-ml-[380px] lg:justify-self-end">
+                        <div className="testimonial-image order-1 w-full overflow-hidden rounded-[20px] lg:order-2 lg:w-[52%]">
                             <img
                                 src={testimonialImage}
                                 alt="People stacking hands together"
                                 loading="lazy"
                                 decoding="async"
-                                className="h-[280px] w-full object-cover sm:h-[400px] lg:h-[500px] lg:w-[500px]"
+                                className="h-[320px] w-full object-cover sm:h-[400px] lg:h-[500px]"
                             />
                         </div>
                     </div>

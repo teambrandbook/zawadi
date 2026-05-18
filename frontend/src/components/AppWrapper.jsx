@@ -1,4 +1,5 @@
 "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import Providers from "@/app/providers";
@@ -11,6 +12,7 @@ const imageSources = [
   "/Patterns-03.webp",
   "/vercel.svg",
   "/window.svg",
+  "/about/approach.webp",
   "/about/approach.webp",
   "/about/intro-bottom.webp",
   "/about/intro-tall.webp",
