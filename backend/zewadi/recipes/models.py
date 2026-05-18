@@ -147,4 +147,29 @@ class RecipeStep(models.Model):
 
     def __str__(self):
         return f"{self.recipe.title} - Step {self.step_no}"
+
+
+class FavoriteRecipe(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="favorite_recipes",
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="favorited_by",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        unique_together = ("user", "recipe")
+        indexes = [
+            models.Index(fields=["user", "created_at"], name="recipes_fav_user_id_95c711_idx"),
+            models.Index(fields=["recipe"], name="recipes_fav_recipe__a0cfc9_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} - {self.recipe.title}"
     

@@ -404,7 +404,7 @@ export const stackRecipeCards = (selector: string) => {
       backgroundColor:
         parentBackground && parentBackground !== "rgba(0, 0, 0, 0)"
           ? parentBackground
-          : "#ffffff",
+          : "#fffef5",
     });
   });
 

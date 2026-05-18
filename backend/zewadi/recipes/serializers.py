@@ -8,6 +8,7 @@ from .models import (
     IngredientUnit,
     Recipe,
     RecipeCategory,
+    FavoriteRecipe,
     RecipeIngredient,
     RecipeStep,
 )
@@ -448,3 +449,12 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             ])
 
         return instance
+
+
+class FavoriteRecipeSerializer(serializers.ModelSerializer):
+    recipe = RecipeDetailSerializer(read_only=True)
+
+    class Meta:
+        model = FavoriteRecipe
+        fields = ["id", "recipe", "created_at"]
+        read_only_fields = ["id", "recipe", "created_at"]

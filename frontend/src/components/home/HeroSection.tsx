@@ -20,7 +20,7 @@ const HeroSection = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % images.length);
-    }, 2000); // change every 2 seconds
+    }, 4000);
 
     return () => clearInterval(interval);
   }, []);
@@ -57,7 +57,7 @@ const HeroSection = () => {
         <div className="w-full lg:w-5/12 flex flex-col items-center lg:items-start z-20 mt-12 lg:mt-0">
           <div className="max-w-[480px] mb-8 lg:mb-10">
             <p className="text-white text-sm lg:text-base font-medium font-['Inter'] leading-relaxed opacity-90 text-center lg:text-left fade-in">
-              Wellness doesn't start with big leaps. It's all those small choices you make every day that add up and slowly shape how you live. That's the heart of Zewadi—making that shift feel natural, easy, and honestly, something you want to keep doing.
+              Wellness doesn&apos;t start with big leaps. It&apos;s all those small choices you make every day that add up and slowly shape how you live. That&apos;s the heart of Zewadi, making that shift feel natural, easy, and honestly, something you want to keep doing.
             </p>
           </div>
 
@@ -96,12 +96,16 @@ const HeroSection = () => {
             </div>
             <div className="bg-white   p-5 flex items-center gap-5 shadow-2xl rounded-b-lg rounded-tr-lg">
               <div className="relative w-[100px] h-[70px] lg:w-[110px] lg:h-[75px] shrink-0 rounded overflow-hidden">
-                <Image
-                  src={images[current]}
-                  alt="About Us"
-                  fill
-                  className="object-cover transition-opacity duration-500"
-                />
+                {images.map((img, index) => (
+                  <Image
+                    key={index}
+                    src={img}
+                    alt="About Us"
+                    fill
+                    className={`object-cover absolute top-0 left-0 transition-opacity duration-[2000ms] ease-in-out ${current === index ? "opacity-100" : "opacity-0"
+                      }`}
+                  />
+                ))}
               </div>
               <div className="flex flex-col">
                 <h3 className="font-['Inter'] font-semibold text-[15px] lg:text-[16px] text-[#171717] leading-tight mb-2 lg:mb-3">
