@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 import { setCredentials, setCartCount } from "@/redux/userSlice";
+import { API_BASE_URL } from "@/lib/config";
 
 type AddToCartModalProps = {
   isOpen: boolean;
@@ -289,6 +290,26 @@ export default function AddToCartModal({
               : tab === "guest"
               ? "Continue as Guest"
               : "Sign In"}
+          </button>
+
+          <div className="relative flex items-center gap-3">
+            <div className="h-px flex-1 bg-gray-200" />
+            <span className="text-xs text-gray-400">or</span>
+            <div className="h-px flex-1 bg-gray-200" />
+          </div>
+
+          <button
+            type="button"
+            onClick={() => { window.location.href = `${API_BASE_URL}/account/google/login/`; }}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-200 py-2.5 text-sm font-medium text-gray-600 transition hover:bg-gray-50"
+          >
+            <svg viewBox="0 0 24 24" className="h-4 w-4">
+              <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.24 1.26-.96 2.32-2.04 3.03l3.3 2.56c1.92-1.77 3.03-4.38 3.03-7.48 0-.71-.06-1.39-.19-2.05H12Z" />
+              <path fill="#4285F4" d="M12 21.5c2.73 0 5.03-.9 6.7-2.43l-3.3-2.56c-.91.61-2.08.97-3.4.97-2.61 0-4.82-1.76-5.61-4.12H2.98v2.65A10.12 10.12 0 0 0 12 21.5Z" />
+              <path fill="#FBBC05" d="M6.39 13.36a6.08 6.08 0 0 1 0-3.86V6.85H2.98a10.12 10.12 0 0 0 0 9.16l3.41-2.65Z" />
+              <path fill="#34A853" d="M12 8.52c1.48 0 2.81.51 3.86 1.5l2.89-2.89C17.02 5.52 14.72 4.5 12 4.5A10.12 10.12 0 0 0 2.98 6.85l3.41 2.65C7.18 10.28 9.39 8.52 12 8.52Z" />
+            </svg>
+            Continue with Google
           </button>
         </div>
       </div>
