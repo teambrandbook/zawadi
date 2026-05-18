@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import AddNutritionistHeader from "./components/add-nutritionist/AddNutritionistHeader";
 import { expertiseChips } from "./components/add-nutritionist/addNutritionistData";
 import ExpertiseSection from "./components/add-nutritionist/ExpertiseSection";
@@ -101,8 +102,9 @@ export default function AddNutritionistPage() {
   const [location, setLocation] = useState("");
 
   // Profile photo
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const [selectedPhotoName, setSelectedPhotoName] = useState("");
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const [existingPhotoUrl, setExistingPhotoUrl] = useState("");
 
@@ -134,18 +136,6 @@ export default function AddNutritionistPage() {
   const handleBrowsePhoto = () => fileInputRef.current?.click();
 
   useEffect(() => {
-    if (!photoFile) {
-      setPhotoPreviewUrl("");
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(photoFile);
-    setPhotoPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [photoFile]);
-
-  useEffect(() => {
     if (!editId) return;
 
     const fetchNutritionistDetails = async () => {
@@ -175,7 +165,9 @@ export default function AddNutritionistPage() {
         setSessionVideo(sessionType.includes("video") || !sessionType);
         setSessionAudio(sessionType.includes("audio"));
         setSessionChat(sessionType.includes("chat"));
-        setExistingPhotoUrl(toImageUrl(user.photo ?? data.photo));
+        const existingUrl = toImageUrl(user.photo ?? data.photo);
+        setExistingPhotoUrl(existingUrl);
+        if (existingUrl) setPhotoUrl(existingUrl);
         setSelectedPhotoName(user.photo ? "Current profile photo" : "");
       } catch {
         toast.error("Failed to load nutritionist details for editing.");
@@ -188,7 +180,7 @@ export default function AddNutritionistPage() {
     fetchNutritionistDetails();
   }, [editId, router]);
 
-  function selectPhotoFile(file: File) {
+  async function selectPhotoFile(file: File) {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select a valid image file.");
       return;
@@ -199,14 +191,25 @@ export default function AddNutritionistPage() {
       return;
     }
 
+    if (isPhotoUploading) return;
+
     setSelectedPhotoName(file.name);
-    setPhotoFile(file);
+    const blobUrl = URL.createObjectURL(file);
+    setPhotoPreviewUrl(blobUrl);
+    try {
+      const url = await uploadPhoto(file);
+      setPhotoUrl(url);
+      setPhotoPreviewUrl(url);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      /* hook sets error internally */
+    }
   }
 
-  function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
+  async function handlePhotoChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
-    selectPhotoFile(file);
+    await selectPhotoFile(file);
   }
 
   function buildSessionType() {
@@ -230,6 +233,11 @@ export default function AddNutritionistPage() {
     if (!languages.trim()) { toast.error("Languages spoken is required."); return; }
     if (activeExpertise.length === 0) { toast.error("Select at least one area of expertise."); return; }
 
+    if (isPhotoUploading) {
+      toast.error("Photo is still uploading, please wait.");
+      return;
+    }
+
     const fd = new FormData();
     fd.append("years_of_experience", yearsExp || "0");
     fd.append("qualification", qualification.trim());
@@ -250,7 +258,7 @@ export default function AddNutritionistPage() {
     fd.append("gender", gender.toUpperCase());
     fd.append("location", location.trim());
     fd.append("role", "CONSULTANT");
-    if (photoFile) fd.append("photo", photoFile);
+    if (photoUrl) fd.append("photo", photoUrl);
 
     setIsSubmitting(true);
     try {

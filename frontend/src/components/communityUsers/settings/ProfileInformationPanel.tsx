@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, Upload } from "lucide-react";
 import type { CommunityProfileData, CommunityProfileUpdatePayload } from "./settingsTypes";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 type Props = {
   profile: CommunityProfileData | null;
@@ -44,33 +45,26 @@ function buildFormState(profile: CommunityProfileData | null): FormState {
 }
 
 export default function ProfileInformationPanel({ profile, isLoading, isSaving, onSave }: Props) {
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const [form, setForm] = useState<FormState>(buildFormState(profile));
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoUrl, setPhotoUrl] = useState("");
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [removePhoto, setRemovePhoto] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     setForm(buildFormState(profile));
-    setPhotoFile(null);
+    setPhotoUrl(profile?.photo ?? "");
+    setPhotoPreviewUrl(null);
     setRemovePhoto(false);
   }, [profile]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const photoPreviewUrl = useMemo(() => {
-    if (!photoFile) return null;
-    return URL.createObjectURL(photoFile);
-  }, [photoFile]);
-
-  useEffect(() => {
-    if (!photoPreviewUrl) return;
-    return () => URL.revokeObjectURL(photoPreviewUrl);
-  }, [photoPreviewUrl]);
-
   const previewPhoto = useMemo(() => {
     if (removePhoto) return null;
     if (photoPreviewUrl) return photoPreviewUrl;
-    return profile?.photo ?? null;
-  }, [photoPreviewUrl, profile?.photo, removePhoto]);
+    return photoUrl || profile?.photo || null;
+  }, [photoPreviewUrl, photoUrl, profile?.photo, removePhoto]);
 
   function updateFormField<K extends keyof FormState>(field: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -78,11 +72,15 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
 
   function onCancel() {
     setForm(buildFormState(profile));
-    setPhotoFile(null);
+    setPhotoUrl(profile?.photo ?? "");
+    setPhotoPreviewUrl(null);
     setRemovePhoto(false);
   }
 
   function onSubmit() {
+    if (isPhotoUploading) {
+      return;
+    }
     onSave({
       full_name: form.full_name.trim(),
       phone: form.phone.trim(),
@@ -97,7 +95,7 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
         country: form.country.trim(),
         postal_code: form.postal_code.trim(),
       },
-      photoFile,
+      photoUrl,
       removePhoto,
     });
   }
@@ -126,22 +124,34 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
           </div>
           <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md bg-[#06402B] px-5 text-sm font-semibold text-white hover:bg-[#053020]">
             <Upload className="h-4 w-4" />
-            Upload New
+            {isPhotoUploading ? "Uploading..." : "Upload New"}
             <input
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={(event) => {
+              disabled={isPhotoUploading}
+              onChange={async (event) => {
                 const file = event.target.files?.[0] ?? null;
-                setPhotoFile(file);
+                if (!file) return;
                 setRemovePhoto(false);
+                const blobUrl = URL.createObjectURL(file);
+                setPhotoPreviewUrl(blobUrl);
+                try {
+                  const url = await uploadPhoto(file);
+                  setPhotoUrl(url);
+                  setPhotoPreviewUrl(url);
+                  URL.revokeObjectURL(blobUrl);
+                } catch {
+                  /* hook sets error internally */
+                }
               }}
             />
           </label>
           <button
             type="button"
             onClick={() => {
-              setPhotoFile(null);
+              setPhotoUrl("");
+              setPhotoPreviewUrl(null);
               setRemovePhoto(true);
             }}
             className="h-10 rounded-md bg-[#E5E7EB] px-5 text-sm font-semibold text-[#374151] hover:bg-[#D1D5DB]"
