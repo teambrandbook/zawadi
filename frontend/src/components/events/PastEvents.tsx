@@ -22,21 +22,21 @@ export default function PastEventsSection() {
         />
 
         {/* Content Layer */}
-        <div className="relative z-10">
+        {/* 
+          CHANGED: Wrapped everything inside a flex container on mobile to easily control 
+          the layout flow of the button using ordering utilities.
+        */}
+        <div className="relative z-10 flex flex-col">
 
           {/* Header Row */}
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-12">
-            <h2 className="fade-in text-[#1f4d3a] text-3xl md:text-[42px] font-bold tracking-tight font-sans">
+          {/* 
+            CHANGED: Removed the button out of this container so it can be re-ordered 
+            independently below the grid layout on mobile viewports.
+          */}
+          <div className="mb-12">
+            <h2 className="fade-in text-[#1f4d3a] text-3xl md:text-[42px] font-bold tracking-tight font-sans text-center md:text-left">
               Post Events By Zewadi
             </h2>
-
-            <Link
-              href="/gallery"
-              className="inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg w-fit"
-            >
-              View Gallery
-              <ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
 
           {/* Events Grid */}
@@ -80,6 +80,20 @@ export default function PastEventsSection() {
               </div>
             ))}
           </div>
+
+          {/* View Gallery Link Button */}
+          {/* 
+            CHANGED: 'order-last' puts the button below the grid layout cards on mobile screens.
+            'md:absolute md:top-0 md:right-0' brings it flawlessly up beside the heading title on desktops.
+          */}
+          <Link
+            href="/gallery"
+            className="order-last mt-10 mx-auto md:mx-0 inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg w-fit md:absolute md:top-0 md:right-0 md:mt-0"
+          >
+            View Gallery
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+
         </div>
       </div>
     </section>

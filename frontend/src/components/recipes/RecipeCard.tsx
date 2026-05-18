@@ -20,7 +20,7 @@ export default function RecipeCard({
 
   return (
     <article
-      className={`recipe-card grid min-h-screen origin-top items-start gap-10 bg-[#fffef5] px-4 pt-10 sm:px-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
+      className={`recipe-card grid min-h-screen origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
       ${
         reverse
           ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"

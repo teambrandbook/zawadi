@@ -177,7 +177,7 @@ const ProductSection = () => {
           {products.map((item, i) => (
             <div
               key={i}
-              className={`card absolute h-[180px] w-[160px] overflow-hidden rounded-xl opacity-90 sm:h-[260px] sm:w-[190px] lg:h-[300px] lg:w-[330px]`}
+              className={`card absolute h-[180px] w-[160px] overflow-hidden rounded-xl border border-[#fdf6ee]/25 opacity-90 shadow-[0_18px_45px_rgba(0,0,0,0.22)] sm:h-[260px] sm:w-[190px] lg:h-[300px] lg:w-[330px]`}
               style={{ left: "50%", transform: "translateX(-50%)" }}
             >
               <Image

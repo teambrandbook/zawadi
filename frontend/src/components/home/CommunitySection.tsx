@@ -2,11 +2,14 @@ import React from 'react';
 import Image from 'next/image';
 import Link from "next/link";
 
-
 const CommunitySection = () => {
   return (
     <section className="relative w-full py-20 lg:py-32 bg-[#fffef5] overflow-hidden">
-      <div className="container mx-auto px-6 lg:px-50 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      {/* 
+        Using 'flex-col-reverse' splits the layout on mobile/tablet so the image stack sits on top.
+        'lg:flex-row' restores the standard side-by-side layout on desktop viewports.
+      */}
+      <div className="container mx-auto px-6 lg:px-50 flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-20">
 
         {/* Left Content */}
         <div className="w-full lg:w-[45%] flex flex-col items-start">
@@ -26,7 +29,6 @@ const CommunitySection = () => {
           <div className="flex flex-wrap items-center gap-8 lg:gap-12 mb-12 fade-in">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 relative">
-                {/* Replace with your specific SVG icon for Wellness */}
                 <Image src="/home/wellness.webp" alt="Wellness" width={40} height={40} />
               </div>
               <h3 className="text-[#121414] text-[16px] font-bold font-['Inter']">
@@ -35,7 +37,6 @@ const CommunitySection = () => {
             </div>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 relative">
-                {/* Replace with your specific SVG icon for Inclusive */}
                 <Image src="/home/inclusive.webp" alt="Inclusive" width={40} height={40} />
               </div>
               <h3 className="text-[#121414] text-[16px] font-bold font-['Inter']">
@@ -58,14 +59,12 @@ const CommunitySection = () => {
         </div>
 
         {/* Right Content - Image Stack */}
-        {/* Right Content - Image Stack */}
-        <div className="w-full lg:w-[55%] relative h-[350px] lg:h-[550px] mt-12 lg:mt-0 flex justify-center lg:block">
+        <div className="w-full lg:w-[55%] relative h-[350px] lg:h-[550px] mb-6 lg:mb-0 flex justify-center lg:block">
 
           {/* Inner wrapper to keep absolute elements contained and centered on mobile */}
           <div className="relative w-full max-w-[400px] lg:max-w-none h-full lg:mt-10">
 
             {/* 1. Dark Green Background Box (Far Right) */}
-            {/* Changed right-[-30] to right-0 for better mobile containment */}
             <div className="zoom-item absolute right-0 top-0 z-0 h-[95%] w-[40%] overflow-hidden rounded-lg bg-[#1a3d2e] lg:right-[-30px]">
               <div
                 className="pointer-events-none absolute inset-0 opacity-10"
@@ -73,6 +72,7 @@ const CommunitySection = () => {
                   backgroundImage: "url('/Patterns-03.webp')",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat" // Fixed TypeScript unknown property error here
                 }}
               />
             </div>
