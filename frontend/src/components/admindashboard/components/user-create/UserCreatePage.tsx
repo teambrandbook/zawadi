@@ -162,7 +162,7 @@ export default function UserCreatePage() {
       setPhotoPreview(url);
       URL.revokeObjectURL(blobUrl);
     } catch {
-      /* hook sets error internally */
+      URL.revokeObjectURL(blobUrl);
     }
   }
 

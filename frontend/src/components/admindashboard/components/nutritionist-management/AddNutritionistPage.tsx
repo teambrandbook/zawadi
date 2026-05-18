@@ -202,7 +202,7 @@ export default function AddNutritionistPage() {
       setPhotoPreviewUrl(url);
       URL.revokeObjectURL(blobUrl);
     } catch {
-      /* hook sets error internally */
+      URL.revokeObjectURL(blobUrl);
     }
   }
 

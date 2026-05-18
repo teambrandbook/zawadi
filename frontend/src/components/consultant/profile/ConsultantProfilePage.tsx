@@ -296,7 +296,6 @@ export default function ConsultantProfilePage() {
   const [consultantSettings, setConsultantSettings] = useState<ConsultantSettingsApiResponse | null>(null);
   const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const [isLoading, setIsLoading] = useState(true);
-  const isUploadingPhoto = isPhotoUploading;
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState<ConsultantProfileForm>(emptyProfileForm);
   const [errorMessage, setErrorMessage] = useState("");
@@ -487,7 +486,7 @@ export default function ConsultantProfilePage() {
           imageSrc={consultantProfile.imageSrc}
           imageAlt={consultantProfile.imageAlt}
           hint={consultantProfile.photoHint}
-          isUploading={isUploadingPhoto}
+          isUploading={isPhotoUploading}
           isSaving={isSavingProfile}
           onPhotoChange={handlePhotoChange}
           onSave={handleSaveProfile}

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, Check, Upload } from "lucide-react";
+import { toast } from "sonner";
 import type { CommunityProfileData, CommunityProfileUpdatePayload } from "./settingsTypes";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
@@ -79,6 +80,7 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
 
   function onSubmit() {
     if (isPhotoUploading) {
+      toast.error("Photo is still uploading, please wait.");
       return;
     }
     onSave({
@@ -142,7 +144,7 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
                   setPhotoPreviewUrl(url);
                   URL.revokeObjectURL(blobUrl);
                 } catch {
-                  /* hook sets error internally */
+                  URL.revokeObjectURL(blobUrl);
                 }
               }}
             />
@@ -286,7 +288,7 @@ export default function ProfileInformationPanel({ profile, isLoading, isSaving, 
         <button
           type="button"
           onClick={onSubmit}
-          disabled={isSaving}
+          disabled={isSaving || isPhotoUploading}
           className="inline-flex h-11 items-center gap-2 rounded-md bg-[#06402B] px-6 text-sm font-semibold text-white hover:bg-[#053020] disabled:cursor-not-allowed disabled:opacity-70"
         >
           <Check className="h-4 w-4" />
