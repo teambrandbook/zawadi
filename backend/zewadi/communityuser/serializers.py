@@ -36,7 +36,12 @@ class CommunityProfileSerializer(serializers.ModelSerializer):
     location = serializers.CharField(
         source="user.location", required=False, allow_blank=True, allow_null=True
     )
-    photo = serializers.URLField(required=False, allow_null=True, allow_blank=True)
+    photo = serializers.URLField(
+        source="user.photo",
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
     user_type = serializers.CharField(required=False)
 
     class Meta:
