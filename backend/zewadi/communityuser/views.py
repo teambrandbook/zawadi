@@ -89,7 +89,7 @@ class CommunityDashboardSummaryAPIView(APIView):
                 EventRegistration.objects.filter(user=user)
                 .exclude(status=EventRegistration.RegistrationStatus.CANCELLED)
                 .select_related("event")
-                .order_by("event__start_datetime")[:5]
+                .order_by("event__event_date", "event__start_time")[:5]
             ),
             [],
         )
@@ -129,7 +129,7 @@ class CommunityDashboardSummaryAPIView(APIView):
                 "upcoming_events": safe_query(
                     lambda: EventRegistration.objects.filter(user=user)
                     .exclude(status=EventRegistration.RegistrationStatus.CANCELLED)
-                    .filter(event__start_datetime__gte=now)
+                    .filter(event__event_date__gte=now.date())
                     .count(),
                     0,
                 ),
@@ -170,12 +170,13 @@ class CommunityDashboardSummaryAPIView(APIView):
                     "registration_id": item.id,
                     "event_id": item.event.id,
                     "title": item.event.title,
-                    "start_datetime": item.event.start_datetime,
-                    "end_datetime": item.event.end_datetime,
+                    "event_date": item.event.event_date,
+                    "start_time": item.event.start_time,
+                    "end_time": item.event.end_time,
                     "status": item.status,
                 }
                 for item in upcoming_event_registrations
-                if item.event.start_datetime >= now
+                if item.event.event_date and item.event.event_date >= now.date()
             ],
             "recent_consultations": [
                 {

@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from zewadi.validators import validate_image_upload
 from .models import CommunityUser, CommunityUserAddress, UserType
 
 
@@ -37,11 +36,11 @@ class CommunityProfileSerializer(serializers.ModelSerializer):
     location = serializers.CharField(
         source="user.location", required=False, allow_blank=True, allow_null=True
     )
-    photo = serializers.ImageField(
+    photo = serializers.URLField(
         source="user.photo",
         required=False,
         allow_null=True,
-        validators=[validate_image_upload],
+        allow_blank=True,
     )
     user_type = serializers.CharField(required=False)
 

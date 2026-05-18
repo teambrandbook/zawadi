@@ -1,5 +1,7 @@
+import hashlib
 import logging
 import os
+import time
 import uuid as _uuid
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -9,7 +11,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -115,6 +117,66 @@ def parse_bool(value):
     if value is None:
         return False
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+UPLOAD_FOLDER_MAP = {
+    "product_image": "zawadi/products",
+    "blog_cover": "zawadi/blogs",
+    "recipe_cover": "zawadi/recipes",
+    "event_cover": "zawadi/events",
+    "profile_photo": "zawadi/profiles",
+}
+
+UPLOAD_PERMISSION_MAP = {
+    "product_image": {"ADMIN", "INTERNAL_STAFF"},
+    "blog_cover": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
+    "recipe_cover": {"ADMIN", "INTERNAL_STAFF"},
+    "event_cover": {"ADMIN", "INTERNAL_STAFF"},
+    "profile_photo": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
+}
+
+
+class UploadSignatureView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        upload_type = request.query_params.get("type", "")
+        if upload_type not in UPLOAD_FOLDER_MAP:
+            return Response(
+                {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
+        if request.user.role not in allowed_roles:
+            return Response(
+                {"error": "You do not have permission to upload this image type."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if not settings.CLOUDINARY_API_SECRET:
+            return Response(
+                {"error": "Cloudinary is not configured on this server."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        folder = UPLOAD_FOLDER_MAP[upload_type]
+        timestamp = int(time.time())
+        # Upload preset is excluded from signing because it is set to "unsigned" mode
+        # in Cloudinary. If the preset is changed to "signed" mode, add
+        # &upload_preset=<preset> to this string (sorted alphabetically).
+        params_to_sign = f"folder={folder}&timestamp={timestamp}"
+        signature = hashlib.sha1(
+            (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
+        ).hexdigest()
+
+        return Response({
+            "signature": signature,
+            "timestamp": timestamp,
+            "api_key": settings.CLOUDINARY_API_KEY,
+            "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+            "folder": folder,
+        })
 
 
 class RegisterAPIView(APIView):
@@ -607,7 +669,7 @@ class LogoutAllAPIView(APIView):
 
 class MeAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    parser_classes = [JSONParser]
 
     def get(self, request):
         serializer = MeSerializer(request.user, context={"request": request})
@@ -639,8 +701,8 @@ class MeAPIView(APIView):
             return Response(errors, status=status.HTTP_400_BAD_REQUEST)
 
         changed = [f for f in ("full_name", "phone") if f in request.data]
-        if "photo" in request.FILES:
-            user.photo = request.FILES["photo"]
+        if "photo" in request.data:
+            user.photo = request.data.get("photo") or ""
             changed.append("photo")
         if changed:
             changed.append("updated_at")

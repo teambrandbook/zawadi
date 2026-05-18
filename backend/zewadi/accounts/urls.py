@@ -17,6 +17,7 @@ from .views import (
     RefreshAPIView,
     RegisterAPIView,
     UpgradeAPIView,
+    UploadSignatureView,
 )
 
 urlpatterns = [
@@ -36,4 +37,5 @@ urlpatterns = [
     path("change-password/", ChangePasswordAPIView.as_view()),
     path("google/login/", GoogleLoginAPIView.as_view()),
     path("google/callback/", GoogleCallbackAPIView.as_view(), name="google-callback"),
+    path("upload-signature/", UploadSignatureView.as_view()),
 ]

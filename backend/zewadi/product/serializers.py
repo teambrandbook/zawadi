@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, ProductVariant
-from zewadi.validators import validate_image_upload
-
+from .models import Product, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
 
@@ -39,11 +37,7 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.brand_name
 
     def get_image(self, obj):
-        if not obj.image:
-            return None
-        request = self.context.get("request")
-        image_url = obj.image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        return obj.image or None
 
     def get_alternative_images(self, obj):
         request = self.context.get("request")

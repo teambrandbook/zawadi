@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus, Trash2 } from "lucide-react";
 import api from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 const CATEGORIES = [
   { label: "Breakfast", value: "breakfast" },
@@ -77,6 +78,7 @@ export default function AddRecipePage() {
   const coverRef = useRef<HTMLInputElement>(null);
   const recipeId = searchParams.get("id");
   const isEditMode = Boolean(recipeId);
+  const { upload: uploadCoverImage, isUploading: isImageUploading } = useCloudinaryUpload("recipe_cover");
 
   const [title, setTitle] = useState("");
   const [shortDescription, setShortDescription] = useState("");
@@ -91,6 +93,7 @@ export default function AddRecipePage() {
   const [carbs, setCarbs] = useState("");
   const [protein, setProtein] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
 
   // Ingredients
@@ -126,6 +129,7 @@ export default function AddRecipePage() {
         setProtein(recipe.protein ? String(recipe.protein) : "");
         setCoverFile(null);
         setCoverPreview(recipe.cover_image ?? null);
+        if (recipe.cover_image) setCoverImageUrl(recipe.cover_image);
         setIngredients(
           Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0
             ? recipe.ingredients.map((ingredient) => ({
@@ -151,11 +155,21 @@ export default function AddRecipePage() {
     fetchRecipe();
   }, [recipeId, router]);
 
-  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (isImageUploading) return;
     const file = e.target.files?.[0];
     if (!file) return;
     setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    const blobUrl = URL.createObjectURL(file);
+    setCoverPreview(blobUrl);
+    try {
+      const url = await uploadCoverImage(file);
+      setCoverImageUrl(url);
+      setCoverPreview(url);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // error handled in hook
+    }
   }
 
   function updateIngredient(index: number, field: keyof Ingredient, value: string) {
@@ -190,6 +204,7 @@ export default function AddRecipePage() {
     if (!cookingTime || Number(cookingTime) < 1) { toast.error("Cooking time must be at least 1 minute."); return; }
     if (!servings || Number(servings) < 1) { toast.error("Servings must be at least 1."); return; }
     if (!calories.trim() || !fat.trim() || !carbs.trim() || !protein.trim()) { toast.error("Nutrition facts are required."); return; }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
     const fd = new FormData();
     fd.append("title", title.trim());
     fd.append("short_description", shortDescription.trim());
@@ -203,7 +218,7 @@ export default function AddRecipePage() {
     fd.append("fat", fat.trim());
     fd.append("carbs", carbs.trim());
     fd.append("protein", protein.trim());
-    if (coverFile) fd.append("cover_image", coverFile);
+    if (coverImageUrl) fd.append("cover_image", coverImageUrl);
 
     // Ingredients & steps as JSON strings (backend can parse)
     const validIngredients = ingredients.filter((i) => i.ingredient_name.trim());

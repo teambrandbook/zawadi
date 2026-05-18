@@ -35,8 +35,8 @@ def _product_payload_from_request(request):
     for key, value in request.data.items():
         payload[key] = value
 
-    if "image" not in payload and request.FILES.get("image"):
-        payload["image"] = request.FILES["image"]
+    # image is now a URLField (Cloudinary URL posted as a string in request.data)
+    # request.FILES is no longer used for image uploads
 
     alternative_images = request.FILES.getlist("alternative_images")
     if alternative_images:

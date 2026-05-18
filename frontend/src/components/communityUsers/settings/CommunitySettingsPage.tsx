@@ -218,14 +218,6 @@ export default function CommunitySettingsPage() {
     setStatusMessage("Saving profile...");
 
     try {
-      if (payload.photoFile) {
-        const formData = new FormData();
-        formData.append("photo", payload.photoFile);
-        await api.patch("/community/profile/", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      }
-
       const addressHasAnyField = Object.values(payload.address).some((value) => value.trim().length > 0);
       const jsonPayload: Record<string, unknown> = {
         full_name: payload.full_name,
@@ -242,6 +234,8 @@ export default function CommunitySettingsPage() {
 
       if (payload.removePhoto) {
         jsonPayload.photo = null;
+      } else if (payload.photoUrl) {
+        jsonPayload.photo = payload.photoUrl;
       }
 
       const response = await api.patch<CommunityProfileData>("/community/profile/", jsonPayload);

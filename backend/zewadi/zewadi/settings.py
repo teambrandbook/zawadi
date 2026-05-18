@@ -17,6 +17,13 @@ SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-in-production")
 DEBUG = env_bool("DEBUG", False)
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
 
+# ─── Cloudinary ───────────────────────────────────────────────────────────────
+
+CLOUDINARY_CLOUD_NAME = os.getenv("CLOUDINARY_CLOUD_NAME", "")
+CLOUDINARY_API_KEY = os.getenv("CLOUDINARY_API_KEY", "")
+CLOUDINARY_API_SECRET = os.getenv("CLOUDINARY_API_SECRET", "")
+CLOUDINARY_UPLOAD_PRESET = os.getenv("CLOUDINARY_UPLOAD_PRESET", "zawadi_uploads")
+
 # ─── Applications ─────────────────────────────────────────────────────────────
 
 INSTALLED_APPS = [
