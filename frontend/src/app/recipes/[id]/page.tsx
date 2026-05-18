@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { getRecipeById } from "@/lib/recipes";
 import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
@@ -25,6 +24,14 @@ type BackendRecipeDetail = {
   ingredients?: { ingredient_name: string; quantity?: string | null; unit?: string | null }[];
   steps?: { description: string }[];
 };
+
+type BackendRecipeDetailResponse =
+  | BackendRecipeDetail
+  | {
+      data?: BackendRecipeDetail;
+    };
+
+const RECIPE_DETAIL_TIMEOUT_MS = 5000;
 
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-1.webp";
@@ -61,7 +68,8 @@ function mapNutrition(recipe: BackendRecipeDetail): RecipeNutrition | undefined 
 
 function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   return {
-    id: recipe.slug || String(recipe.id),
+    id: String(recipe.id),
+    slug: recipe.slug || String(recipe.id),
     title: recipe.title,
     description: recipe.short_description || "",
     image: mediaUrl(recipe.cover_image),
@@ -76,51 +84,37 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
   };
 }
 
-async function getRecipe(id: string): Promise<Recipe | undefined> {
+function recipeFromResponse(payload: BackendRecipeDetailResponse): BackendRecipeDetail | undefined {
+  if ("id" in payload) return payload;
+  return payload.data;
+}
+
+async function getRecipe(recipeId: string): Promise<Recipe | undefined> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), RECIPE_DETAIL_TIMEOUT_MS);
+
   try {
-    const response = await fetch(`${API_BASE_URL}/recipes/${id}/`, { cache: "no-store" });
-    if (response.ok) {
-      return mapBackendRecipe((await response.json()) as BackendRecipeDetail);
-    }
+    const response = await fetch(`${API_BASE_URL}/recipes/published/${recipeId}/`, {
+      cache: "no-store",
+      signal: controller.signal,
+    });
+
+    if (!response.ok) return undefined;
+
+    const payload = (await response.json()) as BackendRecipeDetailResponse;
+    const recipe = recipeFromResponse(payload);
+    return recipe ? mapBackendRecipe(recipe) : undefined;
   } catch {
-    // Fall back to bundled design data.
+    return undefined;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  return getRecipeById(id);
 }
 
-// Fetch all published recipes from the API and map them to frontend types
-async function getAllRecipes(): Promise<Recipe[]> {
-  const response = await fetch(`${API_BASE_URL}/recipes/published/`, { cache: "no-store" });
-  const payload = await response.json();
-  const raw = Array.isArray(payload)
-    ? payload
-    : Array.isArray(payload?.data)
-    ? payload.data
-    : Array.isArray(payload?.results)
-    ? payload.results
-    : [];
-  return raw.map(mapBackendRecipe);
-}
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const allRecipes = await getAllRecipes();
-  const recipe = allRecipes.find((r) => r.id === id);
-
-  if (!recipe) {
-    return {
-      title: "Recipe Not Found | Zewadi Recipes",
-    };
-  }
-
+export function generateMetadata() {
   return {
-    title: `${recipe.title} | Zewadi Recipes`,
-    description: recipe.description,
+    title: "Zewadi Recipe | Zewadi Recipes",
+    description: "Explore delicious Zewadi buckwheat recipes.",
   };
 }
 
@@ -130,8 +124,7 @@ export default async function RecipeDetailsPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const allRecipes = await getAllRecipes();
-  const recipe = allRecipes.find((r) => r.id === id);
+  const recipe = await getRecipe(id);
 
   if (!recipe) {
     notFound();
@@ -139,13 +132,13 @@ export default async function RecipeDetailsPage({
 
   return (
     <div>
-      <Navbar/>
+      <Navbar />
       <ContentSection
         title="Zewadi Recipes"
         subtitle="Delicious Zewadi Buckwheat Recipes"
       />
       <RecipeDetailsContent recipe={recipe} />
-      <Footer/>
+      <Footer />
     </div>
   );
 }

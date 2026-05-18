@@ -3,11 +3,12 @@ from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from supperadmin.utils.permissions import has_permission
-from .models import Recipe, RecipeStatus
+from .models import FavoriteRecipe, Recipe, RecipeStatus
 from .serializers import (
     RecipeListSerializer,
     RecipeDetailSerializer,
     RecipeCreateSerializer,
+    FavoriteRecipeSerializer,
 )
 from django.utils import timezone
 from django.db.models import Q
@@ -402,6 +403,90 @@ class AdminRecipeStatusUpdateView(APIView):
         )
 
 
+class FavoriteRecipeListAPIView(APIView):
+    """
+    GET /api/recipes/favorites/
+    Returns the current user's favorite published recipes.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        favorites = (
+            FavoriteRecipe.objects.select_related("recipe", "recipe__author")
+            .prefetch_related("recipe__ingredients", "recipe__steps")
+            .filter(user=request.user, recipe__status=RecipeStatus.PUBLISHED)
+            .order_by("-created_at")
+        )
+        serializer = FavoriteRecipeSerializer(
+            favorites,
+            many=True,
+            context={"request": request},
+        )
+        return Response(
+            {
+                "success": True,
+                "count": favorites.count(),
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class FavoriteRecipeToggleAPIView(APIView):
+    """
+    POST   /api/recipes/<recipe_id>/favorite/ saves a recipe.
+    DELETE /api/recipes/<recipe_id>/favorite/ removes a recipe.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_published_recipe(self, recipe_id):
+        return Recipe.objects.filter(
+            id=recipe_id,
+            status=RecipeStatus.PUBLISHED,
+        ).first()
+
+    def post(self, request, recipe_id):
+        recipe = self.get_published_recipe(recipe_id)
+        if not recipe:
+            return Response(
+                {"detail": "Published recipe not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        favorite, _created = FavoriteRecipe.objects.get_or_create(
+            user=request.user,
+            recipe=recipe,
+        )
+        return Response(
+            {
+                "success": True,
+                "favorited": True,
+                "data": FavoriteRecipeSerializer(
+                    favorite,
+                    context={"request": request},
+                ).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def delete(self, request, recipe_id):
+        deleted, _ = FavoriteRecipe.objects.filter(
+            user=request.user,
+            recipe_id=recipe_id,
+        ).delete()
+
+        return Response(
+            {
+                "success": True,
+                "favorited": False,
+                "removed": deleted > 0,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 # in website
 
 class PublishedRecipeListAPIView(APIView):
@@ -439,3 +524,41 @@ class PublishedRecipeListAPIView(APIView):
             pass
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class PublishedRecipeDetailAPIView(APIView):
+    """
+    GET /api/recipes/published/<recipe_id>/
+
+    Public API:
+    Returns one published recipe by id.
+    Authentication is not required.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, recipe_id):
+        recipe = (
+            Recipe.objects.select_related("author")
+            .prefetch_related("ingredients", "steps")
+            .filter(id=recipe_id, status=RecipeStatus.PUBLISHED)
+            .first()
+        )
+
+        if not recipe:
+            return Response(
+                {
+                    "success": False,
+                    "error": "Published recipe not found.",
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = RecipeDetailSerializer(recipe, context={"request": request})
+        return Response(
+            {
+                "success": True,
+                "data": serializer.data,
+            },
+            status=status.HTTP_200_OK,
+        )

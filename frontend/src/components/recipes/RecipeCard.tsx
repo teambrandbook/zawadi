@@ -1,20 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, PlayCircle } from "lucide-react";
+import { ArrowRight, PlayCircle, Heart } from "lucide-react";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+
+interface RecipeCardProps {
+  recipe: Recipe;
+  isFavorite: boolean;
+  toggleFavorite: () => void;
+  reverse?: boolean;
+}
 
 export default function RecipeCard({
   recipe,
+  isFavorite,
+  toggleFavorite,
   reverse = false,
-}: {
-  recipe: Recipe;
-  reverse?: boolean;
-}) {
+}: RecipeCardProps) {
   const benefits = recipe.benefits ?? [];
 
   return (
     <article
-      className={`recipe-card grid min-h-screen origin-top items-start gap-10 px-4 pt-10 sm:px-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
+      className={`recipe-card grid min-h-screen origin-top items-start gap-10 bg-[#fffef5] px-4 pt-10 sm:px-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
       ${
         reverse
           ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
@@ -30,6 +36,7 @@ export default function RecipeCard({
           className="object-cover"
         />
 
+        {/* Video Button */}
         {recipe.videoUrl ? (
           <a
             href={recipe.videoUrl}
@@ -70,17 +77,35 @@ export default function RecipeCard({
           </>
         )}
 
-        {/* Learn More Button */}
-        <Link
-          href={`/recipes/${recipe.id}`}
-          className="relative mt-6 inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
-        >
-          <span>Learn More</span>
+        {/* Action Row: Learn More & Favorite */}
+        <div className="mt-6 flex items-center gap-15">
+          <Link
+            href={`/recipes/${recipe.id}`}
+            className="relative inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
+          >
+            <span>Learn More</span>
 
-          <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
-            <ArrowRight className="h-4 w-4 text-white" />
-          </span>
-        </Link>
+            <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
+              <ArrowRight className="h-4 w-4 text-white" />
+            </span>
+          </Link>
+
+          <button
+            type="button"
+            aria-label={isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
+            aria-pressed={isFavorite}
+            onClick={toggleFavorite}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1f4d3a] text-white transition hover:bg-[#163a2b]"
+          >
+            <Heart
+              className={`h-5 w-5 transition-all duration-200 ${
+                isFavorite
+                  ? "fill-white stroke-white"
+                  : "stroke-white fill-transparent"
+              }`}
+            />
+          </button>
+        </div>
       </div>
     </article>
   );
