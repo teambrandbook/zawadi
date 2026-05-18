@@ -1,4 +1,5 @@
 import api, { clearAccessToken } from "@/services/api";
+import { getGuestCart, clearGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -64,7 +65,11 @@ export const fetchCartCount = createAsyncThunk("user/fetchCartCount", async () =
   try {
     const res = await api.get<{ summary: { item_count: number } }>("/orders/cart/");
     return Number(res.data.summary?.item_count ?? 0);
-  } catch {
+  } catch (err: unknown) {
+    const status = (err as { response?: { status?: number } }).response?.status;
+    if (status === 401 || status === 403) {
+      return getGuestCartCount();
+    }
     return 0;
   }
 });
@@ -77,6 +82,30 @@ export const upgradeToMember = createAsyncThunk(
     } catch (err: unknown) {
       const error = err as { response?: { data?: unknown } };
       return rejectWithValue(error.response?.data ?? "Upgrade failed");
+    }
+  }
+);
+
+export const drainGuestCart = createAsyncThunk(
+  "user/drainGuestCart",
+  async () => {
+    const items = getGuestCart();
+    if (items.length === 0) return 0;
+    await Promise.allSettled(
+      items.map((item) =>
+        api.post("/orders/cart/items/", {
+          product_id: item.productId,
+          ...(item.variantId ? { variant_id: item.variantId } : {}),
+          quantity: item.quantity,
+        })
+      )
+    );
+    clearGuestCart();
+    try {
+      const res = await api.get<{ summary: { item_count: number } }>("/orders/cart/");
+      return Number(res.data.summary?.item_count ?? 0);
+    } catch {
+      return 0;
     }
   }
 );
@@ -164,6 +193,11 @@ const userSlice = createSlice({
     // upgradeToMember
     builder.addCase(upgradeToMember.fulfilled, (state) => {
       state.userType = "member";
+    });
+
+    // drainGuestCart
+    builder.addCase(drainGuestCart.fulfilled, (state, action) => {
+      state.cartCount = action.payload;
     });
 
     // register (just tracks loading/error; does not auto-login)
