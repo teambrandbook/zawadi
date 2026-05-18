@@ -58,7 +58,7 @@ class Recipe(models.Model):
     cooking_time_minutes = models.PositiveIntegerField(validators=[MinValueValidator(1)])
     servings = models.PositiveIntegerField(validators=[MinValueValidator(1)])
 
-    cover_image = models.ImageField(upload_to="recipes/cover_images/", null=True, blank=True)
+    cover_image = models.URLField(blank=True, null=True)
 
     health_benefits = models.TextField(blank=True, null=True)
     buckwheat_wellness_value = models.TextField(blank=True, null=True)

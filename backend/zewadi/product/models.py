@@ -55,7 +55,7 @@ class Product(models.Model):
     brand_name = "Zewadi"
     category = models.CharField(max_length=30, choices=ProductCategory.choices, default=ProductCategory.OTHER)
     product_status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    image = models.ImageField(upload_to="products/images/", blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
     product_unit = models.CharField(max_length=20, choices=ProductUnit.choices, blank=True, default="")
     unit_quantity = models.CharField(max_length=30, blank=True, default="")
     alternative_unit_enabled = models.BooleanField(default=False)
