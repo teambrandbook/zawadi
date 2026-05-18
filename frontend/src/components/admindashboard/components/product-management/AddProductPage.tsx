@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import AddProductActions from "./components/AddProductActions";
 import AddProductForm, { ProductFormData } from "./components/AddProductForm";
 import AddProductHeader from "./components/AddProductHeader";
@@ -85,9 +86,11 @@ export default function AddProductPage() {
   const productId = searchParams.get("id");
   const isEditMode = Boolean(productId);
 
+  const { upload: uploadImage, isUploading: isImageUploading } = useCloudinaryUpload("product_image");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [formData, setFormData] = useState<ProductFormData>(initialFormData);
 
   useEffect(() => {
@@ -138,6 +141,7 @@ export default function AddProductPage() {
             : [{ variant_value: "", variant_unit: "", cost: "", price: "", stock: "" }],
         });
         setExistingImageUrl(toProductImageUrl(data.image));
+        if (data.image) setImageUrl(toProductImageUrl(data.image) ?? "");
       } catch {
         toast.error("Failed to load product details.");
       } finally {
@@ -147,6 +151,19 @@ export default function AddProductPage() {
 
     void fetchProduct();
   }, [productId]);
+
+  async function handleFormChange(next: ProductFormData) {
+    const prevImage = formData.image;
+    setFormData(next);
+    if (next.image && next.image !== prevImage) {
+      try {
+        const url = await uploadImage(next.image);
+        setImageUrl(url);
+      } catch {
+        // error handled in hook
+      }
+    }
+  }
 
   const previewImageUrl = useMemo(() => {
     if (formData.image) {
@@ -175,6 +192,7 @@ export default function AddProductPage() {
     }
     if (!formData.short_description.trim()) { toast.error("Short description is required."); return; }
     if (!formData.category) { toast.error("Category is required."); return; }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
     const fd = new FormData();
     fd.append("product_name", formData.product_name.trim());
@@ -196,7 +214,7 @@ export default function AddProductPage() {
     fd.append("allow_out_of_stock", String(formData.allow_out_of_stock));
     fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
-    if (formData.image) fd.append("image", formData.image);
+    if (imageUrl) fd.append("image", imageUrl);
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
@@ -242,7 +260,7 @@ export default function AddProductPage() {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,816px)_272px]">
           <div className="space-y-4">
-            <AddProductForm formData={formData} onChange={setFormData} />
+            <AddProductForm formData={formData} onChange={handleFormChange} />
             <AddProductActions
               onSubmit={() => handleSubmit("active")}
               onDraft={() => handleSubmit("draft")}
