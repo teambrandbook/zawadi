@@ -18,7 +18,11 @@ export default function EventTestimonials() {
         </div>
 
         {/* Content Wrapper */}
-        <div className="relative flex flex-col items-center lg:flex-row">
+        {/* 
+          CHANGED: Used 'flex-col-reverse' to bring the image block to the top on mobile/tablet.
+          'lg:flex-row' preserves the overlapping side-by-side arrangement on desktop.
+        */}
+        <div className="relative flex flex-col-reverse items-center lg:flex-row">
           
           {/* Testimonial Card */}
           <div className="left-move relative z-20 w-full lg:-mr-32 lg:w-[60%]">
@@ -62,7 +66,11 @@ export default function EventTestimonials() {
           </div>
 
           {/* Featured Image */}
-          <div className="mt-8 w-full lg:mt-0 lg:w-[50%]">
+          {/* 
+            CHANGED: Removed mobile top margin ('mt-8 lg:mt-0' -> 'lg:mt-0') 
+            and introduced a bottom margin ('mb-8 lg:mb-0') so it separates naturally from the text card beneath it.
+          */}
+          <div className="w-full mb-8 lg:mb-0 lg:w-[50%]">
             <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] lg:h-[500px]">
               <Image
                 src="/event/community_hands.webp" 

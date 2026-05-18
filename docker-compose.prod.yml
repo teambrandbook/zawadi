@@ -64,6 +64,10 @@ services:
       FRONTEND_URL: https://app.zewadi.com
       SECURE_SSL_REDIRECT: "False"
       SECURE_HSTS_SECONDS: "31536000"
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      CLOUDINARY_UPLOAD_PRESET: ${CLOUDINARY_UPLOAD_PRESET:-zawadi_uploads}
     depends_on:
       db:
         condition: service_healthy
@@ -99,6 +103,8 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: https://api.zewadi.com/api
+        NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+        NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET: ${CLOUDINARY_UPLOAD_PRESET:-zawadi_uploads}
     restart: unless-stopped
     environment:
       NODE_ENV: production

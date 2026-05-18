@@ -31,6 +31,13 @@ type BackendRecipeDetailResponse =
       data?: BackendRecipeDetail;
     };
 
+type BackendRecipesResponse =
+  | BackendRecipeDetail[]
+  | {
+      data?: BackendRecipeDetail[];
+      results?: BackendRecipeDetail[];
+    };
+
 const RECIPE_DETAIL_TIMEOUT_MS = 5000;
 
 function mediaUrl(value?: string | null) {
@@ -89,6 +96,49 @@ function recipeFromResponse(payload: BackendRecipeDetailResponse): BackendRecipe
   return payload.data;
 }
 
+function recipeListFromResponse(payload: BackendRecipesResponse): BackendRecipeDetail[] {
+  return Array.isArray(payload)
+    ? payload
+    : Array.isArray(payload.data)
+    ? payload.data
+    : Array.isArray(payload.results)
+    ? payload.results
+    : [];
+}
+
+function findRecipeInList(recipeId: string, recipes: BackendRecipeDetail[]) {
+  const directMatch = recipes.find((recipe) => {
+    const id = String(recipe.id);
+    const slug = recipe.slug ? String(recipe.slug) : "";
+    return id === recipeId || slug === recipeId;
+  });
+
+  if (directMatch) return directMatch;
+
+  const numericId = Number(recipeId);
+  if (Number.isInteger(numericId) && numericId > 0) {
+    return recipes[numericId - 1];
+  }
+
+  return undefined;
+}
+
+async function getRecipeFromPublishedList(recipeId: string): Promise<Recipe | undefined> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/recipes/published/`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) return undefined;
+
+    const payload = (await response.json()) as BackendRecipesResponse;
+    const recipe = findRecipeInList(recipeId, recipeListFromResponse(payload));
+    return recipe ? mapBackendRecipe(recipe) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 async function getRecipe(recipeId: string): Promise<Recipe | undefined> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), RECIPE_DETAIL_TIMEOUT_MS);
@@ -99,13 +149,13 @@ async function getRecipe(recipeId: string): Promise<Recipe | undefined> {
       signal: controller.signal,
     });
 
-    if (!response.ok) return undefined;
+    if (!response.ok) return getRecipeFromPublishedList(recipeId);
 
     const payload = (await response.json()) as BackendRecipeDetailResponse;
     const recipe = recipeFromResponse(payload);
-    return recipe ? mapBackendRecipe(recipe) : undefined;
+    return recipe ? mapBackendRecipe(recipe) : getRecipeFromPublishedList(recipeId);
   } catch {
-    return undefined;
+    return getRecipeFromPublishedList(recipeId);
   } finally {
     clearTimeout(timeout);
   }

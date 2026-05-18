@@ -15,6 +15,7 @@ import PreferencesSection from "./components/PreferencesSection";
 import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
 import api, { getAccessToken } from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 // ✅ FIXED TYPE
 export type FormType = {
@@ -25,7 +26,7 @@ export type FormType = {
   date_of_birth: string;
   gender: string;
   location: string;
-  photo: File | null;
+  photo: string;
   password: string;
   is_active: boolean;
   role: string;
@@ -55,7 +56,7 @@ const initialForm: FormType = {
   date_of_birth: "",
   gender: "",
   location: "",
-  photo: null,
+  photo: "",
   password: "",
   is_active: true,
   role: "",
@@ -85,6 +86,7 @@ export default function UserCreatePage() {
   const editUserId = searchParams.get("userId");
   const isEditMode = Boolean(editUserId);
 
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const [photoPreview, setPhotoPreview] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(false);
@@ -127,6 +129,7 @@ export default function UserCreatePage() {
 
         if (typeof data.photo === "string" && data.photo) {
           setPhotoPreview(data.photo);
+          setForm((prev) => ({ ...prev, photo: data.photo as string }));
         }
       } catch {
         toast.error("Failed to load user details.");
@@ -142,19 +145,25 @@ export default function UserCreatePage() {
     setForm((prev) => ({ ...prev, [field]: value }));
   }
 
-  function handlePhotoPick(file: File | null) {
+  async function handlePhotoPick(file: File | null) {
     if (!file) return;
+    if (isPhotoUploading) return;
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size should be 5MB or less.");
       return;
     }
 
-    setForm((prev) => ({
-      ...prev,
-      photo: file,
-    }));
-    setPhotoPreview(URL.createObjectURL(file));
+    const blobUrl = URL.createObjectURL(file);
+    setPhotoPreview(blobUrl);
+    try {
+      const url = await uploadPhoto(file);
+      setForm((prev) => ({ ...prev, photo: url }));
+      setPhotoPreview(url);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      URL.revokeObjectURL(blobUrl);
+    }
   }
 
   function handleTogglePermission(field: string, value: boolean) {
@@ -172,15 +181,16 @@ export default function UserCreatePage() {
       return;
     }
 
+    if (isPhotoUploading) {
+      toast.error("Photo is still uploading, please wait.");
+      return;
+    }
+
     const formData = new FormData();
 
     Object.entries(form).forEach(([key, value]) => {
       if (value !== null && value !== "") {
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, String(value));
-        }
+        formData.append(key, String(value));
       }
     });
 

@@ -118,6 +118,6 @@ export type CommunityProfileUpdatePayload = {
     country: string;
     postal_code: string;
   };
-  photoFile: File | null;
+  photoUrl: string;
   removePhoto: boolean;
 };

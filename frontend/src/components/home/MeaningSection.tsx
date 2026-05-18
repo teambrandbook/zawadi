@@ -3,9 +3,9 @@ import Image from 'next/image';
 
 const MeaningSection = () => {
   return (
-    <section className="relative w-full py-20 lg:py-32 bg-[#fffef5] overflow-hidden lg:px-20">
+    <section className="relative w-full py-10 lg:py-32 bg-[#fffef5] overflow-hidden lg:px-20">
       <div className="container mx-auto px-6 lg:px-32">
-        <div className="flex flex-col lg:flex-row items-start gap-12 lg:gap-20">
+        <div className="flex flex-col lg:flex-row items-start gap-0 lg:gap-20">
 
           {/* Left Content Column */}
           <div className="w-full lg:w-1/2 flex flex-col">
@@ -45,7 +45,7 @@ const MeaningSection = () => {
           </div>
 
           {/* Right Content Column - Tall Image */}
-          <div className="w-full lg:w-1/2 pt-12">
+          <div className="w-full lg:w-1/2 lm:pt-12">
             <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] lg:h-[600px] overflow-hidden shadow-sm">
               <Image
                 src="/home/meaningImg1.webp"

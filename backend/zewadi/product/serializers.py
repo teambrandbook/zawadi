@@ -1,7 +1,5 @@
 from rest_framework import serializers
-from .models import Product, ProductImage, ProductVariant
-from zewadi.validators import validate_image_upload
-
+from .models import Product, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
 
@@ -39,21 +37,10 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.brand_name
 
     def get_image(self, obj):
-        if not obj.image:
-            return None
-        request = self.context.get("request")
-        image_url = obj.image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        return obj.image or None
 
     def get_alternative_images(self, obj):
-        request = self.context.get("request")
-        urls = []
-        for product_image in obj.alternative_images.all():
-            if not product_image.image:
-                continue
-            image_url = product_image.image.url
-            urls.append(request.build_absolute_uri(image_url) if request else image_url)
-        return urls
+        return [pi.image for pi in obj.alternative_images.all() if pi.image]
 
     def get_discount_amount(self, obj):
         return f"{obj.discount_amount:.2f}"
@@ -108,7 +95,7 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
     variants = ProductVariantSerializer(many=True, required=False)
     alternative_images = serializers.ListField(
-        child=serializers.ImageField(validators=[validate_image_upload]),
+        child=serializers.URLField(required=False, allow_null=True, allow_blank=True),
         write_only=True,
         required=False,
         allow_empty=True,

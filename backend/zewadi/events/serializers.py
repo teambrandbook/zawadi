@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import Event, EventRegistration
-from zewadi.validators import validate_image_upload
-
 
 class EventListSerializer(serializers.ModelSerializer):
     """Compact read-only serializer for list views."""
@@ -97,7 +95,7 @@ class EventDetailSerializer(serializers.ModelSerializer):
 class EventCreateUpdateSerializer(serializers.ModelSerializer):
     """Writable serializer for create/update; created_by is set by the view."""
 
-    cover_image = serializers.ImageField(required=False, allow_null=True, validators=[validate_image_upload])
+    cover_image = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     institutional_name = serializers.CharField(
         source="host_speaker_name",
         required=False,
@@ -179,7 +177,7 @@ class EventRegistrationSerializer(serializers.ModelSerializer):
             "slug": event.slug,
             "short_subtitle": event.short_subtitle,
             "event_type": event.event_type,
-            "cover_image": event.cover_image.url if event.cover_image else None,
+            "cover_image": event.cover_image or None,
             "event_date": event.event_date,
             "start_time": event.start_time,
             "end_time": event.end_time,

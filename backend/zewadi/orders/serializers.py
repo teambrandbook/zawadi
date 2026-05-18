@@ -151,18 +151,14 @@ class OrderListSerializer(serializers.ModelSerializer):
         product = Product.objects.filter(product_name=obj.product_name).only("image").first()
         if not product or not product.image:
             return None
-
-        request = self.context.get("request")
-        image_url = product.image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        # product.image is a URLField (Cloudinary URL) — return directly
+        return product.image
 
     def get_user_image(self, obj):
         if not obj.user or not obj.user.photo:
             return None
-
-        request = self.context.get("request")
-        image_url = obj.user.photo.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        # user.photo is a URLField (Cloudinary URL) — return directly
+        return obj.user.photo
 
 
 class OrderDetailSerializer(serializers.ModelSerializer):
@@ -211,18 +207,14 @@ class OrderDetailSerializer(serializers.ModelSerializer):
         product = Product.objects.filter(product_name=obj.product_name).only("image").first()
         if not product or not product.image:
             return None
-
-        request = self.context.get("request")
-        image_url = product.image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        # product.image is a URLField (Cloudinary URL) — return directly
+        return product.image
 
     def get_user_image(self, obj):
         if not obj.user or not obj.user.photo:
             return None
-
-        request = self.context.get("request")
-        image_url = obj.user.photo.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        # user.photo is a URLField (Cloudinary URL) — return directly
+        return obj.user.photo
 
 
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
@@ -342,6 +334,5 @@ class CartItemSerializer(serializers.ModelSerializer):
     def get_image(self, obj):
         if not obj.product.image:
             return None
-        request = self.context.get("request")
-        image_url = obj.product.image.url
-        return request.build_absolute_uri(image_url) if request else image_url
+        # product.image is a URLField (Cloudinary URL) — return directly
+        return obj.product.image

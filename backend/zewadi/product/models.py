@@ -2,7 +2,6 @@ from decimal import Decimal
 
 from django.db import models
 from django.core.validators import MinValueValidator
-from zewadi.validators import validate_image_upload
 
 # Create your models here.
 
@@ -56,7 +55,7 @@ class Product(models.Model):
     brand_name = "Zewadi"
     category = models.CharField(max_length=30, choices=ProductCategory.choices, default=ProductCategory.OTHER)
     product_status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
-    image = models.ImageField(upload_to="products/images/", blank=True, null=True)
+    image = models.URLField(blank=True, null=True)
     product_unit = models.CharField(max_length=20, choices=ProductUnit.choices, blank=True, default="")
     unit_quantity = models.CharField(max_length=30, blank=True, default="")
     alternative_unit_enabled = models.BooleanField(default=False)
@@ -139,7 +138,7 @@ class ProductVariant(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="alternative_images")
-    image = models.ImageField(upload_to="products/alternative_images/", validators=[validate_image_upload])
+    image = models.URLField(blank=True, null=True)
     sort_order = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
