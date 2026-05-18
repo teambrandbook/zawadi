@@ -1,5 +1,7 @@
+import hashlib
 import logging
 import os
+import time
 import uuid as _uuid
 from datetime import timedelta
 from urllib.parse import urlencode
@@ -115,6 +117,57 @@ def parse_bool(value):
     if value is None:
         return False
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+UPLOAD_FOLDER_MAP = {
+    "product_image": "zawadi/products",
+    "blog_cover": "zawadi/blogs",
+    "recipe_cover": "zawadi/recipes",
+    "event_cover": "zawadi/events",
+    "profile_photo": "zawadi/profiles",
+}
+
+UPLOAD_PERMISSION_MAP = {
+    "product_image": {"ADMIN", "INTERNAL_STAFF"},
+    "blog_cover": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
+    "recipe_cover": {"ADMIN", "INTERNAL_STAFF"},
+    "event_cover": {"ADMIN", "INTERNAL_STAFF"},
+    "profile_photo": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
+}
+
+
+class UploadSignatureView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        upload_type = request.query_params.get("type", "")
+        if upload_type not in UPLOAD_FOLDER_MAP:
+            return Response(
+                {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
+        if request.user.role not in allowed_roles:
+            return Response(
+                {"error": "You do not have permission to upload this image type."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        folder = UPLOAD_FOLDER_MAP[upload_type]
+        timestamp = int(time.time())
+        params_to_sign = f"folder={folder}&timestamp={timestamp}"
+        signature = hashlib.sha1(
+            (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
+        ).hexdigest()
+
+        return Response({
+            "signature": signature,
+            "timestamp": timestamp,
+            "api_key": settings.CLOUDINARY_API_KEY,
+            "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
+            "folder": folder,
+        })
 
 
 class RegisterAPIView(APIView):
