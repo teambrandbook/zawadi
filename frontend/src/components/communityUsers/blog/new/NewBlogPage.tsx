@@ -64,6 +64,7 @@ export default function NewBlogPage() {
   }
 
   async function handleCoverImageChange(file: File | null) {
+    if (isImageUploading) return;
     setCoverImage(file);
     if (!file) { setCoverImageUrl(""); return; }
     try {

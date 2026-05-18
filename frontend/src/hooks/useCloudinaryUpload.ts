@@ -37,10 +37,6 @@ export function useCloudinaryUpload(uploadType: UploadType) {
       formData.append("timestamp", String(data.timestamp));
       formData.append("api_key", data.api_key);
       formData.append("folder", data.folder);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!
-      );
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${data.cloud_name}/image/upload`,
@@ -57,12 +53,13 @@ export function useCloudinaryUpload(uploadType: UploadType) {
     } catch (err: unknown) {
       const axiosStatus = (err as { response?: { status?: number } })?.response
         ?.status;
+      const originalMessage = err instanceof Error ? err.message : "";
       const message =
         axiosStatus === 403
           ? "You don't have permission to upload this image type"
           : axiosStatus === 401
           ? "Please log in to upload images"
-          : "Upload failed, please try again";
+          : originalMessage || "Upload failed, please try again";
       setError(message);
       throw new Error(message);
     } finally {

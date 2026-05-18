@@ -236,6 +236,7 @@ export default function AddNewRecipy() {
   }
 
   function setImageFromFile(file: File) {
+    if (isImageUploading) return;
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     const preview = URL.createObjectURL(file);
     setImageFile(file);

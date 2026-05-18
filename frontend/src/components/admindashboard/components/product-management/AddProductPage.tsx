@@ -153,6 +153,7 @@ export default function AddProductPage() {
   }, [productId]);
 
   async function handleFormChange(next: ProductFormData) {
+    if (isImageUploading) return;
     const prevImage = formData.image;
     setFormData(next);
     if (next.image && next.image !== prevImage) {

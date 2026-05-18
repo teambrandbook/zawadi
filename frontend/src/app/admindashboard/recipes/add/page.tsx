@@ -156,13 +156,17 @@ export default function AddRecipePage() {
   }, [recipeId, router]);
 
   async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (isImageUploading) return;
     const file = e.target.files?.[0];
     if (!file) return;
     setCoverFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    const blobUrl = URL.createObjectURL(file);
+    setCoverPreview(blobUrl);
     try {
       const url = await uploadCoverImage(file);
       setCoverImageUrl(url);
+      setCoverPreview(url);
+      URL.revokeObjectURL(blobUrl);
     } catch {
       // error handled in hook
     }

@@ -140,6 +140,7 @@ export default function CreateEventsPage({ eventId }: Props) {
   }, [formData.banner_preview_url]);
 
   async function handleFormDataChange(next: CreateEventFormData) {
+    if (isImageUploading) return;
     const prevBannerFile = formData.banner_file;
     setFormData(next);
     if (next.banner_file && next.banner_file !== prevBannerFile) {
