@@ -199,8 +199,8 @@ class ConsultantDetailView(APIView):
                     if field in data:
                         setattr(user, field, data.get(field))
 
-                if "photo" in request.FILES:
-                    user.photo = request.FILES["photo"]
+                if "photo" in request.data:
+                    user.photo = request.data.get("photo") or ""
 
                 password = data.get("password")
                 if password:
@@ -578,7 +578,7 @@ class FindConsultantView(APIView):
         return Response({
             "consultant_id": consultant.id,
             "consultant_name": consultant.user.get_full_name() or consultant.user.full_name or consultant.user.user_name,
-            "photo": consultant.user.photo.url if consultant.user.photo else None,
+            "photo": consultant.user.photo or None,
             "qualification": consultant.qualification,
             "consultation_fee": consultant.consultation_fee
         })

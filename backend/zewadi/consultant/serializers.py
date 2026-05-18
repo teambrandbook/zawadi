@@ -109,7 +109,7 @@ class ConsultantClientSerializer(serializers.ModelSerializer):
     date_of_birth = serializers.DateField(source="user.date_of_birth", read_only=True)
     gender = serializers.CharField(source="user.gender", read_only=True)
     location = serializers.CharField(source="user.location", read_only=True)
-    photo = serializers.ImageField(source="user.photo", read_only=True)
+    photo = serializers.URLField(source="user.photo", read_only=True, allow_null=True)
     booking_id = serializers.IntegerField(source="booking.id", read_only=True)
     last_consultation = serializers.DateField(source="booking.booked_date", read_only=True)
     booking_status = serializers.CharField(source="booking.status", read_only=True)
@@ -155,7 +155,12 @@ class ConsultantProfileSerializer(serializers.ModelSerializer):
     date_of_birth = serializers.DateField(source="user.date_of_birth", required=False, allow_null=True)
     gender = serializers.ChoiceField(source="user.gender", choices=GENDER_CHOICES, required=False, allow_null=True)
     location = serializers.CharField(source="user.location", required=False, allow_blank=True, allow_null=True)
-    photo = serializers.ImageField(source="user.photo", required=False, allow_null=True)
+    photo = serializers.URLField(
+        source="user.photo",
+        required=False,
+        allow_null=True,
+        allow_blank=True,
+    )
     role = serializers.CharField(source="user.role", read_only=True)
 
     class Meta:
@@ -300,7 +305,7 @@ class ConsultationBookingListSerializer(serializers.ModelSerializer):
             obj.consultant.user.photo
         ):
 
-            return obj.consultant.user.photo.url
+            return obj.consultant.user.photo or None
 
         return None
 
@@ -327,7 +332,7 @@ class ConsultationBookingListSerializer(serializers.ModelSerializer):
             obj.user.photo
         ):
 
-            return obj.user.photo.url
+            return obj.user.photo or None
 
         return None
 
@@ -520,7 +525,7 @@ class DietPlanDetailSerializer(serializers.ModelSerializer):
 class ConsultantNoteSerializer(serializers.ModelSerializer):
     client_name = serializers.SerializerMethodField()
     client_email = serializers.EmailField(source="client.email", read_only=True)
-    client_photo = serializers.ImageField(source="client.photo", read_only=True)
+    client_photo = serializers.URLField(source="client.photo", read_only=True, allow_null=True)
 
     class Meta:
         model = ConsultantNote

@@ -24,7 +24,7 @@ class Event(models.Model):
     full_description = models.TextField(blank=True)
     event_type = models.CharField(max_length=20, choices=EventType.choices, default=EventType.OTHER)
     status = models.CharField(max_length=20, choices=EventStatus.choices, default=EventStatus.DRAFT)
-    cover_image = models.ImageField(upload_to="events/covers/", blank=True, null=True)
+    cover_image = models.URLField(blank=True, null=True)
     host_speaker_name = models.CharField(max_length=255, blank=True)
     timezone = models.CharField(max_length=50, default="UTC")
     agenda_highlights = models.TextField(blank=True)

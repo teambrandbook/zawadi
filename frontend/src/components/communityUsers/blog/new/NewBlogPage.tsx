@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import BlogContentEditor from "./BlogContentEditor";
 import BlogCoverImage from "./BlogCoverImage";
 import BlogInformationForm from "./BlogInformationForm";
@@ -17,18 +18,21 @@ import WritingInspirationCard from "./WritingInspirationCard";
 
 export default function NewBlogPage() {
   const router = useRouter();
+  const { upload: uploadCoverImage, isUploading: isImageUploading } = useCloudinaryUpload("blog_cover");
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [category, setCategory] = useState("healthy_living");
   const [content, setContent] = useState("");
   const [tags, setTags] = useState("");
   const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   async function submitBlog() {
     if (!title.trim()) { toast.error("Blog title is required."); return; }
     if (!excerpt.trim()) { toast.error("Short excerpt is required."); return; }
     if (!content.trim()) { toast.error("Blog content is required."); return; }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
     const formData = new FormData();
     formData.append("title", title.trim());
@@ -38,7 +42,7 @@ export default function NewBlogPage() {
     formData.append("reading_time_minutes", String(Math.max(1, Math.ceil(content.trim().split(/\s+/).length / 220))));
     formData.append("show_in_community_blog", "true");
     formData.append("allow_comments", "true");
-    if (coverImage) formData.append("cover_image", coverImage);
+    if (coverImageUrl) formData.append("cover_image", coverImageUrl);
     if (tags.trim()) formData.append("internal_notes", `User tags: ${tags.trim()}`);
 
     setIsSubmitting(true);
@@ -59,6 +63,18 @@ export default function NewBlogPage() {
     }
   }
 
+  async function handleCoverImageChange(file: File | null) {
+    if (isImageUploading) return;
+    setCoverImage(file);
+    if (!file) { setCoverImageUrl(""); return; }
+    try {
+      const url = await uploadCoverImage(file);
+      setCoverImageUrl(url);
+    } catch {
+      // error handled in hook
+    }
+  }
+
   function saveDraft() {
     localStorage.setItem(
       "zawadi-community-blog-draft",
@@ -74,7 +90,7 @@ export default function NewBlogPage() {
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="space-y-6">
-            <BlogCoverImage fileName={coverImage?.name ?? ""} onChange={setCoverImage} />
+            <BlogCoverImage fileName={coverImage?.name ?? ""} onChange={handleCoverImageChange} />
             <BlogInformationForm
               title={title}
               excerpt={excerpt}

@@ -51,7 +51,7 @@ class Blog(models.Model):
     status = models.CharField(max_length=20, choices=BlogStatus.choices, default=BlogStatus.DRAFT)
 
     # Media and content
-    cover_image = models.ImageField(upload_to="blogs/cover_images/", null=True, blank=True)
+    cover_image = models.URLField(blank=True, null=True)
     content = models.TextField()
     tags = models.ManyToManyField(BlogTag, blank=True, related_name="blogs")
 

@@ -29,17 +29,16 @@ class AdminStatsAPITests(APITestCase):
         response = self.client.get(reverse("admin-stats"))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data,
-            {
-                "total_users": 1,
-                "total_orders": 0,
-                "total_products": 0,
-                "total_events": 0,
-                "total_consultations": 0,
-                "total_revenue": 0.0,
-            },
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.data
+        self.assertEqual(data["total_users"], 1)
+        self.assertEqual(data["total_orders"], 0)
+        self.assertEqual(data["total_products"], 0)
+        self.assertEqual(data["total_events"], 0)
+        self.assertEqual(data["total_consultations"], 0)
+        self.assertEqual(data["total_revenue"], 0.0)
+        self.assertIn("total_shipping", data)
+        self.assertIn("total_tax", data)
 
 
 class RoleSerializerTests(APITestCase):

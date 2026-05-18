@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import AvailabilityCard from "./AvailabilityCard";
 import BasicDetailsCard from "./BasicDetailsCard";
 import ProfessionalDetailsCard from "./ProfessionalDetailsCard";
@@ -293,8 +294,8 @@ export default function ConsultantProfilePage() {
   const [consultantProfile, setConsultantProfile] = useState<ConsultantProfileData>(fallbackProfile);
   const [visibilityControls, setVisibilityControls] = useState<VisibilityControl[]>(fallbackProfile.visibilityControls);
   const [consultantSettings, setConsultantSettings] = useState<ConsultantSettingsApiResponse | null>(null);
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState<ConsultantProfileForm>(emptyProfileForm);
   const [errorMessage, setErrorMessage] = useState("");
@@ -348,14 +349,12 @@ export default function ConsultantProfilePage() {
       return;
     }
 
-    const formData = new FormData();
-    formData.append("photo", file);
-
-    setIsUploadingPhoto(true);
+    if (isPhotoUploading) return;
     setErrorMessage("");
 
     try {
-      const response = await api.patch<ConsultantProfileUpdateResponse>("/consultant/profile/", formData);
+      const url = await uploadPhoto(file);
+      const response = await api.patch<ConsultantProfileUpdateResponse>("/consultant/profile/", { photo: url });
       const updatedProfile = mapProfile(response.data.data);
 
       setConsultantProfile((current) => ({
@@ -369,8 +368,6 @@ export default function ConsultantProfilePage() {
       }));
     } catch {
       setErrorMessage("Unable to update profile photo. Please try another image.");
-    } finally {
-      setIsUploadingPhoto(false);
     }
   }
 
@@ -489,7 +486,7 @@ export default function ConsultantProfilePage() {
           imageSrc={consultantProfile.imageSrc}
           imageAlt={consultantProfile.imageAlt}
           hint={consultantProfile.photoHint}
-          isUploading={isUploadingPhoto}
+          isUploading={isPhotoUploading}
           isSaving={isSavingProfile}
           onPhotoChange={handlePhotoChange}
           onSave={handleSaveProfile}

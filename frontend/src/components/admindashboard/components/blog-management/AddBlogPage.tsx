@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ImagePlus, Plus } from "lucide-react";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 const CATEGORIES = [
   { label: "Nutrition", value: "nutrition" },
@@ -38,11 +39,13 @@ export default function AddBlogPage() {
   const isEditMode = Boolean(blogId);
   const coverImageRef = useRef<HTMLInputElement>(null);
 
+  const { upload: uploadCoverImage, isUploading: isImageUploading } = useCloudinaryUpload("blog_cover");
   const [title, setTitle] = useState("");
   const [excerpt, setExcerpt] = useState("");
   const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
+  const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(["Admin Stories", "Nutrition", "Wellness Tips"]);
@@ -66,7 +69,9 @@ export default function AddBlogPage() {
         setExcerpt(String(data.short_excerpt ?? ""));
         setCategory(String(data.category ?? ""));
         setContent(String(data.content ?? ""));
-        setCoverPreview(toMediaUrl(String(data.cover_image ?? "")));
+        const existingCoverUrl = toMediaUrl(String(data.cover_image ?? ""));
+        setCoverPreview(existingCoverUrl);
+        if (existingCoverUrl) setCoverImageUrl(existingCoverUrl);
         setCoverImageFile(null);
       } catch {
         toast.error("Failed to load blog details.");
@@ -82,11 +87,21 @@ export default function AddBlogPage() {
     };
   }, [blogId]);
 
-  function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleCoverChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (isImageUploading) return;
     const file = e.target.files?.[0];
     if (!file) return;
     setCoverImageFile(file);
-    setCoverPreview(URL.createObjectURL(file));
+    const blobUrl = URL.createObjectURL(file);
+    setCoverPreview(blobUrl);
+    try {
+      const url = await uploadCoverImage(file);
+      setCoverImageUrl(url);
+      setCoverPreview(url);
+      URL.revokeObjectURL(blobUrl);
+    } catch {
+      // error handled in hook
+    }
   }
 
   function addTag() {
@@ -104,6 +119,7 @@ export default function AddBlogPage() {
     if (!title.trim()) { toast.error("Blog title is required."); return; }
     if (!category) { toast.error("Please select a category."); return; }
     if (!content.trim()) { toast.error("Blog content is required."); return; }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
     const trimmedTitle = title.trim();
     const trimmedExcerpt = excerpt.trim() || trimmedTitle;
@@ -120,7 +136,7 @@ export default function AddBlogPage() {
     fd.append("show_in_community_blog", "true");
     fd.append("allow_comments", "true");
     fd.append("internal_notes", "");
-    if (coverImageFile) fd.append("cover_image", coverImageFile);
+    if (coverImageUrl) fd.append("cover_image", coverImageUrl);
     tags.forEach((tag) => fd.append("tags", tag));
 
     setIsSubmitting(true);
