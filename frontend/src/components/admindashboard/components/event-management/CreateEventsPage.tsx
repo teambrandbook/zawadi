@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import CreateEventActions from "./components/create-event/CreateEventActions";
 import CreateEventFormSections from "./components/create-event/CreateEventFormSections";
 import CreateEventPreview from "./components/create-event/CreateEventPreview";
@@ -48,6 +49,8 @@ function asDate(value?: string | null) {
 
 export default function CreateEventsPage({ eventId }: Props) {
   const router = useRouter();
+  const { upload: uploadBanner, isUploading: isImageUploading } = useCloudinaryUpload("event_cover");
+  const [bannerImageUrl, setBannerImageUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingEvent, setIsLoadingEvent] = useState(Boolean(eventId));
   const [formData, setFormData] = useState<CreateEventFormData>({
@@ -114,6 +117,7 @@ export default function CreateEventsPage({ eventId }: Props) {
           banner_file: null,
           banner_preview_url: event.cover_image ?? "",
         });
+        if (event.cover_image) setBannerImageUrl(event.cover_image);
       } catch {
         toast.error("Failed to load event details.");
       } finally {
@@ -135,6 +139,19 @@ export default function CreateEventsPage({ eventId }: Props) {
     };
   }, [formData.banner_preview_url]);
 
+  async function handleFormDataChange(next: CreateEventFormData) {
+    const prevBannerFile = formData.banner_file;
+    setFormData(next);
+    if (next.banner_file && next.banner_file !== prevBannerFile) {
+      try {
+        const url = await uploadBanner(next.banner_file);
+        setBannerImageUrl(url);
+      } catch {
+        // error handled in hook
+      }
+    }
+  }
+
   async function submitEvent(status: "draft" | "published" = formData.status as "draft" | "published", data = formData) {
     if (!data.title) {
       toast.error("Event title is required.");
@@ -155,6 +172,7 @@ export default function CreateEventsPage({ eventId }: Props) {
       toast.error("End time must be after start time.");
       return;
     }
+    if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
     setIsSubmitting(true);
     try {
@@ -180,24 +198,14 @@ export default function CreateEventsPage({ eventId }: Props) {
         show_in_community: data.show_in_community,
       };
 
-      if (data.banner_file) {
-        const fd = new FormData();
-        Object.entries(payload).forEach(([key, value]) => {
-          if (value !== undefined) fd.append(key, String(value));
-        });
-        fd.append("cover_image", data.banner_file);
-        const request = isEditing ? api.patch(`/events/${eventId}/`, fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        }) : api.post("/events/", fd, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        await request;
+      const finalPayload = {
+        ...payload,
+        ...(bannerImageUrl ? { cover_image: bannerImageUrl } : {}),
+      };
+      if (isEditing) {
+        await api.patch(`/events/${eventId}/`, finalPayload);
       } else {
-        if (isEditing) {
-          await api.patch(`/events/${eventId}/`, payload);
-        } else {
-          await api.post("/events/", payload);
-        }
+        await api.post("/events/", finalPayload);
       }
 
       toast.success(
@@ -237,7 +245,7 @@ export default function CreateEventsPage({ eventId }: Props) {
             {isLoadingEvent ? (
               <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">Loading event details...</div>
             ) : (
-              <CreateEventFormSections formData={formData} onChange={setFormData} />
+              <CreateEventFormSections formData={formData} onChange={handleFormDataChange} />
             )}
             <CreateEventActions
               onSubmit={() => submitEvent("published")}
