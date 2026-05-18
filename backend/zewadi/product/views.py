@@ -35,12 +35,8 @@ def _product_payload_from_request(request):
     for key, value in request.data.items():
         payload[key] = value
 
-    # image is now a URLField (Cloudinary URL posted as a string in request.data)
+    # image and alternative_images are now URL strings (Cloudinary direct upload)
     # request.FILES is no longer used for image uploads
-
-    alternative_images = request.FILES.getlist("alternative_images")
-    if alternative_images:
-        payload["alternative_images"] = alternative_images
 
     if "allow_out_of_stock" in payload and "allow_orders_when_out_of_stock" not in payload:
         payload["allow_orders_when_out_of_stock"] = payload.get("allow_out_of_stock")
