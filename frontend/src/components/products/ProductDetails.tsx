@@ -10,7 +10,7 @@ import api from "@/services/api";
 import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
-import AddToCartModal from "@/components/shared/AddToCartModal";
+import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { setCartCount } from "@/redux/userSlice";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
@@ -88,7 +88,6 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
   const [mounted, setMounted] = useState(false);
-  const [modalOpen, setModalOpen] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
   const mainImageRef = useRef<HTMLDivElement>(null);
@@ -148,7 +147,20 @@ const ProductDetails = () => {
   async function handleAddToCart() {
     if (!product) return;
     if (!isAuthenticated) {
-      setModalOpen(true);
+      const unitPrice = Number(
+        product.selling_price ?? product.sale_price ?? product.base_price ?? 0
+      );
+      addToGuestCart({
+        productId: product.id,
+        quantity,
+        productName: product.product_name,
+        productSubtitle: product.product_subtitle,
+        image: product.image,
+        unitPrice,
+        currency: product.currency || "INR",
+      });
+      dispatch(setCartCount(getGuestCartCount()));
+      toast.success("Added to cart!");
       return;
     }
     try {
@@ -349,15 +361,7 @@ const ProductDetails = () => {
           </div>
         )}
 
-        {modalOpen && product && (
-          <AddToCartModal
-            isOpen={modalOpen}
-            productId={product.id}
-            quantity={quantity}
-            onClose={() => setModalOpen(false)}
-            onSuccess={() => setModalOpen(false)}
-          />
-        )}
+
       </div>
     </section>
   );

@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
-import AddToCartModal from "@/components/shared/AddToCartModal";
+import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 
 type Product = {
   id: number;
@@ -67,7 +67,7 @@ function ProductCard({
   onAddToCart,
 }: {
   product: Product;
-  onAddToCart: (id: number) => void;
+  onAddToCart: (product: Product) => void;
 }) {
   const price = product.selling_price ?? product.sale_price ?? product.base_price;
   const mrp = Number(product.mrp_price ?? 0);
@@ -124,7 +124,7 @@ function ProductCard({
         <div className="mt-auto flex gap-2 pt-6">
           <button
             type="button"
-            onClick={() => onAddToCart(product.id)}
+            onClick={() => onAddToCart(product)}
             disabled={outOfStock}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[16px]"
           >
@@ -150,8 +150,6 @@ export default function ProductCards() {
   const [categories, setCategories] = useState<string[]>(["All Products"]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [pendingProductId, setPendingProductId] = useState<number | null>(null);
 
   useEffect(() => {
     api
@@ -166,14 +164,26 @@ export default function ProductCards() {
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleAddToCart(productId: number) {
+  async function handleAddToCart(product: Product) {
     if (!isAuthenticated) {
-      setPendingProductId(productId);
-      setModalOpen(true);
+      const unitPrice = Number(
+        product.selling_price ?? product.sale_price ?? product.base_price ?? 0
+      );
+      addToGuestCart({
+        productId: product.id,
+        quantity: 1,
+        productName: product.product_name,
+        productSubtitle: product.product_subtitle,
+        image: product.image,
+        unitPrice,
+        currency: "INR",
+      });
+      dispatch(setCartCount(getGuestCartCount()));
+      toast.success("Added to cart!");
       return;
     }
     try {
-      const res = await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
+      const res = await api.post("/orders/cart/items/", { product_id: product.id, quantity: 1 });
       toast.success("Added to cart!");
       dispatch(setCartCount(res.data.summary?.item_count ?? 0));
     } catch {
@@ -231,15 +241,7 @@ export default function ProductCards() {
           </div>
         )}
 
-        {modalOpen && pendingProductId !== null && (
-          <AddToCartModal
-            isOpen={modalOpen}
-            productId={pendingProductId}
-            quantity={1}
-            onClose={() => { setModalOpen(false); setPendingProductId(null); }}
-            onSuccess={() => { setModalOpen(false); setPendingProductId(null); }}
-          />
-        )}
+
       </div>
     </section>
   );
