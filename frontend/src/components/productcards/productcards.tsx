@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ShoppingBag, Star } from "lucide-react";
 import { FaBagShopping } from "react-icons/fa6";
 import { cn, getImageUrl } from "@/lib/utils";
@@ -77,6 +77,8 @@ function ProductCard({
   product: Product;
   onAddToCart: (product: Product) => void;
 }) {
+  const router = useRouter();
+  const detailHref = `/products/details?id=${product.id}`;
   const price = product.selling_price ?? product.sale_price ?? product.base_price;
   const mrp = Number(product.mrp_price ?? 0);
   const selling = Number(price);
@@ -85,7 +87,18 @@ function ProductCard({
   const lowStock = !outOfStock && product.stock_quantity <= 5;
   const badgeText = isNewProduct(product.created_at) ? "New" : formatCategoryLabel(product.category);
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(detailHref)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          router.push(detailHref);
+        }
+      }}
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-6"
+    >
       <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
         <Image
           src={productImageUrl(product.image)}
@@ -139,12 +152,6 @@ function ProductCard({
             <FaBagShopping size={18} />
             {outOfStock ? "Out of Stock" : "Add to Cart"}
           </button>
-          <Link
-            href={`/products/details?id=${product.id}`}
-            className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-5 py-3.5 text-sm font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white"
-          >
-            View
-          </Link>
         </div>
       </div>
     </article>
