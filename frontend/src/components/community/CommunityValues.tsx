@@ -8,6 +8,7 @@ import { Heart, Clock, Leaf, LayoutGrid, Layers } from "lucide-react";
 import communityData from "@/data/community.json";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { cn } from "@/lib/utils";
 
 type ValueCard = {
   icon: string;
@@ -25,6 +26,7 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 
 const CommunityValues = () => {
   const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const sectionRef = useRef<HTMLDivElement>(null);
   const { valuesGridSection } = communityData;
   const localizedValuesGridSection = translations[locale]?.communityPage?.valuesGridSection || translations.en.communityPage.valuesGridSection;
@@ -83,10 +85,13 @@ const CommunityValues = () => {
             <div className="absolute inset-0 bg-[#F3F7F2]/40" />
           </div>
 
-          <div className="relative z-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
+          <div
+            dir={isRtl ? "rtl" : "ltr"}
+            className="relative z-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12"
+          >
 
             {/* Header Content - Animated Line by Line */}
-            <div className="flex flex-col justify-start pt-12 relative z-30 text-left rtl:text-right">
+            <div className={cn("flex flex-col justify-start pt-12 relative z-30", isRtl ? "text-right" : "text-left")}>
               <h2 className="text-3xl md:text-4xl lg:text-[45px] font-playfair font-semibold text-[#1A4331] leading-[1.1] tracking-tight">
                 {localizedValuesGridSection.title.split('\n').map((line: string, i: number) => (
                   <span key={i} className="block overflow-hidden pb-2">
@@ -103,16 +108,24 @@ const CommunityValues = () => {
               return (
                 <div
                   key={idx}
-                  className="value-card bg-white hover:bg-[#1A4331] p-10 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] flex flex-col items-start rtl:items-end aspect-square relative z-30 transition-colors duration-500 group cursor-default text-left rtl:text-right"
+                  dir={isRtl ? "rtl" : "ltr"}
+                  className={cn(
+                    "value-card bg-white hover:bg-[#1A4331] p-10 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] flex flex-col aspect-square relative z-30 transition-colors duration-500 group cursor-default",
+                    isRtl ? "items-end text-right" : "items-start text-left"
+                  )}
+                  style={{
+                    alignItems: isRtl ? "flex-end" : "flex-start",
+                    textAlign: isRtl ? "right" : "left",
+                  }}
                 >
-                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#1A4331]/20 group-hover:border-white/30 flex items-center justify-center text-[#1A4331] group-hover:text-white mb-8 transition-colors duration-500">
+                  <div className={cn("w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#1A4331]/20 group-hover:border-white/30 flex items-center justify-center text-[#1A4331] group-hover:text-white mb-8 transition-colors duration-500", isRtl ? "self-end" : "self-start")}>
                     {Icon && <Icon size={28} className="stroke-[1.5px]" />}
                   </div>
 
-                  <h4 className="text-xl md:text-2xl font-bold text-[#1A4331] group-hover:text-white mb-4 leading-tight font-inter transition-colors duration-500">
+                  <h4 className="w-full text-xl md:text-2xl font-bold text-[#1A4331] group-hover:text-white mb-4 leading-tight font-inter transition-colors duration-500">
                     {localizedCard.title || card.title}
                   </h4>
-                  <p className="text-[#333333] group-hover:text-white/80 text-xs md:text-sm leading-relaxed max-w-[240px] font-medium font-inter transition-colors duration-500">
+                  <p className={cn("w-full text-[#333333] group-hover:text-white/80 text-xs md:text-sm leading-relaxed max-w-[240px] font-medium font-inter transition-colors duration-500", isRtl ? "ms-auto" : "me-auto")}>
                     {localizedCard.description || card.description}
                   </p>
                 </div>

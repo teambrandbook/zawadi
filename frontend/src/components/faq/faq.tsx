@@ -5,6 +5,7 @@ import { ChevronRight } from "lucide-react";
 import ContentSection from "../common/ContentSection";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { cn } from "@/lib/utils";
 
 type FaqItem = {
   question: string;
@@ -15,26 +16,29 @@ function FaqCard({
   item,
   isOpen,
   onClick,
+  isRtl,
 }: {
   item: FaqItem;
   isOpen: boolean;
   onClick: () => void;
+  isRtl: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`w-full rounded-[18px] border text-left shadow-[0_0_45px_rgba(0,0,0,0.04)] transition-colors rtl:text-right ${
+      dir={isRtl ? "rtl" : "ltr"}
+      className={`w-full rounded-[18px] border shadow-[0_0_45px_rgba(0,0,0,0.04)] transition-colors ${
         isOpen ? "border-[#1f4d3a] bg-[#f1f5eb]" : "border-[#e3dbd8] bg-white"
       }`}
     >
-      <div className="flex items-start justify-between gap-3 px-4 py-4 rtl:flex-row-reverse sm:px-5 sm:py-5">
-        <div className="min-w-0">
-          <h3 className="text-[15px] font-semibold leading-relaxed text-[#1f4d3a] sm:text-[16px]">
+      <div className={cn("flex items-start justify-between gap-3 px-4 py-4 sm:px-5 sm:py-5", isRtl ? "text-right" : "text-left")}>
+        <div className="min-w-0 flex-1">
+          <h3 className="w-full text-[15px] font-semibold leading-relaxed text-[#1f4d3a] sm:text-[16px]">
             {item.question}
           </h3>
           {isOpen && item.answer ? (
-            <p className="mt-2.5 max-w-[450px] text-[13px] leading-6 text-[#727272]">
+            <p className={cn("mt-2.5 max-w-[450px] text-[13px] leading-6 text-[#727272]", isRtl ? "ms-auto" : "me-auto")}>
               {item.answer}
             </p>
           ) : null}
@@ -57,6 +61,7 @@ function FaqCard({
 
 export default function Faq() {
   const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const faqText = translations[locale]?.faqPage || translations.en.faqPage;
   const leftFaqs = faqText.leftFaqs;
   const rightFaqs = faqText.rightFaqs;
@@ -76,6 +81,7 @@ export default function Faq() {
       key={item.question}
       item={item}
       isOpen={openQuestion === item.question}
+      isRtl={isRtl}
       onClick={() =>
         setOpenQuestion((current) =>
           current === item.question ? "" : item.question

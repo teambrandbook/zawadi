@@ -41,7 +41,7 @@ const MeaningSection = () => {
             </p>
 
             {/* Horizontal Image */}
-            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 overflow-hidden shadow-sm">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 overflow-hidden shadow-sm pt-73">
               <Image
                 src="/home/meaningImg2.webp"
                 alt="Shared meals"

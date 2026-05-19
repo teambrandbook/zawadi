@@ -74,22 +74,22 @@ export default function UpcomingEvents() {
   return (
     <section className="px-4 py-14 sm:px-6 lg:px-0">
       <div className="mx-auto max-w-[1200px]">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="text-left rtl:text-right">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 flex-1 text-left rtl:text-right">
             <h2 className="font-serif text-[34px] tracking-[-0.02em] text-[#0e2207] md:text-[45px] fade-in">
               {upcomingText.title}
             </h2>
-            <p className="mt-3 max-w-[900px] font-sans text-[15px] leading-7 text-black md:text-[16px] md:leading-[30px] fade-in">
+            <p className="mt-3 max-w-[850px] font-sans text-[15px] leading-7 text-black md:text-[16px] md:leading-[30px] fade-in">
               {upcomingText.description}
             </p>
           </div>
           <Link
             href="/login"
-            className="inline-flex h-[54px] w-[220px] items-center justify-between rounded-full bg-[#1A4331]/95 px-2 font-sans text-[14px] font-semibold text-white transition hover:bg-[#174b05] ltr:pl-4 rtl:pr-4"
+            className="inline-flex h-[54px] w-[220px] shrink-0 items-center justify-between self-start rounded-full bg-[#1A4331]/95 px-2 ps-5 font-sans text-[14px] font-semibold text-white transition hover:bg-[#174b05] rtl:self-end lg:mt-[92px] lg:self-auto"
           >
             <span>{upcomingText.join}</span>
 
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1f6306] ltr:ml-11 rtl:mr-11">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1f6306]">
               <ArrowRight className="h-4 w-4 rtl:rotate-180" />
             </span>
           </Link>

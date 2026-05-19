@@ -552,7 +552,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="testimonial-section bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <section className="testimonial-section  px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
                 <div className="mx-auto max-w-[1120px]">
                     <div className="mb-8 flex justify-center">
                         <div className="relative inline-flex max-w-full items-center gap-4 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-5 py-2.5 shadow-sm sm:gap-5 sm:px-7">
@@ -577,7 +577,7 @@ export default function About() {
                         dangerouslySetInnerHTML={{ __html: aboutData.testimonialTitleHTML }}
                     />
 
-                    <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center rtl:lg:flex-row-reverse">
+                    <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center">
                         <div className="testimonial-card relative order-2 z-20 mt-8 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 text-left shadow-[0_24px_70px_rgba(0,0,0,0.08)] rtl:text-right sm:p-10 md:p-14 lg:order-1 lg:mt-0 ltr:lg:-mr-28 rtl:lg:-ml-28 lg:w-[58%]">
                             <div className="pointer-events-none absolute inset-0 flex translate-x-6 items-center justify-center text-[#1f4d3a]/5 sm:translate-x-12">
                                 <svg width="280" height="200" viewBox="0 0 340 240" fill="none" stroke="currentColor" strokeWidth="8" xmlns="http://www.w3.org/2000/svg">

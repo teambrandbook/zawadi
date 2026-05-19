@@ -1,7 +1,9 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowRight,
   Camera,
@@ -10,6 +12,7 @@ import {
   ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import api, { getAccessToken } from "@/services/api";
 
 const menuItems = [
   { label: "My Profile", Icon: UserRound, href: "/guestprofile#personal-info" },
@@ -17,43 +20,30 @@ const menuItems = [
   { label: "My Recipes", iconSrc: "/userdash/myrecipy/my-recipes-icon.png", href: "/guestprofile#my-recipes" },
 ];
 
-const orders = [
-  {
-    id: "#ZW-8821",
-    date: "Oct 21, 2024",
-    status: "Processing",
-    total: "$124.50",
-    tone: "processing",
-  },
-  {
-    id: "#ZW-8745",
-    date: "Oct 14, 2024",
-    status: "Delivered",
-    total: "$89.20",
-    tone: "delivered",
-  },
-  {
-    id: "#ZW-8692",
-    date: "Oct 07, 2024",
-    status: "Delivered",
-    total: "$156.00",
-    tone: "delivered",
-  },
-  {
-    id: "#ZW-8511",
-    date: "Sep 30, 2024",
-    status: "Cancelled",
-    total: "$42.15",
-    tone: "cancelled",
-  },
-  {
-    id: "#ZW-8420",
-    date: "Sep 23, 2024",
-    status: "Delivered",
-    total: "$210.40",
-    tone: "delivered",
-  },
-];
+type UserProfile = {
+  full_name?: string;
+  email?: string;
+  photo?: string | null;
+};
+
+type ApiOrderListItem = {
+  order_id: string;
+  product_name?: string;
+  total_amount: string | number;
+  status: string;
+  created_at: string;
+};
+
+type ApiOrderResponse = ApiOrderListItem[] | { results?: ApiOrderListItem[] };
+
+type HistoryOrder = {
+  id: string;
+  date: string;
+  status: string;
+  total: string;
+  tone: keyof typeof statusStyles;
+  title: string;
+};
 
 const statusStyles = {
   processing: "bg-[#3b82f6] text-[#2563eb]",
@@ -61,7 +51,60 @@ const statusStyles = {
   cancelled: "bg-[#ef4444] text-[#dc2626]",
 } as const;
 
-function ProfileSidebar() {
+const ITEMS_PER_PAGE = 5;
+
+function toList(data: ApiOrderResponse): ApiOrderListItem[] {
+  return Array.isArray(data) ? data : data.results ?? [];
+}
+
+function toCurrency(value: string | number): string {
+  const amount = Number(value);
+  if (Number.isNaN(amount)) return "$0.00";
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+}
+
+function toDateLabel(value: string): string {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "-";
+  return parsed.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function toStatusLabel(value: string): string {
+  return value
+    .split(/[_\s-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function toStatusTone(value: string): keyof typeof statusStyles {
+  const normalized = value.toLowerCase().replace(/[_\s-]+/g, "_");
+  if (normalized === "delivered") return "delivered";
+  if (normalized === "cancelled") return "cancelled";
+  return "processing";
+}
+
+function mapOrder(item: ApiOrderListItem): HistoryOrder {
+  return {
+    id: item.order_id,
+    date: toDateLabel(item.created_at),
+    status: toStatusLabel(item.status || "processing"),
+    total: toCurrency(item.total_amount),
+    tone: toStatusTone(item.status || "processing"),
+    title: item.product_name?.trim() || "Your Zewadi order",
+  };
+}
+
+function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
   return (
     <aside className="space-y-4 w-full">
       <section className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8">
@@ -69,8 +112,8 @@ function ProfileSidebar() {
           <div className="relative mb-5 size-32">
             <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
               <Image
-                src="/about/testimonial.webp"
-                alt="Sarah Johnson"
+                src={profile?.photo || "/about/testimonial.webp"}
+                alt={profile?.full_name || "Profile"}
                 fill
                 sizes="128px"
                 className="object-cover"
@@ -86,9 +129,9 @@ function ProfileSidebar() {
           </div>
 
           <h1 className="text-2xl font-bold leading-9 tracking-[0.001em] text-[#121414]">
-            Sarah Johnson
+            {profile?.full_name || "Guest User"}
           </h1>
-          <p className="text-base leading-6 text-[#3f4e50]">sarah.j@example.com</p>
+          <p className="text-base leading-6 text-[#3f4e50]">{profile?.email || ""}</p>
         </div>
 
         <nav className="mt-8 space-y-2 sm:mt-10">
@@ -115,20 +158,42 @@ function ProfileSidebar() {
   );
 }
 
-function LatestOrderCard() {
+function LatestOrderCard({ latestOrder }: { latestOrder: HistoryOrder | null }) {
+  if (!latestOrder) {
+    return (
+      <section className="rounded-[25px] border border-[rgba(216,194,154,0.3)] bg-[#f6f5f0] p-6 sm:p-8 lg:p-10">
+        <p className="text-sm font-bold uppercase leading-5 tracking-[0.1em] text-[#1f4d3a]">
+          No Orders Yet
+        </p>
+        <h2 className="mt-4 max-w-[720px] text-[28px] font-bold leading-tight text-[#121414] sm:text-[32px] sm:leading-10">
+          Start your wellness journey
+        </h2>
+        <Link
+          href="/products"
+          className="mt-7 inline-flex h-[60px] items-center gap-4 rounded-full bg-[#1f4d3a] px-7 text-base font-semibold text-white transition hover:bg-[#1a4331] sm:px-8"
+        >
+          Shop Now
+          <span className="flex h-8 w-12 items-center justify-center rounded-full bg-[#b47800]">
+            <ArrowRight size={18} strokeWidth={1.5} />
+          </span>
+        </Link>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-[25px] border border-[rgba(216,194,154,0.3)] bg-[#f6f5f0] p-6 sm:p-8 lg:p-10">
       <p className="text-sm font-bold uppercase leading-5 tracking-[0.1em] text-[#1f4d3a]">
-        Latest Order: #ZW-8821
+        Latest Order: #{latestOrder.id}
       </p>
       <h2 className="mt-4 max-w-[720px] text-[28px] font-bold leading-tight text-[#121414] sm:text-[32px] sm:leading-10">
-        Your fresh harvest is on the way!
+        {latestOrder.title}
       </h2>
-      <p className="mt-3 text-base leading-6 text-[#3f4e50]">
-        Expected delivery: Thursday, Oct 24th
+      <p className="mt-3 text-base leading-6 text-[#3f4e50] capitalize">
+        Status: {latestOrder.status}
       </p>
       <Link
-        href="/trackorder"
+        href={`/trackorder?highlight=${encodeURIComponent(latestOrder.id)}`}
         className="mt-7 inline-flex h-[60px] items-center gap-4 rounded-full bg-[#1f4d3a] px-7 text-base font-semibold text-white transition hover:bg-[#1a4331] sm:px-8"
       >
         View Order Tracking
@@ -151,7 +216,19 @@ function StatusBadge({ tone, label }: { tone: keyof typeof statusStyles; label: 
   );
 }
 
-function OrderTable() {
+function OrderTable({ orders, isLoading, loadError }: { orders: HistoryOrder[]; isLoading: boolean; loadError: string }) {
+  if (isLoading) {
+    return <div className="p-6 text-center text-sm text-[#1f4d3a]">Loading orders...</div>;
+  }
+
+  if (loadError) {
+    return <div className="rounded-xl bg-[#fff5f5] p-6 text-center text-sm font-semibold text-[#dc2626]">{loadError}</div>;
+  }
+
+  if (orders.length === 0) {
+    return <div className="p-6 text-center text-sm text-[#3f4e50]">No orders yet.</div>;
+  }
+
   return (
     <>
       <div className="hidden space-y-4 md:block">
@@ -173,7 +250,7 @@ function OrderTable() {
             <StatusBadge tone={order.tone as keyof typeof statusStyles} label={order.status} />
             <span className="text-base font-bold leading-6 text-[#121414]">{order.total}</span>
             <Link
-              href="/trackorder"
+              href={`/trackorder?highlight=${encodeURIComponent(order.id)}`}
               className="text-right text-base font-bold leading-6 text-[#1f4d3a] transition hover:text-[#b47800]"
             >
               View Details
@@ -195,7 +272,7 @@ function OrderTable() {
 
             <div className="mt-4 flex items-center justify-between gap-4">
               <StatusBadge tone={order.tone as keyof typeof statusStyles} label={order.status} />
-              <Link href="/trackorder" className="text-sm font-bold text-[#1f4d3a]">
+              <Link href={`/trackorder?highlight=${encodeURIComponent(order.id)}`} className="text-sm font-bold text-[#1f4d3a]">
                 View Details
               </Link>
             </div>
@@ -206,7 +283,7 @@ function OrderTable() {
   );
 }
 
-function OrderHistoryPanel() {
+function OrderHistoryPanel({ orders, isLoading, loadError }: { orders: HistoryOrder[]; isLoading: boolean; loadError: string }) {
   return (
     <section className="overflow-hidden rounded-[25px] border border-[#e3dbd8] bg-white shadow-sm">
       <div className="flex border-b border-[#e3dbd8]">
@@ -222,22 +299,33 @@ function OrderHistoryPanel() {
       </div>
 
       <div className="space-y-6 p-5 sm:p-8 lg:p-10">
-        <OrderTable />
+        <OrderTable orders={orders} isLoading={isLoading} loadError={loadError} />
       </div>
     </section>
   );
 }
 
-function Pagination() {
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+
   return (
     <nav aria-label="Order history pages" className="flex items-center justify-center gap-2 pt-3">
-      {[1, 2, 3].map((page) => (
+      {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
         <button
           key={page}
           type="button"
+          onClick={() => onPageChange(page)}
           className={cn(
             "flex size-10 items-center justify-center rounded-lg border text-sm font-bold transition",
-            page === 1
+            page === currentPage
               ? "border-[#1f4d3a] bg-[#1f4d3a] text-white"
               : "border-[#e3dbd8] text-[#3f4e50] hover:border-[#1f4d3a] hover:text-[#1f4d3a]"
           )}
@@ -248,6 +336,8 @@ function Pagination() {
       <button
         type="button"
         aria-label="Next page"
+        onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        disabled={currentPage === totalPages}
         className="flex size-10 items-center justify-center rounded-lg border border-[#e3dbd8] text-[#3f4e50] transition hover:border-[#1f4d3a] hover:text-[#1f4d3a]"
       >
         <ChevronRight size={16} />
@@ -257,15 +347,65 @@ function Pagination() {
 }
 
 export default function History() {
+  const router = useRouter();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [orders, setOrders] = useState<HistoryOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const redirectToLogin = useCallback(() => {
+    router.replace(`/login?next=${encodeURIComponent("/guestprofile/history")}`);
+  }, [router]);
+
+  useEffect(() => {
+    if (!getAccessToken()) {
+      redirectToLogin();
+      return;
+    }
+
+    let isMounted = true;
+
+    async function loadHistory() {
+      try {
+        const [meRes, ordersRes] = await Promise.all([
+          api.get("/account/me/"),
+          api.get<ApiOrderResponse>("/orders/?page_size=100"),
+        ]);
+
+        if (!isMounted) return;
+        setProfile(meRes.data);
+        setOrders(toList(ordersRes.data).map(mapOrder));
+      } catch {
+        if (!isMounted) return;
+        setLoadError("Failed to load orders.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+
+    void loadHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [redirectToLogin]);
+
+  const totalPages = Math.max(1, Math.ceil(orders.length / ITEMS_PER_PAGE));
+  const paginatedOrders = useMemo(
+    () => orders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [currentPage, orders]
+  );
+
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
       <div className="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <ProfileSidebar />
+        <ProfileSidebar profile={profile} />
 
         <div className="space-y-4 sm:space-y-6">
-          <LatestOrderCard />
-          <OrderHistoryPanel />
-          <Pagination />
+          <LatestOrderCard latestOrder={orders[0] ?? null} />
+          <OrderHistoryPanel orders={paginatedOrders} isLoading={isLoading} loadError={loadError} />
+          <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       </div>
     </main>

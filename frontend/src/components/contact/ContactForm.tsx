@@ -7,9 +7,11 @@ import contactData from "@/data/contact.json";
 import gsap, { animateFadeInLeft } from "@/lib/gsap";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { cn } from "@/lib/utils";
 
 const ContactForm = () => {
   const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const contactText = translations[locale]?.contactPage?.form || translations.en.contactPage.form;
   const { map } = contactData;
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -34,46 +36,49 @@ const ContactForm = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
           {/* Left Side: Contact Info */}
-          <div className="contact-stagger space-y-10 text-left rtl:text-right">
+          <div
+            dir={isRtl ? "rtl" : "ltr"}
+            className={cn("contact-stagger space-y-10", isRtl ? "text-right" : "text-left")}
+          >
             <div className="space-y-4">
               <span className="text-[#1A4331] font-caveat text-2xl">{contactText.eyebrow}</span>
               <h2 className="text-4xl md:text-5xl font-inter font-bold text-[#1A4331]">
                 {contactText.title}
               </h2>
-              <p className="text-gray-500 text-sm max-w-md leading-relaxed font-inter">
+              <p className={cn("w-full text-gray-500 text-sm max-w-md leading-relaxed font-inter", isRtl ? "text-right" : "text-left")}>
                 {contactText.description}
               </p>
             </div>
 
             <div className="contact-stagger space-y-8">
               {/* Phone */}
-              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
+              <div className={cn("flex items-center gap-5 group", isRtl ? "flex-row-reverse justify-end" : "justify-start")}>
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <Phone size={20} />
                 </div>
-                <div>
+                <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
                   <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.phoneLabel}</p>
                   <p className="text-[#1A4331] font-bold">{contactText.phoneValue}</p>
                 </div>
               </div>
 
               {/* Email */}
-              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
+              <div className={cn("flex items-center gap-5 group", isRtl ? "flex-row-reverse justify-end" : "justify-start")}>
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <Mail size={20} />
                 </div>
-                <div>
+                <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
                   <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.emailLabel}</p>
                   <p className="text-[#1A4331] font-bold">{contactText.emailValue}</p>
                 </div>
               </div>
 
               {/* Location */}
-              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
+              <div className={cn("flex items-center gap-5 group", isRtl ? "flex-row-reverse justify-end" : "justify-start")}>
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <MapPin size={20} />
                 </div>
-                <div>
+                <div className={cn("min-w-0", isRtl ? "text-right" : "text-left")}>
                   <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.locationLabel}</p>
                   <p className="text-[#1A4331] font-bold">{contactText.locationValue}</p>
                 </div>
