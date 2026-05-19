@@ -11,13 +11,12 @@ import { setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
 import { z } from "zod";
 import { API_BASE_URL } from "@/lib/config";
-
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 export default function LoginComponent() {
+  const { locale } = useLocale();
+  const loginText = translations[locale]?.loginPage || translations.en.loginPage;
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -27,6 +26,11 @@ export default function LoginComponent() {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const loginSchema = z.object({
+      email: z.string().email(loginText.invalidEmail),
+      password: z.string().min(1, loginText.passwordRequired),
+    });
 
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
@@ -67,7 +71,7 @@ export default function LoginComponent() {
       }
     } catch (error: unknown) {
       console.log("Login error:", error);
-      toast.error("Login failed. Please check your credentials.");
+      toast.error(loginText.loginFailed);
     }
   };
 
@@ -102,31 +106,31 @@ export default function LoginComponent() {
               <div className="w-full max-w-[360px]">
                 <div className="text-center mb-4">
                   <h1 className="text-[24px] font-bold tracking-tight text-[#0a4833]">
-                    Welcome Back
+                    {loginText.title}
                   </h1>
                   <p className="text-xs text-[#4b5563]">
-                    Access your account details below
+                    {loginText.subtitle}
                   </p>
                 </div>
 
                 <form className="space-y-3" onSubmit={handleLogin}>
                   <div>
                     <label className="mb-1 block text-[10px] font-bold uppercase text-[#374151]">
-                      Email Address
+                      {loginText.emailLabel}
                     </label>
                     <input
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       type="email"
-                      placeholder="name@company.com"
-                      className="h-[42px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
+                      placeholder={loginText.emailPlaceholder}
+                      className="h-[42px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition rtl:text-right"
                     />
                   </div>
 
                   <div>
                     <label className="mb-1 block text-[10px] font-bold uppercase text-[#374151]">
-                      Password
+                      {loginText.passwordLabel}
                     </label>
                     <div className="relative">
                       <input
@@ -135,27 +139,27 @@ export default function LoginComponent() {
                         required
                         type={showPassword ? "text" : "password"}
                         placeholder="********"
-                        className="h-[42px] w-full rounded-lg border border-gray-300 px-4 pr-10 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition"
+                        className="h-[42px] w-full rounded-lg border border-gray-300 px-4 text-sm text-[#111827] placeholder:text-[#9ca3af] focus:border-[#0a4833] outline-none transition ltr:pr-10 rtl:pl-10 rtl:text-right"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2"
+                        className="absolute top-1/2 -translate-y-1/2 ltr:right-3 rtl:left-3"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                   </div>
 
-                  <a href="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 transition-colors block text-right">
-                    Forgot password?
+                  <a href="/forgot-password" className="text-xs text-gray-400 hover:text-gray-600 transition-colors block text-right rtl:text-left">
+                    {loginText.forgotPassword}
                   </a>
 
                   <button
                     type="submit"
                     className="flex h-[44px] w-full items-center justify-center rounded-lg bg-[#0a4833] text-sm font-bold text-white shadow-lg hover:bg-[#0c5a40] transition active:scale-[0.98]"
                   >
-                    Sign In
+                    {loginText.signIn}
                   </button>
 
                   <div className="relative py-1">
@@ -167,7 +171,7 @@ export default function LoginComponent() {
                         href="/signup"
                         className="bg-white px-2 font-bold text-[#0a4833] transition hover:text-[#9f8151] hover:underline"
                       >
-                        Create an Account
+                        {loginText.createAccount}
                       </Link>
                     </div>
                   </div>
@@ -183,13 +187,13 @@ export default function LoginComponent() {
                       <path fill="#FBBC05" d="M6.39 13.36a6.08 6.08 0 0 1 0-3.86V6.85H2.98a10.12 10.12 0 0 0 0 9.16l3.41-2.65Z" />
                       <path fill="#34A853" d="M12 8.52c1.48 0 2.81.51 3.86 1.5l2.89-2.89C17.02 5.52 14.72 4.5 12 4.5A10.12 10.12 0 0 0 2.98 6.85l3.41 2.65C7.18 10.28 9.39 8.52 12 8.52Z" />
                     </svg>
-                    Google
+                    {loginText.google}
                   </button>
 
                   <div className="pt-2 flex justify-center gap-4 text-[9px] font-bold uppercase text-[#0a4834]/60">
-                    <Link href="/privacy-policy" className="hover:underline">Privacy Policy</Link>
-                    <Link href="/terms" className="hover:underline">Terms & Conditions</Link>
-                    <Link href="/helpandsupport" className="hover:underline">Help & Support</Link>
+                    <Link href="/privacy-policy" className="hover:underline">{loginText.privacyPolicy}</Link>
+                    <Link href="/terms" className="hover:underline">{loginText.terms}</Link>
+                    <Link href="/helpandsupport" className="hover:underline">{loginText.help}</Link>
                   </div>
                 </form>
               </div>

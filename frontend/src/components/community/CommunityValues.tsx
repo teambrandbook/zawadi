@@ -6,6 +6,8 @@ import Image from "next/image";
 import gsap from "@/lib/gsap";
 import { Heart, Clock, Leaf, LayoutGrid, Layers } from "lucide-react";
 import communityData from "@/data/community.json";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 type ValueCard = {
   icon: string;
@@ -22,8 +24,10 @@ const iconMap: Record<string, React.ComponentType<{ size?: number; className?: s
 };
 
 const CommunityValues = () => {
+  const { locale } = useLocale();
   const sectionRef = useRef<HTMLDivElement>(null);
   const { valuesGridSection } = communityData;
+  const localizedValuesGridSection = translations[locale]?.communityPage?.valuesGridSection || translations.en.communityPage.valuesGridSection;
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -82,9 +86,9 @@ const CommunityValues = () => {
           <div className="relative z-20 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10 lg:gap-12">
 
             {/* Header Content - Animated Line by Line */}
-            <div className="flex flex-col justify-start pt-12 relative z-30">
+            <div className="flex flex-col justify-start pt-12 relative z-30 text-left rtl:text-right">
               <h2 className="text-3xl md:text-4xl lg:text-[45px] font-playfair font-semibold text-[#1A4331] leading-[1.1] tracking-tight">
-                {valuesGridSection.title.split('\n').map((line: string, i: number) => (
+                {localizedValuesGridSection.title.split('\n').map((line: string, i: number) => (
                   <span key={i} className="block overflow-hidden pb-2">
                     <span className="block value-heading-line translate-y-full opacity-0">{line}</span>
                   </span>
@@ -95,20 +99,21 @@ const CommunityValues = () => {
             {/* Value Cards */}
             {valuesGridSection.cards.map((card: ValueCard, idx: number) => {
               const Icon = iconMap[card.icon];
+              const localizedCard = localizedValuesGridSection.cards[idx] || {};
               return (
                 <div
                   key={idx}
-                  className="value-card bg-white hover:bg-[#1A4331] p-10 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] flex flex-col items-start aspect-square relative z-30 transition-colors duration-500 group cursor-default"
+                  className="value-card bg-white hover:bg-[#1A4331] p-10 md:p-12 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.02)] flex flex-col items-start rtl:items-end aspect-square relative z-30 transition-colors duration-500 group cursor-default text-left rtl:text-right"
                 >
                   <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border border-[#1A4331]/20 group-hover:border-white/30 flex items-center justify-center text-[#1A4331] group-hover:text-white mb-8 transition-colors duration-500">
                     {Icon && <Icon size={28} className="stroke-[1.5px]" />}
                   </div>
 
                   <h4 className="text-xl md:text-2xl font-bold text-[#1A4331] group-hover:text-white mb-4 leading-tight font-inter transition-colors duration-500">
-                    {card.title}
+                    {localizedCard.title || card.title}
                   </h4>
                   <p className="text-[#333333] group-hover:text-white/80 text-xs md:text-sm leading-relaxed max-w-[240px] font-medium font-inter transition-colors duration-500">
-                    {card.description}
+                    {localizedCard.description || card.description}
                   </p>
                 </div>
               );

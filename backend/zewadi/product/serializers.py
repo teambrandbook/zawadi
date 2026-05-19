@@ -1,5 +1,7 @@
 from rest_framework import serializers
-from .models import Product, ProductVariant
+from zewadi.validators import validate_image_upload
+
+from .models import Product, ProductImage, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
 

@@ -1,7 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import { ArrowRight, CalendarDays } from "lucide-react";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 export function EventLink({ dark = false }: { dark?: boolean }) {
+  const { locale } = useLocale();
+  const eventLinkText = translations[locale]?.eventsPage?.upcoming.moreDetails || translations.en.eventsPage.upcoming.moreDetails;
+
   return (
     <div
       className={`inline-flex items-center gap-2 font-sans text-[13px] font-semibold ${dark
@@ -9,14 +16,14 @@ export function EventLink({ dark = false }: { dark?: boolean }) {
           : "text-[#7d8978] transition-colors duration-300 group-hover:text-[#afb8ac]"
         }`}
     >
-      <span>More Details</span>
+      <span>{eventLinkText}</span>
       <span
         className={`inline-flex h-5 w-5 items-center justify-center rounded-full ${dark
             ? "bg-[#ffcd1e] text-[#0e2207]"
             : "bg-white text-[#1f6306] transition-colors duration-300 group-hover:bg-[#ffcd1e] group-hover:text-[#0e2207]"
           }`}
       >
-        <ArrowRight className="h-3.5 w-3.5" />
+        <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
       </span>
     </div>
   );
@@ -79,11 +86,11 @@ export function UpcomingCard({
           className="relative rounded-[15px] bg-white p-6 shadow-xl transition-colors duration-300 group-hover:bg-[#1A4331]/95 group-hover:backdrop-blur-sm"
         >
           {/* Floating Date Badge */}
-          <div className="absolute -top-6 left-6">
+          <div className="absolute -top-6 left-6 rtl:left-auto rtl:right-6">
             <DateBadge day={date} month={month} />
           </div>
 
-          <div className="mt-4">
+          <div className="mt-4 text-left rtl:text-right">
             <h3
               className="text-[20px] font-bold leading-tight text-[#0e2207] transition-colors duration-300 group-hover:text-white"
             >
@@ -120,11 +127,11 @@ export function CompactEventCard({
   return (
     <article className="zoom-item upcoming-zoom-item relative mt-8 min-h-[106px] rounded-[10px] bg-[#f1f4eb] px-6 pb-6 pt-10">
       {/* Positioning the DateBadge to overlap the top border */}
-      <div className="absolute -top-6 left-6">
+      <div className="absolute -top-6 left-6 rtl:left-auto rtl:right-6">
         <DateBadge day={date} month={month} />
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 text-left rtl:text-right">
         <h3 className="max-w-[240px] text-[20px] font-bold leading-tight text-[#0e2207]">
           {title}
         </h3>

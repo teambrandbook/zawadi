@@ -4,10 +4,12 @@ export default function RecipeFilter({
   categories,
   activeCategory,
   onChange,
+  labels,
 }: {
   categories: string[];
   activeCategory: string;
   onChange: (category: string) => void;
+  labels: Record<string, string>;
 }) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-3 px-4">
@@ -26,7 +28,7 @@ export default function RecipeFilter({
                   : "border-[#0e2207] bg-[#f3f3ed] text-[#0e2207] hover:bg-[#e8e8df]"
               }`}
           >
-            {category}
+            {labels[category] || category}
           </button>
         );
       })}

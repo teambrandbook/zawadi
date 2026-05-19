@@ -4,11 +4,13 @@ import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "@/lib/gsap";
 import { ArrowRight } from "lucide-react";
-import communityData from "@/data/community.json";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 export default function CommunityHero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { hero } = communityData;
+  const { locale } = useLocale();
+  const hero = translations[locale]?.communityPage?.hero || translations.en.communityPage.hero;
   const [particles, setParticles] = useState<any[]>([]);
 
   useEffect(() => {
@@ -175,7 +177,7 @@ export default function CommunityHero() {
           <div className="reveal-button">
             <Link href="/about" className="bg-[#D8C29A] text-[#1A4331] font-bold px-8 py-3.5 rounded-full hover:bg-white transition-all duration-300 flex items-center justify-center gap-3 text-sm tracking-wide shadow-2xl group cursor-pointer inline-flex">
               {hero.ctaText}
-              <ArrowRight size={16} className="group-hover:translate-x-1.5 transition-transform duration-300" />
+              <ArrowRight size={16} className="transition-transform duration-300 ltr:group-hover:translate-x-1.5 rtl:rotate-180 rtl:group-hover:-translate-x-1.5" />
             </Link>
           </div>
         </div>

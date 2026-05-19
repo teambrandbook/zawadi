@@ -4,27 +4,11 @@ import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { historySliderAnimation } from "@/utils/animations";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-
-const historyItems = [
-  {
-    image: "/home/historyImg1.webp",
-    text: "Zewadi started with one simple belief: food should feel warm, personal, and worth gathering around.",
-  },
-  {
-    image: "/home/historyImg4.webp",
-    text: "As the idea grew, each dish became part of a bigger story about comfort, care, and everyday connection.",
-  },
-  {
-    image: "/home/historyImg2.webp",
-    text: "The journey kept expanding through shared tables, thoughtful details, and moments people wanted to come back to.",
-  },
-  {
-    image: "/home/historyImg3.webp",
-    text: "Today, Zewadi continues to grow by turning simple meals into memorable experiences for the people around it.",
-  },
-];
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const HistorySection = () => {
+  const { locale } = useLocale();
   const [activeIndex, setActiveIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
   const sectionRef = useRef<HTMLElement | null>(null);
@@ -35,6 +19,10 @@ const HistorySection = () => {
   const touchLastRef = useRef({ x: 0, y: 0 });
   const touchGestureRef = useRef<"horizontal" | "vertical" | null>(null);
   const swipeLockRef = useRef(false);
+
+  // Safeguard fallback schema configuration pointers
+  const sectionData = translations[locale]?.historySection || translations["en"].historySection;
+  const historyItems = sectionData.items;
 
   useEffect(() => {
     if (!sectionRef.current) return;
@@ -220,22 +208,23 @@ const HistorySection = () => {
           </div>
 
           <div className="relative z-10 mb-16 flex flex-col items-start justify-between gap-12 lg:flex-row lg:items-end">
-            <div className="fade-in flex w-full flex-col gap-6 lg:w-2/3">
+            <div className="fade-in flex w-full flex-col gap-6 lg:w-2/3 text-left rtl:text-right">
               <h2 className="font-['Playfair_Display'] text-4xl font-semibold uppercase text-white lg:text-[48px]">
-                Where It Began
+                {sectionData.title}
               </h2>
               <p className="max-w-[600px] text-sm text-white/80 lg:text-[14px]">
-                More than just a meal, Zewadi is a growing story of connection, comfort, and everyday joy shared around food.
+                {sectionData.description}
               </p>
             </div>
 
-            <div className="flex gap-4 self-end lg:self-auto">
+            {/* Navigation Arrows Mirror Automatically on Layout Flip */}
+            <div className="flex gap-4 self-end lg:self-auto direction-ltr:flex-row-reverse">
               <button
                 onClick={() => moveSlide(-1)}
                 aria-label="Previous history slide"
                 className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:w-11"
               >
-                <ArrowLeft className="h-5 w-5 text-[#fdf6ee]" />
+                <ArrowLeft className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
               </button>
 
               <button
@@ -243,13 +232,13 @@ const HistorySection = () => {
                 aria-label="Next history slide"
                 className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:w-11"
               >
-                <ArrowRight className="h-5 w-5 text-[#fdf6ee]" />
+                <ArrowRight className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
               </button>
             </div>
           </div>
 
           {/* Timeline Dots */}
-          <div className="relative z-10 my-10 flex items-center justify-between ml-10 md:pl-18 lg:my-12 lg:pl-50">
+          <div className="relative z-10 my-10 flex items-center justify-between ltr:ml-10 rtl:mr-10 ltr:md:pl-18 rtl:md:pr-18 lg:my-12 ltr:lg:pl-50 rtl:lg:pr-50">
             {historyItems.map((_, i) => (
               <div key={i} className="flex flex-1 items-center">
                 <button
@@ -290,7 +279,7 @@ const HistorySection = () => {
                 />
               </div>
 
-              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg">
+              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
                 {historyItems[activeIndex].text}
               </div>
             </div>
@@ -321,7 +310,7 @@ const HistorySection = () => {
                   </div>
 
                   {isActive && (
-                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg">
+                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
                       {item.text}
                     </div>
                   )}

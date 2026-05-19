@@ -1,7 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, DM_Sans, Caveat } from "next/font/google";
+import {
+  Inter,
+  Playfair_Display,
+  DM_Sans,
+  Caveat,
+} from "next/font/google";
+
 import "./globals.css";
-import AppWrapper from "@/components/AppWrapper"; // ✅ ADD THIS
+
+import AppWrapper from "@/components/AppWrapper";
+
+import { LocaleProvider } from "@/context/LocaleContext";
 
 const inter = Inter({
   variable: "--inter-font",
@@ -27,7 +36,8 @@ const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: "Zewadi | Premium Digital Experience",
-  description: "Modern, high-performance website built with Next.js and GSAP.",
+  description:
+    "Modern, high-performance website built with Next.js and GSAP.",
 };
 
 export default function RootLayout({
@@ -42,10 +52,15 @@ export default function RootLayout({
     >
       <body className="antialiased font-sans">
 
-        {/* ✅ WRAP EVERYTHING */}
-        <AppWrapper>
-          <main>{children}</main>
-        </AppWrapper>
+        {/* Locale Provider */}
+        <LocaleProvider>
+
+          {/* App Wrapper */}
+          <AppWrapper>
+            <main>{children}</main>
+          </AppWrapper>
+
+        </LocaleProvider>
 
       </body>
     </html>

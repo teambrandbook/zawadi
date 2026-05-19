@@ -6,6 +6,8 @@ import Image from "next/image";
 import communityData from "@/data/community.json";
 import { Diamond, Users, Lightbulb } from "lucide-react";
 import gsap from "@/lib/gsap";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 type OverviewCard = {
   icon: string;
@@ -41,8 +43,10 @@ const WavyArrow = ({ className }: { className?: string }) => (
 );
 
 const CommunityOverview = () => {
+  const { locale } = useLocale();
   const sectionRef = useRef<HTMLDivElement>(null);
   const { overviewSection } = communityData;
+  const localizedOverviewSection = translations[locale]?.communityPage?.overviewSection || translations.en.communityPage.overviewSection;
 
   useEffect(() => {
     if (!overviewSection) return;
@@ -97,7 +101,7 @@ const CommunityOverview = () => {
         <div className="relative mb-64 md:mb-12">
 
           {/* The Wrapper (No longer backgrounded, purely layout) */}
-          <div className="relative rounded-[2.5rem] min-h-[600px] md:min-h-[650px] shadow-2xl flex flex-col md:flex-row overflow-hidden bg-white">
+          <div className="relative rounded-[2.5rem] min-h-[600px] md:min-h-[650px] shadow-2xl flex flex-col md:flex-row rtl:md:flex-row-reverse overflow-hidden bg-white">
             
             {/* Left Side: Editorial Image */}
             <div id="overview-img" className="w-full md:w-[42%] relative min-h-[400px] md:min-h-full bg-gray-100">
@@ -111,7 +115,7 @@ const CommunityOverview = () => {
             </div>
 
             {/* Right Side: Headlines (Now hosts the green bg itself) */}
-            <div id="overview-green" className="relative z-10 flex w-full flex-col items-center justify-start overflow-hidden bg-brand-green p-8 pb-48 text-center md:w-[58%] md:items-start md:p-16 md:pb-64 md:text-left lg:p-24">
+            <div id="overview-green" className="relative z-10 flex w-full flex-col items-center justify-start overflow-hidden bg-brand-green p-8 pb-48 text-center md:w-[58%] md:items-start md:p-16 md:pb-64 md:text-left rtl:md:items-end rtl:md:text-right lg:p-24">
               <div
                 className="pointer-events-none absolute inset-0 opacity-10"
                 style={{
@@ -124,13 +128,13 @@ const CommunityOverview = () => {
               <div className="overview-text relative z-10 mb-8 flex items-center gap-4 text-white/50">
                 <WavyArrow className="rotate-180" />
                 <span className="text-white text-xs font-dm font-bold tracking-[0.4em] uppercase">
-                  {overviewSection.subtitle}
+                  {localizedOverviewSection.subtitle}
                 </span>
                 <WavyArrow />
               </div>
 
               <h2 className="overview-text relative z-10 mb-12 text-4xl font-playfair font-medium leading-[1.1] text-white md:text-5xl lg:text-7xl">
-                {overviewSection.title}
+                {localizedOverviewSection.title}
               </h2>
             </div>
           </div>
@@ -140,25 +144,26 @@ const CommunityOverview = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 lg:gap-12 max-w-[95%] md:max-w-6xl mx-auto">
               {overviewSection.cards.map((card: OverviewCard, idx: number) => {
                 const Icon = iconMap[card.icon];
+                const localizedCard = localizedOverviewSection.cards[idx] || {};
                 return (
                   <div
                     key={idx}
                     className="overview-card relative bg-[#F4F6F2] p-6 md:p-8 rounded-[2rem] shadow-xl flex flex-col justify-center min-h-[140px] md:min-h-[170px] hover:scale-[1.02] transition-transform duration-500 group cursor-default"
                   >
                     {/* Hanging Icon Circle - Side Position */}
-                    <div className="absolute -left-5 md:-left-7 top-1/2 -translate-y-1/2 w-11 h-11 md:w-16 md:h-16 bg-white rounded-full border border-gray-100 shadow-md flex items-center justify-center text-brand-green group-hover:bg-brand-green group-hover:text-white transition-all duration-300">
+                    <div className="absolute -left-5 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-gray-100 bg-white text-brand-green shadow-md transition-all duration-300 group-hover:bg-brand-green group-hover:text-white rtl:left-auto rtl:-right-5 md:-left-7 md:h-16 md:w-16 rtl:md:left-auto rtl:md:-right-7">
                       {Icon && <Icon size={idx === 2 ? 18 : 24} className="stroke-[1.5px]" />}
                     </div>
 
-                    <div className="pl-3 md:pl-3">
+                    <div className="pl-3 text-left rtl:pl-0 rtl:pr-3 rtl:text-right md:pl-3 rtl:md:pl-0 rtl:md:pr-3">
                       <div className="text-gray-400 text-[10px] font-bold mb-2 tracking-widest uppercase opacity-70">
                         {card.id}
                       </div>
                       <h4 className="text-xl md:text-2xl font-inter font-bold text-brand-green mb-2 leading-tight">
-                        {card.title}
+                        {localizedCard.title || card.title}
                       </h4>
                       <p className="text-gray-600 text-xs md:text-sm leading-relaxed font-dm line-clamp-2">
-                        {card.description}
+                        {localizedCard.description || card.description}
                       </p>
                     </div>
                   </div>
