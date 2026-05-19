@@ -1,5 +1,7 @@
+from decimal import Decimal
+
 from rest_framework import serializers
-from .models import Product, ProductVariant
+from .models import Product, ProductImage, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
 
@@ -55,10 +57,18 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_tax_category_code(self, obj):
         return obj.tax_category.code if obj.tax_category_id else "STANDARD"
 
-    def _get_country_price(self, obj):
+    def to_representation(self, obj):
         from product.services import get_product_price
         country = self.context.get("country", "SA")
-        return get_product_price(obj, country)
+        self._country_price_cache = get_product_price(obj, country)
+        return super().to_representation(obj)
+
+    def _get_country_price(self, obj):
+        if not hasattr(self, "_country_price_cache"):
+            from product.services import get_product_price
+            country = self.context.get("country", "SA")
+            self._country_price_cache = get_product_price(obj, country)
+        return self._country_price_cache
 
     def get_display_price(self, obj):
         from tax.services import get_tax_rate
@@ -66,7 +76,7 @@ class ProductSerializer(serializers.ModelSerializer):
         cat_code = obj.tax_category.code if obj.tax_category_id else "STANDARD"
         country = self.context.get("country", "SA")
         rate = get_tax_rate(country, cat_code)
-        inclusive = price * (1 + rate)
+        inclusive = price * (Decimal("1") + rate)
         dp = currency.decimal_places
         return f"{inclusive:.{dp}f}"
 
