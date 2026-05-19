@@ -7,8 +7,12 @@ import Image from "next/image";
 import gsap, { animatePopUp } from "@/lib/gsap";
 import galleryData from "@/data/gallery.json";
 import { cn } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const GalleryGrid = () => {
+  const { locale } = useLocale();
+  const galleryText = translations[locale]?.galleryPage || translations.en.galleryPage;
   const [activeCategory, setActiveCategory] = useState("SHOW ALL");
   const [mounted, setMounted] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -55,21 +59,25 @@ const GalleryGrid = () => {
                   : "bg-white border-gray-200 text-[#1A4331] hover:border-[#A67C00] hover:text-[#A67C00]"
               )}
             >
-              {category}
+              {galleryText.categories[category as keyof typeof galleryText.categories] || category}
             </button>
           ))}
         </div>
 
         {/* Gallery Grid */}
         <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8 max-w-7xl mx-auto">
-          {filteredItems.map((item) => (
+          {filteredItems.map((item) => {
+            const localizedItem = galleryText.items[item.id - 1];
+            const title = localizedItem?.title || item.title;
+
+            return (
             <div
               key={item.id}
               className="gallery-item opacity-0 group relative aspect-square rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer"
             >
               <Image
                 src={item.image}
-                alt={item.title}
+                alt={title}
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
@@ -77,11 +85,11 @@ const GalleryGrid = () => {
               {/* New Hover Overlay (Gold) with Pill Title */}
               <div className="absolute inset-0 bg-[#A67C00]/85 flex flex-col items-center justify-end opacity-0 group-hover:opacity-100 group-active:opacity-100 transition-opacity duration-500">
                 <div className="bg-white px-10 py-5 rounded-t-[1rem] rounded-b-none text-black text-base font-bold shadow-2xl translate-y-4 group-hover:translate-y-0 group-active:translate-y-0 transition-transform duration-500">
-                  {item.title}
+                  {title}
                 </div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </section>

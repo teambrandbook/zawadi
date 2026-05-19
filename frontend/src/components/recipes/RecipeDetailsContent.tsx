@@ -8,6 +8,8 @@ import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 import api, { getAccessToken } from "@/services/api";
 import type { RootState } from "@/redux/store";
 
@@ -40,6 +42,8 @@ export default function RecipeDetailsContent({
 }: {
   recipe: Recipe;
 }) {
+  const { locale } = useLocale();
+  const detailText = translations[locale]?.recipesPage?.detail || translations.en.recipesPage.detail;
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
@@ -48,11 +52,16 @@ export default function RecipeDetailsContent({
   const ingredients = recipe.ingredients ?? [];
   const steps = recipe.steps ?? [];
   const nutrition = recipe.nutrition ?? {
-    calories: "—",
-    fat: "—",
-    carbs: "—",
-    protein: "—",
+    calories: "-",
+    fat: "-",
+    carbs: "-",
+    protein: "-",
   };
+  const formatText = (template: string, values: Record<string, string | number>) =>
+    Object.entries(values).reduce(
+      (text, [key, value]) => text.replace(`{${key}}`, String(value)),
+      template
+    );
 
   useEffect(() => {
     imageAnimationtopdown(".recipe-detail-image-topdown");
@@ -101,14 +110,14 @@ export default function RecipeDetailsContent({
     try {
       if (nextValue) {
         await api.post(`/recipes/${recipe.id}/favorite/`);
-        toast.success("Recipe saved to favorites.");
+        toast.success(detailText.saved);
       } else {
         await api.delete(`/recipes/${recipe.id}/favorite/`);
-        toast.success("Recipe removed from favorites.");
+        toast.success(detailText.removed);
       }
     } catch {
       setIsFavorite(!nextValue);
-      toast.error("Could not update favorite. Please try again.");
+      toast.error(detailText.favoriteError);
     } finally {
       setFavoritePending(false);
     }
@@ -141,22 +150,26 @@ export default function RecipeDetailsContent({
                   href={recipe.videoUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Watch video for ${recipe.title}`}
+                  aria-label={formatText(detailText.watchVideo, { title: recipe.title })}
                   className="absolute inset-0 flex items-center justify-center"
                 >
                   <span className="flex h-[50px] w-[50px] items-center justify-center rounded-full bg-[#1f4d3a] shadow-lg transition-transform hover:scale-105 md:h-[62px] md:w-[62px]">
-                  <Play className="ml-0.5 h-5 w-5 fill-white text-white md:ml-1 md:h-6 md:w-6" />
+                    <Play className="h-5 w-5 fill-white text-white ltr:ml-0.5 rtl:mr-0.5 md:h-6 md:w-6 md:ltr:ml-1 md:rtl:mr-1" />
                   </span>
                 </a>
               ) : null}
 
               <button
                 type="button"
-                aria-label={isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
+                aria-label={
+                  isFavorite
+                    ? formatText(detailText.removeFavorite, { title: recipe.title })
+                    : formatText(detailText.addFavorite, { title: recipe.title })
+                }
                 aria-pressed={isFavorite}
                 disabled={favoritePending}
                 onClick={handleToggleFavorite}
-                className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1f4d3a] shadow-md transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70"
+                className="absolute left-4 top-4 z-20 flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1f4d3a] shadow-md transition hover:scale-105 disabled:cursor-not-allowed disabled:opacity-70 rtl:left-auto rtl:right-4"
               >
                 <Heart
                   className={`h-5 w-5 transition-all duration-200 ${
@@ -168,7 +181,7 @@ export default function RecipeDetailsContent({
               </button>
             </div>
 
-            <div className=" pt-1">
+            <div className="pt-1 text-left rtl:text-right">
               <h2 className="fade-in font-['Playfair_Display'] text-[28px] font-bold uppercase leading-tight text-black sm:text-[36px] md:text-[46px]">
                 {recipe.title}
               </h2>
@@ -180,15 +193,15 @@ export default function RecipeDetailsContent({
               <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-[170px_1fr]">
                 <div className="h-fit rounded-[10px] bg-[#1f4d3a] px-4 py-5">
                   <h3 className="mb-4 font-['Playfair_Display'] text-[14px] font-semibold text-white">
-                    Nutrition Facts
+                    {detailText.nutritionFacts}
                   </h3>
 
                   <div className="grid grid-cols-2 gap-2 sm:grid-cols-1">
                     {[
-                      { label: "Calories", val: nutrition.calories },
-                      { label: "Fat", val: nutrition.fat },
-                      { label: "Carbs", val: nutrition.carbs },
-                      { label: "Protein", val: nutrition.protein },
+                      { label: detailText.calories, val: nutrition.calories },
+                      { label: detailText.fat, val: nutrition.fat },
+                      { label: detailText.carbs, val: nutrition.carbs },
+                      { label: detailText.protein, val: nutrition.protein },
                     ].map((item) => (
                       <div
                         key={item.label}
@@ -202,18 +215,18 @@ export default function RecipeDetailsContent({
 
                 {ingredients.length > 0 ? (
                   <div className="w-full rounded-[4px] border-2 border-dashed border-[#6d8f81] bg-white px-5 py-5 md:min-h-[240px]">
-                    <div className="mb-3 flex items-center gap-2">
+                    <div className="mb-3 flex items-center gap-2 rtl:flex-row-reverse rtl:justify-end">
                       <div className="text-[#1f4d3a]">
                         <Utensils size={14} />
                       </div>
                       <h3 className="font-['DM_Sans'] text-[13px] font-semibold tracking-wider text-black">
-                        Ingredients
+                        {detailText.ingredients}
                       </h3>
                     </div>
 
-                    <ul className="list-disc space-y-2 pl-4 font-['DM_Sans'] text-[14px] font-medium leading-snug text-[#1f4d3a] md:text-[13px]">
+                    <ul className="list-disc space-y-2 pl-4 font-['DM_Sans'] text-[14px] font-medium leading-snug text-[#1f4d3a] rtl:pl-0 rtl:pr-4 md:text-[13px]">
                       {ingredients.map((item, idx) => (
-                        <li key={idx} className="pl-1">
+                        <li key={idx} className="pl-1 rtl:pl-0 rtl:pr-1">
                           {item}
                         </li>
                       ))}
@@ -225,9 +238,9 @@ export default function RecipeDetailsContent({
           </div>
 
           {steps.length > 0 ? (
-            <div className="fade-in mt-12 rounded-[6px] bg-[#f4f6ed] px-5 py-8 sm:px-8 sm:py-10 md:mt-16 lg:mt-20 lg:px-[76px] lg:py-12">
+            <div className="fade-in mt-12 rounded-[6px] bg-[#f4f6ed] px-5 py-8 text-left rtl:text-right sm:px-8 sm:py-10 md:mt-16 lg:mt-20 lg:px-[76px] lg:py-12">
               <h3 className="mb-6 font-['Playfair_Display'] text-[26px] font-bold text-[#1f4d3a] md:mb-8 md:text-[36px]">
-                How to Cook :
+                {detailText.howToCook}
               </h3>
 
               <div className="space-y-6 md:space-y-7">
@@ -237,7 +250,7 @@ export default function RecipeDetailsContent({
                     className="max-w-[900px] font-['DM_Sans'] text-[15px] leading-relaxed text-[#496456]"
                   >
                     <span className="font-extrabold text-[#1f4d3a]">
-                      Step {index + 1} :
+                      {formatText(detailText.step, { count: index + 1 })}
                     </span>{" "}
                     <span className="font-normal">{step}</span>
                   </div>

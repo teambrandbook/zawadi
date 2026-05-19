@@ -4,6 +4,8 @@ import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Leaf, MoveRight, SendHorizontal } from "lucide-react";
 import gsap from "@/lib/gsap";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 import { StarIcon, ApproachIcon } from "../common/BrandIcons";
 import ContentSection from "../common/ContentSection";
@@ -17,41 +19,7 @@ const storyRightImage = "/about/story-right.webp";
 const approachImage = "/about/approach.webp";
 const testimonialImage = "/about/testimonial.webp";
 
-const introCards = [
-    {
-        title: "Quality food, made to fit your life.",
-        body: "Zewadi is a premium food brand, but there's a lot more behind the name. It started with one simple idea: make everyday food easier, better, and more meaningful. Every product is made with real care. We focus on quality, on balance, and on how our food actually fits into your life. Food shouldn't be complicated. It should just feel right.",
-    },
-    {
-        title: "Clean ingredients. Thoughtful nutrition.",
-        body: "Zewadi is a premium food brand developed to redefine the way we experience everyday nutrition. Rooted in quality, intention, and simplicity, we create products that bring together clean ingredients and refined taste.",
-    },
-];
-
-const approachSteps = [
-    { label: "Thoughtfully Crafted", number: "1", active: false },
-    { label: "Inspired by Living Well", number: "2", active: true },
-    { label: "Made to Share", number: "3", active: false },
-    { label: "Driven by Purpose", number: "4", active: false },
-];
-
-const storySlides = [
-    {
-        image: storyLeftImage,
-        alt: "Fresh berries",
-        body: "Zewadi was created to make everyday food choices feel more thoughtful and intentional. It is about bringing together wellness, quality, and simple moments that add value to daily life. With every product, we focus on creating balance, comfort, and a better way of living.",
-    },
-    {
-        image: storyCenterImage,
-        alt: "People gathering",
-        body: "The story behind Zewadi is rooted in turning ordinary routines into something more meaningful. We believe good food should feel easy, nourishing, and naturally connected to the way you live each day.",
-    },
-    {
-        image: storyRightImage,
-        alt: "Packaged ingredients",
-        body: "Every Zewadi product is shaped with care so healthy choices feel simpler, warmer, and more enjoyable. It is a blend of thoughtful ingredients, modern living, and everyday experiences that feel genuinely good.",
-    },
-];
+const storyImages = [storyLeftImage, storyCenterImage, storyRightImage];
 
 const sectionTitleClass =
     "font-serif text-[1.8rem] leading-tight text-[#034833] sm:text-[2.5rem]";
@@ -69,6 +37,14 @@ const desktopStoryPositions = [
 ];
 
 export default function About() {
+    const { locale } = useLocale();
+    const aboutData = translations[locale]?.aboutPage || translations.en.aboutPage;
+    const introCards = aboutData.introCards;
+    const approachSteps = aboutData.approachSteps;
+    const storySlides = aboutData.storySlides.map((slide, index) => ({
+        ...slide,
+        image: storyImages[index],
+    }));
     const containerRef = useRef<HTMLDivElement>(null);
     const storyItemsRef = useRef<(HTMLDivElement | null)[]>([]);
     const storyTextRef = useRef<HTMLParagraphElement>(null);
@@ -322,12 +298,12 @@ export default function About() {
 
     return (
         <div className="bg-[#fffef5] text-[#121414]" ref={containerRef}>
-            <ContentSection title="About Zewadi" subtitle="What is Zewadi" />
+            <ContentSection title={aboutData.heroTitle} subtitle={aboutData.heroSubtitle} />
 
             <section className="pt-20 pb-32 sm:pt-28 sm:pb-40 lg:pt-40 lg:pb-56">
                 <div className="container mx-auto px-4 sm:px-6 max-w-[1150px]">
                     <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-stretch lg:gap-16">
-                        <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:min-h-[580px] lg:grid-cols-[1.05fr_0.95fr] lg:translate-x-4 xl:translate-x-8">
+                        <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:min-h-[580px] lg:grid-cols-[1.05fr_0.95fr] ltr:lg:translate-x-4 ltr:xl:translate-x-8 rtl:lg:-translate-x-4 rtl:xl:-translate-x-8">
                             <div className="flex flex-col gap-4 sm:gap-5 h-full">
                                 <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
                                     <img
@@ -339,17 +315,18 @@ export default function About() {
                                     />
                                 </div>
                                 <div className="intro-health-card shrink-0 rounded-[20px] border border-[#1A4331] bg-white px-4 py-4 shadow-[0_10px_26px_rgba(0,0,0,0.05)] sm:px-5 sm:py-5">
-                                    <div className="flex items-center gap-2 sm:gap-3">
+                                    <div className="flex items-center gap-2 text-left rtl:text-right sm:gap-3">
                                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#1A4331] text-white sm:h-12 sm:w-12">
                                             <Leaf size={18} className="sm:w-5 sm:h-5" />
                                         </div>
                                         <div>
                                             <p className="text-[13px] font-bold leading-tight text-[#034833] sm:text-[16px] sm:leading-5">
-                                                Natural Health
+                                                {aboutData.introBadgeTitle}
                                             </p>
-                                            <p className="text-[10px] leading-3 text-[#727272] sm:text-[13px] sm:leading-5">
-                                                Wellness Made<br />Simple
-                                            </p>
+                                            <p
+                                                className="text-[10px] leading-3 text-[#727272] sm:text-[13px] sm:leading-5"
+                                                dangerouslySetInnerHTML={{ __html: aboutData.introBadgeSubtitleHTML }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -377,13 +354,12 @@ export default function About() {
                             </div>
                         </div>
 
-                        <div className="pt-10 sm:pt-12 lg:self-stretch lg:pl-4 xl:pl-6 lg:pt-0">
+                        <div className="pt-10 text-left rtl:text-right sm:pt-12 lg:self-stretch ltr:lg:pl-4 ltr:xl:pl-6 rtl:lg:pr-4 rtl:xl:pr-6 lg:pt-0">
                             <div className="flex h-full flex-col lg:justify-between">
-                                <h2 className="intro-text-heading font-serif font-bold text-[1.6rem] leading-[1.25] sm:text-[2rem] lg:text-[2.4rem] xl:text-[2.6rem] text-[#034833] tracking-normal">
-                                    Food That Feels Right,<br />
-                                    Every Day Thoughtfully<br />
-                                    Crafted for You.
-                                </h2>
+                                <h2
+                                    className="intro-text-heading font-serif font-bold text-[1.6rem] leading-[1.25] sm:text-[2rem] lg:text-[2.4rem] xl:text-[2.6rem] text-[#034833] tracking-normal"
+                                    dangerouslySetInnerHTML={{ __html: aboutData.introTitleHTML }}
+                                />
 
                                 <div className="mt-8 flex flex-col gap-4 sm:gap-5">
                                     {introCards.map((card) => (
@@ -418,17 +394,17 @@ export default function About() {
 
                 <div className="relative z-10 container mx-auto px-4 text-center sm:px-6">
                     <h2 className="mx-auto max-w-[16ch] font-serif text-[1.8rem] leading-tight sm:text-[2.75rem] sm:leading-[1.15]">
-                        The story behind the flavors
+                        {aboutData.storyTitle}
                     </h2>
 
                     <div className="relative mx-auto mt-10 flex w-full max-w-[1020px] items-center justify-between">
                         <button
                             type="button"
                             onClick={handlePrev}
-                            aria-label="Previous slide"
+                            aria-label={aboutData.previousSlideLabel}
                             className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
                         >
-                            <ArrowRight size={20} className="rotate-180" />
+                            <ArrowRight size={20} className="ltr:rotate-180" />
                         </button>
 
                         <div
@@ -461,10 +437,10 @@ export default function About() {
                         <button
                             type="button"
                             onClick={handleNext}
-                            aria-label="Next slide"
+                            aria-label={aboutData.nextSlideLabel}
                             className="story-mobile-arrow hidden md:flex z-30 h-12 w-12 shrink-0 items-center justify-center rounded-full border border-white/30 bg-transparent text-white transition-colors hover:bg-[#b47800] hover:border-[#b47800] active:bg-[#b47800] active:border-[#b47800]"
                         >
-                            <ArrowRight size={20} />
+                            <ArrowRight size={20} className="rtl:rotate-180" />
                         </button>
                     </div>
 
@@ -472,18 +448,18 @@ export default function About() {
                         <button
                             type="button"
                             onClick={handlePrev}
-                            aria-label="Previous slide"
+                            aria-label={aboutData.previousSlideLabel}
                             className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
                         >
-                            <ArrowRight size={20} className="rotate-180" />
+                            <ArrowRight size={20} className="ltr:rotate-180" />
                         </button>
                         <button
                             type="button"
                             onClick={handleNext}
-                            aria-label="Next slide"
+                            aria-label={aboutData.nextSlideLabel}
                             className="flex h-11 w-11 items-center justify-center rounded-full border border-white/35 bg-transparent text-white transition-colors hover:border-[#b47800] hover:bg-[#b47800] active:border-[#b47800] active:bg-[#b47800]"
                         >
-                            <ArrowRight size={20} />
+                            <ArrowRight size={20} className="rtl:rotate-180" />
                         </button>
                     </div>
 
@@ -497,8 +473,8 @@ export default function About() {
             </section>
 
             <section className="pt-16 pb-10 sm:py-12">
-                <div className="container mx-auto px-4 sm:px-6 lg:pl-32 lg:pr-6 xl:pl-48">
-                    <h2 className={sectionTitleClass}>Our Approach</h2>
+                <div className="container mx-auto px-4 sm:px-6 ltr:lg:pl-32 ltr:lg:pr-6 ltr:xl:pl-48 rtl:lg:pr-32 rtl:lg:pl-6 rtl:xl:pr-48">
+                    <h2 className={`${sectionTitleClass} text-left rtl:text-right`}>{aboutData.approachTitle}</h2>
 
                     <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
                         <div>
@@ -511,20 +487,18 @@ export default function About() {
                                     className="h-[300px] w-full object-cover sm:h-[360px]"
                                 />
                             </div>
-                            <p className="mt-4 max-w-[620px] text-sm leading-[1.625rem] text-black">
-                                We sweat the details so you can enjoy food made for real
-                                everyday life, always better when shared, with purpose behind
-                                every decision.
+                            <p className="mt-4 max-w-[620px] text-left text-sm leading-[1.625rem] text-black rtl:text-right">
+                                {aboutData.approachDescription}
                             </p>
                         </div>
 
-                        <div className="approach-steps-container space-y-4 max-w-[440px]">
+                        <div className="approach-steps-container max-w-[440px] space-y-4">
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
-                                    className="group approach-step-card cursor-pointer flex items-center justify-between rounded-r-[999px] border-2 px-6 py-3 shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all sm:px-7 sm:py-4 border-black/10 bg-white text-[#121414] hover:border-[#b47800] hover:bg-[#b47800] hover:text-white"
+                                    className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-7 sm:py-4"
                                 >
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-4 rtl:flex-row-reverse">
                                         <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
                                             <ApproachIcon size={24} />
                                         </div>
@@ -548,7 +522,7 @@ export default function About() {
 
                             <Link
                                 href="/community"
-                                className="group relative inline-flex items-center rounded-full bg-[#1f4d3a] pl-9 pr-0 py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331]"
+                                className="group relative inline-flex items-center rounded-full bg-[#1f4d3a] py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331] ltr:pl-9 ltr:pr-0 rtl:pl-0 rtl:pr-9"
                             >
                                 <div className="absolute inset-0 overflow-hidden rounded-full">
                                     <div
@@ -560,8 +534,8 @@ export default function About() {
                                         }}
                                     />
                                 </div>
-                                <span className="relative z-10 py-4">Learn More</span>
-                                <span className="relative -right-6 z-10 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#1f4d3a] text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)]">
+                                <span className="relative z-10 py-4">{aboutData.learnMore}</span>
+                                <span className="relative z-10 flex h-[52px] w-[52px] items-center justify-center overflow-hidden rounded-full border-2 border-white bg-[#1f4d3a] text-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] ltr:-right-6 rtl:-left-6">
                                     <div
                                         className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
                                         style={{
@@ -570,7 +544,7 @@ export default function About() {
                                             backgroundPosition: "center",
                                         }}
                                     />
-                                    <MoveRight size={22} className="relative z-10" />
+                                    <MoveRight size={22} className="relative z-10 rtl:rotate-180" />
                                 </span>
                             </Link>
                         </div>
@@ -578,7 +552,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="testimonial-section bg-white px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+            <section className="testimonial-section  px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
                 <div className="mx-auto max-w-[1120px]">
                     <div className="mb-8 flex justify-center">
                         <div className="relative inline-flex max-w-full items-center gap-4 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-5 py-2.5 shadow-sm sm:gap-5 sm:px-7">
@@ -591,19 +565,20 @@ export default function About() {
                                 }}
                             />
                             <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 sm:tracking-[0.3em]">
-                                Client Testimonials
+                                {aboutData.testimonialBadge}
                             </p>
                             <div className="relative z-10 h-3 w-px bg-white/20" />
-                            <SendHorizontal size={15} className="relative z-10 text-[#83cd20]" />
+                            <SendHorizontal size={15} className="relative z-10 text-[#83cd20] rtl:rotate-180" />
                         </div>
                     </div>
 
-                    <h2 className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]">
-                        Real Stories from Everyday<br className="hidden sm:block" /> Moments
-                    </h2>
+                    <h2
+                        className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
+                        dangerouslySetInnerHTML={{ __html: aboutData.testimonialTitleHTML }}
+                    />
 
                     <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center">
-                        <div className="testimonial-card order-2 mt-8 relative z-20 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 shadow-[0_24px_70px_rgba(0,0,0,0.08)] sm:p-10 md:p-14 lg:order-1 lg:mt-0 lg:-mr-28 lg:w-[58%]">
+                        <div className="testimonial-card relative order-2 z-20 mt-8 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 text-left shadow-[0_24px_70px_rgba(0,0,0,0.08)] rtl:text-right sm:p-10 md:p-14 lg:order-1 lg:mt-0 ltr:lg:-mr-28 rtl:lg:-ml-28 lg:w-[58%]">
                             <div className="pointer-events-none absolute inset-0 flex translate-x-6 items-center justify-center text-[#1f4d3a]/5 sm:translate-x-12">
                                 <svg width="280" height="200" viewBox="0 0 340 240" fill="none" stroke="currentColor" strokeWidth="8" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M115 130V220H25V130C25 70 65 30 115 30V80C95 80 85 95 85 110H115V130Z" />
@@ -612,36 +587,34 @@ export default function About() {
                             </div>
 
                             <p className="relative z-10 max-w-[36ch] text-[1.05rem] font-medium leading-[1.65] text-[#1f4d3a] sm:text-[1.35rem] sm:leading-[1.5]">
-                                Zewadi products truly changed the way I look at everyday food
-                                - simple, high-quality, and made to fit effortlessly into my
-                                life.
+                                {aboutData.testimonialQuote}
                             </p>
 
                             <div className="relative z-10 mt-10 flex items-center justify-between gap-4 sm:mt-12">
-                                <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-4 rtl:flex-row-reverse">
                                     <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9] sm:h-16 sm:w-16" />
                                     <div>
                                         <p className="text-base font-bold text-[#1a4331] sm:text-xl">
-                                            Hamna Zaid
+                                            {aboutData.testimonialName}
                                         </p>
-                                        <p className="text-xs font-medium text-[#727272] sm:text-sm">Happy Customer</p>
+                                        <p className="text-xs font-medium text-[#727272] sm:text-sm">{aboutData.testimonialRole}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex shrink-0 items-center gap-2">
                                     <button
                                         type="button"
-                                        aria-label="Previous testimonial"
+                                        aria-label={aboutData.previousTestimonialLabel}
                                         className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1a4331] shadow-sm transition-all hover:bg-white/80 sm:h-12 sm:w-12"
                                     >
-                                        <ArrowRight size={16} className="rotate-180" />
+                                        <ArrowRight size={16} className="ltr:rotate-180" />
                                     </button>
                                     <button
                                         type="button"
-                                        aria-label="Next testimonial"
+                                        aria-label={aboutData.nextTestimonialLabel}
                                         className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a4331] text-white shadow-sm transition-all hover:bg-[#1a4331]/90 sm:h-12 sm:w-12"
                                     >
-                                        <ArrowRight size={16} />
+                                        <ArrowRight size={16} className="rtl:rotate-180" />
                                     </button>
                                 </div>
                             </div>

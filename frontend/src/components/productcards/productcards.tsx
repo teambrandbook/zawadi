@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingBag, Star } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Star } from "lucide-react";
 import { FaBagShopping } from "react-icons/fa6";
 import { cn, getImageUrl } from "@/lib/utils";
 import { useEffect, useState } from "react";
@@ -13,6 +14,8 @@ import type { AppDispatch, RootState } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
 import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { formatPrice } from "@/utils/formatPrice";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 type Product = {
   id: number;
@@ -33,15 +36,17 @@ type Product = {
   created_at?: string;
 };
 
+type ProductCardStrings = typeof translations.en.productsPage.productCards;
+
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
   return getImageUrl(path);
 }
 
-function Rating() {
+function Rating({ strings }: { strings: ProductCardStrings }) {
   return (
     <div className="flex items-center gap-2">
-      <div className="flex items-center gap-0.5 text-[#f2c94c]" aria-label="Rated 4.8 out of 5">
+      <div className="flex items-center gap-0.5 text-[#f2c94c]" aria-label={strings.ratingLabel}>
         {Array.from({ length: 5 }).map((_, index) => (
           <Star
             key={index}
@@ -51,7 +56,7 @@ function Rating() {
         ))}
       </div>
       <span className="text-sm font-medium leading-5 tracking-[0.01em] text-[#6b7280]">
-        4.8 (124 reviews)
+        {strings.reviewsText}
       </span>
     </div>
   );
@@ -66,22 +71,46 @@ function isNewProduct(createdAt?: string): boolean {
   return createdDate.getTime() >= thirtyDaysAgo;
 }
 
+function formatCategoryLabel(category: string): string {
+  return category
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function ProductCard({
   product,
   onAddToCart,
+  strings,
 }: {
   product: Product;
   onAddToCart: (product: Product) => void;
+  strings: ProductCardStrings;
 }) {
+  const router = useRouter();
+  const detailHref = `/products/details?id=${product.id}`;
   const price = product.selling_price ?? product.sale_price ?? product.base_price;
   const mrp = Number(product.mrp_price ?? 0);
   const selling = Number(price);
   const discounted = mrp > selling;
   const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
-  const badgeText = isNewProduct(product.created_at) ? "New" : product.category;
+  const badgeText = isNewProduct(product.created_at) ? strings.newBadge : formatCategoryLabel(product.category);
+
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(detailHref)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          router.push(detailHref);
+        }
+      }}
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-6"
+    >
       <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
         <Image
           src={productImageUrl(product.image)}
@@ -112,39 +141,43 @@ function ProductCard({
         </div>
         {discounted ? (
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-sm text-[#9ca3af] line-through">₹{product.mrp_price}</span>
+            <span className="text-sm text-[#9ca3af] line-through">&#8377;{product.mrp_price}</span>
             <span className="text-xs font-bold text-[#15803D]">
-              {Number(product.discount_percent ?? 0).toFixed(0)}% off
+              {Number(product.discount_percent ?? 0).toFixed(0)}% {strings.off}
             </span>
           </div>
         ) : null}
 
         <div className="mt-2.5">
-          <Rating />
+          <Rating strings={strings} />
         </div>
 
         <p className="mt-4 text-[13px] leading-[1.6] text-[#6b7280] sm:text-[14px]">
-          {product.product_subtitle || "Premium quality product for your wellness journey."}
+          {product.product_subtitle || strings.fallbackSubtitle}
         </p>
         <p className={`mt-3 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
-          {outOfStock ? "Out of stock" : lowStock ? `Only ${product.stock_quantity} left` : "In stock"}
+          {outOfStock ? strings.outOfStock : lowStock ? strings.onlyLeft.replace("{count}", String(product.stock_quantity)) : strings.inStock}
         </p>
 
         <div className="mt-auto flex gap-2 pt-6">
           <button
             type="button"
-            onClick={() => onAddToCart(product)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAddToCart(product);
+            }}
             disabled={outOfStock}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[16px]"
           >
             <FaBagShopping size={18} />
-            {outOfStock ? "Out of Stock" : "Add to Cart"}
+            {outOfStock ? strings.outOfStockButton : strings.addToCart}
           </button>
           <Link
-            href={`/products/details?id=${product.id}`}
+            href={detailHref}
+            onClick={(event) => event.stopPropagation()}
             className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-5 py-3.5 text-sm font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white"
           >
-            View
+            {strings.view}
           </Link>
         </div>
       </div>
@@ -153,6 +186,8 @@ function ProductCard({
 }
 
 export default function ProductCards() {
+  const { locale } = useLocale();
+  const strings = translations[locale]?.productsPage?.productCards || translations.en.productsPage.productCards;
   const dispatch = useDispatch<AppDispatch>();
   const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
   const [products, setProducts] = useState<Product[]>([]);
@@ -169,9 +204,9 @@ export default function ProductCards() {
         const unique = ["All Products", ...Array.from(new Set(list.map((p) => p.category).filter(Boolean)))];
         setCategories(unique);
       })
-      .catch(() => toast.error("Could not load products."))
+      .catch(() => toast.error(strings.loadError))
       .finally(() => setLoading(false));
-  }, []);
+  }, [strings.loadError]);
 
   async function handleAddToCart(product: Product) {
     if (!isAuthenticated) {
@@ -188,15 +223,16 @@ export default function ProductCards() {
         currency: "INR",
       });
       dispatch(setCartCount(getGuestCartCount()));
-      toast.success("Added to cart!");
+      toast.success(strings.addSuccess);
       return;
     }
+
     try {
       const res = await api.post("/orders/cart/items/", { product_id: product.id, quantity: 1 });
-      toast.success("Added to cart!");
+      toast.success(strings.addSuccess);
       dispatch(setCartCount(res.data.summary?.item_count ?? 0));
     } catch {
-      toast.error("Could not add to cart.");
+      toast.error(strings.addError);
     }
   }
 
@@ -209,7 +245,7 @@ export default function ProductCards() {
     return (
       <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
         <div className="flex min-h-75 items-center justify-center text-sm text-[#0A4833]">
-          Loading products...
+          {strings.loading}
         </div>
       </section>
     );
@@ -232,7 +268,7 @@ export default function ProductCards() {
                     : "text-[#6b7280] hover:bg-white hover:text-[#1f4d3a]"
                 )}
               >
-                {category}
+                {category === "All Products" ? strings.allProducts : formatCategoryLabel(category)}
               </button>
             ))}
           </div>
@@ -240,17 +276,15 @@ export default function ProductCards() {
 
         {filtered.length === 0 ? (
           <div className="mt-9 flex min-h-50 items-center justify-center text-sm text-[#6b7280]">
-            No products found.
+            {strings.noProducts}
           </div>
         ) : (
           <div className="mt-9 grid grid-cols-1 justify-items-center gap-x-6 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
             {filtered.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} />
+              <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} strings={strings} />
             ))}
           </div>
         )}
-
-
       </div>
     </section>
   );

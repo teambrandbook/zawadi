@@ -5,15 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { productCarouselAnimation } from "@/utils/animations";
 import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 import gsap from "gsap";
 
-const products = [
-  { image: "/home/productImg1.webp", text: "Bridging the gap between technology and agriculture to redefine your food experience." },
-  { image: "/home/productImg2.webp", text: "Connecting innovation with agriculture to transform how you experience food." },
-  { image: "/home/productImg3.webp", text: "Transforming agriculture through technology for a more meaningful food connection." },
-];
-
 const ProductSection = () => {
+  const { locale } = useLocale();
   const containerRef = useRef<HTMLDivElement>(null);
   const productTextRef = useRef<HTMLParagraphElement>(null);
   const wheelLockRef = useRef(false);
@@ -24,14 +21,18 @@ const ProductSection = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
+  // Safely grab localized schema pointer strings
+  const sectionData = translations[locale]?.productSection || translations["en"].productSection;
+  const productItems = sectionData.items;
+
   const next = () => {
     if (isAnimating) return;
-    setActiveIndex((prev) => (prev + 1) % products.length);
+    setActiveIndex((prev) => (prev + 1) % productItems.length);
   };
 
   const prev = () => {
     if (isAnimating) return;
-    setActiveIndex((prev) => (prev - 1 + products.length) % products.length);
+    setActiveIndex((prev) => (prev - 1 + productItems.length) % productItems.length);
   };
 
   const handleWheel = (event: React.WheelEvent<HTMLElement>) => {
@@ -130,7 +131,7 @@ const ProductSection = () => {
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full overflow-hidden bg-[#1f4b3f] py-12 lg:py-16"
+      className="relative w-full overflow-hidden bg-[#1f4b3f] py-12 lg:py-16 select-none"
     >
       <div className="pointer-events-none absolute inset-0 opacity-10">
         <Image
@@ -143,46 +144,49 @@ const ProductSection = () => {
 
       <div className="relative z-10 w-full px-6 lg:px-24">
         {/* Header Container for Mobile Positioning */}
-        <div className="relative mb-8 flex items-center justify-between">
-          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-5xl">
-            Our Product
+        <div className="relative mb-8 flex items-center justify-between flex-row rtl:flex-row-reverse">
+          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-5xl text-left rtl:text-right">
+            {sectionData.title}
           </h2>
           
-          <div className="flex items-center gap-2">
-            {/* Mobile Arrows (Top Right) - Hidden on sm and up */}
+          {/* Mobile Arrows: Handled for layout swaps via flex-row-reverse */}
+          <div className="flex items-center gap-2 flex-row rtl:flex-row-reverse">
             <button
               onClick={prev}
+              aria-label="Previous product"
               className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
-              <ArrowLeft className="h-5 w-5 text-[#fdf6ee]" />
+              <ArrowLeft className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
             </button>
             <button
               onClick={next}
+              aria-label="Next product"
               className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
-              <ArrowRight className="h-5 w-5 text-[#fdf6ee]" />
+              <ArrowRight className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
             </button>
           </div>
         </div>
 
         <div className="relative flex h-[280px] items-center justify-center sm:h-[360px] lg:h-[440px]">
-          {/* Desktop/Tablet Arrows - Hidden on mobile */}
+          {/* Desktop/Tablet Arrows: Mirrored cleanly inside layout trees */}
           <button
             onClick={prev}
-            className="group absolute left-0 z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:left-20 lg:h-12 lg:w-12"
+            aria-label="Previous product"
+            className="group absolute left-0 rtl:right-0 rtl:left-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:left-20 lg:rtl:right-20 lg:rtl:left-auto lg:h-12 lg:w-12"
           >
-            <ArrowLeft className="h-5 w-5 text-[#fdf6ee]" />
+            <ArrowLeft className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
           </button>
 
-          {products.map((item, i) => (
+          {productItems.map((item: any, i: number) => (
             <div
               key={i}
-              className={`card absolute h-[180px] w-[160px] overflow-hidden rounded-xl opacity-90 sm:h-[260px] sm:w-[190px] lg:h-[300px] lg:w-[330px]`}
+              className="card absolute h-[180px] w-[160px] overflow-hidden rounded-xl border border-[#fdf6ee]/25 opacity-90 shadow-[0_18px_45px_rgba(0,0,0,0.22)] sm:h-[260px] sm:w-[190px] lg:h-[300px] lg:w-[330px]"
               style={{ left: "50%", transform: "translateX(-50%)" }}
             >
               <Image
                 src={item.image}
-                alt="product"
+                alt="product card visual link structural node"
                 fill
                 className="object-cover object-center"
               />
@@ -191,27 +195,30 @@ const ProductSection = () => {
 
           <button
             onClick={next}
-            className="group absolute right-0 z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:right-20 lg:h-12 lg:w-12"
+            aria-label="Next product"
+            className="group absolute right-0 rtl:left-0 rtl:right-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:right-20 lg:rtl:left-20 lg:rtl:right-auto lg:h-12 lg:w-12"
           >
-            <ArrowRight className="h-5 w-5 text-[#fdf6ee]" />
+            <ArrowRight className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
           </button>
         </div>
 
+        {/* View All Products Trigger Button */}
         <div className="mt-8 flex justify-center sm:mt-10">
           <Link
             href="/products"
             className="inline-flex h-10 items-center gap-2 rounded-full border border-[#fdf6ee]/30 px-4 text-xs font-semibold uppercase tracking-[0.08em] text-[#fdf6ee] transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:h-11 sm:px-5"
           >
-            View Product
-            <ArrowRight className="h-4 w-4" />
+            {sectionData.viewBtn}
+            <ArrowRight className="h-4 w-4 transform rtl:rotate-180" />
           </Link>
         </div>
 
+        {/* Dynamic Contextual Text Strings Output */}
         <p
           ref={productTextRef}
           className="mx-auto mt-6 max-w-[600px] text-center text-sm text-[#fdf6ee]/80"
         >
-          {products[activeIndex].text}
+          {productItems[activeIndex].text}
         </p>
       </div>
     </section>

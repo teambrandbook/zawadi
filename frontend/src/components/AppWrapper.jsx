@@ -78,6 +78,8 @@ export default function AppWrapper({ children }) {
 
 function FloatingScrollbar() {
   const trackRef = useRef(null);
+  const trackHeight = 170;
+  const trackInset = 12;
   const dragStartRef = useRef({
     pointerY: 0,
     thumbTop: 0,
@@ -89,13 +91,12 @@ function FloatingScrollbar() {
   });
 
   useEffect(() => {
-    const trackHeight = 170;
-
     const updateScrollbar = () => {
       const doc = document.documentElement;
       const scrollHeight = doc.scrollHeight;
       const viewportHeight = window.innerHeight;
       const maxScroll = scrollHeight - viewportHeight;
+      const scrollableTrackHeight = trackHeight - trackInset * 2;
 
       if (maxScroll <= 0) {
         setScrollState((current) => ({ ...current, visible: false }));
@@ -104,10 +105,12 @@ function FloatingScrollbar() {
 
       const thumbHeight = Math.max(
         34,
-        Math.round((viewportHeight / scrollHeight) * trackHeight)
+        Math.round((viewportHeight / scrollHeight) * scrollableTrackHeight)
       );
       const progress = window.scrollY / maxScroll;
-      const thumbTop = Math.round((trackHeight - thumbHeight) * progress);
+      const thumbTop = Math.round(
+        trackInset + (scrollableTrackHeight - thumbHeight) * progress
+      );
 
       setScrollState({ visible: true, thumbHeight, thumbTop });
     };
@@ -127,10 +130,18 @@ function FloatingScrollbar() {
   const scrollToThumbPosition = (thumbTop) => {
     const doc = document.documentElement;
     const trackHeight = trackRef.current?.clientHeight || 170;
-    const maxThumbTop = trackHeight - scrollState.thumbHeight;
+    const minThumbTop = trackInset;
+    const maxThumbTop = trackHeight - trackInset - scrollState.thumbHeight;
     const maxScroll = doc.scrollHeight - window.innerHeight;
-    const clampedThumbTop = Math.min(Math.max(thumbTop, 0), maxThumbTop);
-    const progress = maxThumbTop === 0 ? 0 : clampedThumbTop / maxThumbTop;
+    const clampedThumbTop = Math.min(
+      Math.max(thumbTop, minThumbTop),
+      maxThumbTop
+    );
+    const maxScrollableThumbTop = maxThumbTop - minThumbTop;
+    const progress =
+      maxScrollableThumbTop === 0
+        ? 0
+        : (clampedThumbTop - minThumbTop) / maxScrollableThumbTop;
 
     window.scrollTo({
       top: progress * maxScroll,
@@ -176,12 +187,12 @@ function FloatingScrollbar() {
       aria-valuemin={0}
       aria-valuemax={100}
       aria-valuenow={Math.round(
-        (scrollState.thumbTop /
-          Math.max(1, 170 - scrollState.thumbHeight)) *
+        ((scrollState.thumbTop - trackInset) /
+          Math.max(1, trackHeight - trackInset * 2 - scrollState.thumbHeight)) *
           100
       )}
       onPointerDown={handleTrackPointerDown}
-      className="fixed right-6 top-1/2 z-[1200] hidden h-[170px] w-[10px] -translate-y-1/2 cursor-pointer rounded-full bg-[#E9E4D8]/90 shadow-[0_8px_22px_rgba(15,47,34,0.14)] md:block"
+      className="fixed right-6 top-1/2 z-[1200] hidden h-[170px] w-[10px] -translate-y-1/2 cursor-pointer overflow-hidden rounded-full bg-[#E9E4D8]/90 shadow-[0_8px_22px_rgba(15,47,34,0.14)] md:block"
     >
       <div
         onPointerDown={handleThumbPointerDown}

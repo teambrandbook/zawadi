@@ -9,6 +9,8 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ContentSection from "../common/ContentSection";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const fallbackBlogImage = "/blogs/blog-1.webp";
 
@@ -40,29 +42,31 @@ function mediaUrl(value?: string | null) {
   return getImageUrl(value);
 }
 
-function formatDate(value?: string) {
-  if (!value) return "October 19, 2022";
-  return new Date(value).toLocaleDateString("en-US", {
+function formatDate(value: string | undefined, locale: string, fallbackDate: string) {
+  if (!value) return fallbackDate;
+  return new Date(value).toLocaleDateString(locale === "ar" ? "ar" : "en-US", {
     month: "long",
     day: "numeric",
     year: "numeric",
   });
 }
 
-function mapBackendBlog(blog: BackendBlog): BlogPost {
+function mapBackendBlog(blog: BackendBlog, locale: string, fallbackDate: string): BlogPost {
   const slug = blog.slug || String(blog.id);
   return {
     title: blog.title,
     description: blog.short_excerpt || "",
     image: mediaUrl(blog.cover_image),
     href: `/blogs/${slug}`,
-    date: formatDate(blog.created_at),
+    date: formatDate(blog.created_at, locale, fallbackDate),
     likes: typeof blog.total_likes === "number" ? blog.total_likes : 0,
     views: typeof blog.views === "number" ? blog.views : 0,
   };
 }
 
 export default function Blogs() {
+  const { locale } = useLocale();
+  const blogsText = translations[locale]?.blogsPage || translations.en.blogsPage;
   const containerRef = useRef<HTMLDivElement>(null);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -179,14 +183,14 @@ export default function Blogs() {
       .then(({ data }) => {
         const raw = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
         if (mounted) {
-          setPosts(raw.map(mapBackendBlog));
+          setPosts(raw.map((blog: BackendBlog) => mapBackendBlog(blog, locale, blogsText.labels.fallbackDate)));
           setStatusMessage("");
         }
       })
       .catch(() => {
         if (mounted) {
           setPosts([]);
-          setStatusMessage("Unable to load blogs right now.");
+          setStatusMessage(blogsText.labels.loadError);
         }
       })
       .finally(() => {
@@ -196,11 +200,11 @@ export default function Blogs() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [blogsText.labels.fallbackDate, blogsText.labels.loadError, locale]);
 
   return (
     <div ref={containerRef} className="bg-[#fffef5]">
-      <ContentSection title="Blogs" subtitle="Zewadi Blogs" />
+      <ContentSection title={blogsText.hero.title} subtitle={blogsText.hero.subtitle} />
 
       <section className="pb-20 pt-10 sm:pb-24 sm:pt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-24 2xl:px-48">
@@ -221,22 +225,22 @@ export default function Blogs() {
               )}
 
               {!isLoading && statusMessage ? (
-                <div className="rounded-[20px] border border-[#E7EBE7] bg-[#F8FBF8] px-6 py-5 text-sm font-medium text-[#727272]">
+                <div className="rounded-[20px] border border-[#E7EBE7] bg-[#F8FBF8] px-6 py-5 text-left text-sm font-medium text-[#727272] rtl:text-right">
                   {statusMessage}
                 </div>
               ) : null}
 
               {!isLoading && !statusMessage && filteredPosts.length === 0 ? (
                 <div className="rounded-[20px] border border-dashed border-[#E7EBE7] bg-[#F8FBF8] px-6 py-16 text-center">
-                  <h2 className="text-xl font-bold text-[#1a4331]">No blogs available</h2>
+                  <h2 className="text-xl font-bold text-[#1a4331]">{blogsText.labels.emptyTitle}</h2>
                   <p className="mt-2 text-sm text-[#727272]">
-                    Blogs added from the backend will appear here.
+                    {blogsText.labels.emptyDescription}
                   </p>
                 </div>
               ) : null}
 
               {!isLoading && filteredPosts.map((post, index) => (
-                <article key={post.title} className="blog-article max-w-[850px]">
+                <article key={post.title} className="blog-article max-w-[850px] text-left rtl:text-right">
                   <div className="blog-main-image relative overflow-hidden rounded-[20px] h-[220px] sm:h-[300px] lg:h-[400px] xl:h-[480px]">
                     <Image
                       src={post.image}
@@ -265,8 +269,8 @@ export default function Blogs() {
                     href={post.href}
                     className="blog-animate-text mt-8 inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3 text-sm font-bold text-white transition-transform duration-300 hover:-translate-y-0.5"
                   >
-                    Learn More
-                    <ArrowRight size={16} />
+                    {blogsText.labels.learnMore}
+                    <ArrowRight size={16} className="rtl:rotate-180" />
                   </Link>
                 </article>
               ))}
@@ -288,19 +292,19 @@ export default function Blogs() {
                 ))}
                 <button
                   type="button"
-                  aria-label="Next page"
+                  aria-label={blogsText.labels.nextPage}
                   className="flex h-[52px] w-[52px] items-center justify-center rounded-[5px] border border-[#e3dbd8] text-[#1f4d3a] transition-colors hover:border-[#1f4d3a]"
                 >
-                  <ChevronRight size={22} />
+                  <ChevronRight size={22} className="rtl:rotate-180" />
                 </button>
               </div>
               )}
             </div>
 
             <aside className="sticky h-fit space-y-10 self-start" style={{ top: 'min(128px, calc(100vh - 100% - 24px))' }}>
-              <div className="rounded-[24px] bg-white p-8 shadow-[0_4px_40px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+              <div className="rounded-[24px] bg-white p-8 text-left shadow-[0_4px_40px_rgba(0,0,0,0.03)] border border-black/[0.03] rtl:text-right">
                 <h3 className="text-[1.3rem] font-bold leading-tight text-[#1a4331]">
-                  Search Here
+                  {blogsText.labels.searchTitle}
                 </h3>
                 <div className="mt-4 h-px w-full bg-[#e3dbd8]" />
                 <label className="mt-6 flex items-center rounded-full border border-[#e3dbd8] bg-[#fcfdfc] px-5 py-3 text-[#727272]">
@@ -308,22 +312,22 @@ export default function Blogs() {
                     type="text"
                     value={searchTerm}
                     onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Search.."
-                    className="w-full border-0 bg-transparent text-sm outline-none placeholder:text-[#b4b4b4]"
+                    placeholder={blogsText.labels.searchPlaceholder}
+                    className="w-full border-0 bg-transparent text-sm outline-none placeholder:text-[#b4b4b4] rtl:text-right"
                   />
                   <Search size={18} className="text-[#1a4331]" />
                 </label>
               </div>
 
-              <div className="rounded-[24px] bg-white p-8 shadow-[0_4px_40px_rgba(0,0,0,0.03)] border border-black/[0.03]">
+              <div className="rounded-[24px] bg-white p-8 text-left shadow-[0_4px_40px_rgba(0,0,0,0.03)] border border-black/[0.03] rtl:text-right">
                 <h3 className="text-[1.3rem] font-bold leading-tight text-[#1a4331]">
-                  Popular Post
+                  {blogsText.labels.popularTitle}
                 </h3>
                 <div className="mt-4 h-px w-full bg-[#e3dbd8]" />
 
                 <div className="mt-6 space-y-6">
                   {popularPosts.length === 0 ? (
-                    <p className="text-sm leading-6 text-[#727272]">No popular posts yet.</p>
+                    <p className="text-sm leading-6 text-[#727272]">{blogsText.labels.noPopular}</p>
                   ) : popularPosts.map((post) => (
                     <Link
                       key={post.title}

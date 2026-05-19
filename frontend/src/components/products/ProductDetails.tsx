@@ -12,6 +12,8 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { setCartCount } from "@/redux/userSlice";
+import PackSelector from "@/components/communityUsers/myorder/orderDetails/PackSelector";
+import type { PackOption } from "@/components/communityUsers/myorder/orderDetails/types";
 import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
 type ProductVariant = {
@@ -67,6 +69,27 @@ function toCurrency(value: string | number | null | undefined, currency = "INR")
   }).format(toNumber(value));
 }
 
+function toPacks(product: Product | null): PackOption[] {
+  if (!product) return [];
+
+  const price = product.selling_price ?? product.sale_price ?? product.base_price;
+  const productUnit = [product.unit_quantity, product.product_unit]
+    .filter(Boolean)
+    .join(" ");
+
+  return [
+    {
+      id: `product-${product.id}-default`,
+      name: productUnit || "Standard Pack",
+      price: toNumber(price),
+      unitNote:
+        product.mrp_price && toNumber(product.mrp_price) > toNumber(price)
+          ? `MRP ${toCurrency(product.mrp_price, product.currency || "INR")}`
+          : "Single SKU",
+    },
+  ];
+}
+
 function stockMessage(product: Product): { text: string; className: string } {
   if (product.stock_status === "out_of_stock" || product.stock_quantity <= 0) {
     return { text: "Out of stock", className: "text-red-600" };
@@ -87,6 +110,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
+  const [selectedPackId, setSelectedPackId] = useState("");
   const [mounted, setMounted] = useState(false);
 
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -105,6 +129,7 @@ const ProductDetails = () => {
       .get(`/products/${productId}/`)
       .then((res) => {
         setProduct(res.data);
+        setSelectedPackId(`product-${res.data.id}-default`);
       })
       .catch(() => {
         toast.error("Could not load product.");
@@ -204,6 +229,7 @@ const ProductDetails = () => {
     new Set([productImageUrl(product.image), ...(product.alternative_images ?? []).map(productImageUrl)])
   );
   const activeImage = selectedImage || productImageUrl(product.image);
+  const packs = toPacks(product);
 
   return (
     <section ref={sectionRef} className="py-20 lg:py-32">
@@ -298,7 +324,20 @@ const ProductDetails = () => {
               </div>
             )}
 
-            <div className="product-info-stagger flex flex-wrap items-center gap-6 pt-4 opacity-0">
+            {/* Pack selector */}
+            {packs.length > 0 && (
+              <div className="product-info-stagger opacity-0">
+                <PackSelector
+                  packs={packs}
+                  selectedPackId={selectedPackId || packs[0].id}
+                  onSelectPack={setSelectedPackId}
+                  currency={product.currency || "INR"}
+                  locale="en-IN"
+                />
+              </div>
+            )}
+
+            <div className="product-info-stagger grid grid-cols-[auto_1fr] items-center gap-3 pt-4 opacity-0 sm:flex sm:flex-wrap sm:gap-6">
               {/* Quantity Selector */}
               <div className="flex w-fit items-center overflow-hidden rounded-lg border border-gray-200">
                 <button
@@ -323,7 +362,7 @@ const ProductDetails = () => {
                 type="button"
                 onClick={handleAddToCart}
                 disabled={product.stock_quantity <= 0 || product.stock_status === "out_of_stock"}
-                className="col-span-2 row-start-2 flex w-full items-center justify-center rounded-lg bg-[#1A4331] px-8 py-3.5 text-center font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98] sm:col-span-1 sm:row-auto sm:w-auto sm:flex-1 sm:px-10"
+                className="col-span-2 row-start-2 flex w-full items-center justify-center rounded-lg bg-[#1A4331] px-8 py-3.5 text-center font-bold text-white shadow-lg transition-all hover:bg-[#1A4331]/90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1 sm:row-auto sm:w-auto sm:flex-1 sm:px-10"
               >
                 {product.stock_quantity <= 0 || product.stock_status === "out_of_stock" ? "Out of Stock" : "Add To Cart"}
               </button>

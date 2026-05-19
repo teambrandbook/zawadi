@@ -11,6 +11,8 @@ import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const ALL_CATEGORY = "SHOW ALL";
 const DEFAULT_CATEGORY = ALL_CATEGORY;
@@ -21,6 +23,9 @@ type BackendRecipe = {
   title: string;
   category?: string;
   cover_image?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  thumbnail?: string | null;
   short_description?: string;
   video_url?: string | null;
 };
@@ -56,7 +61,7 @@ function mapBackendRecipe(recipe: BackendRecipe): Recipe {
     slug: recipe.slug || String(recipe.id),
     title: recipe.title,
     description: recipe.short_description || "",
-    image: mediaUrl(recipe.cover_image),
+    image: mediaUrl(recipe.cover_image ?? recipe.image ?? recipe.image_url ?? recipe.thumbnail),
     categories: [category],
     benefits: [],
     videoUrl: recipe.video_url ?? null,
@@ -84,6 +89,8 @@ function favoriteListFromResponse(data: FavoriteRecipesResponse): FavoriteRecipe
 }
 
 export default function RecipeList({ recipes: initialRecipes }: { recipes: Recipe[] }) {
+  const { locale } = useLocale();
+  const recipeText = translations[locale]?.recipesPage?.list || translations.en.recipesPage.list;
   const router = useRouter();
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
   const [recipes, setRecipes] = useState(initialRecipes);
@@ -189,37 +196,38 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
     try {
       if (nextValue) {
         await api.post(`/recipes/${recipeId}/favorite/`);
-        toast.success("Recipe saved to favorites.");
+        toast.success(recipeText.saved);
       } else {
         await api.delete(`/recipes/${recipeId}/favorite/`);
-        toast.success("Recipe removed from favorites.");
+        toast.success(recipeText.removed);
       }
     } catch {
       setFavorites((prev) => ({
         ...prev,
         [recipeId]: !nextValue,
       }));
-      toast.error("Could not update favorite. Please try again.");
+      toast.error(recipeText.favoriteError);
     } finally {
       setFavoritePending((prev) => ({ ...prev, [recipeId]: false }));
     }
   };
 
   return (
-    <section className="bg-[#fffef5] pb-24 pt-16 sm:px-6 md:pb-32 md:pt-20 lg:px-23">
+    <section className="bg-[#fffef5] pb-10 pt-16 sm:px-6 md:pb-14 md:pt-20 lg:px-23">
       <div className="mx-auto max-w-[1920px]">
         <RecipeFilter
           categories={categories}
           activeCategory={activeCategory}
           onChange={setActiveCategory}
+          labels={recipeText.categories}
         />
 
         {isLoading ? (
-          <p className="mt-16 text-center text-sm text-[#6B7280]">Loading recipes...</p>
+          <p className="mt-16 text-center text-sm text-[#6B7280]">{recipeText.loading}</p>
         ) : filteredRecipes.length === 0 ? (
-          <p className="mt-16 text-center text-sm text-[#6B7280]">No published recipes found.</p>
+          <p className="mt-16 text-center text-sm text-[#6B7280]">{recipeText.empty}</p>
         ) : (
-          <div className="mt-16 space-y-20 md:mt-20 md:space-y-28 lg:space-y-[96px]">
+          <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12 md:mt-14 md:space-y-14 lg:mt-16 ">
             {filteredRecipes.map((recipe, index: number) => (
               <RecipeCard
                 key={recipe.id}
@@ -227,6 +235,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
                 isFavorite={!!favorites[recipe.id]}
                 toggleFavorite={() => handleToggleFavorite(recipe.id)}
                 reverse={index % 2 === 1}
+                labels={recipeText}
               />
             ))}
           </div>

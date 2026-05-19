@@ -5,6 +5,8 @@ import Image from "next/image";
 import communityData from "@/data/community.json";
 import { cn } from "@/lib/utils";
 import gsap from "@/lib/gsap";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 type GridItem = {
   type: string;
@@ -25,8 +27,10 @@ const itemOrders: Record<number, string> = {
 
 
 const CommunityGrid = () => {
+  const { locale } = useLocale();
   const sectionRef = useRef<HTMLDivElement>(null);
   const { gridSection } = communityData;
+  const localizedGridSection = translations[locale]?.communityPage?.gridSection || translations.en.communityPage.gridSection;
 
   useEffect(() => {
     if (!gridSection || !gridSection.items) return;
@@ -69,6 +73,7 @@ const CommunityGrid = () => {
       <div className="container mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {gridSection.items.map((item: GridItem, index: number) => {
+            const localizedItem = localizedGridSection.items[index] || {};
 
             return (
               <div
@@ -90,10 +95,10 @@ const CommunityGrid = () => {
                 ) : (
                   <div className="w-full h-full bg-[#1a4331] flex flex-col items-center justify-center p-8 md:p-12 text-center text-white">
                     <h3 className="text-2xl md:text-3xl lg:text-[2.5rem] font-playfair font-medium mb-4 leading-tight">
-                      {item.title}
+                      {localizedItem.title || item.title}
                     </h3>
                     <p className="text-sm md:text-base text-white/80 leading-relaxed font-inter max-w-[280px]">
-                      {item.description}
+                      {localizedItem.description || item.description}
                     </p>
                   </div>
                 )}
@@ -102,10 +107,10 @@ const CommunityGrid = () => {
           })}
         </div>
 
-        {gridSection.footerText && (
+        {localizedGridSection.footerText && (
           <div className="footer-text mt-12 max-w-6xl mx-auto px-6 border-t border-gray-100/10 pt-10">
-            <p className="text-lg md:text-xl text-black/80 font-inter leading-relaxed max-w-4xl">
-              {gridSection.footerText}
+            <p className="text-lg md:text-xl text-black/80 font-inter leading-relaxed max-w-4xl text-left rtl:text-right">
+              {localizedGridSection.footerText}
             </p>
           </div>
         )}
