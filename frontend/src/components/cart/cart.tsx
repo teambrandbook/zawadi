@@ -4,8 +4,19 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Heart, Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { setCartCount } from "@/redux/userSlice";
 import api from "@/services/api";
 import { toast } from "sonner";
+import {
+  getGuestCart,
+  updateGuestCartQty,
+  removeFromGuestCart,
+  getGuestCartCount,
+  type GuestCartItem,
+} from "@/lib/guestCart";
+import CheckoutAuthModal from "@/components/shared/CheckoutAuthModal";
 
 type CartItem = {
   id: number;
@@ -154,11 +165,13 @@ function OrderSummary({
   shipping,
   tax,
   total,
+  onProceed,
 }: {
   subtotal: string;
   shipping: string;
   tax: string;
   total: string;
+  onProceed?: () => void;
 }) {
   return (
     <aside className="h-fit rounded-[20px] border border-[#f3f4f6] bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">
@@ -186,13 +199,24 @@ function OrderSummary({
         <span className="text-[28px] font-bold leading-9 text-[#1f4d3a]">{money.format(parseFloat(total))}</span>
       </div>
 
-      <Link
-        href="/payment"
-        className="mt-7 flex h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-6 text-sm font-bold text-white shadow-[0_8px_15px_rgba(0,0,0,0.12)] transition hover:bg-[#1a4331] active:scale-[0.99]"
-      >
-        Proceed to Payment
-        <ArrowRight size={17} />
-      </Link>
+      {onProceed ? (
+        <button
+          type="button"
+          onClick={onProceed}
+          className="mt-7 flex h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-6 text-sm font-bold text-white shadow-[0_8px_15px_rgba(0,0,0,0.12)] transition hover:bg-[#1a4331] active:scale-[0.99]"
+        >
+          Proceed to Payment
+          <ArrowRight size={17} />
+        </button>
+      ) : (
+        <Link
+          href="/payment"
+          className="mt-7 flex h-[58px] w-full items-center justify-center gap-2 rounded-xl bg-[#1f4d3a] px-6 text-sm font-bold text-white shadow-[0_8px_15px_rgba(0,0,0,0.12)] transition hover:bg-[#1a4331] active:scale-[0.99]"
+        >
+          Proceed to Payment
+          <ArrowRight size={17} />
+        </Link>
+      )}
 
       <p className="mt-6 text-center text-[10px] font-bold uppercase text-[#9ca3af]">
         Secure Checkout · COD Available
@@ -256,11 +280,30 @@ function SuggestedCard({
 }
 
 export default function Cart() {
+  const dispatch = useDispatch<AppDispatch>();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
   const [items, setItems] = useState<CartItem[]>([]);
   const [summary, setSummary] = useState<CartSummary | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<SuggestedProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authError, setAuthError] = useState(false);
+  const [guestItems, setGuestItems] = useState<GuestCartItem[]>([]);
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+
+  function guestToCartItem(g: GuestCartItem, index: number): CartItem {
+    return {
+      id: -(index + 1),
+      product_id: g.productId,
+      product_name: g.productName,
+      product_subtitle: g.productSubtitle,
+      category: "",
+      image: g.image ?? "",
+      unit_price: String(g.unitPrice),
+      line_total: String(g.unitPrice * g.quantity),
+      quantity: g.quantity,
+      stock_quantity: 999,
+      currency: g.currency,
+    };
+  }
 
   function updateCartState(data: { items?: CartItem[]; summary?: CartSummary | null }) {
     setItems(data.items ?? []);
@@ -298,21 +341,21 @@ export default function Cart() {
       const nextItems = res.data.items ?? [];
       updateCartState(res.data);
       await fetchRelatedProducts(nextItems);
-    } catch (err: unknown) {
-      const status = (err as { response?: { status?: number } }).response?.status;
-      if (status === 401 || status === 403) {
-        setAuthError(true);
-      } else {
-        toast.error("Could not load cart.");
-      }
+    } catch {
+      toast.error("Could not load cart.");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (isAuthenticated) {
+      fetchCart();
+    } else {
+      setGuestItems(getGuestCart());
+      setLoading(false);
+    }
+  }, [isAuthenticated]);
 
   async function handleQuantityChange(itemId: number, newQty: number) {
     if (newQty < 1) return;
@@ -350,6 +393,20 @@ export default function Cart() {
     }
   }
 
+  function handleGuestQuantityChange(productId: number, variantId: number | undefined, newQty: number) {
+    if (newQty < 1) return;
+    updateGuestCartQty(productId, variantId, newQty);
+    setGuestItems(getGuestCart());
+    dispatch(setCartCount(getGuestCartCount()));
+  }
+
+  function handleGuestRemove(productId: number, variantId?: number) {
+    removeFromGuestCart(productId, variantId);
+    setGuestItems(getGuestCart());
+    dispatch(setCartCount(getGuestCartCount()));
+    toast.success("Item removed.");
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
@@ -358,20 +415,75 @@ export default function Cart() {
     );
   }
 
-  if (authError) {
+  if (!isAuthenticated) {
+    const guestSubtotal = guestItems.reduce(
+      (sum, item) => sum + item.unitPrice * item.quantity,
+      0
+    );
+
+    if (guestItems.length === 0) {
+      return (
+        <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
+          <p className="text-lg font-semibold text-[#0A4833]">Your cart is empty</p>
+          <Link href="/products" className="rounded-lg bg-[#0A4833] px-6 py-2 text-sm text-white">
+            Shop Now
+          </Link>
+        </div>
+      );
+    }
+
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg font-semibold text-[#0A4833]">Please log in to view your cart</p>
-        <Link
-          href="/login?next=/cart"
-          className="rounded-lg bg-[#0A4833] px-6 py-2 text-sm text-white"
-        >
-          Log In
-        </Link>
-        <Link href="/products" className="text-sm text-[#6b7280] underline">
-          Continue Shopping
-        </Link>
-      </div>
+      <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_350px] xl:gap-10">
+            <section>
+              <div className="mb-7 flex items-center justify-between gap-4">
+                <h1 className="text-3xl font-bold leading-9 text-[#1f4d3a]">Your Cart</h1>
+                <p className="text-base font-medium leading-6 text-[#6b7280]">
+                  {guestItems.length} items
+                </p>
+              </div>
+              <div className="space-y-4">
+                {guestItems.map((gItem, idx) => (
+                  <CartRow
+                    key={`${gItem.productId}-${gItem.variantId ?? "none"}`}
+                    item={guestToCartItem(gItem, idx)}
+                    onDecrease={() =>
+                      handleGuestQuantityChange(gItem.productId, gItem.variantId, gItem.quantity - 1)
+                    }
+                    onIncrease={() =>
+                      handleGuestQuantityChange(gItem.productId, gItem.variantId, gItem.quantity + 1)
+                    }
+                    onRemove={() => handleGuestRemove(gItem.productId, gItem.variantId)}
+                  />
+                ))}
+              </div>
+              <Link
+                href="/products"
+                className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-[#1f4d3a] transition hover:text-brand-green"
+              >
+                <ArrowLeft size={16} />
+                Continue Shopping
+              </Link>
+            </section>
+
+            <div className="lg:mt-16">
+              <OrderSummary
+                subtotal={String(guestSubtotal)}
+                shipping="0"
+                tax="0"
+                total={String(guestSubtotal)}
+                onProceed={() => setCheckoutModalOpen(true)}
+              />
+            </div>
+          </div>
+        </div>
+
+        <CheckoutAuthModal
+          isOpen={checkoutModalOpen}
+          onClose={() => setCheckoutModalOpen(false)}
+        />
+      </main>
     );
   }
 

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import { FaBagShopping } from "react-icons/fa6";
 import { cn, getImageUrl } from "@/lib/utils";
@@ -11,7 +12,7 @@ import { toast } from "sonner";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
-import AddToCartModal from "@/components/shared/AddToCartModal";
+import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 
@@ -66,24 +67,46 @@ function isNewProduct(createdAt?: string): boolean {
   return createdDate.getTime() >= thirtyDaysAgo;
 }
 
+function formatCategoryLabel(category: string): string {
+  return category
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
 function ProductCard({
   product,
   onAddToCart,
   strings,
 }: {
   product: Product;
-  onAddToCart: (id: number) => void;
+  onAddToCart: (product: Product) => void;
   strings: ProductCardStrings;
 }) {
+  const router = useRouter();
+  const detailHref = `/products/details?id=${product.id}`;
   const price = product.selling_price ?? product.sale_price ?? product.base_price;
   const mrp = Number(product.mrp_price ?? 0);
   const selling = Number(price);
   const discounted = mrp > selling;
   const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
-  const badgeText = isNewProduct(product.created_at) ? strings.newBadge : product.category;
+  const badgeText = isNewProduct(product.created_at) ? strings.newBadge : formatCategoryLabel(product.category);
+
   return (
-    <article className="group flex w-full flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] sm:p-6">
+    <article
+      role="link"
+      tabIndex={0}
+      onClick={() => router.push(detailHref)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          router.push(detailHref);
+        }
+      }}
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-6"
+    >
       <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
         <Image
           src={productImageUrl(product.image)}
@@ -104,12 +127,12 @@ function ProductCard({
             {product.product_name}
           </h2>
           <p className="whitespace-nowrap text-[20px] font-bold text-[#1a1a1a] sm:text-[22px]">
-            ₹{price}
+            &#8377;{price}
           </p>
         </div>
         {discounted ? (
           <div className="mt-1 flex items-center gap-2">
-            <span className="text-sm text-[#9ca3af] line-through">₹{product.mrp_price}</span>
+            <span className="text-sm text-[#9ca3af] line-through">&#8377;{product.mrp_price}</span>
             <span className="text-xs font-bold text-[#15803D]">
               {Number(product.discount_percent ?? 0).toFixed(0)}% {strings.off}
             </span>
@@ -130,7 +153,10 @@ function ProductCard({
         <div className="mt-auto flex gap-2 pt-6">
           <button
             type="button"
-            onClick={() => onAddToCart(product.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onAddToCart(product);
+            }}
             disabled={outOfStock}
             className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[16px]"
           >
@@ -138,7 +164,8 @@ function ProductCard({
             {outOfStock ? strings.outOfStockButton : strings.addToCart}
           </button>
           <Link
-            href={`/products/details?id=${product.id}`}
+            href={detailHref}
+            onClick={(event) => event.stopPropagation()}
             className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-5 py-3.5 text-sm font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white"
           >
             {strings.view}
@@ -158,8 +185,6 @@ export default function ProductCards() {
   const [categories, setCategories] = useState<string[]>(["All Products"]);
   const [activeCategory, setActiveCategory] = useState("All Products");
   const [loading, setLoading] = useState(true);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [pendingProductId, setPendingProductId] = useState<number | null>(null);
 
   useEffect(() => {
     api
@@ -174,14 +199,27 @@ export default function ProductCards() {
       .finally(() => setLoading(false));
   }, [strings.loadError]);
 
-  async function handleAddToCart(productId: number) {
+  async function handleAddToCart(product: Product) {
     if (!isAuthenticated) {
-      setPendingProductId(productId);
-      setModalOpen(true);
+      const unitPrice = Number(
+        product.selling_price ?? product.sale_price ?? product.base_price ?? 0
+      );
+      addToGuestCart({
+        productId: product.id,
+        quantity: 1,
+        productName: product.product_name,
+        productSubtitle: product.product_subtitle,
+        image: product.image,
+        unitPrice,
+        currency: "INR",
+      });
+      dispatch(setCartCount(getGuestCartCount()));
+      toast.success(strings.addSuccess);
       return;
     }
+
     try {
-      const res = await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
+      const res = await api.post("/orders/cart/items/", { product_id: product.id, quantity: 1 });
       toast.success(strings.addSuccess);
       dispatch(setCartCount(res.data.summary?.item_count ?? 0));
     } catch {
@@ -221,7 +259,7 @@ export default function ProductCards() {
                     : "text-[#6b7280] hover:bg-white hover:text-[#1f4d3a]"
                 )}
               >
-                {category === "All Products" ? strings.allProducts : category}
+                {category === "All Products" ? strings.allProducts : formatCategoryLabel(category)}
               </button>
             ))}
           </div>
@@ -237,16 +275,6 @@ export default function ProductCards() {
               <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} strings={strings} />
             ))}
           </div>
-        )}
-
-        {modalOpen && pendingProductId !== null && (
-          <AddToCartModal
-            isOpen={modalOpen}
-            productId={pendingProductId}
-            quantity={1}
-            onClose={() => { setModalOpen(false); setPendingProductId(null); }}
-            onSuccess={() => { setModalOpen(false); setPendingProductId(null); }}
-          />
         )}
       </div>
     </section>

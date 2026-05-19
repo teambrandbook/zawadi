@@ -5,7 +5,7 @@ import { store } from "@/redux/store";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import api, { getAccessToken } from "@/services/api";
-import { setCredentials, fetchCartCount } from "@/redux/userSlice";
+import { setCredentials, fetchCartCount, drainGuestCart } from "@/redux/userSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 
@@ -35,7 +35,9 @@ function AuthRehydrator() {
             userType: (data.user_type as "guest" | "member") ?? null,
           })
         );
-        dispatch(fetchCartCount());
+        dispatch(drainGuestCart()).then(() => {
+          dispatch(fetchCartCount());
+        });
       })
       .catch(() => {
         // Cookie expired or invalid — stay logged out, no action needed
