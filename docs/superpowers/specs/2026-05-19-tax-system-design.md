@@ -1,4 +1,4 @@
-# Tax System Design — Zawadi GCC E-Commerce
+# Tax & Currency System Design — Zawadi GCC E-Commerce
 
 **Date:** 2026-05-19  
 **Status:** Approved  
@@ -8,29 +8,36 @@
 
 ## Context
 
-Zawadi currently applies a hardcoded 8% flat tax rate (`TAX_RATE = Decimal("0.08")`) in `backend/zewadi/orders/views.py:24`. This is wrong for production — Saudi Arabia (primary market) charges 15% VAT, and the platform is expanding to UAE (5%), Bahrain (10%), and Oman (5%). The system needs to be configurable by admin without code deployments, support per-product tax categories, and comply with Saudi ZATCA invoice requirements.
+Two problems in the current codebase:
+
+**Tax:** A hardcoded `TAX_RATE = Decimal("0.08")` (8%) in `orders/views.py:24`. Saudi Arabia charges 15% VAT; UAE 5%, Bahrain 10%, Oman 5%. The single hardcoded rate is wrong for production and not admin-configurable.
+
+**Currency:** A `currency = CharField(choices=[USD, INR, AED])` on `Product` (`product/models.py:83`) that defaults to USD. SAR is not even in the choices list. The field has no connection to checkout logic — it stores a label but does nothing. This is a dead-end design.
 
 ---
 
 ## Goals
 
-- Replace hardcoded tax rate with admin-configurable, database-backed rates
-- Support per-product tax categories (Standard Rate, Zero-Rated, Exempt)
-- Apply the correct rate based on the order's delivery country (ISO 3166-1 alpha-2)
-- Display prices tax-inclusive on the frontend (GCC legal requirement and industry standard)
+- Replace hardcoded tax rate with admin-configurable, database-backed rates per country + product category
+- Apply the correct VAT rate based on the order's delivery country
+- Display prices tax-inclusive on the frontend (GCC legal requirement; Amazon.sa / Noon standard)
 - Show VAT as a clearly labelled line item at cart and checkout
-- Snapshot the tax rate and country on every order for audit/accounting
+- Replace the broken per-product `currency` field with a proper `ProductCountryPrice` model
+- Show customers prices in their local currency (SAR, AED, BHD, OMR)
+- Snapshot tax rate, country, charged currency, and charged amount on every Order for accounting and gateway-readiness
 - Display ZATCA-required fields (seller TRN) on order confirmation
-- Design for future global expansion (nullable `region` field for US/India)
+- Design for payment gateway integration without schema changes
 
 ---
 
 ## Out of Scope
 
 - Full ZATCA Fatoorah XML e-invoicing integration (separate phase)
+- Live exchange rate API (commercial prices set per country, not converted)
 - US state/county-level tax jurisdiction (hook exists via nullable `region` field)
 - India GST (CGST/SGST/IGST) split — hook exists, not implemented
 - Tax-exempt customers (e.g., resellers, charities)
+- Payment gateway implementation (this spec lays the data hooks; gateway is next phase)
 
 ---
 
@@ -38,51 +45,114 @@ Zawadi currently applies a hardcoded 8% flat tax rate (`TAX_RATE = Decimal("0.08
 
 ### New: `tax` Django App
 
+This app owns all country-level configuration: tax rates, currencies, and the country→currency mapping.
+
+---
+
+#### `Currency`
+Master list of currencies Zawadi operates in.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `code` | CharField(3, unique) | ISO 4217: "SAR", "AED", "BHD", "OMR" |
+| `name` | CharField(100) | e.g. "Saudi Riyal" |
+| `symbol` | CharField(10) | e.g. "SAR" — ISO code used as symbol for English UI |
+| `decimal_places` | PositiveSmallIntegerField | SAR/AED/OMR = 2, BHD = 3 |
+| `is_active` | BooleanField(default=True) | |
+
+**Initial seed data:**
+| code | name | symbol | decimal_places |
+|------|------|--------|----------------|
+| SAR | Saudi Riyal | SAR | 2 |
+| AED | UAE Dirham | AED | 2 |
+| BHD | Bahraini Dinar | BHD | 3 |
+| OMR | Omani Rial | OMR | 3 |
+
+Note: BHD and OMR use 3 decimal places — this must be respected in all price formatting and storage.
+
+---
+
+#### `CountryConfig`
+Maps each market country to its operating currency. Single source of truth for "what currency does SA use?"
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `country` | CharField(2, unique) | ISO 3166-1 alpha-2: "SA", "AE", "BH", "OM" |
+| `name` | CharField(100) | e.g. "Saudi Arabia" |
+| `currency` | ForeignKey(Currency) | |
+| `is_active` | BooleanField(default=True) | |
+
+**Initial seed data:**
+| country | name | currency |
+|---------|------|----------|
+| SA | Saudi Arabia | SAR |
+| AE | United Arab Emirates | AED |
+| BH | Bahrain | BHD |
+| OM | Oman | OMR |
+
+---
+
 #### `TaxCategory`
 Classifies products for tax purposes.
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | AutoField | |
 | `name` | CharField(100) | e.g. "Standard Rate", "Zero-Rated", "Exempt" |
 | `code` | SlugField(20, unique) | e.g. "STANDARD", "ZERO", "EXEMPT" |
-| `description` | TextField(blank) | Optional explanation |
+| `description` | TextField(blank) | |
 | `is_active` | BooleanField(default=True) | |
 
-**Initial seed data:**
-- Standard Rate / STANDARD
-- Zero-Rated / ZERO
-- Exempt / EXEMPT
+**Initial seed data:** Standard Rate / STANDARD, Zero-Rated / ZERO, Exempt / EXEMPT
+
+---
 
 #### `TaxRate`
 Maps a country + category to a percentage, with history support.
 
 | Field | Type | Notes |
 |-------|------|-------|
-| `id` | AutoField | |
-| `country` | CharField(2) | ISO 3166-1 alpha-2: "SA", "AE", "BH", "OM" |
-| `region` | CharField(10, null, blank) | Future: US state, India state. Null for all current markets |
+| `country` | CharField(2) | ISO 3166-1 alpha-2 |
+| `region` | CharField(10, null, blank) | Future: US state, India state. Null for all GCC |
 | `tax_category` | ForeignKey(TaxCategory) | |
 | `rate` | DecimalField(5,4) | e.g. 0.1500 for 15% |
 | `name` | CharField(100) | e.g. "Saudi VAT Standard Rate 15%" |
-| `effective_from` | DateField | Rate valid from this date |
-| `is_active` | BooleanField(default=True) | Only one active row per country+category at a time |
+| `effective_from` | DateField | Rate is valid from this date |
+| `is_active` | BooleanField(default=True) | Set old row False, add new row for rate changes |
 | `created_at` | DateTimeField(auto_now_add) | |
 
-**Unique constraint:** `(country, region, tax_category, is_active)` where `is_active=True` — enforced via `UniqueConstraint` with condition.
+**Unique constraint:** `(country, region, tax_category)` where `is_active=True`.
 
 **Initial seed data:**
-| country | tax_category | rate | name | effective_from |
-|---------|-------------|------|------|----------------|
-| SA | STANDARD | 0.1500 | Saudi VAT Standard Rate | 2020-07-01 |
-| SA | ZERO | 0.0000 | Saudi VAT Zero-Rated | 2020-07-01 |
-| SA | EXEMPT | 0.0000 | Saudi VAT Exempt | 2020-07-01 |
+| country | tax_category | rate | effective_from |
+|---------|-------------|------|----------------|
+| SA | STANDARD | 0.1500 | 2020-07-01 |
+| SA | ZERO | 0.0000 | 2020-07-01 |
+| SA | EXEMPT | 0.0000 | 2020-07-01 |
 
 ---
 
 ### Modified: `product` App
 
-**`Product` model — add one field:**
+#### Remove
+- `CurrencyChoices` class (entire class deleted)
+- `currency = CharField(...)` on `Product` (replaced by `ProductCountryPrice`)
+
+#### Add: `ProductCountryPrice`
+Stores the commercial selling price per product per country in that country's local currency. This is how Amazon.sa and Noon manage multi-country pricing — no live exchange rates, commercial prices set per market.
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `product` | ForeignKey(Product, CASCADE) | |
+| `country` | CharField(2) | ISO code |
+| `currency` | ForeignKey(tax.Currency, PROTECT) | |
+| `selling_price` | DecimalField(10, 3) | 3 dp handles BHD/OMR; SAR/AED always end in .00x |
+| `is_active` | BooleanField(default=True) | |
+
+**Unique constraint:** `(product, country)`
+
+When a product is created with an SA price, a `ProductCountryPrice` row is created automatically for SA/SAR. Adding UAE pricing later = adding an AE/AED row. No exchange rate logic.
+
+#### Add to `Product`
 ```python
 tax_category = models.ForeignKey(
     'tax.TaxCategory',
@@ -91,116 +161,204 @@ tax_category = models.ForeignKey(
     related_name='products',
 )
 ```
-Migration strategy: add as nullable → backfill all existing products to Standard Rate → remove null=True.
+Migration strategy: add nullable → backfill all existing products to Standard Rate → make non-nullable.
+
+The existing `selling_price` field on `Product` is preserved as the SAR base price. Migration creates `ProductCountryPrice(SA, SAR, product.selling_price)` for all existing products.
 
 ---
 
 ### Modified: `orders` App
 
-**`Order` model — add two snapshot fields:**
+**`Order` model — add four snapshot fields:**
+
 ```python
 tax_rate_snapshot = models.DecimalField(max_digits=5, decimal_places=4, default=Decimal('0'))
 tax_country_snapshot = models.CharField(max_length=2, blank=True, default='')
+charged_currency = models.CharField(max_length=3, default='SAR')
+charged_amount = models.DecimalField(max_digits=10, decimal_places=3, default=Decimal('0'))
 ```
-These are written at checkout time and never updated. Existing `tax_amount` field is preserved.
+
+- `tax_rate_snapshot` + `tax_country_snapshot` — audit trail for invoices; never updated after creation
+- `charged_currency` + `charged_amount` — payment gateway hook; the exact currency and amount that will be/was charged. For now always SAR = `total_amount`. When the gateway is wired up, these fields are read directly by the payment initiation view — no schema change needed.
+
+Existing `tax_amount` and `total_amount` fields are preserved.
 
 ---
 
-## Service Layer
+## Service Layer (`tax/services.py`)
 
-### `tax/services.py` — `get_tax_rate(country: str, tax_category_code: str) -> Decimal`
+Two functions. Nothing outside this file does currency or tax lookups.
 
-Single function centralising all tax lookups. All views call this; nothing calculates tax inline.
+### `get_tax_rate(country, tax_category_code) → Decimal`
 
 ```python
 def get_tax_rate(country: str, tax_category_code: str) -> Decimal:
-    """
-    Returns the active tax rate for a given country and category code.
-    Falls back to 0 if no rate is configured (e.g. Qatar, Kuwait — no VAT yet).
-    """
     try:
-        rate_obj = TaxRate.objects.get(
+        obj = TaxRate.objects.get(
             country=country.upper(),
             region__isnull=True,
             tax_category__code=tax_category_code,
             is_active=True,
         )
-        return rate_obj.rate
+        return obj.rate
     except TaxRate.DoesNotExist:
-        return Decimal('0')
+        return Decimal('0')  # Qatar/Kuwait: no VAT configured → 0
+```
+
+### `get_product_price(product, country) → (Decimal, Currency)`
+
+```python
+def get_product_price(product, country: str):
+    try:
+        cp = ProductCountryPrice.objects.select_related('currency').get(
+            product=product,
+            country=country.upper(),
+            is_active=True,
+        )
+        return cp.selling_price, cp.currency
+    except ProductCountryPrice.DoesNotExist:
+        # Fallback to SAR base price if no country-specific price is set
+        sar = Currency.objects.get(code='SAR')
+        return product.selling_price, sar
 ```
 
 ---
 
 ## Pricing Strategy
 
-**Database:** Prices stored **tax-exclusive** (`selling_price` = base price before VAT).  
-**Frontend display:** Always shows **tax-inclusive** price (`selling_price × (1 + rate)`).  
-**Checkout breakdown:** VAT shown as a separate labelled line item.
+**Storage:** Prices in `ProductCountryPrice` are tax-exclusive in the local currency.  
+**Display:** Always tax-inclusive. `display_price = selling_price × (1 + tax_rate)`  
+**Checkout:** VAT shown as a separate labelled line item.  
 
-This matches Amazon.sa and Noon — one product price works across all GCC countries; only the displayed inclusive amount changes per market.
-
-### Tax Calculation at Checkout
+### Full Checkout Calculation
 
 ```
+country = delivery_address.country   (or DEFAULT_TAX_COUNTRY = "SA")
+
 For each cart item:
-    country = delivery_address.country  (ISO code)
-    rate = get_tax_rate(country, product.tax_category.code)
-    item_tax = item.selling_price × rate
+    price, currency = get_product_price(product, country)
+    rate            = get_tax_rate(country, product.tax_category.code)
+    item_tax        = price × rate  [ROUND_HALF_UP, 3 dp]
 
-subtotal = Σ item.selling_price          (tax-exclusive)
-tax_total = Σ item_tax
-shipping  = (free if subtotal ≥ threshold, else standard charge)
-            shipping is VAT-exempt — standard GCC practice
-total = subtotal + shipping + tax_total
+subtotal     = Σ price              (tax-exclusive, local currency)
+tax_total    = Σ item_tax
+shipping     = free if subtotal ≥ threshold, else standard charge
+               shipping is VAT-exempt — standard GCC practice
+total        = subtotal + shipping + tax_total
+
+Order fields written at checkout:
+    tax_amount           = tax_total
+    total_amount         = total
+    tax_rate_snapshot    = the rate applied to this specific Order's item
+                           (each cart item creates one Order; zero-rated items snapshot 0.0000)
+    tax_country_snapshot = country
+    charged_currency     = currency.code
+    charged_amount       = total   ← payment gateway reads this
 ```
 
-Rounding: `ROUND_HALF_UP` to 2 decimal places per item tax, final sum for `tax_total`. Last-item remainder correction preserved from existing implementation.
+Rounding: `ROUND_HALF_UP` to `currency.decimal_places` at every step. Last-item remainder correction preserved.
 
-### Guest Cart
+### Default Country / Guest Cart
 
-Delivery country unknown until address is entered. Guest cart continues to show `tax="0"` with label "VAT (estimated at checkout)" — consistent with current behaviour.
-
-### Logged-in User Without a Saved Address
-
-If a logged-in user has no delivery address on file, the cart defaults to the store's primary market country. This is controlled by a Django setting `DEFAULT_TAX_COUNTRY = "SA"` (in `settings.py`). The frontend labels this as "VAT (estimated)" until an address is confirmed.
+| Scenario | Country used | Tax label |
+|----------|-------------|-----------|
+| Guest cart | None | "VAT (estimated at checkout)" |
+| Logged-in, no address | `DEFAULT_TAX_COUNTRY = "SA"` (Django setting) | "VAT (estimated)" |
+| Logged-in, address on file | Delivery address country | "VAT (15%)" |
 
 ---
 
 ## API Changes
 
-### `GET /orders/cart/` — `CartSummary` response
+### Product list / detail
 
-Add two fields to the existing response:
+Products API returns price and currency for the requesting country. Country passed as query param, defaults to SA.
+
+```
+GET /api/product/products/?country=SA
+```
+
+Response gains two fields per product:
 ```json
 {
-  "subtotal": "100.00",
-  "shipping": "5.00",
-  "tax": "15.00",
-  "tax_rate": "0.1500",
-  "tax_country": "SA",
-  "total": "120.00"
+  "selling_price": "100.000",
+  "display_price": "115.000",
+  "currency_code": "SAR",
+  "currency_symbol": "SAR",
+  "currency_decimal_places": 2
 }
 ```
-Frontend uses `tax_rate` and `tax_country` to render the label "VAT 15% (SA)" instead of "Estimated Tax".
+`display_price` = `selling_price × (1 + tax_rate)` — tax-inclusive, ready to render.  
+`selling_price` is still returned for cart calculations.
+
+### `GET /orders/cart/` — `CartSummary` response
+
+```json
+{
+  "subtotal": "100.000",
+  "shipping": "5.000",
+  "tax": "15.000",
+  "tax_rate": "0.1500",
+  "tax_country": "SA",
+  "currency_code": "SAR",
+  "currency_symbol": "SAR",
+  "currency_decimal_places": 2,
+  "total": "120.000"
+}
+```
 
 ---
 
 ## Frontend Changes
 
+### New utility: `formatPrice(amount, currency)`
+
+```ts
+// src/utils/formatPrice.ts
+export function formatPrice(
+  amount: number | string,
+  currencyCode: string,
+  decimalPlaces: number = 2
+): string {
+  return `${currencyCode} ${Number(amount).toFixed(decimalPlaces)}`
+  // e.g. "SAR 115.00" | "BHD 38.500" | "AED 157.75"
+}
+
+export function formatInclusivePrice(
+  sellingPrice: number,
+  taxRate: number,
+  currencyCode: string,
+  decimalPlaces: number = 2
+): string {
+  return formatPrice(sellingPrice * (1 + taxRate), currencyCode, decimalPlaces)
+}
+```
+
+### Redux store
+
+Add currency state to user/session slice, populated when delivery country is known:
+```ts
+currency: {
+  code: string        // "SAR"
+  symbol: string      // "SAR"
+  decimalPlaces: number  // 2
+}
+```
+
 ### Product Cards (`productcards.tsx`)
-- New utility: `formatInclusivePrice(sellingPrice: number, taxRate: number): string`  
-  → `(sellingPrice * (1 + taxRate)).toFixed(2)`
-- Display: `SAR 115.00` with a small `incl. VAT` label below — matches Amazon.sa pattern
-- Tax rate passed down from a store-level config endpoint or injected into page props
+- Show `display_price` from API (already inclusive) with `currency_code` prefix
+- Small `incl. VAT` label — matches Amazon.sa pattern
+- Falls back to SAR when no session currency set
 
 ### Cart Page (`cart/page.tsx`)
-- "Estimated Tax" label → `"VAT (${(tax_rate * 100).toFixed(0)}%)"` e.g. "VAT (15%)"
-- `CartSummary` type gains `tax_rate: string` and `tax_country: string`
+- All amounts rendered with `formatPrice(amount, currency_code, decimal_places)`
+- "Estimated Tax" → `"VAT (${(tax_rate * 100).toFixed(0)}%)"` e.g. "VAT (15%)"
+- `CartSummary` type updated to include currency fields
 
 ### Checkout Page (`checkout/page.tsx`)
-- Same label update as cart
-- Order confirmation shows seller TRN: read from `NEXT_PUBLIC_ZATCA_TRN` env var
+- Same currency formatting throughout
+- Order confirmation: show seller TRN from `NEXT_PUBLIC_ZATCA_TRN`
+- Order confirmation: show `charged_currency` + `charged_amount` (ready for gateway receipt)
 
 ---
 
@@ -208,67 +366,96 @@ Frontend uses `tax_rate` and `tax_country` to render the label "VAT 15% (SA)" in
 
 | Variable | Where | Purpose |
 |----------|-------|---------|
-| `ZATCA_TRN` | backend `.env` | Seller VAT Registration Number shown on invoices |
-| `NEXT_PUBLIC_ZATCA_TRN` | frontend `.env.local` | TRN displayed on order confirmation page |
+| `ZATCA_TRN` | backend `.env` | Seller VAT Registration Number |
+| `NEXT_PUBLIC_ZATCA_TRN` | frontend `.env.local` | TRN on order confirmation |
+| `DEFAULT_TAX_COUNTRY` | `settings.py` | Fallback country for users with no address (default: "SA") |
 
 ---
 
 ## Admin Interface
 
-Both models registered in Django admin with list display and filters:
+| Model | Admin config |
+|-------|-------------|
+| `Currency` | list_display: code, name, decimal_places, is_active |
+| `CountryConfig` | list_display: country, name, currency, is_active |
+| `TaxCategory` | list_display: name, code, is_active |
+| `TaxRate` | list_display: country, tax_category, rate, effective_from, is_active; filter: country, is_active |
+| `ProductCountryPrice` | Inline on Product admin — table: Country, Currency, Price |
 
-**TaxCategory admin:** list_display = name, code, is_active  
-**TaxRate admin:** list_display = country, tax_category, rate, effective_from, is_active; list_filter = country, is_active
-
-Product form gains a `tax_category` dropdown (default: Standard Rate). This is the only day-to-day change for product managers.
+**Product creation form changes:**
+- `tax_category` dropdown (default: Standard Rate)
+- `ProductCountryPrice` inline — SA/SAR row pre-filled from `selling_price`, other countries added as markets open
+- Old `currency` CharField dropdown removed
 
 ---
 
 ## Existing Code Preserved
 
-- `Order.tax_amount` — field stays, continues to store the calculated tax amount
-- `supperadmin/views.py` tax aggregation reports — unchanged, still sum `tax_amount`
+- `Order.tax_amount` + `Order.total_amount` — stay, continue to work
+- `Product.selling_price` — stays as SAR base price, also seeded into `ProductCountryPrice`
+- `supperadmin/views.py` tax aggregation reports — unchanged
 - Excel exports — unchanged
-- Rounding logic (`ROUND_HALF_UP`, last-item remainder correction) — preserved in new service
+- Rounding logic (`ROUND_HALF_UP`, last-item remainder correction) — preserved
 
 ---
 
 ## Migration Sequence (zero downtime)
 
-1. Create `tax` app: `TaxCategory` + `TaxRate` models + seed data migration
-2. Add `tax_category` FK to `Product` (nullable)
-3. Data migration: set all existing products to Standard Rate
-4. Make `tax_category` non-nullable
-5. Add `tax_rate_snapshot` + `tax_country_snapshot` to `Order`
-6. Replace `TAX_RATE` constant in `orders/views.py` with `get_tax_rate()` call
-7. Update `CartSummary` API response to include `tax_rate` + `tax_country`
-8. Update frontend: price display utility, cart/checkout labels, TRN display
-9. Add `ZATCA_TRN` / `NEXT_PUBLIC_ZATCA_TRN` to env files
+1. Create `tax` app: `Currency` + `CountryConfig` + `TaxCategory` + `TaxRate` models + seed data
+2. Create `ProductCountryPrice` model in `product` app
+3. Data migration: for every existing `Product`, create `ProductCountryPrice(SA, SAR, product.selling_price)`
+4. Add `tax_category` FK to `Product` (nullable)
+5. Data migration: set all products to Standard Rate
+6. Make `tax_category` non-nullable
+7. Remove `CurrencyChoices` class and `currency` CharField from `Product`
+8. Add `tax_rate_snapshot`, `tax_country_snapshot`, `charged_currency`, `charged_amount` to `Order`
+9. Replace `TAX_RATE` constant in `orders/views.py` with service calls
+10. Update products API to accept `?country=` and return `display_price`, `currency_code`
+11. Update `CartSummary` API to include currency fields
+12. Update frontend: `formatPrice` utility, Redux currency state, product cards, cart, checkout
+13. Add env vars to `.env.example` files
+
+---
+
+## Payment Gateway Readiness
+
+When the gateway (Checkout.com / Telr / PayTabs) is integrated, the checkout view reads:
+
+```python
+order.charged_currency   # e.g. "SAR", "AED"
+order.charged_amount     # e.g. Decimal("120.000")
+```
+
+And passes them directly to the gateway API. No schema changes, no migrations. The gateway integration is purely a new view + API call.
+
+GCC-compatible gateways (Checkout.com, Telr, PayTabs) all accept `currency` + `amount` in this exact format. Checkout.com additionally accepts minor units (multiply by 10^decimal_places) — the `Currency.decimal_places` field provides this automatically.
 
 ---
 
 ## Future Expansion
 
 ### Adding a new GCC country (e.g. UAE)
-Admin adds via Django admin — no code change:
-```
-country: AE, tax_category: STANDARD, rate: 0.0500, effective_from: 2026-01-01
-```
+1. Admin adds `CountryConfig(AE, AED)` + `TaxRate(AE, STANDARD, 0.05)` via Django admin
+2. For each product, admin adds `ProductCountryPrice(AE, AED, price)` — or bulk import via management command
+3. No code changes, no deployments
 
-### If a country changes its rate (e.g. SA raised 5%→15% in 2021)
-1. Set old row `is_active=False`
-2. Add new row with new rate + `effective_from` date
-3. Historical orders retain their `tax_rate_snapshot` — invoices stay accurate
+### Rate changes (e.g. ZATCA raises SA rate again)
+1. Set old `TaxRate` row `is_active=False`
+2. Add new row with updated rate + new `effective_from`
+3. Historical orders retain `tax_rate_snapshot` — invoices accurate forever
 
-### US / India (future)
-`region` field on `TaxRate` is nullable — add state-level rows without schema changes.  
-US would require a third-party service (Avalara/TaxJar) for jurisdiction resolution — out of scope.
+### Non-GCC expansion
+Most countries: just add `CountryConfig` + `TaxRate` + `ProductCountryPrice` rows.  
+US/India: `TaxRate.region` nullable field is the hook — see original design notes.
 
 ---
 
 ## Testing
 
-- Unit test `get_tax_rate()`: SA standard → 0.15, SA zero-rated → 0.00, unknown country → 0.00
-- Update existing order test (`subtotal=240.00`): expected `tax_amount=36.00` (15%) not 19.20 (8%)
-- Test checkout with mixed cart (1 standard item + 1 zero-rated item)
-- Test `tax_rate_snapshot` and `tax_country_snapshot` are written correctly on order creation
+- `get_tax_rate()`: SA standard → 0.15; SA zero-rated → 0.00; unknown country → 0.00
+- `get_product_price()`: returns AED price when AE row exists; falls back to SAR when not
+- Update existing order test: `subtotal=240.00` → `tax_amount=36.00` (15%), not 19.20 (8%)
+- Mixed cart: 1 standard + 1 zero-rated item → only standard item taxed
+- `tax_rate_snapshot`, `tax_country_snapshot`, `charged_currency`, `charged_amount` all written on order creation
+- BHD price formatting: `BHD 38.500` (3 decimal places)
+- Currency fallback: product with no AE price → returns SAR price
