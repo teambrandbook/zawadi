@@ -63,8 +63,14 @@ class ProductListCreateView(APIView):
 
     # If user has permission -> all products
         can_manage = has_permission(request.user, "products", "view")
+        country = request.query_params.get("country", "SA").upper()
         if can_manage:
-            products = Product.objects.prefetch_related("alternative_images").all().order_by("-created_at")
+            products = (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("alternative_images", "country_prices__currency")
+                .all()
+                .order_by("-created_at")
+            )
 
         # Else -> only active products
         else:
@@ -75,12 +81,17 @@ class ProductListCreateView(APIView):
                     return Response(cached, status=status.HTTP_200_OK)
             except Exception:
                 pass
-            products = Product.objects.prefetch_related("alternative_images").filter(product_status="active").order_by("-created_at")
+            products = (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("alternative_images", "country_prices__currency")
+                .filter(product_status="active")
+                .order_by("-created_at")
+            )
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:
-            serializer = ProductSerializer(page, many=True, context={"request": request})
+            serializer = ProductSerializer(page, many=True, context={"request": request, "country": country})
             response = paginator.get_paginated_response(serializer.data)
             if not can_manage:
                 try:
@@ -89,7 +100,7 @@ class ProductListCreateView(APIView):
                     pass
             return response
 
-        serializer = ProductSerializer(products, many=True, context={"request": request})
+        serializer = ProductSerializer(products, many=True, context={"request": request, "country": country})
         data = serializer.data
         if not can_manage:
             try:
@@ -142,7 +153,11 @@ class ProductDetailView(APIView):
 
     def _get_object(self, pk):
         try:
-            return Product.objects.prefetch_related("variants", "alternative_images").get(pk=pk)
+            return (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("variants", "alternative_images", "country_prices__currency")
+                .get(pk=pk)
+            )
         except Product.DoesNotExist:
             return None
 
@@ -169,7 +184,8 @@ class ProductDetailView(APIView):
         if not can_manage and product.product_status != ProductStatus.ACTIVE:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ProductSerializer(product, context={"request": request})
+        country = request.query_params.get("country", "SA").upper()
+        serializer = ProductSerializer(product, context={"request": request, "country": country})
         if not can_manage:
             try:
                 cache.set(f"product_detail:{pk}", serializer.data, timeout=600)
