@@ -32,6 +32,10 @@ class ProductSerializer(serializers.ModelSerializer):
     allow_out_of_stock = serializers.BooleanField(source="allow_orders_when_out_of_stock", read_only=True)
     discount_amount = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
+    tax_category_code = serializers.SerializerMethodField()
+    display_price = serializers.SerializerMethodField()
+    currency_code = serializers.SerializerMethodField()
+    currency_decimal_places = serializers.SerializerMethodField()
 
     def get_brand_name(self, obj):
         return obj.brand_name
@@ -47,6 +51,32 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_discount_percent(self, obj):
         return f"{obj.discount_percent:.2f}"
+
+    def get_tax_category_code(self, obj):
+        return obj.tax_category.code if obj.tax_category_id else "STANDARD"
+
+    def _get_country_price(self, obj):
+        from product.services import get_product_price
+        country = self.context.get("country", "SA")
+        return get_product_price(obj, country)
+
+    def get_display_price(self, obj):
+        from tax.services import get_tax_rate
+        price, currency = self._get_country_price(obj)
+        cat_code = obj.tax_category.code if obj.tax_category_id else "STANDARD"
+        country = self.context.get("country", "SA")
+        rate = get_tax_rate(country, cat_code)
+        inclusive = price * (1 + rate)
+        dp = currency.decimal_places
+        return f"{inclusive:.{dp}f}"
+
+    def get_currency_code(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.code
+
+    def get_currency_decimal_places(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.decimal_places
 
     class Meta:
         model = Product
@@ -72,9 +102,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "cost_price",
             "mrp_price",
             "selling_price",
+            "display_price",
+            "currency_code",
+            "currency_decimal_places",
             "discount_amount",
             "discount_percent",
-            "currency",
+            "tax_category_code",
             "stock_quantity",
             "low_stock_alert",
             "stock_status",
