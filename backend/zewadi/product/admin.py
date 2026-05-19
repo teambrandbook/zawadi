@@ -1,11 +1,17 @@
 from django.contrib import admin
-from .models import Product, ProductVariant
+from .models import Product, ProductVariant, ProductCountryPrice
 
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
     fields = ["variant_value", "variant_unit", "cost", "price", "stock"]
+
+
+class ProductCountryPriceInline(admin.TabularInline):
+    model = ProductCountryPrice
+    extra = 1
+    fields = ["country", "currency", "selling_price", "is_active"]
 
 
 @admin.register(Product)
@@ -23,7 +29,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_filter = ["category", "product_status", "stock_status", "tax_category"]
     search_fields = ["product_name", "product_code"]
     readonly_fields = ["created_at", "updated_at"]
-    inlines = []
+    inlines = [ProductCountryPriceInline, ProductVariantInline]
     fieldsets = (
         ("Basic Info", {
             "fields": (
