@@ -17,10 +17,10 @@ class ProductAdmin(admin.ModelAdmin):
         "product_status",
         "stock_status",
         "selling_price",
-        "currency",
+        "tax_category",
         "created_at",
     ]
-    list_filter = ["category", "product_status", "stock_status", "currency"]
+    list_filter = ["category", "product_status", "stock_status", "tax_category"]
     search_fields = ["product_name", "product_code"]
     readonly_fields = ["created_at", "updated_at"]
     inlines = []
@@ -45,7 +45,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("key_ingredients", "health_benefits")
         }),
         ("Pricing", {
-            "fields": ("cost_price", "mrp_price", "selling_price", "currency")
+            "fields": ("cost_price", "mrp_price", "selling_price", "tax_category")
         }),
         ("Inventory", {
             "fields": (
