@@ -1,8 +1,11 @@
+import datetime
+
 from django.test import TestCase, override_settings
 from django.core.cache import cache
 from rest_framework.test import APIClient
 from .serializers import ProductCreateSerializer
 from .models import Product, ProductStatus
+from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
 
 CACHE_SETTINGS = {
     "default": {
@@ -12,7 +15,22 @@ CACHE_SETTINGS = {
 }
 
 
+def _ensure_tax_config():
+    sar, _ = Currency.objects.get_or_create(
+        code="SAR", defaults={"name": "Saudi Riyal", "symbol": "SAR", "decimal_places": 2}
+    )
+    CountryConfig.objects.get_or_create(country="SA", defaults={"name": "Saudi Arabia", "currency": sar})
+    standard, _ = TaxCategory.objects.get_or_create(code="STANDARD", defaults={"name": "Standard Rate"})
+    TaxCategory.objects.get_or_create(code="ZERO", defaults={"name": "Zero-Rated"})
+    TaxRate.objects.get_or_create(
+        country="SA", tax_category=standard, region=None, is_active=True,
+        defaults={"rate": "0.1500", "name": "SA Standard 15%", "effective_from": datetime.date(2020, 7, 1)},
+    )
+    return standard
+
+
 def make_product(name="Test Product", status=ProductStatus.ACTIVE):
+    standard = _ensure_tax_config()
     return Product.objects.create(
         product_name=name,
         product_code=f"P-{name[:4].upper()}-001",
@@ -23,10 +41,14 @@ def make_product(name="Test Product", status=ProductStatus.ACTIVE):
         mrp_price="10.00",
         selling_price="10.00",
         short_description="Test product",
+        tax_category=standard,
     )
 
 
 class ProductPricingValidationTest(TestCase):
+    def setUp(self):
+        self.standard = _ensure_tax_config()
+
     def test_selling_price_cannot_exceed_mrp(self):
         serializer = ProductCreateSerializer(
             data={
@@ -41,6 +63,7 @@ class ProductPricingValidationTest(TestCase):
                 "base_price": "50.00",
                 "sale_price": "120.00",
                 "stock_quantity": 5,
+                "tax_category": self.standard.id,
             }
         )
 
