@@ -12,6 +12,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
 import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
+import { formatPrice } from "@/utils/formatPrice";
 
 type Product = {
   id: number;
@@ -22,6 +23,9 @@ type Product = {
   sale_price: string | null;
   mrp_price?: string | number;
   selling_price?: string | number;
+  display_price?: string | number;
+  currency_code?: string;
+  currency_decimal_places?: number;
   discount_percent?: string | number;
   image: string | null;
   stock_status: string;
@@ -97,9 +101,14 @@ function ProductCard({
           <h2 className="text-[20px] font-bold capitalize text-[#1a1a1a] sm:text-[22px]">
             {product.product_name}
           </h2>
-          <p className="whitespace-nowrap text-[20px] font-bold text-[#1a1a1a] sm:text-[22px]">
-            ₹{price}
-          </p>
+          <div className="flex flex-col items-end">
+            <span className="whitespace-nowrap text-[20px] font-bold text-[#1a1a1a] sm:text-[22px]">
+              {product.display_price
+                ? formatPrice(product.display_price, product.currency_code || "SAR", product.currency_decimal_places || 2)
+                : formatPrice(price, "SAR")}
+            </span>
+            <span className="text-xs text-gray-400">incl. VAT</span>
+          </div>
         </div>
         {discounted ? (
           <div className="mt-1 flex items-center gap-2">
