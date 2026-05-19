@@ -14,9 +14,13 @@ import {
 import { FaCcApplePay, FaCcMastercard, FaCcPaypal, FaCcVisa } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
 import api from "@/services/api";
 import { toast } from "sonner";
 import { z } from "zod";
+import type { AppDispatch } from "@/redux/store";
+import { setCartCount } from "@/redux/userSlice";
+import { getImageUrl } from "@/lib/utils";
 
 // address field is named "address" (not "address_line") in the local form state
 const checkoutSchema = z.object({
@@ -39,8 +43,10 @@ type SavedAddress = {
 
 type CartItem = {
   id: number;
+  product_id: number;
   product_name: string;
   product_subtitle?: string;
+  category?: string;
   image?: string | null;
   currency?: string;
   quantity: number;
@@ -48,11 +54,28 @@ type CartItem = {
 };
 
 type CartSummary = {
+  item_count?: number;
   subtotal: string;
   shipping: string;
   tax: string;
   total: string;
 };
+
+type RelatedProduct = {
+  id: number;
+  product_name: string;
+  product_subtitle?: string;
+  category?: string;
+  image?: string | null;
+  base_price: string;
+  sale_price?: string | null;
+  selling_price?: string | number | null;
+  currency?: string;
+  stock_quantity?: number;
+  stock_status?: string;
+};
+
+type ProductListResponse = RelatedProduct[] | { results?: RelatedProduct[] };
 
 const emptySummary: CartSummary = {
   subtotal: "0.00",
@@ -60,21 +83,6 @@ const emptySummary: CartSummary = {
   tax: "0.00",
   total: "0.00",
 };
-
-const addOns = [
-  {
-    name: "Organic Dates",
-    variant: "Sandstone",
-    image: "/product/p-4.webp",
-    price: 349.99,
-  },
-  {
-    name: "First Quality Cashew",
-    variant: "Space Gray",
-    image: "/product/p-2.webp",
-    price: 549,
-  },
-];
 
 const money = new Intl.NumberFormat("en-IN", {
   style: "currency",
@@ -93,6 +101,15 @@ function formatMoney(value: string | number) {
   return money.format(Number(value) || 0);
 }
 
+function productImageUrl(path?: string | null): string {
+  if (!path) return "/product/buckwheat.webp";
+  return getImageUrl(path);
+}
+
+function productPrice(product: RelatedProduct): string | number {
+  return product.selling_price ?? product.sale_price ?? product.base_price ?? 0;
+}
+
 function CheckoutBreadcrumb() {
   return (
     <nav aria-label="Checkout progress" className="flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
@@ -107,28 +124,43 @@ function CheckoutBreadcrumb() {
   );
 }
 
-function AddOnCard({ product }: { product: (typeof addOns)[number] }) {
+function RelatedProductCard({
+  product,
+  onAddToCart,
+}: {
+  product: RelatedProduct;
+  onAddToCart: () => void;
+}) {
+  const outOfStock = product.stock_status === "out_of_stock" || Number(product.stock_quantity ?? 1) <= 0;
+
   return (
     <article className="rounded-[12px] border border-[#ECEDE7] bg-white p-3 shadow-[0_10px_24px_rgba(15,65,45,0.06)]">
-      <div className="relative flex h-[118px] items-center justify-center overflow-hidden rounded-[10px] bg-[#F6F7F5] p-4">
-        <Image
-          src={product.image}
-          alt={product.name}
-          fill
-          sizes="(min-width: 1024px) 320px, 90vw"
-          className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
-        />
-      </div>
-      <div className="mt-3">
-        <h3 className="text-[12px] font-bold leading-4 text-[#143F2F]">{product.name}</h3>
-        <p className="text-[10px] leading-4 text-[#8A928C]">{product.variant}</p>
-      </div>
+      <Link href={`/products/details?id=${product.id}`} className="block">
+        <div className="relative flex h-[118px] items-center justify-center overflow-hidden rounded-[10px] bg-[#F6F7F5] p-4">
+          <Image
+            src={productImageUrl(product.image)}
+            alt={product.product_name}
+            fill
+            unoptimized
+            sizes="(min-width: 1024px) 220px, 90vw"
+            className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
+          />
+        </div>
+        <div className="mt-3">
+          <h3 className="line-clamp-2 text-[12px] font-bold leading-4 text-[#143F2F]">{product.product_name}</h3>
+          <p className="mt-0.5 line-clamp-1 text-[10px] leading-4 text-[#8A928C]">
+            {product.product_subtitle || product.category}
+          </p>
+        </div>
+      </Link>
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[12px] font-bold leading-4 text-[#143F2F]">{money.format(product.price)}</p>
+        <p className="text-[12px] font-bold leading-4 text-[#143F2F]">{formatMoney(productPrice(product))}</p>
         <button
           type="button"
-          aria-label={`Add ${product.name}`}
-          className="flex size-6 items-center justify-center rounded-full border border-[#DDE2DA] text-[#1f4d3a] transition hover:border-[#1f4d3a] hover:bg-[#1f4d3a] hover:text-white"
+          onClick={onAddToCart}
+          disabled={outOfStock}
+          aria-label={`Add ${product.product_name} to cart`}
+          className="flex size-6 items-center justify-center rounded-full border border-[#DDE2DA] text-[#1f4d3a] transition hover:border-[#1f4d3a] hover:bg-[#1f4d3a] hover:text-white disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:border-[#DDE2DA] disabled:hover:bg-white disabled:hover:text-[#1f4d3a]"
         >
           <Plus size={11} strokeWidth={2.8} />
         </button>
@@ -139,6 +171,7 @@ function AddOnCard({ product }: { product: (typeof addOns)[number] }) {
 
 export default function Payment() {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -146,6 +179,7 @@ export default function Payment() {
   const [submitting, setSubmitting] = useState(false);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartSummary, setCartSummary] = useState<CartSummary>(emptySummary);
+  const [relatedProducts, setRelatedProducts] = useState<RelatedProduct[]>([]);
   const [form, setForm] = useState({
     full_name: "",
     phone: "",
@@ -170,17 +204,60 @@ export default function Payment() {
         setShowForm(true);
       });
 
-    api
-      .get<{ items?: CartItem[]; summary?: CartSummary }>("/orders/cart/")
-      .then((res) => {
-        setCartItems(res.data.items ?? []);
-        setCartSummary(res.data.summary ?? emptySummary);
-      })
-      .catch(() => {
-        setCartItems([]);
-        setCartSummary(emptySummary);
-      });
+    fetchCart();
   }, []);
+
+  async function fetchRelatedProducts(nextCartItems: CartItem[]) {
+    const primaryCategory = String(nextCartItems[0]?.category ?? "").toLowerCase();
+
+    if (!primaryCategory) {
+      setRelatedProducts([]);
+      return;
+    }
+
+    const cartProductIds = new Set(nextCartItems.map((item) => item.product_id).filter(Boolean));
+
+    try {
+      const res = await api.get<ProductListResponse>("/products/");
+      const products = Array.isArray(res.data) ? res.data : res.data.results ?? [];
+      const related = products
+        .filter((product) => !cartProductIds.has(product.id))
+        .filter((product) => String(product.category ?? "").toLowerCase() === primaryCategory)
+        .slice(0, 4);
+
+      setRelatedProducts(related);
+    } catch {
+      setRelatedProducts([]);
+    }
+  }
+
+  async function fetchCart() {
+    try {
+      const res = await api.get<{ items?: CartItem[]; summary?: CartSummary }>("/orders/cart/");
+      const nextItems = res.data.items ?? [];
+      const nextSummary = res.data.summary ?? emptySummary;
+
+      setCartItems(nextItems);
+      setCartSummary(nextSummary);
+      dispatch(setCartCount(nextSummary.item_count ?? nextItems.length));
+      await fetchRelatedProducts(nextItems);
+    } catch {
+      setCartItems([]);
+      setCartSummary(emptySummary);
+      setRelatedProducts([]);
+    }
+  }
+
+  async function handleAddRelatedProduct(productId: number) {
+    try {
+      const res = await api.post("/orders/cart/items/", { product_id: productId, quantity: 1 });
+      toast.success("Added to cart.");
+      dispatch(setCartCount(res.data.summary?.item_count ?? 0));
+      await fetchCart();
+    } catch {
+      toast.error("Could not add product to cart.");
+    }
+  }
 
   function handleFormChange(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -549,9 +626,10 @@ export default function Payment() {
                 <div className="flex items-center gap-3">
                   <div className="relative h-12 w-12 overflow-hidden rounded-[8px] bg-[#F5F7F4]">
                     <Image
-                      src={cartItems[0].image || "/product/p-1.webp"}
+                      src={productImageUrl(cartItems[0].image)}
                       alt={cartItems[0].product_name}
                       fill
+                      unoptimized
                       sizes="48px"
                       className="object-cover"
                     />
@@ -570,16 +648,22 @@ export default function Payment() {
           </aside>
         </div>
 
-        <section className="mt-14 pt-2">
-          <h2 className="text-[16px] font-bold leading-6 text-[#143F2F]">
-            Complete your order with these
-          </h2>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            {addOns.map((product) => (
-              <AddOnCard key={product.name} product={product} />
-            ))}
-          </div>
-        </section>
+        {relatedProducts.length > 0 ? (
+          <section className="mt-14 pt-2">
+            <h2 className="text-[16px] font-bold leading-6 text-[#143F2F]">
+              Complete your order with these
+            </h2>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {relatedProducts.map((product) => (
+                <RelatedProductCard
+                  key={product.id}
+                  product={product}
+                  onAddToCart={() => handleAddRelatedProduct(product.id)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
       </div>
     </main>
   );

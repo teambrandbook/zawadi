@@ -16,6 +16,7 @@ type StatItem = {
 
 const CommunityStats = () => {
   const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const sectionRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -51,7 +52,7 @@ const CommunityStats = () => {
         { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut", clearProps: "all" }
       );
 
-      // 2. Entire Promo Box Pure Swipe Entrance (Left to Right)
+      // 2. Entire Promo Box Pure Swipe Entrance
       tl.fromTo("#promo-box",
         { clipPath: "inset(0% 100% 0% 0%)" },
         { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut", clearProps: "all" },
@@ -69,7 +70,7 @@ const CommunityStats = () => {
 
     }, sectionRef);
     return () => ctx.revert();
-  }, []);
+  }, [isRtl]);
 
   return (
     <section ref={sectionRef} className="py-24 bg-[#fffef5] overflow-hidden">
