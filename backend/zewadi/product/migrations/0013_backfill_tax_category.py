@@ -9,8 +9,19 @@ def backfill_forward(apps, schema_editor):
     try:
         standard = TaxCategory.objects.get(code="STANDARD")
     except TaxCategory.DoesNotExist:
+        if Product.objects.exists():
+            raise RuntimeError(
+                "Cannot backfill tax_category: TaxCategory 'STANDARD' not found. "
+                "Ensure tax.0002_seed_data has been applied before running this migration."
+            )
         return
     Product.objects.filter(tax_category__isnull=True).update(tax_category=standard)
+    remaining = Product.objects.filter(tax_category__isnull=True).count()
+    if remaining:
+        raise RuntimeError(
+            f"{remaining} Product row(s) still have null tax_category after backfill. "
+            "Investigate before proceeding."
+        )
 
 
 def backfill_reverse(apps, schema_editor):
