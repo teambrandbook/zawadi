@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import RecipeDetailsContent from "@/components/recipes/RecipeDetailsContent";
+import RecipeDetailsHeader from "@/components/recipes/RecipeDetailsHeader";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
 import { getImageUrl } from "@/lib/utils";
 import { API_BASE_URL } from "@/lib/config";
-import ContentSection from "@/components/common/ContentSection";
 
 type BackendRecipeDetail = {
   slug?: string;
@@ -13,6 +13,9 @@ type BackendRecipeDetail = {
   title: string;
   short_description?: string;
   cover_image?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  thumbnail?: string | null;
   category?: string;
   health_benefits?: string | null;
   nutrition?: Partial<RecipeNutrition> | null;
@@ -79,7 +82,7 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
     slug: recipe.slug || String(recipe.id),
     title: recipe.title,
     description: recipe.short_description || "",
-    image: mediaUrl(recipe.cover_image),
+    image: mediaUrl(recipe.cover_image ?? recipe.image ?? recipe.image_url ?? recipe.thumbnail),
     categories: [String(recipe.category || "BREAKFAST").toUpperCase()],
     benefits: lines(recipe.health_benefits),
     ingredients: (recipe.ingredients || []).map((item) =>
@@ -183,10 +186,7 @@ export default async function RecipeDetailsPage({
   return (
     <div>
       <Navbar />
-      <ContentSection
-        title="Zewadi Recipes"
-        subtitle="Delicious Zewadi Buckwheat Recipes"
-      />
+      <RecipeDetailsHeader />
       <RecipeDetailsContent recipe={recipe} />
       <Footer />
     </div>

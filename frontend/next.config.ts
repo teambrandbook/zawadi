@@ -28,9 +28,12 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/recipes/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/recipes/**" },
       // Derived from NEXT_PUBLIC_API_URL — covers production automatically
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/media/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/recipes/**" },
     ],
   },
 };

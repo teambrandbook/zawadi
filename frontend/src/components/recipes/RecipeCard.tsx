@@ -1,13 +1,20 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, PlayCircle, Heart } from "lucide-react";
 import { type Recipe } from "@/components/recipes/recipeTypes";
+import { translations } from "@/locales/translations";
+
+type RecipeCardLabels = typeof translations.en.recipesPage.list;
 
 interface RecipeCardProps {
   recipe: Recipe;
   isFavorite: boolean;
   toggleFavorite: () => void;
   reverse?: boolean;
+  labels: RecipeCardLabels;
 }
 
 export default function RecipeCard({
@@ -15,12 +22,18 @@ export default function RecipeCard({
   isFavorite,
   toggleFavorite,
   reverse = false,
+  labels,
 }: RecipeCardProps) {
   const benefits = recipe.benefits ?? [];
+  const [imageSrc, setImageSrc] = useState(recipe.image || "/recipe/recipe-1.webp");
+
+  useEffect(() => {
+    setImageSrc(recipe.image || "/recipe/recipe-1.webp");
+  }, [recipe.image]);
 
   return (
     <article
-      className={`recipe-card grid min-h-screen origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
+      className={`recipe-card grid min-h-[520px] origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:min-h-[620px] lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
       ${
         reverse
           ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
@@ -30,9 +43,11 @@ export default function RecipeCard({
       {/* Image Section */}
       <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[16px] sm:h-[420px]">
         <Image
-          src={recipe.image}
+          src={imageSrc}
           alt={recipe.title}
           fill
+          unoptimized
+          onError={() => setImageSrc("/recipe/recipe-1.webp")}
           className="object-cover"
         />
 
@@ -42,8 +57,8 @@ export default function RecipeCard({
             href={recipe.videoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={`Watch video for ${recipe.title}`}
-            className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#1f4d3a] text-white shadow-lg transition hover:scale-105 hover:bg-[#163a2b]"
+            aria-label={labels.watchVideo.replace("{title}", recipe.title)}
+            className="absolute right-4 top-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-[#1f4d3a] text-white shadow-lg transition hover:scale-105 hover:bg-[#163a2b] rtl:left-4 rtl:right-auto"
           >
             <PlayCircle className="h-5 w-5" />
           </a>
@@ -51,7 +66,7 @@ export default function RecipeCard({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[500px]">
+      <div className="max-w-[500px] text-left rtl:text-right">
         {/* Title */}
         <h2 className="font-[600] text-[28px] leading-[36px] text-black md:text-[40px] md:leading-[48px] [font-family:'Playfair_Display']">
           {recipe.title}
@@ -66,10 +81,10 @@ export default function RecipeCard({
         {benefits.length > 0 && (
           <>
             <h3 className="mt-5 text-[15px] font-[800] text-black md:text-[17px] [font-family:'Inter']">
-              Benefits
+              {labels.benefits}
             </h3>
 
-            <ul className="mt-2 list-disc space-y-2 pl-5 text-[13px] font-[500] leading-[1.6] text-[#1F4D3A] md:text-[15px] [font-family:'Inter']">
+            <ul className="mt-2 list-disc space-y-2 pl-5 text-[13px] font-[500] leading-[1.6] text-[#1F4D3A] rtl:pl-0 rtl:pr-5 md:text-[15px] [font-family:'Inter']">
               {benefits.map((benefit: string) => (
                 <li key={benefit}>{benefit}</li>
               ))}
@@ -81,18 +96,18 @@ export default function RecipeCard({
         <div className="mt-6 flex items-center gap-15">
           <Link
             href={`/recipes/${recipe.id}`}
-            className="relative inline-flex items-center rounded-full bg-[#1f4d3a] py-4 pl-6 pr-16 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b]"
+            className="relative inline-flex items-center rounded-full bg-[#1f4d3a] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b] ltr:pl-6 ltr:pr-16 rtl:pl-16 rtl:pr-6"
           >
-            <span>Learn More</span>
+            <span>{labels.learnMore}</span>
 
-            <span className="absolute right-[-18px] flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a]">
-              <ArrowRight className="h-4 w-4 text-white" />
+            <span className="absolute flex h-[48px] w-[48px] items-center justify-center rounded-full border-2 border-white bg-[#1f4d3a] ltr:right-[-18px] rtl:left-[-18px]">
+              <ArrowRight className="h-4 w-4 text-white rtl:rotate-180" />
             </span>
           </Link>
 
           <button
             type="button"
-            aria-label={isFavorite ? `Remove ${recipe.title} from favorites` : `Add ${recipe.title} to favorites`}
+            aria-label={(isFavorite ? labels.removeFavorite : labels.addFavorite).replace("{title}", recipe.title)}
             aria-pressed={isFavorite}
             onClick={toggleFavorite}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#1f4d3a] text-white transition hover:bg-[#163a2b]"

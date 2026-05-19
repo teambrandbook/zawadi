@@ -1,9 +1,13 @@
+"use client";
+
 import React from "react";
-import contactData from "@/data/contact.json";
 import ContentSection from "../common/ContentSection";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const ContactHero = () => {
-  const { hero } = contactData;
+  const { locale } = useLocale();
+  const hero = translations[locale]?.contactPage?.hero || translations.en.contactPage.hero;
 
   return (
     <ContentSection 

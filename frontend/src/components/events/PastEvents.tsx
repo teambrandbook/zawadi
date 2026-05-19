@@ -1,10 +1,20 @@
+"use client";
+
 import React from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar } from "lucide-react";
 import { pastEvents } from './eventsData';
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 export default function PastEventsSection() {
+  const { locale } = useLocale();
+  const pastText = translations[locale]?.eventsPage?.past || translations.en.eventsPage.past;
+  const localizedPastEvents = pastEvents.map((event, index) => ({
+    ...event,
+    ...pastText.events[index],
+  }));
 
   return (
     <section className="w-full px-4 py-16 sm:px-6 lg:px-10 bg-[#fffef5]">
@@ -34,17 +44,17 @@ export default function PastEventsSection() {
             independently below the grid layout on mobile viewports.
           */}
           <div className="mb-12">
-            <h2 className="fade-in text-[#1f4d3a] text-3xl md:text-[42px] font-bold tracking-tight font-sans text-center md:text-left">
-              Post Events By Zewadi
+            <h2 className="fade-in text-[#1f4d3a] text-3xl md:text-[42px] font-bold tracking-tight font-sans text-center md:text-left rtl:md:text-right">
+              {pastText.title}
             </h2>
           </div>
 
           {/* Events Grid */}
           <div className="grid gap-8 lg:grid-cols-2">
-            {pastEvents.map((event, index) => (
+            {localizedPastEvents.map((event, index) => (
               <div
                 key={index}
-                className="left-reveal flex flex-col sm:flex-row overflow-hidden rounded-[28px] bg-white 
+                className="left-reveal flex flex-col sm:flex-row rtl:sm:flex-row-reverse overflow-hidden rounded-[28px] bg-white 
                 shadow-sm hover:shadow-md transition-shadow duration-300 
                 max-w-[650px] w-full mx-auto"
               >
@@ -60,9 +70,9 @@ export default function PastEventsSection() {
                 </div>
 
                 {/* Content */}
-                <div className="flex flex-col justify-center p-3 sm:p-4">
+                <div className="flex flex-col justify-center p-3 text-left rtl:text-right sm:p-4">
 
-                  <div className="mb-2 flex items-center gap-2 text-[11px] font-medium text-gray-400">
+                  <div className="mb-2 flex items-center gap-2 text-[11px] font-medium text-gray-400 rtl:flex-row-reverse rtl:justify-end">
                     <Calendar className="h-3 w-3" />
                     {event.date}
                   </div>
@@ -88,10 +98,10 @@ export default function PastEventsSection() {
           */}
           <Link
             href="/gallery"
-            className="order-last mt-10 mx-auto md:mx-0 inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg w-fit md:absolute md:top-0 md:right-0 md:mt-0"
+            className="order-last mt-10 mx-auto md:mx-0 inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg w-fit md:absolute md:top-0 md:right-0 md:mt-0 rtl:md:left-0 rtl:md:right-auto"
           >
-            View Gallery
-            <ArrowRight className="h-4 w-4" />
+            {pastText.viewGallery}
+            <ArrowRight className="h-4 w-4 rtl:rotate-180" />
           </Link>
 
         </div>

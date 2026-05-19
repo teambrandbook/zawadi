@@ -1,9 +1,13 @@
+"use client";
+
 import React from "react";
-import productsData from "@/data/products.json";
 import ContentSection from "../common/ContentSection";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const ProductHero = () => {
-  const { hero } = productsData;
+  const { locale } = useLocale();
+  const hero = translations[locale]?.productsPage?.hero || translations.en.productsPage.hero;
 
   return (
     <ContentSection 

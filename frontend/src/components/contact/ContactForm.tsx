@@ -5,8 +5,12 @@ import Image from "next/image";
 import { Phone, Mail, MapPin, ArrowRight } from "lucide-react";
 import contactData from "@/data/contact.json";
 import gsap, { animateFadeInLeft } from "@/lib/gsap";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 const ContactForm = () => {
+  const { locale } = useLocale();
+  const contactText = translations[locale]?.contactPage?.form || translations.en.contactPage.form;
   const { map } = contactData;
   const sectionRef = useRef<HTMLDivElement>(null);
 
@@ -30,48 +34,48 @@ const ContactForm = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
           {/* Left Side: Contact Info */}
-          <div className="contact-stagger space-y-10">
+          <div className="contact-stagger space-y-10 text-left rtl:text-right">
             <div className="space-y-4">
-              <span className="text-[#1A4331] font-caveat text-2xl">Contact Us</span>
+              <span className="text-[#1A4331] font-caveat text-2xl">{contactText.eyebrow}</span>
               <h2 className="text-4xl md:text-5xl font-inter font-bold text-[#1A4331]">
-                Get in Touch Now
+                {contactText.title}
               </h2>
               <p className="text-gray-500 text-sm max-w-md leading-relaxed font-inter">
-                Fill out the form below and we'll get back to you within 24 hours.
+                {contactText.description}
               </p>
             </div>
 
             <div className="contact-stagger space-y-8">
               {/* Phone */}
-              <div className="flex items-center gap-5 group">
+              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <Phone size={20} />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">Have Question?</p>
-                  <p className="text-[#1A4331] font-bold">Free +50 (9210) 85413</p>
+                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.phoneLabel}</p>
+                  <p className="text-[#1A4331] font-bold">{contactText.phoneValue}</p>
                 </div>
               </div>
 
               {/* Email */}
-              <div className="flex items-center gap-5 group">
+              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <Mail size={20} />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">Write Email</p>
-                  <p className="text-[#1A4331] font-bold">zewadihelp@gmail.com</p>
+                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.emailLabel}</p>
+                  <p className="text-[#1A4331] font-bold">{contactText.emailValue}</p>
                 </div>
               </div>
 
               {/* Location */}
-              <div className="flex items-center gap-5 group">
+              <div className="flex items-center gap-5 group rtl:flex-row-reverse rtl:justify-end">
                 <div className="w-12 h-12 rounded-full bg-[#1A4331] flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform duration-300">
                   <MapPin size={20} />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">Our Location</p>
-                  <p className="text-[#1A4331] font-bold">88 Brooklyn Golden USA</p>
+                  <p className="text-gray-400 text-[11px] uppercase tracking-widest font-bold">{contactText.locationLabel}</p>
+                  <p className="text-[#1A4331] font-bold">{contactText.locationValue}</p>
                 </div>
               </div>
             </div>
@@ -83,39 +87,39 @@ const ContactForm = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   type="text"
-                  placeholder="Your Name"
-                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100"
+                  placeholder={contactText.namePlaceholder}
+                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100 rtl:text-right"
                 />
                 <input
                   type="email"
-                  placeholder="Email Address"
-                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100"
+                  placeholder={contactText.emailPlaceholder}
+                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100 rtl:text-right"
                 />
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <input
                   type="text"
-                  placeholder="Phone number"
-                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100"
+                  placeholder={contactText.phonePlaceholder}
+                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100 rtl:text-right"
                 />
                 <input
                   type="text"
-                  placeholder="Subject"
-                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100"
+                  placeholder={contactText.subjectPlaceholder}
+                  className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none placeholder:text-[#1A4331]/80 placeholder:opacity-100 rtl:text-right"
                 />
               </div>
               <textarea
-                placeholder="Write Message"
+                placeholder={contactText.messagePlaceholder}
                 rows={5}
-                className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none resize-none placeholder:text-[#1A4331]/80 placeholder:opacity-100"
+                className="w-full bg-white border border-gray-100 rounded-lg px-6 py-4 text-sm focus:ring-1 focus:ring-[#1A4331] transition-all outline-none resize-none placeholder:text-[#1A4331]/80 placeholder:opacity-100 rtl:text-right"
               ></textarea>
 
               <button
                 type="submit"
                 className="group flex items-center gap-4 bg-[#1A4331] text-white px-10 py-4 rounded-full font-bold hover:bg-[#1A4331]/90 transition-all shadow-lg active:scale-95"
               >
-                Send Message
-                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#1A4331] group-hover:translate-x-1 transition-transform">
+                {contactText.submit}
+                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#1A4331] transition-transform ltr:group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1">
                   <ArrowRight size={18} />
                 </div>
               </button>
@@ -131,7 +135,7 @@ const ContactForm = () => {
               allowFullScreen={true}
               loading="lazy" 
               referrerPolicy="no-referrer-when-downgrade"
-              title="Google Maps Location"
+              title={contactText.mapTitle}
             ></iframe>
         </div>
       </div>

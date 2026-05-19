@@ -1,20 +1,28 @@
+"use client";
+
 import Image from "next/image";
 import { MoveLeft, MoveRight } from "lucide-react";
+import { useLocale } from "@/context/LocaleContext";
+import { translations } from "@/locales/translations";
 
 export default function EventTestimonials() {
+  const { locale } = useLocale();
+  const testimonialText = translations[locale]?.eventsPage?.testimonials || translations.en.eventsPage.testimonials;
+
   return (
     <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-[1100px]">
         {/* Header */}
         <div className="mb-12 text-center">
           <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1f4d3a] ">
-            <span>Client Testimonials</span>
+            <span>{testimonialText.badge}</span>
             <span className="text-[8px]">▼</span>
           </div>
 
-          <h2 className="mt-4 font-serif text-[36px] leading-[1.1] text-[#1f4d3a] md:text-[48px] fade-in">
-            Real Stories from Everyday <br className="hidden md:block" /> Moments
-          </h2>
+          <h2
+            className="mt-4 font-serif text-[36px] leading-[1.1] text-[#1f4d3a] md:text-[48px] fade-in"
+            dangerouslySetInnerHTML={{ __html: testimonialText.titleHTML }}
+          />
         </div>
 
         {/* Content Wrapper */}
@@ -25,7 +33,7 @@ export default function EventTestimonials() {
         <div className="relative flex flex-col-reverse items-center lg:flex-row">
           
           {/* Testimonial Card */}
-          <div className="left-move relative z-20 w-full lg:-mr-32 lg:w-[60%]">
+          <div className="left-move relative z-20 w-full ltr:lg:-mr-32 rtl:lg:-ml-32 lg:w-[60%]">
             <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-14">
               
               {/* Giant Quote SVG Background */}
@@ -36,23 +44,22 @@ export default function EventTestimonials() {
               </div>
 
               <div className="relative z-10">
-                <p className="fade-in text-[18px] md:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium">
-                  Zewadi products truly changed the way I look at everyday food simple,
-                  high-quality, and made to fit effortlessly into my life
+                <p className="fade-in text-[18px] md:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
+                  {testimonialText.quote}
                 </p>
 
                 <div className="mt-10 flex items-center justify-between">
                   {/* User Info */}
-                  <div className="fade-in flex items-center gap-4">
+                  <div className="fade-in flex items-center gap-4 rtl:flex-row-reverse">
                     <div className="h-14 w-14 rounded-full bg-[#dcdcd8]" />
-                    <div>
-                      <p className="text-[16px] font-bold text-[#1f4d3a]">Hamna Zaid</p>
-                      <p className="text-[12px] text-[#7a8c78]">Happy Customer</p>
+                    <div className="text-left rtl:text-right">
+                      <p className="text-[16px] font-bold text-[#1f4d3a]">{testimonialText.name}</p>
+                      <p className="text-[12px] text-[#7a8c78]">{testimonialText.role}</p>
                     </div>
                   </div>
 
                   {/* Navigation Buttons - Positioned to overlap the card edge */}
-                  <div className="absolute -right-4 bottom-10 flex gap-2 md:-right-6">
+                  <div className="absolute -right-4 bottom-10 flex gap-2 rtl:-left-4 rtl:right-auto md:-right-6 rtl:md:-left-6 rtl:md:right-auto">
                     <button className="flex h-12 w-12 items-center justify-center rounded-full bg-white/80 border border-white backdrop-blur-sm text-[#1f4d3a] shadow-sm transition-all hover:bg-white">
                       <MoveLeft className="h-5 w-5" />
                     </button>
