@@ -23,6 +23,7 @@ class CountryConfig(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
+        verbose_name_plural = "country configurations"
         ordering = ["country"]
 
     def __str__(self):
