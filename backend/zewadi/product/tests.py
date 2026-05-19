@@ -107,3 +107,69 @@ class ProductDetailCacheTest(TestCase):
         p.delete()
         r = self.client.get(f"/api/products/{pk}/")
         self.assertEqual(r.status_code, 404)
+
+
+# ============ GetProductPrice Service Tests ============
+
+from decimal import Decimal
+from product.models import ProductCountryPrice
+from product.services import get_product_price
+from tax.models import Currency, TaxCategory
+
+
+def make_currency(code="SAR", decimal_places=2):
+    return Currency.objects.get_or_create(
+        code=code, defaults={"name": code, "symbol": code, "decimal_places": decimal_places}
+    )[0]
+
+
+def make_product_with_tax():
+    tc = TaxCategory.objects.get_or_create(code="STANDARD", defaults={"name": "Standard Rate"})[0]
+    return Product.objects.create(
+        product_name="Test Product",
+        product_code="TP-001",
+        category="food",
+        product_status=ProductStatus.ACTIVE,
+        short_description="Test",
+        base_price=Decimal("100.00"),
+        selling_price=Decimal("100.00"),
+        cost_price=Decimal("100.00"),
+        mrp_price=Decimal("100.00"),
+        tax_category=tc,
+    )
+
+
+class GetProductPriceTests(TestCase):
+    def setUp(self):
+        self.sar = make_currency("SAR", 2)
+        self.aed = make_currency("AED", 2)
+        self.product = make_product_with_tax()
+
+    def test_returns_sa_price_when_country_price_exists(self):
+        ProductCountryPrice.objects.create(
+            product=self.product, country="SA", currency=self.sar, selling_price=Decimal("100.00")
+        )
+        price, currency = get_product_price(self.product, "SA")
+        self.assertEqual(price, Decimal("100.000"))
+        self.assertEqual(currency.code, "SAR")
+
+    def test_returns_aed_price_for_ae(self):
+        ProductCountryPrice.objects.create(
+            product=self.product, country="AE", currency=self.aed, selling_price=Decimal("99.750")
+        )
+        price, currency = get_product_price(self.product, "AE")
+        self.assertEqual(price, Decimal("99.750"))
+        self.assertEqual(currency.code, "AED")
+
+    def test_falls_back_to_sar_when_no_country_price(self):
+        # No AE price, SAR currency exists in DB
+        price, currency = get_product_price(self.product, "AE")
+        self.assertEqual(price, self.product.selling_price)
+        self.assertEqual(currency.code, "SAR")
+
+    def test_case_insensitive_country_code(self):
+        ProductCountryPrice.objects.create(
+            product=self.product, country="SA", currency=self.sar, selling_price=Decimal("100.00")
+        )
+        price, currency = get_product_price(self.product, "sa")
+        self.assertEqual(currency.code, "SAR")
