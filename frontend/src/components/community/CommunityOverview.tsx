@@ -62,28 +62,28 @@ const CommunityOverview = () => {
       // 1. Image Wipe L->R
       tl.fromTo("#overview-img",
         { clipPath: "inset(0% 100% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.5, ease: "power3.inOut", clearProps: "all" }
+        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.8, ease: "power3.inOut", clearProps: "all" }
       );
 
       // 2. Green Bg Wipe L->R with a time gap!
       tl.fromTo("#overview-green",
         { clipPath: "inset(0% 100% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.0, ease: "power3.inOut", clearProps: "all" },
-        "+=0.2" // The requested gap in swiping
+        { clipPath: "inset(0% 0% 0% 0%)", duration: 0.55, ease: "power3.inOut", clearProps: "all" },
+        "+=0.08" // The requested gap in swiping
       );
 
       // 3. Text Content Fades In
       tl.fromTo(".overview-text",
         { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1, stagger: 0.2 },
-        "-=0.4"
+        { opacity: 1, y: 0, duration: 0.45, stagger: 0.08 },
+        "-=0.25"
       );
 
       // 4. Floating Cards Fade In Sequentially
       tl.fromTo(".overview-card",
         { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: 1.2, stagger: 0.15 },
-        "-=0.6"
+        { opacity: 1, y: 0, duration: 0.55, stagger: 0.08 },
+        "-=0.3"
       );
 
     }, sectionRef);

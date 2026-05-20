@@ -266,15 +266,15 @@ const ProductDetails = () => {
                 <p className="text-base text-[#6b7280]">{product.product_subtitle}</p>
               )}
               <div className="mt-2 flex flex-wrap items-center gap-3">
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 md:text-3xl">
                   {toCurrency(displayPrice, product.currency || "INR")}
                 </p>
                 {isDiscounted ? (
                   <>
-                    <span className="text-sm text-gray-400 line-through">
+                    <span className="text-base text-gray-400 line-through md:text-lg">
                       {toCurrency(product.mrp_price, product.currency || "INR")}
                     </span>
-                    <span className="rounded-full bg-[#EAFBF0] px-2 py-1 text-xs font-semibold text-[#15803D]">
+                    <span className="rounded-full bg-[#EAFBF0] px-2.5 py-1 text-xs font-semibold text-[#15803D] md:text-sm">
                       {toNumber(product.discount_percent).toFixed(0)}% off
                     </span>
                   </>
