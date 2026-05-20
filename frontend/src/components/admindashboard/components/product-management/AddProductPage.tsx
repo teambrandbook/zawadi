@@ -117,6 +117,7 @@ export default function AddProductPage() {
     if (!productId) {
       setFormData(initialFormData);
       setExistingImageUrl(null);
+      setImageUrl("");
       return;
     }
 
@@ -163,8 +164,9 @@ export default function AddProductPage() {
               }))
             : [{ variant_value: "", variant_unit: "", cost: "", price: "", stock: "" }],
         });
-        setExistingImageUrl(toProductImageUrl(data.image));
-        if (data.image) setImageUrl(toProductImageUrl(data.image) ?? "");
+        const mainImageUrl = toProductImageUrl(data.image);
+        setExistingImageUrl(mainImageUrl);
+        setImageUrl(mainImageUrl ?? "");
       } catch {
         toast.error("Failed to load product details.");
       } finally {
@@ -175,18 +177,8 @@ export default function AddProductPage() {
     void fetchProduct();
   }, [productId]);
 
-  async function handleFormChange(next: ProductFormData) {
-    if (isImageUploading) return;
-    const prevImage = formData.image;
+  function handleFormChange(next: ProductFormData) {
     setFormData(next);
-    if (next.image && next.image !== prevImage) {
-      try {
-        const url = await uploadImage(next.image);
-        setImageUrl(url);
-      } catch {
-        // error handled in hook
-      }
-    }
   }
 
   const previewImageUrl = useMemo(() => {
@@ -218,6 +210,27 @@ export default function AddProductPage() {
     if (!formData.category) { toast.error("Category is required."); return; }
     if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
+    setIsSubmitting(true);
+    let mainImageUrl = imageUrl;
+    let alternativeImageUrls: string[] = [];
+    try {
+      if (formData.image) {
+        mainImageUrl = await uploadImage(formData.image);
+        setImageUrl(mainImageUrl);
+      }
+      alternativeImageUrls = await Promise.all(
+        Array.from({ length: 4 }, async (_, index) => {
+          const file = formData.alternative_images?.[index] ?? null;
+          if (file) return uploadImage(file);
+          return formData.alternative_image_urls?.[index] ?? "";
+        })
+      );
+    } catch {
+      setIsSubmitting(false);
+      return;
+    }
+    alternativeImageUrls = alternativeImageUrls.filter(Boolean);
+
     const fd = new FormData();
     fd.append("product_name", formData.product_name.trim());
     fd.append("product_code", formData.product_code.trim());
@@ -239,13 +252,13 @@ export default function AddProductPage() {
     fd.append("allow_out_of_stock", String(formData.allow_out_of_stock));
     fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
-    if (imageUrl) fd.append("image", imageUrl);
+    if (mainImageUrl) fd.append("image", mainImageUrl);
+    alternativeImageUrls.forEach((url) => fd.append("alternative_images", url));
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
     if (formData.low_stock_alert) fd.append("low_stock_alert", formData.low_stock_alert);
 
-    setIsSubmitting(true);
     try {
       if (isEditMode && productId) {
         await api.patch(`/products/${productId}/`, fd);
@@ -288,10 +301,12 @@ export default function AddProductPage() {
             <AddProductForm
               formData={formData}
               onChange={handleFormChange}
+              mainImageUrl={existingImageUrl}
               currencies={currencies}
               taxCategories={taxCategories}
               productCategories={productCategories}
             />
+            
             <AddProductActions
               onSubmit={() => handleSubmit("active")}
               onDraft={() => handleSubmit("draft")}

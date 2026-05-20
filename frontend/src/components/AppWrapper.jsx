@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import Providers from "@/app/providers";
 import Preloader from "./Preloader";
@@ -17,10 +17,43 @@ const MAX_WAIT_MS = 3000;
 export default function AppWrapper({ children }) {
   const [loading, setLoading] = useState(true);
   const pathname = usePathname();
+  const normalizedPathname = pathname?.toLowerCase() || "";
   const isDashboardPage =
-    pathname?.startsWith("/admindashboard") ||
-    pathname?.startsWith("/communityDashBoard") ||
-    pathname?.startsWith("/consultant");
+    normalizedPathname.startsWith("/admindashboard") ||
+    normalizedPathname.startsWith("/communitydashboard") ||
+    normalizedPathname.startsWith("/dashboard") ||
+    normalizedPathname.startsWith("/consultant");
+
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useLayoutEffect(() => {
+    const root = document.documentElement;
+    const body = document.body;
+    const scrollToTop = () => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    };
+
+    root.style.scrollBehavior = "auto";
+    body.style.scrollBehavior = "auto";
+
+    scrollToTop();
+
+    const frame = requestAnimationFrame(scrollToTop);
+    const secondFrame = requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToTop);
+    });
+    const timeout = window.setTimeout(scrollToTop, 80);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      cancelAnimationFrame(secondFrame);
+      window.clearTimeout(timeout);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     let done = false;

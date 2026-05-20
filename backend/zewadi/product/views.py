@@ -42,6 +42,10 @@ def _product_payload_from_request(request):
 
     # image and alternative_images are now URL strings (Cloudinary direct upload)
     # request.FILES is no longer used for image uploads
+    if hasattr(request.data, "getlist"):
+        alternative_images = request.data.getlist("alternative_images")
+        if alternative_images:
+            payload["alternative_images"] = alternative_images
 
     if "allow_out_of_stock" in payload and "allow_orders_when_out_of_stock" not in payload:
         payload["allow_orders_when_out_of_stock"] = payload.get("allow_out_of_stock")
@@ -52,6 +56,13 @@ def _product_payload_from_request(request):
             payload["variants"] = json.loads(variants)
         except json.JSONDecodeError:
             pass
+
+    alternative_images = payload.get("alternative_images")
+    if isinstance(alternative_images, str):
+        try:
+            payload["alternative_images"] = json.loads(alternative_images)
+        except json.JSONDecodeError:
+            payload["alternative_images"] = [alternative_images]
 
     return payload
 

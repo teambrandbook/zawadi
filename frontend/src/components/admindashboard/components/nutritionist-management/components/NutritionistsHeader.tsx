@@ -6,7 +6,7 @@ export default function NutritionistsHeader() {
   const router = useRouter();
   return (
     <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <h1 className="text-4xl font-semibold text-[#0A4833]">Nutritionists</h1>
+      <h1 className="text-2xl font-semibold text-[#0A4833] md:text-[28px]">Nutritionists</h1>
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative  min-w-[220px] max-w-[230px]">

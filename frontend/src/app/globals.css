@@ -36,6 +36,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html,
+body {
+  scroll-behavior: auto !important;
+}
+
 html:not(.dashboard-native-scrollbar),
 html:not(.dashboard-native-scrollbar) body,
 html:not(.dashboard-native-scrollbar) :root,
