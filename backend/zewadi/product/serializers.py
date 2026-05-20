@@ -233,5 +233,5 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             return
 
         product.alternative_images.all().delete()
-        for index, image in enumerate(images):
+        for index, image in enumerate([image for image in images if image]):
             ProductImage.objects.create(product=product, image=image, sort_order=index)

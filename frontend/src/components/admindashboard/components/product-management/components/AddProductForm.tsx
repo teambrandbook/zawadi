@@ -54,6 +54,7 @@ export type ProductFormData = {
 
 type Props = {
   formData: ProductFormData;
+  mainImageUrl?: string | null;
   onChange: (data: ProductFormData) => void;
   currencies?: CurrencyOption[];
   taxCategories?: TaxCategoryOption[];
@@ -124,22 +125,32 @@ function TextareaField({
   placeholder,
   value,
   rows = 4,
+  maxLength,
   onValueChange,
 }: {
   label: string;
   placeholder: string;
   value: string;
   rows?: number;
+  maxLength?: number;
   onValueChange: (v: string) => void;
 }) {
   return (
     <label className="space-y-2">
-      <span className={labelClass}>{label}</span>
+      <span className="flex items-center justify-between gap-3">
+        <span className={labelClass}>{label}</span>
+        {maxLength ? (
+          <span className="text-[12px] tracking-[-0.3px] text-[#6B7280]">
+            {value.length}/{maxLength}
+          </span>
+        ) : null}
+      </span>
       <textarea
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
+        maxLength={maxLength}
         className="w-full resize-none rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-[16px] tracking-[-0.5px] text-[#111827] outline-none transition placeholder:text-black/50 focus:border-[#0A4833]"
       />
     </label>
@@ -194,7 +205,8 @@ const STOCK_STATUS_OPTIONS = [
   { label: "Out of Stock", value: "out_of_stock" },
 ];
 
-export default function AddProductForm({ formData, onChange, currencies = [], taxCategories = [] }: Props) {
+
+export default function AddProductForm({ formData, onChange, mainImageUrl, currencies = [], taxCategories = [] }: Props) {
   const currencyOptions = currencies.map((c) => ({ label: `${c.name} (${c.symbol})`, value: c.code }));
   const taxCategoryOptions = taxCategories.map((t) => ({ label: t.name, value: t.code }));
   function set(field: keyof ProductFormData) {
@@ -259,10 +271,20 @@ export default function AddProductForm({ formData, onChange, currencies = [], ta
 
       <Card>
         <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Product Images" />
-        <label className="block cursor-pointer rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-5 py-10 text-center">
-          <UploadCloud className="mx-auto h-8 w-8 text-[#9F8151]" />
+        <label className="block cursor-pointer rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-5 py-10 text-center transition hover:border-[#0A4833]/50">
+          {mainImageUrl && !formData.image ? (
+            <span className="relative mx-auto block h-20 w-20 overflow-hidden rounded-[8px] bg-white">
+              <img src={mainImageUrl} alt="Current main product image" className="h-full w-full object-cover" />
+            </span>
+          ) : (
+            <UploadCloud className="mx-auto h-8 w-8 text-[#9F8151]" />
+          )}
           <span className="mt-2 block text-[14px] font-semibold tracking-[-0.5px] text-[#0A4833]">
-            {formData.image ? formData.image.name : "Drag and drop images here, or click to browse"}
+            {formData.image
+              ? formData.image.name
+              : mainImageUrl
+                ? "Current main image. Click to replace"
+                : "Drag and drop images here, or click to browse"}
           </span>
           <span className="block text-[12px] tracking-[-0.5px] text-[#6B7280]">Recommended size: 800x800px. Supports JPG, PNG formats.</span>
           <input type="file" accept="image/*" onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })} className="sr-only" />
@@ -272,7 +294,7 @@ export default function AddProductForm({ formData, onChange, currencies = [], ta
           <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Alternative Images" />
           {formData.alternative_image_urls?.length ? (
             <p className="-mt-3 mb-3 text-[12px] tracking-[-0.4px] text-[#6B7280]">
-              Selecting new alternative images will replace the saved gallery.
+              Click a saved image slot to replace it, or use an empty slot to add another image.
             </p>
           ) : null}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -318,7 +340,7 @@ export default function AddProductForm({ formData, onChange, currencies = [], ta
       <Card>
         <SectionTitle icon={<PencilLine className="h-[18px] w-[18px]" />} title="Product Description" />
         <div className="space-y-4">
-          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} onValueChange={set("short_description")} />
+          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} maxLength={150} onValueChange={set("short_description")} />
           <TextareaField label="Full Description" placeholder="Detailed product description" value={formData.full_description} rows={6} onValueChange={set("full_description")} />
         </div>
       </Card>
