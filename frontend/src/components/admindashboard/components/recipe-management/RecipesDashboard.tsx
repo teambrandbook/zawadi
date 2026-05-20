@@ -612,15 +612,15 @@ export default function RecipesDashboard() {
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
-              <article key={card.title} className="rounded-xl border border-[#E5E7EB] bg-white p-4">
-                <div className="mb-3 flex items-start justify-between">
+              <article key={card.title} className="h-[126px] overflow-hidden rounded-xl border border-[#E5E7EB] bg-white p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
                   <span className={`grid h-9 w-9 place-items-center rounded-md ${card.iconBg}`}>
                     <Icon className={`h-4 w-4 ${card.accent}`} />
                   </span>
-                  <span className={`text-[11px] font-medium ${card.accent}`}>{card.note}</span>
+                  <span className={`truncate text-[11px] font-medium ${card.accent}`}>{card.note}</span>
                 </div>
-                <p className="text-[30px] font-semibold leading-none text-[#0A4833]">{card.value}</p>
-                <p className="mt-2 text-[13px] text-[#6B7280]">{card.title}</p>
+                <p className="truncate text-[28px] font-semibold leading-none text-[#0A4833]">{card.value}</p>
+                <p className="mt-2 truncate text-[13px] text-[#6B7280]">{card.title}</p>
               </article>
             );
           })}

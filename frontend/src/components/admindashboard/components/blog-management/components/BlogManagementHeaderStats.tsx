@@ -65,15 +65,15 @@ export default function BlogManagementHeaderStats({ rows = [] }: Props) {
         {primaryStats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <article key={stat.label} className="rounded-xl border border-[#E4E7EC] bg-white p-3.5">
-              <div className="mb-2.5 flex items-start justify-between">
+            <article key={stat.label} className="h-[126px] overflow-hidden rounded-xl border border-[#E4E7EC] bg-white p-4">
+              <div className="mb-2 flex items-start justify-between gap-2">
                 <span className={`grid h-8 w-8 place-items-center rounded-md ${stat.iconWrap}`}>
                   <Icon className={`h-4 w-4 ${stat.iconColor}`} />
                 </span>
-                <span className={`text-[11px] font-medium ${stat.noteColor}`}>{stat.note}</span>
+                <span className={`truncate text-[11px] font-medium ${stat.noteColor}`}>{stat.note}</span>
               </div>
-              <p className="text-[30px] font-semibold leading-none text-[#0A4833]">{stat.value}</p>
-              <p className="mt-2 text-[13px] text-[#667085]">{stat.label}</p>
+              <p className="truncate text-[28px] font-semibold leading-none text-[#0A4833]">{stat.value}</p>
+              <p className="mt-2 truncate text-[13px] text-[#667085]">{stat.label}</p>
             </article>
           );
         })}
