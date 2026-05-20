@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import api from "@/services/api";
 import AdminContactDetailsCard from "./components/AdminContactDetailsCard";
 import LocalizationFormatCard from "./components/LocalizationFormatCard";
 import PlatformInformationCard from "./components/PlatformInformationCard";
@@ -10,6 +11,7 @@ import SettingsHeader from "./components/SettingsHeader";
 import SettingsPageActions from "./components/SettingsPageActions";
 import SettingsTabs from "./components/SettingsTabs";
 import SystemPreferencesSection from "./components/SystemPreferencesSection";
+import TaxCurrencySection from "./components/TaxCurrencySection";
 import {
   adminContactDefault,
   localizationFormatDefault,
@@ -53,6 +55,23 @@ export default function SettingsManagementPage() {
   const [systemData, setSystemData] = useState(savedSettings?.systemData ?? systemPreferencesDefault);
   const [lastSaved, setLastSaved] = useState(savedSettings?.lastSaved ?? "Not saved yet");
 
+  useEffect(() => {
+    api.get<{ platform_name: string; support_email: string; support_phone: string; maintenance_mode: boolean }>(
+      "/superadmin/config/",
+    )
+      .then((res) => {
+        const cfg = res.data;
+        setPlatformData((prev) => ({
+          ...prev,
+          platformName: cfg.platform_name || prev.platformName,
+          supportEmail: cfg.support_email || prev.supportEmail,
+          supportPhone: cfg.support_phone || prev.supportPhone,
+        }));
+        setSystemData((prev) => ({ ...prev, maintenanceMode: cfg.maintenance_mode }));
+      })
+      .catch(() => {});
+  }, []);
+
   function persistToStorage(
     updatedPlatform: typeof platformInformationDefault,
     updatedLocalization: typeof localizationFormatDefault,
@@ -72,7 +91,7 @@ export default function SettingsManagementPage() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   }
 
-  function handleSave() {
+  async function handleSave() {
     const savedAt = new Date().toLocaleString("en-US", {
       month: "long",
       day: "numeric",
@@ -82,7 +101,30 @@ export default function SettingsManagementPage() {
     }) + " by Admin User";
     setLastSaved(savedAt);
     persistToStorage(platformData, localizationData, adminContactData, securityData, systemData, savedAt);
-    toast.success("Settings saved successfully! ✅");
+
+    try {
+      await api.patch("/superadmin/config/", {
+        platform_name: platformData.platformName,
+        support_email: platformData.supportEmail,
+        support_phone: platformData.supportPhone,
+      });
+    } catch {
+      toast.error("Could not save platform info to server.");
+      return;
+    }
+
+    toast.success("Settings saved successfully!");
+  }
+
+  async function handleMaintenanceToggle(value: boolean) {
+    setSystemData((prev) => ({ ...prev, maintenanceMode: value }));
+    try {
+      await api.patch("/superadmin/config/", { maintenance_mode: value });
+      toast.success(value ? "Maintenance mode enabled." : "Maintenance mode disabled.");
+    } catch {
+      setSystemData((prev) => ({ ...prev, maintenanceMode: !value }));
+      toast.error("Could not update maintenance mode.");
+    }
   }
 
   function handleCancel() {
@@ -170,8 +212,11 @@ export default function SettingsManagementPage() {
             onChange={setSystemData}
             onSave={handleSave}
             onReset={handleReset}
+            onMaintenanceToggle={handleMaintenanceToggle}
           />
         ) : null}
+
+        {activeTab === "tax" ? <TaxCurrencySection /> : null}
       </div>
     </section>
   );

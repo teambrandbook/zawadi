@@ -66,10 +66,19 @@ export default function SecurityPrivacySection({ data, onChange, onSave, onCance
               <div className="border-b border-[#DFDFDF] pb-3">
                 <p className="text-sm font-semibold text-[#0A4833]">Password Policy</p>
                 <p className="mb-2 text-[#4B5563]">Minimum Length</p>
-                <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-                  {data.passwordPolicy}
-                  <ChevronDown size={13} className="text-[#0A4833]" />
-                </button>
+                <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+                  <select
+                    value={data.passwordPolicy}
+                    onChange={(e) => onChange({ ...data, passwordPolicy: e.target.value })}
+                    className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+                  >
+                    <option>8 characters</option>
+                    <option>10 characters</option>
+                    <option>12 characters</option>
+                    <option>16 characters</option>
+                  </select>
+                  <ChevronDown size={13} className="pointer-events-none shrink-0 text-[#0A4833]" />
+                </div>
                 <div className="mt-2 space-y-1 text-[#0A4833]">
                   <p className="inline-flex items-center gap-1.5">
                     <Check size={11} className="text-[#2563EB]" />
@@ -88,18 +97,37 @@ export default function SecurityPrivacySection({ data, onChange, onSave, onCance
 
               <div className="border-b border-[#DFDFDF] pb-3">
                 <p className="text-sm font-semibold text-[#0A4833]">Session Timeout</p>
-                <button className="mt-1 flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-                  {data.sessionTimeout}
-                  <ChevronDown size={13} className="text-[#0A4833]" />
-                </button>
+                <div className="mt-1 flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+                  <select
+                    value={data.sessionTimeout}
+                    onChange={(e) => onChange({ ...data, sessionTimeout: e.target.value })}
+                    className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+                  >
+                    <option>15 minutes</option>
+                    <option>30 minutes</option>
+                    <option>1 hour</option>
+                    <option>4 hours</option>
+                  </select>
+                  <ChevronDown size={13} className="pointer-events-none shrink-0 text-[#0A4833]" />
+                </div>
               </div>
 
               <div>
                 <p className="text-sm font-semibold text-[#0A4833]">Login Attempt Restriction</p>
-                <div className="mt-1 inline-flex h-9 items-center rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-4 text-sm text-[#0A4833]">
-                  {data.loginAttemptLimit}
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+                    <select
+                      value={data.loginAttemptLimit}
+                      onChange={(e) => onChange({ ...data, loginAttemptLimit: e.target.value })}
+                      className="w-14 appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+                    >
+                      <option>3</option>
+                      <option>5</option>
+                      <option>10</option>
+                    </select>
+                  </div>
+                  <span className="text-xs text-[#4B5563]">failed attempts before lockout</span>
                 </div>
-                <span className="ml-2 text-[#4B5563]">failed attempts before lockout</span>
               </div>
             </div>
           </article>
@@ -171,10 +199,18 @@ export default function SecurityPrivacySection({ data, onChange, onSave, onCance
 
               <div>
                 <p className="text-sm font-semibold text-[#0A4833]">Sensitive Data Access</p>
-                <button className="mt-1 flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-white px-3 text-sm text-[#0A4833]">
-                  {data.sensitiveDataAccess}
-                  <ChevronDown size={13} className="text-[#0A4833]" />
-                </button>
+                <div className="mt-1 flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-white px-3">
+                  <select
+                    value={data.sensitiveDataAccess}
+                    onChange={(e) => onChange({ ...data, sensitiveDataAccess: e.target.value })}
+                    className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+                  >
+                    <option>Super Admin only</option>
+                    <option>Admin and above</option>
+                    <option>All Staff</option>
+                  </select>
+                  <ChevronDown size={13} className="pointer-events-none shrink-0 text-[#0A4833]" />
+                </div>
                 <p className="mt-1 text-[11px] text-[#4B5563]">
                   Controls access to health data and personal information
                 </p>
