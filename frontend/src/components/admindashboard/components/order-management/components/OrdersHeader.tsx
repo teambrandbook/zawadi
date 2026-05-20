@@ -12,7 +12,7 @@ export default function OrdersHeader({ search, onSearchChange, onFilterClick, on
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h2 className="text-[30px] font-semibold leading-none text-[#0A4833]">Orders</h2>
+          <h2 className="text-2xl font-semibold leading-none text-[#0A4833] md:text-[28px]">Orders</h2>
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8B8B8B]" />
             <input
