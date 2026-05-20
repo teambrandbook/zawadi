@@ -8,10 +8,12 @@ import {
   Plus,
   UploadCloud,
 } from "lucide-react";
+import Link from "next/link";
 import { ReactNode } from "react";
 
 export type CurrencyOption = { code: string; name: string; symbol: string };
 export type TaxCategoryOption = { code: string; name: string };
+export type ProductCategoryOption = { id: number; name: string; slug: string; is_active: boolean };
 
 export type ProductVariantFormData = {
   variant_value: string;
@@ -58,6 +60,7 @@ type Props = {
   onChange: (data: ProductFormData) => void;
   currencies?: CurrencyOption[];
   taxCategories?: TaxCategoryOption[];
+  productCategories?: ProductCategoryOption[];
 };
 
 const fieldClass =
@@ -174,18 +177,6 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
   );
 }
 
-const CATEGORY_OPTIONS = [
-  { label: "Multi Grains", value: "multi_grains" },
-  { label: "Small Grains", value: "small_grains" },
-  { label: "Pulses", value: "pulses" },
-  { label: "Nuts", value: "nuts" },
-  { label: "Seeds", value: "seeds" },
-  { label: "Rices", value: "rices" },
-  { label: "Oils", value: "oils" },
-  { label: "Spices", value: "spices" },
-  { label: "Spreads & Butters", value: "spreads_butters" },
-];
-
 const STATUS_OPTIONS = [
   { label: "Draft", value: "draft" },
   { label: "Active", value: "active" },
@@ -205,10 +196,23 @@ const STOCK_STATUS_OPTIONS = [
   { label: "Out of Stock", value: "out_of_stock" },
 ];
 
+export default function AddProductForm({
+  formData,
+  onChange,
+  mainImageUrl,
+  currencies = [],
+  taxCategories = [],
+  productCategories = [],
+}: Props) {
 
-export default function AddProductForm({ formData, onChange, mainImageUrl, currencies = [], taxCategories = [] }: Props) {
   const currencyOptions = currencies.map((c) => ({ label: `${c.name} (${c.symbol})`, value: c.code }));
   const taxCategoryOptions = taxCategories.map((t) => ({ label: t.name, value: t.code }));
+  const categoryOptions = productCategories
+    .filter((category) => category.is_active || category.slug === formData.category)
+    .map((category) => ({
+      label: category.is_active ? category.name : `${category.name} (Inactive)`,
+      value: category.slug,
+    }));
   function set(field: keyof ProductFormData) {
     return (value: string | boolean) => onChange({ ...formData, [field]: value });
   }
@@ -252,7 +256,22 @@ export default function AddProductForm({ formData, onChange, mainImageUrl, curre
             onValueChange={set("product_status")}
           />
           <TextField label="Product Code *" placeholder="BWH-001" value={formData.product_code} onValueChange={set("product_code")} />
-          <SelectField label="Category *" placeholder="Select category" value={formData.category} options={CATEGORY_OPTIONS} onValueChange={set("category")} />
+          <div className="grid grid-cols-[minmax(0,1fr)_32px] items-end gap-3">
+            <SelectField
+              label="Category *"
+              placeholder={productCategories.length ? "Select category" : "Create a category first"}
+              value={formData.category}
+              options={categoryOptions}
+              onValueChange={set("category")}
+            />
+            <Link
+              href="/admindashboard/products/categories"
+              aria-label="Manage product categories"
+              className="mb-0.5 grid h-10 w-8 place-items-center text-[#0A4833]"
+            >
+              <Plus className="h-5 w-5" />
+            </Link>
+          </div>
           <label className="space-y-2">
             <span className={labelClass}>Brand Name</span>
             <div className="flex h-12 w-full items-center rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 text-[16px] tracking-[-0.5px] text-black/50">

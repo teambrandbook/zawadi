@@ -7,7 +7,12 @@ import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import AddProductActions from "./components/AddProductActions";
-import AddProductForm, { ProductFormData, CurrencyOption, TaxCategoryOption } from "./components/AddProductForm";
+import AddProductForm, {
+  ProductCategoryOption,
+  ProductFormData,
+  CurrencyOption,
+  TaxCategoryOption,
+} from "./components/AddProductForm";
 import AddProductHeader from "./components/AddProductHeader";
 import ProductPreviewCard from "./components/ProductPreviewCard";
 
@@ -31,6 +36,7 @@ type ApiProduct = {
   selling_price?: string | number;
   currency?: string;
   tax_category?: string | null;
+  tax_category_code?: string | null;
   stock_quantity?: number;
   low_stock_alert?: number;
   stock_status?: string;
@@ -94,6 +100,7 @@ export default function AddProductPage() {
   const { upload: uploadImage, isUploading: isImageUploading } = useCloudinaryUpload("product_image");
   const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
   const [taxCategories, setTaxCategories] = useState<TaxCategoryOption[]>([]);
+  const [productCategories, setProductCategories] = useState<ProductCategoryOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
@@ -103,6 +110,7 @@ export default function AddProductPage() {
   useEffect(() => {
     void api.get<CurrencyOption[]>("/tax/currencies/").then((r) => setCurrencies(r.data)).catch(() => {});
     void api.get<TaxCategoryOption[]>("/tax/categories/").then((r) => setTaxCategories(r.data)).catch(() => {});
+    void api.get<ProductCategoryOption[]>("/products/categories/").then((r) => setProductCategories(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -137,7 +145,7 @@ export default function AddProductPage() {
           mrp_price: String(data.mrp_price ?? data.sale_price ?? data.base_price ?? ""),
           selling_price: String(data.selling_price ?? data.sale_price ?? data.base_price ?? ""),
           currency: String(data.currency ?? "USD"),
-          tax_category: String(data.tax_category ?? "STANDARD"),
+          tax_category: String(data.tax_category_code ?? data.tax_category ?? "STANDARD"),
           stock_quantity: String(data.stock_quantity ?? ""),
           low_stock_alert: String(data.low_stock_alert ?? "5"),
           stock_status: String(data.stock_status ?? "in_stock"),
@@ -290,8 +298,15 @@ export default function AddProductPage() {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,816px)_272px]">
           <div className="space-y-4">
+            <AddProductForm
+              formData={formData}
+              onChange={handleFormChange}
+              mainImageUrl={existingImageUrl}
+              currencies={currencies}
+              taxCategories={taxCategories}
+              productCategories={productCategories}
+            />
             
-            <AddProductForm formData={formData} onChange={handleFormChange} mainImageUrl={existingImageUrl} currencies={currencies} taxCategories={taxCategories} />
             <AddProductActions
               onSubmit={() => handleSubmit("active")}
               onDraft={() => handleSubmit("draft")}
