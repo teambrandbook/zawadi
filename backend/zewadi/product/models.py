@@ -2,11 +2,12 @@ from decimal import Decimal
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils.text import slugify
 
 # Create your models here.
 
 
-class ProductCategory(models.TextChoices):
+class ProductCategoryChoice(models.TextChoices):
     FOOD = "food", "Food"
     SEED = "seed", "Seed"
     SUPPLEMENT = "supplement", "Supplement"
@@ -20,6 +21,29 @@ class ProductCategory(models.TextChoices):
     OILS = "oils", "Oils"
     SPICES = "spices", "Spices"
     SPREADS_BUTTERS = "spreads_butters", "Spreads & Butters"
+
+
+class ProductCategory(models.Model):
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=80, unique=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name_plural = "Product categories"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name).replace("-", "_")
+        else:
+            self.slug = self.slug.strip().lower().replace("-", "_")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 
 class ProductStatus(models.TextChoices):
@@ -48,7 +72,7 @@ class Product(models.Model):
     product_subtitle = models.CharField(max_length=180, blank=True, null=True)
     product_code = models.CharField(max_length=50, unique=True)
     brand_name = "Zewadi"
-    category = models.CharField(max_length=30, choices=ProductCategory.choices, default=ProductCategory.OTHER)
+    category = models.CharField(max_length=80, default=ProductCategoryChoice.OTHER.value)
     product_status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     image = models.URLField(blank=True, null=True)
     product_unit = models.CharField(max_length=20, choices=ProductUnit.choices, blank=True, default="")
