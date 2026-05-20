@@ -119,22 +119,32 @@ function TextareaField({
   placeholder,
   value,
   rows = 4,
+  maxLength,
   onValueChange,
 }: {
   label: string;
   placeholder: string;
   value: string;
   rows?: number;
+  maxLength?: number;
   onValueChange: (v: string) => void;
 }) {
   return (
     <label className="space-y-2">
-      <span className={labelClass}>{label}</span>
+      <span className="flex items-center justify-between gap-3">
+        <span className={labelClass}>{label}</span>
+        {maxLength ? (
+          <span className="text-[12px] tracking-[-0.3px] text-[#6B7280]">
+            {value.length}/{maxLength}
+          </span>
+        ) : null}
+      </span>
       <textarea
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
+        maxLength={maxLength}
         className="w-full resize-none rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-[16px] tracking-[-0.5px] text-[#111827] outline-none transition placeholder:text-black/50 focus:border-[#0A4833]"
       />
     </label>
@@ -326,7 +336,7 @@ export default function AddProductForm({ formData, mainImageUrl, onChange }: Pro
       <Card>
         <SectionTitle icon={<PencilLine className="h-[18px] w-[18px]" />} title="Product Description" />
         <div className="space-y-4">
-          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} onValueChange={set("short_description")} />
+          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} maxLength={150} onValueChange={set("short_description")} />
           <TextareaField label="Full Description" placeholder="Detailed product description" value={formData.full_description} rows={6} onValueChange={set("full_description")} />
         </div>
       </Card>
