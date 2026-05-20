@@ -97,7 +97,8 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
-              const showChildren = item.children?.length && pathname.startsWith(item.href);
+              const children = item.children ?? [];
+              const showChildren = children.length > 0 && pathname.startsWith(item.href);
 
               return (
                 <div key={item.name}>
@@ -135,7 +136,7 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
                 </Link>
                 {showChildren ? (
                   <div className="ml-[52px] mt-2 space-y-2">
-                    {item.children.map((child) => {
+                    {children.map((child) => {
                       const childActive = pathname.startsWith(child.href);
                       return (
                         <Link
