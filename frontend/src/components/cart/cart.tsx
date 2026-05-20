@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, ArrowRight, Heart, Minus, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Minus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -247,13 +247,6 @@ function SuggestedCard({
             className="object-cover mix-blend-multiply transition duration-500 hover:scale-105"
           />
         </Link>
-        <button
-          type="button"
-          aria-label={`Add ${product.product_name} to wishlist`}
-          className="absolute right-2 top-2 flex size-8 items-center justify-center rounded-full bg-white text-[#9ca3af] shadow-sm transition hover:text-[#1f4d3a]"
-        >
-          <Heart size={16} />
-        </button>
       </div>
 
       <Link href={`/products/details?id=${product.id}`}>

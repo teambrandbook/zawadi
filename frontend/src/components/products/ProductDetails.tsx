@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Heart, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
@@ -12,9 +12,6 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { setCartCount } from "@/redux/userSlice";
-import PackSelector from "@/components/communityUsers/myorder/orderDetails/PackSelector";
-import type { PackOption } from "@/components/communityUsers/myorder/orderDetails/types";
-import gsap, { animateFadeInLeft, animateSwipeReveal } from "@/lib/gsap";
 
 type ProductVariant = {
   id: number;
@@ -26,6 +23,16 @@ type ProductVariant = {
   price: string;
   stock: number;
 };
+
+type ProductImageItem =
+  | string
+  | null
+  | undefined
+  | {
+      image?: string | null;
+      url?: string | null;
+      image_url?: string | null;
+    };
 
 type Product = {
   id: number;
@@ -47,12 +54,43 @@ type Product = {
   stock_quantity: number;
   stock_status: string;
   variants?: ProductVariant[];
-  alternative_images?: string[];
+  alternative_images?: ProductImageItem[];
+  inner_images?: ProductImageItem[];
+  images?: ProductImageItem[];
+  product_images?: ProductImageItem[];
 };
 
 function productImageUrl(path: string | null): string {
   if (!path) return "/product/buckwheat.webp";
   return getImageUrl(path);
+}
+
+function mainProductImage(product: Product): string {
+  return productImageUrl(product.image);
+}
+
+function imagePathFromItem(item: ProductImageItem): string | null {
+  if (!item) return null;
+  if (typeof item === "string") return item;
+  return item.image ?? item.image_url ?? item.url ?? null;
+}
+
+function productGalleryImages(product: Product): string[] {
+  const imageItems: ProductImageItem[] = [
+    ...(product.alternative_images ?? []),
+    ...(product.inner_images ?? []),
+    ...(product.images ?? []),
+    ...(product.product_images ?? []),
+  ];
+  const gallery = new Set<string>([mainProductImage(product)]);
+
+  imageItems
+    .map(imagePathFromItem)
+    .filter((image): image is string => Boolean(image))
+    .map(productImageUrl)
+    .forEach((image) => gallery.add(image));
+
+  return Array.from(gallery);
 }
 
 function toNumber(value: string | number | null | undefined): number {
@@ -67,27 +105,6 @@ function toCurrency(value: string | number | null | undefined, currency = "INR")
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(toNumber(value));
-}
-
-function toPacks(product: Product | null): PackOption[] {
-  if (!product) return [];
-
-  const price = product.selling_price ?? product.sale_price ?? product.base_price;
-  const productUnit = [product.unit_quantity, product.product_unit]
-    .filter(Boolean)
-    .join(" ");
-
-  return [
-    {
-      id: `product-${product.id}-default`,
-      name: productUnit || "Standard Pack",
-      price: toNumber(price),
-      unitNote:
-        product.mrp_price && toNumber(product.mrp_price) > toNumber(price)
-          ? `MRP ${toCurrency(product.mrp_price, product.currency || "INR")}`
-          : "Single SKU",
-    },
-  ];
 }
 
 function stockMessage(product: Product): { text: string; className: string } {
@@ -110,11 +127,7 @@ const ProductDetails = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedImage, setSelectedImage] = useState("");
-  const [selectedPackId, setSelectedPackId] = useState("");
   const [mounted, setMounted] = useState(false);
-
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const mainImageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -129,7 +142,6 @@ const ProductDetails = () => {
       .get(`/products/${productId}/`)
       .then((res) => {
         setProduct(res.data);
-        setSelectedPackId(`product-${res.data.id}-default`);
       })
       .catch(() => {
         toast.error("Could not load product.");
@@ -139,34 +151,8 @@ const ProductDetails = () => {
   }, [productId]);
 
   useEffect(() => {
-    if (!mounted || !product) return;
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 80%",
-        },
-      });
-
-      tl.set(mainImageRef.current, { opacity: 1 });
-      animateSwipeReveal(mainImageRef.current, {}, tl);
-      animateFadeInLeft(".product-info-stagger", {}, tl, "-=1");
-
-      animateFadeInLeft(".description-stagger", {
-        scrollTrigger: {
-          trigger: ".description-section",
-          start: "top 85%",
-        },
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
-  }, [mounted, product]);
-
-  useEffect(() => {
     if (!product) return;
-    setSelectedImage(productImageUrl(product.image));
+    setSelectedImage(mainProductImage(product));
   }, [product]);
 
   async function handleAddToCart() {
@@ -225,21 +211,18 @@ const ProductDetails = () => {
   const benefits = product.health_benefits
     ? product.health_benefits.split("\n").filter(Boolean)
     : [];
-  const galleryImages = Array.from(
-    new Set([productImageUrl(product.image), ...(product.alternative_images ?? []).map(productImageUrl)])
-  );
-  const activeImage = selectedImage || productImageUrl(product.image);
-  const packs = toPacks(product);
+  const galleryImages = productGalleryImages(product);
+  const activeImage = selectedImage || mainProductImage(product);
+  const thumbnailImages = galleryImages.filter((image) => image !== activeImage);
 
   return (
-    <section ref={sectionRef} className="py-20 lg:py-32">
+    <section className="py-20 lg:py-32">
       <div className="container mx-auto px-6 lg:px-20">
         <div className="grid grid-cols-1 items-start gap-16 lg:grid-cols-2">
           {/* Left: Product Image */}
           <div className="space-y-6">
             <div
-              ref={mainImageRef}
-              className="relative aspect-4/3 overflow-hidden rounded-2xl bg-gray-100 opacity-0 shadow-sm transition-all duration-700 hover:shadow-2xl"
+              className="relative aspect-4/3 overflow-hidden rounded-2xl bg-gray-100 shadow-sm transition-all duration-700 hover:shadow-2xl"
             >
               <Image
                 src={activeImage}
@@ -249,17 +232,15 @@ const ProductDetails = () => {
                 className="object-cover"
               />
             </div>
-            {galleryImages.length > 1 ? (
+            {thumbnailImages.length > 0 ? (
               <div className="grid grid-cols-5 gap-3">
-                {galleryImages.map((image, index) => (
+                {thumbnailImages.map((image, index) => (
                   <button
                     key={`${image}-${index}`}
                     type="button"
                     aria-label={`View ${product.product_name} image ${index + 1}`}
                     onClick={() => setSelectedImage(image)}
-                    className={`relative aspect-square overflow-hidden rounded-xl border bg-gray-100 transition ${
-                      activeImage === image ? "border-[#1A4331] ring-2 ring-[#1A4331]/20" : "border-gray-200"
-                    }`}
+                    className="relative aspect-square overflow-hidden rounded-xl border border-gray-200 bg-gray-100 transition hover:border-[#1A4331] hover:ring-2 hover:ring-[#1A4331]/20"
                   >
                     <Image
                       src={image}
@@ -277,7 +258,7 @@ const ProductDetails = () => {
 
           {/* Right: Product Info */}
           <div className="space-y-8">
-            <div className="product-info-stagger opacity-0">
+            <div>
               <h1 className="mb-4 font-playfair text-4xl font-bold text-black md:text-5xl">
                 {product.product_name}
               </h1>
@@ -305,13 +286,13 @@ const ProductDetails = () => {
             </div>
 
             {product.short_description && (
-              <p className="product-info-stagger max-w-lg font-inter text-sm leading-relaxed text-[#1A4331] opacity-0">
+              <p className="max-w-lg font-inter text-sm leading-relaxed text-[#1A4331]">
                 {product.short_description}
               </p>
             )}
 
             {benefits.length > 0 && (
-              <div className="product-info-stagger space-y-4 opacity-0">
+              <div className="space-y-4">
                 <h3 className="font-bold text-black">Benefits</h3>
                 <ul className="space-y-2">
                   {benefits.map((benefit, i) => (
@@ -324,20 +305,7 @@ const ProductDetails = () => {
               </div>
             )}
 
-            {/* Pack selector */}
-            {packs.length > 0 && (
-              <div className="product-info-stagger opacity-0">
-                <PackSelector
-                  packs={packs}
-                  selectedPackId={selectedPackId || packs[0].id}
-                  onSelectPack={setSelectedPackId}
-                  currency={product.currency || "INR"}
-                  locale="en-IN"
-                />
-              </div>
-            )}
-
-            <div className="product-info-stagger grid grid-cols-[auto_1fr] items-center gap-3 pt-4 opacity-0 sm:flex sm:flex-wrap sm:gap-6">
+            <div className="grid grid-cols-[auto_1fr] items-center gap-3 pt-4 sm:flex sm:flex-wrap sm:gap-6">
               {/* Quantity Selector */}
               <div className="flex w-fit items-center overflow-hidden rounded-lg border border-gray-200">
                 <button
@@ -366,15 +334,6 @@ const ProductDetails = () => {
               >
                 {product.stock_quantity <= 0 || product.stock_status === "out_of_stock" ? "Out of Stock" : "Add To Cart"}
               </button>
-
-              <button
-                type="button"
-                aria-label="Save to wishlist"
-                onClick={() => toast.info("Wishlist coming soon!")}
-                className="justify-self-end rounded-lg border border-gray-200 p-3.5 text-[#1A4331] transition-all hover:bg-gray-50"
-              >
-                <Heart size={20} />
-              </button>
             </div>
           </div>
         </div>
@@ -382,7 +341,7 @@ const ProductDetails = () => {
         {/* Bottom: Full Description */}
         {product.full_description && (
           <div className="description-section mt-24 space-y-8">
-            <div className="description-stagger space-y-4 opacity-0">
+            <div className="space-y-4">
               <h2 className="border-b border-gray-200 pb-4 text-xl font-bold text-black">
                 Description
               </h2>
@@ -393,7 +352,7 @@ const ProductDetails = () => {
 
             <Link
               href="/recipes"
-              className="description-stagger inline-block rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white opacity-0 shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
+              className="inline-block rounded-lg bg-[#1A4331] px-8 py-3.5 font-bold text-white shadow-md transition-all hover:bg-[#1A4331]/90 active:scale-[0.98]"
             >
               Try Recipes
             </Link>
