@@ -40,13 +40,14 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     postal_code: "",
+    country: "SA",
     instructions: "",
   });
   const [errors, setErrors] = useState<Partial<typeof form>>({});
 
   useEffect(() => {
     api
-      .get("/orders/cart/")
+      .get(`/orders/cart/?country=${form.country}`)
       .then((res) => {
         const s: CartSummary = res.data.summary;
         if (!s || s.item_count === 0) {
@@ -65,7 +66,7 @@ export default function CheckoutPage() {
         }
       })
       .finally(() => setLoadingCart(false));
-  }, [router]);
+  }, [router, form.country]);
 
   function validate() {
     const e: Partial<typeof form> = {};
@@ -165,6 +166,22 @@ export default function CheckoutPage() {
                 )}
               </div>
             ))}
+
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-[#374151]">
+                Country <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                className="w-full rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#1f4d3a] focus:ring-2 focus:ring-[#1f4d3a]/20"
+              >
+                <option value="SA">Saudi Arabia (SAR)</option>
+                <option value="AE">United Arab Emirates (AED)</option>
+                <option value="BH">Bahrain (BHD)</option>
+                <option value="OM">Oman (OMR)</option>
+              </select>
+            </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-[#374151]">

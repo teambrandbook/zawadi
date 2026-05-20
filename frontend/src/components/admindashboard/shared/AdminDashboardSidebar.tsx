@@ -24,14 +24,28 @@ type Props = {
   onClose?: () => void;
 };
 
-const navigation = [
+type NavItem = {
+  name: string;
+  icon: React.ComponentType<{ size?: number }>;
+  href: string;
+  children?: { name: string; href: string }[];
+};
+
+const navigation: { section: string; items: NavItem[] }[] = [
   {
     section: "Main",
     items: [
       { name: "Dashboard", icon: Home, href: "/admindashboard" },
       { name: "Users", icon: Users, href: "/admindashboard/users" }, 
       { name: "Orders", icon: ShoppingBag, href: "/admindashboard/orders" },
-      { name: "Products", icon: Package, href: "/admindashboard/products" },
+      {
+        name: "Products",
+        icon: Package,
+        href: "/admindashboard/products",
+        children: [
+          { name: "Create category", href: "/admindashboard/products/categories" },
+        ],
+      },
     ],
   },
   {
@@ -63,6 +77,9 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
     if (href === "/admindashboard") {
       return pathname === "/admindashboard";
     }
+    if (href === "/admindashboard/products") {
+      return pathname.startsWith("/admindashboard/products") && !pathname.startsWith("/admindashboard/products/categories");
+    }
     return pathname.startsWith(href);
   }
 
@@ -80,9 +97,12 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
               const Icon = item.icon;
               const active = isActive(item.href);
 
+              const children = item.children ?? [];
+              const showChildren = children.length > 0 && pathname.startsWith(item.href);
+
               return (
+                <div key={item.name}>
                 <Link 
-                  key={item.name} 
                   href={item.href} 
 
                   /* ✅ CLOSE SIDEBAR ON CLICK */
@@ -114,6 +134,33 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
                     {item.name}
                   </div>
                 </Link>
+                {showChildren ? (
+                  <div className="ml-[52px] mt-2 space-y-2">
+                    {children.map((child) => {
+                      const childActive = pathname.startsWith(child.href);
+                      return (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          onClick={() => {
+                            if (window.innerWidth < 768) {
+                              onClose?.();
+                            }
+                          }}
+                          className={`
+                            flex min-h-9 items-center justify-center rounded-full px-3 text-sm font-medium transition-all
+                            ${childActive
+                              ? "bg-[#06402B] text-white"
+                              : "bg-[#EFE7D6] text-[#06402B] hover:bg-[#e5dbc4]"}
+                          `}
+                        >
+                          {child.name}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+                </div>
               );
             })}
           </div>

@@ -1,9 +1,38 @@
 from decimal import Decimal
 
 from rest_framework import serializers
-from .models import Product, ProductImage, ProductVariant
+from .models import Product, ProductCategory, ProductImage, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
+
+
+class ProductCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCategory
+        fields = ["id", "name", "slug", "is_active", "sort_order", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Category name is required.")
+        return value
+
+    def validate_slug(self, value):
+        return value.strip().lower().replace("-", "_")
+
+    def validate(self, attrs):
+        from django.utils.text import slugify
+
+        name = attrs.get("name", getattr(self.instance, "name", ""))
+        slug = attrs.get("slug") or getattr(self.instance, "slug", "") or slugify(name).replace("-", "_")
+        attrs["slug"] = slug
+        existing = ProductCategory.objects.filter(slug=slug)
+        if self.instance:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise serializers.ValidationError({"slug": "A category with this slug already exists."})
+        return attrs
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -38,9 +67,16 @@ class ProductSerializer(serializers.ModelSerializer):
     display_price = serializers.SerializerMethodField()
     currency_code = serializers.SerializerMethodField()
     currency_decimal_places = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
 
     def get_brand_name(self, obj):
         return obj.brand_name
+
+    def get_category_name(self, obj):
+        if not obj.category:
+            return ""
+        category = ProductCategory.objects.filter(slug=obj.category).only("name").first()
+        return category.name if category else obj.category.replace("_", " ").title()
 
     def get_image(self, obj):
         return obj.image or None
@@ -97,6 +133,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_code",
             "brand_name",
             "category",
+            "category_name",
             "product_status",
             "image",
             "alternative_images",
@@ -136,6 +173,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     Create / Update Product with Multiple Variants
     """
 
+    from tax.models import TaxCategory as _TaxCategory
+    tax_category = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=_TaxCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     variants = ProductVariantSerializer(many=True, required=False)
     alternative_images = serializers.ListField(
         child=serializers.URLField(required=False, allow_null=True, allow_blank=True),
@@ -193,6 +237,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Upload no more than {MAX_ALTERNATIVE_IMAGES} alternative images.")
         return value
 
+    def validate_category(self, value):
+        if not value:
+            raise serializers.ValidationError("Category is required.")
+        if not ProductCategory.objects.filter(slug=value, is_active=True).exists():
+            raise serializers.ValidationError("Select an active product category.")
+        return value
+
     def create(self, validated_data):
 
         # Variants remain in the database for compatibility, but this v1 flow
@@ -226,5 +277,5 @@ class ProductCreateSerializer(serializers.ModelSerializer):
             return
 
         product.alternative_images.all().delete()
-        for index, image in enumerate(images):
+        for index, image in enumerate([image for image in images if image]):
             ProductImage.objects.create(product=product, image=image, sort_order=index)

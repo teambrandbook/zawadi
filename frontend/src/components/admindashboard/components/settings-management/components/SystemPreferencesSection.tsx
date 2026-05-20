@@ -6,9 +6,10 @@ type SystemPreferencesSectionProps = {
   onChange: (next: SystemPreferencesSettings) => void;
   onSave: () => void;
   onReset: () => void;
+  onMaintenanceToggle: (value: boolean) => void;
 };
 
-export default function SystemPreferencesSection({ data, onChange, onSave, onReset }: SystemPreferencesSectionProps) {
+export default function SystemPreferencesSection({ data, onChange, onSave, onReset, onMaintenanceToggle }: SystemPreferencesSectionProps) {
   return (
     <div className="space-y-3">
       <article className="rounded-lg border border-[#DFDFDF] bg-white p-4">
@@ -22,31 +23,63 @@ export default function SystemPreferencesSection({ data, onChange, onSave, onRes
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Default Dashboard View</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.dashboardView}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.dashboardView}
+                onChange={(e) => onChange({ ...data, dashboardView: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>Analytics Overview</option>
+                <option>Orders Summary</option>
+                <option>Products Overview</option>
+                <option>Community Activity</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Theme Mode</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.themeMode}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.themeMode}
+                onChange={(e) => onChange({ ...data, themeMode: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>Light Mode</option>
+                <option>Dark Mode</option>
+                <option>System Default</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Date Format</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.dateFormat}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.dateFormat}
+                onChange={(e) => onChange({ ...data, dateFormat: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>MM/DD/YYYY</option>
+                <option>DD/MM/YYYY</option>
+                <option>YYYY-MM-DD</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Time Format</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.timeFormat}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.timeFormat}
+                onChange={(e) => onChange({ ...data, timeFormat: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>12-hour (AM/PM)</option>
+                <option>24-hour</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
         </div>
       </article>
@@ -62,31 +95,66 @@ export default function SystemPreferencesSection({ data, onChange, onSave, onRes
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Report Export Default</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.reportExportDefault}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.reportExportDefault}
+                onChange={(e) => onChange({ ...data, reportExportDefault: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>PDF Document</option>
+                <option>Excel Spreadsheet</option>
+                <option>CSV File</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Backup Preferences</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.backupPreference}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.backupPreference}
+                onChange={(e) => onChange({ ...data, backupPreference: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>Daily at 2:00 AM</option>
+                <option>Daily at 11:00 PM</option>
+                <option>Weekly</option>
+                <option>Manual only</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Sync Preferences</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.syncPreference}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.syncPreference}
+                onChange={(e) => onChange({ ...data, syncPreference: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>Real-time Sync</option>
+                <option>Every 5 minutes</option>
+                <option>Every 15 minutes</option>
+                <option>Manual</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
           <div>
             <p className="mb-1 text-xs font-semibold text-[#0A4833]">Default Data Display</p>
-            <button className="flex h-9 w-full items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3 text-sm text-[#0A4833]">
-              {data.dataDisplayRange}
-              <ChevronDown size={13} />
-            </button>
+            <div className="flex h-9 items-center justify-between rounded-md border border-[#DFDFDF] bg-[#EBE1CF4D] px-3">
+              <select
+                value={data.dataDisplayRange}
+                onChange={(e) => onChange({ ...data, dataDisplayRange: e.target.value })}
+                className="w-full appearance-none bg-transparent text-sm text-[#0A4833] outline-none"
+              >
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+                <option>Last 90 days</option>
+                <option>This year</option>
+              </select>
+              <ChevronDown size={13} className="pointer-events-none shrink-0" />
+            </div>
           </div>
         </div>
       </article>
@@ -106,7 +174,7 @@ export default function SystemPreferencesSection({ data, onChange, onSave, onRes
               <p className="text-[11px] text-[#4B5563]">Temporarily disable public access for updates</p>
             </div>
             <button
-              onClick={() => onChange({ ...data, maintenanceMode: !data.maintenanceMode })}
+              onClick={() => onMaintenanceToggle(!data.maintenanceMode)}
               className={`relative h-6 w-11 rounded-full transition ${
                 data.maintenanceMode ? "bg-[#0A4833]" : "bg-[#D1D5DB]"
               }`}

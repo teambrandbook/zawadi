@@ -8,7 +8,12 @@ import {
   Plus,
   UploadCloud,
 } from "lucide-react";
+import Link from "next/link";
 import { ReactNode } from "react";
+
+export type CurrencyOption = { code: string; name: string; symbol: string };
+export type TaxCategoryOption = { code: string; name: string };
+export type ProductCategoryOption = { id: number; name: string; slug: string; is_active: boolean };
 
 export type ProductVariantFormData = {
   variant_value: string;
@@ -37,6 +42,7 @@ export type ProductFormData = {
   mrp_price: string;
   selling_price: string;
   currency: string;
+  tax_category: string;
   stock_quantity: string;
   low_stock_alert: string;
   stock_status: string;
@@ -50,7 +56,11 @@ export type ProductFormData = {
 
 type Props = {
   formData: ProductFormData;
+  mainImageUrl?: string | null;
   onChange: (data: ProductFormData) => void;
+  currencies?: CurrencyOption[];
+  taxCategories?: TaxCategoryOption[];
+  productCategories?: ProductCategoryOption[];
 };
 
 const fieldClass =
@@ -118,22 +128,32 @@ function TextareaField({
   placeholder,
   value,
   rows = 4,
+  maxLength,
   onValueChange,
 }: {
   label: string;
   placeholder: string;
   value: string;
   rows?: number;
+  maxLength?: number;
   onValueChange: (v: string) => void;
 }) {
   return (
     <label className="space-y-2">
-      <span className={labelClass}>{label}</span>
+      <span className="flex items-center justify-between gap-3">
+        <span className={labelClass}>{label}</span>
+        {maxLength ? (
+          <span className="text-[12px] tracking-[-0.3px] text-[#6B7280]">
+            {value.length}/{maxLength}
+          </span>
+        ) : null}
+      </span>
       <textarea
         value={value}
         onChange={(e) => onValueChange(e.target.value)}
         placeholder={placeholder}
         rows={rows}
+        maxLength={maxLength}
         className="w-full resize-none rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 py-3 text-[16px] tracking-[-0.5px] text-[#111827] outline-none transition placeholder:text-black/50 focus:border-[#0A4833]"
       />
     </label>
@@ -157,18 +177,6 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
   );
 }
 
-const CATEGORY_OPTIONS = [
-  { label: "Multi Grains", value: "multi_grains" },
-  { label: "Small Grains", value: "small_grains" },
-  { label: "Pulses", value: "pulses" },
-  { label: "Nuts", value: "nuts" },
-  { label: "Seeds", value: "seeds" },
-  { label: "Rices", value: "rices" },
-  { label: "Oils", value: "oils" },
-  { label: "Spices", value: "spices" },
-  { label: "Spreads & Butters", value: "spreads_butters" },
-];
-
 const STATUS_OPTIONS = [
   { label: "Draft", value: "draft" },
   { label: "Active", value: "active" },
@@ -181,11 +189,6 @@ const UNIT_OPTIONS = [
   { label: "Box", value: "box" },
 ];
 
-const CURRENCY_OPTIONS = [
-  { label: "USD ($)", value: "USD" },
-  { label: "INR (₹)", value: "INR" },
-  { label: "AED (د.إ)", value: "AED" },
-];
 
 const STOCK_STATUS_OPTIONS = [
   { label: "In Stock", value: "in_stock" },
@@ -193,7 +196,23 @@ const STOCK_STATUS_OPTIONS = [
   { label: "Out of Stock", value: "out_of_stock" },
 ];
 
-export default function AddProductForm({ formData, onChange }: Props) {
+export default function AddProductForm({
+  formData,
+  onChange,
+  mainImageUrl,
+  currencies = [],
+  taxCategories = [],
+  productCategories = [],
+}: Props) {
+
+  const currencyOptions = currencies.map((c) => ({ label: `${c.name} (${c.symbol})`, value: c.code }));
+  const taxCategoryOptions = taxCategories.map((t) => ({ label: t.name, value: t.code }));
+  const categoryOptions = productCategories
+    .filter((category) => category.is_active || category.slug === formData.category)
+    .map((category) => ({
+      label: category.is_active ? category.name : `${category.name} (Inactive)`,
+      value: category.slug,
+    }));
   function set(field: keyof ProductFormData) {
     return (value: string | boolean) => onChange({ ...formData, [field]: value });
   }
@@ -237,7 +256,22 @@ export default function AddProductForm({ formData, onChange }: Props) {
             onValueChange={set("product_status")}
           />
           <TextField label="Product Code *" placeholder="BWH-001" value={formData.product_code} onValueChange={set("product_code")} />
-          <SelectField label="Category *" placeholder="Select category" value={formData.category} options={CATEGORY_OPTIONS} onValueChange={set("category")} />
+          <div className="grid grid-cols-[minmax(0,1fr)_32px] items-end gap-3">
+            <SelectField
+              label="Category *"
+              placeholder={productCategories.length ? "Select category" : "Create a category first"}
+              value={formData.category}
+              options={categoryOptions}
+              onValueChange={set("category")}
+            />
+            <Link
+              href="/admindashboard/products/categories"
+              aria-label="Manage product categories"
+              className="mb-0.5 grid h-10 w-8 place-items-center text-[#0A4833]"
+            >
+              <Plus className="h-5 w-5" />
+            </Link>
+          </div>
           <label className="space-y-2">
             <span className={labelClass}>Brand Name</span>
             <div className="flex h-12 w-full items-center rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 text-[16px] tracking-[-0.5px] text-black/50">
@@ -256,10 +290,20 @@ export default function AddProductForm({ formData, onChange }: Props) {
 
       <Card>
         <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Product Images" />
-        <label className="block cursor-pointer rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-5 py-10 text-center">
-          <UploadCloud className="mx-auto h-8 w-8 text-[#9F8151]" />
+        <label className="block cursor-pointer rounded-[8px] border border-dashed border-[#D7DCE2] bg-[#F9FAFB] px-5 py-10 text-center transition hover:border-[#0A4833]/50">
+          {mainImageUrl && !formData.image ? (
+            <span className="relative mx-auto block h-20 w-20 overflow-hidden rounded-[8px] bg-white">
+              <img src={mainImageUrl} alt="Current main product image" className="h-full w-full object-cover" />
+            </span>
+          ) : (
+            <UploadCloud className="mx-auto h-8 w-8 text-[#9F8151]" />
+          )}
           <span className="mt-2 block text-[14px] font-semibold tracking-[-0.5px] text-[#0A4833]">
-            {formData.image ? formData.image.name : "Drag and drop images here, or click to browse"}
+            {formData.image
+              ? formData.image.name
+              : mainImageUrl
+                ? "Current main image. Click to replace"
+                : "Drag and drop images here, or click to browse"}
           </span>
           <span className="block text-[12px] tracking-[-0.5px] text-[#6B7280]">Recommended size: 800x800px. Supports JPG, PNG formats.</span>
           <input type="file" accept="image/*" onChange={(event) => onChange({ ...formData, image: event.target.files?.[0] ?? null })} className="sr-only" />
@@ -269,7 +313,7 @@ export default function AddProductForm({ formData, onChange }: Props) {
           <SectionTitle icon={<ImageIcon className="h-[18px] w-[18px]" />} title="Alternative Images" />
           {formData.alternative_image_urls?.length ? (
             <p className="-mt-3 mb-3 text-[12px] tracking-[-0.4px] text-[#6B7280]">
-              Selecting new alternative images will replace the saved gallery.
+              Click a saved image slot to replace it, or use an empty slot to add another image.
             </p>
           ) : null}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -315,7 +359,7 @@ export default function AddProductForm({ formData, onChange }: Props) {
       <Card>
         <SectionTitle icon={<PencilLine className="h-[18px] w-[18px]" />} title="Product Description" />
         <div className="space-y-4">
-          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} onValueChange={set("short_description")} />
+          <TextareaField label="Short Description *" placeholder="Brief product overview (150 characters)" value={formData.short_description} rows={3} maxLength={150} onValueChange={set("short_description")} />
           <TextareaField label="Full Description" placeholder="Detailed product description" value={formData.full_description} rows={6} onValueChange={set("full_description")} />
         </div>
       </Card>
@@ -377,7 +421,8 @@ export default function AddProductForm({ formData, onChange }: Props) {
           <TextField label="Cost Price *" placeholder="0.00" type="number" value={formData.cost_price} onValueChange={set("cost_price")} />
           <TextField label="MRP *" placeholder="0.00" type="number" value={formData.mrp_price} onValueChange={set("mrp_price")} />
           <TextField label="Selling Price *" placeholder="0.00" type="number" value={formData.selling_price} onValueChange={set("selling_price")} />
-          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={CURRENCY_OPTIONS} onValueChange={set("currency")} />
+          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={currencyOptions} onValueChange={set("currency")} />
+          <SelectField label="Tax Category" placeholder="Select tax category" value={formData.tax_category} options={taxCategoryOptions} onValueChange={set("tax_category")} />
         </div>
       </Card>
 

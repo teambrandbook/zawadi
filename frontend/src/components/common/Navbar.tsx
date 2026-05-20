@@ -34,6 +34,7 @@ const Navbar = () => {
   const userType = useSelector((s: RootState) => s.user.userType);
   const fullName = useSelector((s: RootState) => s.user.fullName);
   const userEmail = useSelector((s: RootState) => s.user.email);
+  const userPhoto = useSelector((s: RootState) => s.user.photo);
   const [profileOpen, setProfileOpen] = useState(false);
 
   // i18n Hook and Data Selection
@@ -95,8 +96,7 @@ const Navbar = () => {
   function getProfileRoutes() {
     if (role === "admin" || role === "internal_staff") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
     if (role === "consultant") return { profile: "/consultant/profile", orders: "/consultant/appointments" };
-    if (userType === "guest") return { profile: "/guestprofile", orders: "/guestprofile/history" };
-    return { profile: "/communityDashBoard", orders: "/communityDashBoard/myorders" };
+    return { profile: "/guestprofile", orders: "/guestprofile/history" };
   }
 
   async function handleLogout() {
@@ -221,9 +221,13 @@ const Navbar = () => {
                 <button
                   onClick={() => setProfileOpen((v) => !v)}
                   aria-label="Open profile menu"
-                  className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
+                  className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
                 >
-                  {initials}
+                  {userPhoto ? (
+                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  ) : (
+                    initials
+                  )}
                 </button>
 
                 {profileOpen && (
@@ -236,8 +240,12 @@ const Navbar = () => {
                 {profileOpen && (
                   <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-4">
-                      <div className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {initials}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        {userPhoto ? (
+                          <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                        ) : (
+                          initials
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">
@@ -413,8 +421,12 @@ const Navbar = () => {
           {isAuthenticated && (
             <div className="mobile-link pt-6 border-t border-white/10 flex flex-col space-y-4">
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl">
-                <div className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {initials}
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {userPhoto ? (
+                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  ) : (
+                    initials
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="text-sm font-bold text-white truncate">

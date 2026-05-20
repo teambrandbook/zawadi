@@ -23,6 +23,7 @@ function AuthRehydrator() {
         email?: string;
         role?: string;
         full_name?: string;
+        photo?: string;
         user_type?: string;
       }>("/account/me/")
       .then(({ data }) => {
@@ -32,6 +33,7 @@ function AuthRehydrator() {
             role: data.role,
             email: data.email,
             fullName: data.full_name,
+            photo: data.photo ?? null,
             userType: (data.user_type as "guest" | "member") ?? null,
           })
         );

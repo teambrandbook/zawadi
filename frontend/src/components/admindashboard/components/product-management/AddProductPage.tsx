@@ -7,7 +7,12 @@ import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 import AddProductActions from "./components/AddProductActions";
-import AddProductForm, { ProductFormData } from "./components/AddProductForm";
+import AddProductForm, {
+  ProductCategoryOption,
+  ProductFormData,
+  CurrencyOption,
+  TaxCategoryOption,
+} from "./components/AddProductForm";
 import AddProductHeader from "./components/AddProductHeader";
 import ProductPreviewCard from "./components/ProductPreviewCard";
 
@@ -30,6 +35,8 @@ type ApiProduct = {
   mrp_price?: string | number;
   selling_price?: string | number;
   currency?: string;
+  tax_category?: string | null;
+  tax_category_code?: string | null;
   stock_quantity?: number;
   low_stock_alert?: number;
   stock_status?: string;
@@ -67,6 +74,7 @@ const initialFormData: ProductFormData = {
   mrp_price: "",
   selling_price: "",
   currency: "USD",
+  tax_category: "STANDARD",
   stock_quantity: "",
   low_stock_alert: "5",
   stock_status: "in_stock",
@@ -90,6 +98,9 @@ export default function AddProductPage() {
   const isEditMode = Boolean(productId);
 
   const { upload: uploadImage, isUploading: isImageUploading } = useCloudinaryUpload("product_image");
+  const [currencies, setCurrencies] = useState<CurrencyOption[]>([]);
+  const [taxCategories, setTaxCategories] = useState<TaxCategoryOption[]>([]);
+  const [productCategories, setProductCategories] = useState<ProductCategoryOption[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingProduct, setIsLoadingProduct] = useState(false);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
@@ -97,9 +108,16 @@ export default function AddProductPage() {
   const [formData, setFormData] = useState<ProductFormData>(initialFormData);
 
   useEffect(() => {
+    void api.get<CurrencyOption[]>("/tax/currencies/").then((r) => setCurrencies(r.data)).catch(() => {});
+    void api.get<TaxCategoryOption[]>("/tax/categories/").then((r) => setTaxCategories(r.data)).catch(() => {});
+    void api.get<ProductCategoryOption[]>("/products/categories/").then((r) => setProductCategories(r.data)).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!productId) {
       setFormData(initialFormData);
       setExistingImageUrl(null);
+      setImageUrl("");
       return;
     }
 
@@ -127,6 +145,7 @@ export default function AddProductPage() {
           mrp_price: String(data.mrp_price ?? data.sale_price ?? data.base_price ?? ""),
           selling_price: String(data.selling_price ?? data.sale_price ?? data.base_price ?? ""),
           currency: String(data.currency ?? "USD"),
+          tax_category: String(data.tax_category_code ?? data.tax_category ?? "STANDARD"),
           stock_quantity: String(data.stock_quantity ?? ""),
           low_stock_alert: String(data.low_stock_alert ?? "5"),
           stock_status: String(data.stock_status ?? "in_stock"),
@@ -145,8 +164,9 @@ export default function AddProductPage() {
               }))
             : [{ variant_value: "", variant_unit: "", cost: "", price: "", stock: "" }],
         });
-        setExistingImageUrl(toProductImageUrl(data.image));
-        if (data.image) setImageUrl(toProductImageUrl(data.image) ?? "");
+        const mainImageUrl = toProductImageUrl(data.image);
+        setExistingImageUrl(mainImageUrl);
+        setImageUrl(mainImageUrl ?? "");
       } catch {
         toast.error("Failed to load product details.");
       } finally {
@@ -157,18 +177,8 @@ export default function AddProductPage() {
     void fetchProduct();
   }, [productId]);
 
-  async function handleFormChange(next: ProductFormData) {
-    if (isImageUploading) return;
-    const prevImage = formData.image;
+  function handleFormChange(next: ProductFormData) {
     setFormData(next);
-    if (next.image && next.image !== prevImage) {
-      try {
-        const url = await uploadImage(next.image);
-        setImageUrl(url);
-      } catch {
-        // error handled in hook
-      }
-    }
   }
 
   const previewImageUrl = useMemo(() => {
@@ -200,6 +210,27 @@ export default function AddProductPage() {
     if (!formData.category) { toast.error("Category is required."); return; }
     if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
+    setIsSubmitting(true);
+    let mainImageUrl = imageUrl;
+    let alternativeImageUrls: string[] = [];
+    try {
+      if (formData.image) {
+        mainImageUrl = await uploadImage(formData.image);
+        setImageUrl(mainImageUrl);
+      }
+      alternativeImageUrls = await Promise.all(
+        Array.from({ length: 4 }, async (_, index) => {
+          const file = formData.alternative_images?.[index] ?? null;
+          if (file) return uploadImage(file);
+          return formData.alternative_image_urls?.[index] ?? "";
+        })
+      );
+    } catch {
+      setIsSubmitting(false);
+      return;
+    }
+    alternativeImageUrls = alternativeImageUrls.filter(Boolean);
+
     const fd = new FormData();
     fd.append("product_name", formData.product_name.trim());
     fd.append("product_code", formData.product_code.trim());
@@ -214,19 +245,20 @@ export default function AddProductPage() {
     fd.append("stock_quantity", formData.stock_quantity || "0");
     fd.append("stock_status", formData.stock_status);
     fd.append("currency", formData.currency);
+    if (formData.tax_category) fd.append("tax_category", formData.tax_category);
     fd.append("product_unit", formData.product_unit);
     fd.append("unit_quantity", formData.unit_quantity);
     fd.append("alternative_unit_enabled", "false");
     fd.append("allow_out_of_stock", String(formData.allow_out_of_stock));
     fd.append("enable_low_stock_alerts", String(formData.enable_low_stock_alerts));
     if (formData.product_subtitle.trim()) fd.append("product_subtitle", formData.product_subtitle.trim());
-    if (imageUrl) fd.append("image", imageUrl);
+    if (mainImageUrl) fd.append("image", mainImageUrl);
+    alternativeImageUrls.forEach((url) => fd.append("alternative_images", url));
     if (formData.full_description.trim()) fd.append("full_description", formData.full_description.trim());
     if (formData.key_ingredients.trim()) fd.append("key_ingredients", formData.key_ingredients.trim());
     if (formData.health_benefits.trim()) fd.append("health_benefits", formData.health_benefits.trim());
     if (formData.low_stock_alert) fd.append("low_stock_alert", formData.low_stock_alert);
 
-    setIsSubmitting(true);
     try {
       if (isEditMode && productId) {
         await api.patch(`/products/${productId}/`, fd);
@@ -266,7 +298,15 @@ export default function AddProductPage() {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,816px)_272px]">
           <div className="space-y-4">
-            <AddProductForm formData={formData} onChange={handleFormChange} />
+            <AddProductForm
+              formData={formData}
+              onChange={handleFormChange}
+              mainImageUrl={existingImageUrl}
+              currencies={currencies}
+              taxCategories={taxCategories}
+              productCategories={productCategories}
+            />
+            
             <AddProductActions
               onSubmit={() => handleSubmit("active")}
               onDraft={() => handleSubmit("draft")}

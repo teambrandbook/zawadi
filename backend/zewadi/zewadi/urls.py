@@ -39,6 +39,7 @@ urlpatterns = [
     path("api/events/", include("events.urls")),
     path("api/notifications/", include("notifications.urls")),
     path("api/community/", include("communityuser.urls")),
+    path("api/tax/", include("tax.urls")),
 ]
 
 if settings.MEDIA_URL and settings.MEDIA_ROOT:
