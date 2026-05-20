@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { ReactNode } from "react";
 
+export type CurrencyOption = { code: string; name: string; symbol: string };
+export type TaxCategoryOption = { code: string; name: string };
+
 export type ProductVariantFormData = {
   variant_value: string;
   variant_unit: string;
@@ -37,6 +40,7 @@ export type ProductFormData = {
   mrp_price: string;
   selling_price: string;
   currency: string;
+  tax_category: string;
   stock_quantity: string;
   low_stock_alert: string;
   stock_status: string;
@@ -52,6 +56,8 @@ type Props = {
   formData: ProductFormData;
   mainImageUrl?: string | null;
   onChange: (data: ProductFormData) => void;
+  currencies?: CurrencyOption[];
+  taxCategories?: TaxCategoryOption[];
 };
 
 const fieldClass =
@@ -192,11 +198,6 @@ const UNIT_OPTIONS = [
   { label: "Box", value: "box" },
 ];
 
-const CURRENCY_OPTIONS = [
-  { label: "USD ($)", value: "USD" },
-  { label: "INR (₹)", value: "INR" },
-  { label: "AED (د.إ)", value: "AED" },
-];
 
 const STOCK_STATUS_OPTIONS = [
   { label: "In Stock", value: "in_stock" },
@@ -204,7 +205,10 @@ const STOCK_STATUS_OPTIONS = [
   { label: "Out of Stock", value: "out_of_stock" },
 ];
 
-export default function AddProductForm({ formData, mainImageUrl, onChange }: Props) {
+
+export default function AddProductForm({ formData, onChange, mainImageUrl, currencies = [], taxCategories = [] }: Props) {
+  const currencyOptions = currencies.map((c) => ({ label: `${c.name} (${c.symbol})`, value: c.code }));
+  const taxCategoryOptions = taxCategories.map((t) => ({ label: t.name, value: t.code }));
   function set(field: keyof ProductFormData) {
     return (value: string | boolean) => onChange({ ...formData, [field]: value });
   }
@@ -398,7 +402,8 @@ export default function AddProductForm({ formData, mainImageUrl, onChange }: Pro
           <TextField label="Cost Price *" placeholder="0.00" type="number" value={formData.cost_price} onValueChange={set("cost_price")} />
           <TextField label="MRP *" placeholder="0.00" type="number" value={formData.mrp_price} onValueChange={set("mrp_price")} />
           <TextField label="Selling Price *" placeholder="0.00" type="number" value={formData.selling_price} onValueChange={set("selling_price")} />
-          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={CURRENCY_OPTIONS} onValueChange={set("currency")} />
+          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={currencyOptions} onValueChange={set("currency")} />
+          <SelectField label="Tax Category" placeholder="Select tax category" value={formData.tax_category} options={taxCategoryOptions} onValueChange={set("tax_category")} />
         </div>
       </Card>
 

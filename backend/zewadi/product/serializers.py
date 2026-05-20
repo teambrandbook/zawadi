@@ -1,6 +1,6 @@
-from rest_framework import serializers
-from zewadi.validators import validate_image_upload
+from decimal import Decimal
 
+from rest_framework import serializers
 from .models import Product, ProductImage, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
@@ -34,6 +34,10 @@ class ProductSerializer(serializers.ModelSerializer):
     allow_out_of_stock = serializers.BooleanField(source="allow_orders_when_out_of_stock", read_only=True)
     discount_amount = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
+    tax_category_code = serializers.SerializerMethodField()
+    display_price = serializers.SerializerMethodField()
+    currency_code = serializers.SerializerMethodField()
+    currency_decimal_places = serializers.SerializerMethodField()
 
     def get_brand_name(self, obj):
         return obj.brand_name
@@ -49,6 +53,40 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_discount_percent(self, obj):
         return f"{obj.discount_percent:.2f}"
+
+    def get_tax_category_code(self, obj):
+        return obj.tax_category.code if obj.tax_category_id else "STANDARD"
+
+    def to_representation(self, obj):
+        from product.services import get_product_price
+        country = self.context.get("country", "SA")
+        self._country_price_cache = get_product_price(obj, country)
+        return super().to_representation(obj)
+
+    def _get_country_price(self, obj):
+        if not hasattr(self, "_country_price_cache"):
+            from product.services import get_product_price
+            country = self.context.get("country", "SA")
+            self._country_price_cache = get_product_price(obj, country)
+        return self._country_price_cache
+
+    def get_display_price(self, obj):
+        from tax.services import get_tax_rate
+        price, currency = self._get_country_price(obj)
+        cat_code = obj.tax_category.code if obj.tax_category_id else "STANDARD"
+        country = self.context.get("country", "SA")
+        rate = get_tax_rate(country, cat_code)
+        inclusive = price * (Decimal("1") + rate)
+        dp = currency.decimal_places
+        return f"{inclusive:.{dp}f}"
+
+    def get_currency_code(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.code
+
+    def get_currency_decimal_places(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.decimal_places
 
     class Meta:
         model = Product
@@ -74,9 +112,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "cost_price",
             "mrp_price",
             "selling_price",
+            "display_price",
+            "currency_code",
+            "currency_decimal_places",
             "discount_amount",
             "discount_percent",
-            "currency",
+            "tax_category_code",
             "stock_quantity",
             "low_stock_alert",
             "stock_status",
@@ -95,6 +136,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     Create / Update Product with Multiple Variants
     """
 
+    from tax.models import TaxCategory as _TaxCategory
+    tax_category = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=_TaxCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     variants = ProductVariantSerializer(many=True, required=False)
     alternative_images = serializers.ListField(
         child=serializers.URLField(required=False, allow_null=True, allow_blank=True),

@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from rest_framework.test import APITestCase
@@ -6,6 +7,21 @@ from accounts.models import User
 from notifications.models import Notification, UserNotificationReceipt
 from orders.models import Order
 from product.models import Product, ProductStatus, ProductVariant
+from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
+
+
+def _ensure_tax_config():
+    sar, _ = Currency.objects.get_or_create(
+        code="SAR", defaults={"name": "Saudi Riyal", "symbol": "SAR", "decimal_places": 2}
+    )
+    CountryConfig.objects.get_or_create(country="SA", defaults={"name": "Saudi Arabia", "currency": sar})
+    standard, _ = TaxCategory.objects.get_or_create(code="STANDARD", defaults={"name": "Standard Rate"})
+    TaxCategory.objects.get_or_create(code="ZERO", defaults={"name": "Zero-Rated"})
+    TaxRate.objects.get_or_create(
+        country="SA", tax_category=standard, region=None, is_active=True,
+        defaults={"rate": "0.1500", "name": "SA Standard 15%", "effective_from": datetime.date(2020, 7, 1)},
+    )
+    return standard
 
 
 def make_user():
@@ -20,6 +36,7 @@ def make_user():
 
 
 def make_product(**overrides):
+    standard = _ensure_tax_config()
     data = {
         "product_name": "Buckwheat 500g",
         "product_code": "BWH-500",
@@ -32,6 +49,7 @@ def make_product(**overrides):
         "mrp_price": Decimal("150.00"),
         "selling_price": Decimal("120.00"),
         "stock_quantity": 5,
+        "tax_category": standard,
     }
     data.update(overrides)
     return Product.objects.create(**data)
@@ -96,7 +114,12 @@ class ProductLevelPricingAndStockTests(APITestCase):
         self.assertEqual(order.selling_price, Decimal("120.00"))
         self.assertEqual(order.discount_amount, Decimal("30.00"))
         self.assertEqual(order.subtotal, Decimal("240.00"))
-        self.assertEqual(order.tax_amount, Decimal("19.20"))
+        # 15% SA VAT on subtotal 240.00 = 36.00
+        self.assertEqual(order.tax_amount, Decimal("36.00"))
+        self.assertEqual(order.tax_rate_snapshot, Decimal("0.1500"))
+        self.assertEqual(order.tax_country_snapshot, "SA")
+        self.assertEqual(order.charged_currency, "SAR")
+        self.assertEqual(float(order.charged_amount), float(order.total_amount))
 
         product.refresh_from_db()
         self.assertEqual(product.stock_quantity, 3)

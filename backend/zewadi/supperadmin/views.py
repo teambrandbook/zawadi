@@ -15,8 +15,9 @@ from zipfile import ZIP_DEFLATED, ZipFile
 from accounts.models import User
 from .serializer import UserSerializer, UserUpdateSerializer, RoleSerializer
 from .utils.permissions import has_permission, IsAdminRole
-from .models import Role
+from .models import Role, SiteSettings
 from zewadi.pagination import StandardPagination
+from rest_framework.decorators import api_view, permission_classes
 
 
 def format_serializer_errors(errors):
@@ -907,3 +908,46 @@ class RoleAPIView(APIView):
             },
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+
+
+def _config_to_dict(cfg):
+    return {
+        "platform_name": cfg.platform_name,
+        "support_email": cfg.support_email,
+        "support_phone": cfg.support_phone,
+        "maintenance_mode": cfg.maintenance_mode,
+    }
+
+
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def site_config(request):
+    cfg = SiteSettings.get()
+
+    if request.method == "GET":
+        return Response(_config_to_dict(cfg))
+
+    if not (request.user.is_superuser or getattr(request.user, "role", "") == "ADMIN"):
+        return Response({"detail": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+
+    changed = False
+    if "platform_name" in request.data:
+        cfg.platform_name = str(request.data["platform_name"]).strip()[:100]
+        changed = True
+    if "support_email" in request.data:
+        cfg.support_email = str(request.data["support_email"]).strip()
+        changed = True
+    if "support_phone" in request.data:
+        cfg.support_phone = str(request.data["support_phone"]).strip()[:30]
+        changed = True
+    if "maintenance_mode" in request.data:
+        cfg.maintenance_mode = bool(request.data["maintenance_mode"])
+        changed = True
+        from django.core.cache import cache
+        cache.delete("zawadi:maintenance_mode")
+
+    if changed:
+        cfg.save()
+
+    return Response(_config_to_dict(cfg))

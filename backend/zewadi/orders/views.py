@@ -19,11 +19,12 @@ from .serializers import (
 )
 from product.models import Product, ProductStatus, ProductVariant, StockStatus
 from zewadi.pagination import StandardPagination
+from django.conf import settings
+from tax.services import get_tax_rate
 
 
 FREE_SHIPPING_THRESHOLD = Decimal("50.00")
 STANDARD_SHIPPING_CHARGE = Decimal("5.00")
-TAX_RATE = Decimal("0.08")
 
 
 def _money(value):
@@ -33,7 +34,7 @@ def _money(value):
 def _cart_queryset(user):
     return (
         CartItem.objects.filter(user=user)
-        .select_related("product", "variant")
+        .select_related("product", "product__tax_category", "variant")
         .order_by("-updated_at")
     )
 
@@ -78,27 +79,47 @@ def _validate_and_decrement_stock(product, variant, quantity):
     send_low_stock_notification(product)
 
 
-def _cart_summary(items):
-    subtotal = _money(sum((item.line_total for item in items), Decimal("0.00")))
+def _cart_summary(items, country=None):
+    if country is None:
+        country = getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")
+
+    item_count = 0
+    subtotal = Decimal("0.00")
+    tax_total = Decimal("0.00")
+
+    for item in items:
+        item_count += item.quantity
+        line_price = _money(item.line_total)
+        subtotal = _money(subtotal + line_price)
+
+        cat_code = item.product.tax_category.code if item.product.tax_category_id else "STANDARD"
+        rate = get_tax_rate(country, cat_code)
+        tax_total = _money(tax_total + _money(line_price * rate))
+
     shipping = Decimal("0.00") if subtotal == 0 or subtotal >= FREE_SHIPPING_THRESHOLD else STANDARD_SHIPPING_CHARGE
-    tax = _money(subtotal * TAX_RATE)
-    total = _money(subtotal + shipping + tax)
-    item_count = sum(item.quantity for item in items)
+    total = _money(subtotal + shipping + tax_total)
+    standard_rate = get_tax_rate(country, "STANDARD")
+
     return {
         "item_count": item_count,
         "subtotal": f"{subtotal:.2f}",
         "shipping": f"{shipping:.2f}",
-        "tax": f"{tax:.2f}",
+        "tax": f"{tax_total:.2f}",
+        "tax_rate": f"{standard_rate:.4f}",
+        "tax_country": country,
+        "currency_code": "SAR",
+        "currency_symbol": "SAR",
+        "currency_decimal_places": 2,
         "total": f"{total:.2f}",
         "free_shipping_unlocked": subtotal >= FREE_SHIPPING_THRESHOLD,
     }
 
 
-def _cart_response(request):
+def _cart_response(request, country=None):
     items = list(_cart_queryset(request.user))
     return {
         "items": CartItemSerializer(items, many=True, context={"request": request}).data,
-        "summary": _cart_summary(items),
+        "summary": _cart_summary(items, country=country),
     }
 
 
@@ -234,11 +255,13 @@ class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(_cart_response(request), status=status.HTTP_200_OK)
+        country = request.query_params.get("country", getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")).upper()
+        return Response(_cart_response(request, country=country), status=status.HTTP_200_OK)
 
     def delete(self, request):
+        country = request.query_params.get("country", getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")).upper()
         _cart_queryset(request.user).delete()
-        return Response(_cart_response(request), status=status.HTTP_200_OK)
+        return Response(_cart_response(request, country=country), status=status.HTTP_200_OK)
 
 
 class CartItemCreateView(APIView):
@@ -352,13 +375,15 @@ class CartCheckoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        country = request.data.get("country", getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")).upper()
+
         try:
             with transaction.atomic():
                 cart_items = list(_cart_queryset(request.user).select_for_update(of=("self",)))
                 if not cart_items:
                     return Response({"detail": "Your cart is empty."}, status=status.HTTP_400_BAD_REQUEST)
 
-                summary = _cart_summary(cart_items)
+                summary = _cart_summary(cart_items, country=country)
                 subtotal = Decimal(summary["subtotal"])
                 shipping = Decimal(summary["shipping"])
                 tax = Decimal(summary["tax"])
@@ -374,23 +399,19 @@ class CartCheckoutView(APIView):
                     _validate_and_decrement_stock(product, variant, item.quantity)
 
                     line_subtotal = _money(item.line_total)
+                    tax_cat_code = product.tax_category.code if product.tax_category_id else "STANDARD"
+                    item_rate = get_tax_rate(country, tax_cat_code)
                     if subtotal > 0:
                         ratio = line_subtotal / subtotal
                         allocated_shipping = _money(shipping * ratio)
-                        allocated_tax = _money(tax * ratio)
+                        allocated_tax = _money(line_subtotal * item_rate)
                     else:
                         allocated_shipping = Decimal("0.00")
                         allocated_tax = Decimal("0.00")
 
                     if index == len(cart_items) - 1:
                         used_shipping = sum((Decimal(order.delivery_charge) for order in created_orders), Decimal("0.00"))
-                        used_tax = sum(
-                            (
-                                Decimal(order.total_amount) - Decimal(order.subtotal) - Decimal(order.delivery_charge)
-                                for order in created_orders
-                            ),
-                            Decimal("0.00"),
-                        )
+                        used_tax = sum((Decimal(order.tax_amount) for order in created_orders), Decimal("0.00"))
                         allocated_shipping = _money(shipping - used_shipping)
                         allocated_tax = _money(tax - used_tax)
 
@@ -405,6 +426,10 @@ class CartCheckoutView(APIView):
                             "delivery_charge": f"{allocated_shipping:.2f}",
                             "tax_amount": f"{allocated_tax:.2f}",
                             "total_amount": f"{_money(line_subtotal + allocated_shipping + allocated_tax):.2f}",
+                            "tax_rate_snapshot": f"{item_rate:.4f}",
+                            "tax_country_snapshot": country,
+                            "charged_currency": summary["currency_code"],
+                            "charged_amount": f"{_money(line_subtotal + allocated_shipping + allocated_tax):.3f}",
                             "full_name": request.data["full_name"],
                             "phone": request.data["phone"],
                             "email": request.data["email"],
