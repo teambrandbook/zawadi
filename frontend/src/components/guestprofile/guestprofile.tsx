@@ -241,7 +241,7 @@ export default function GuestProfile() {
               <div className="relative mb-5 size-32">
                 <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
                   <Image
-                    src={profile?.photo || "/about/testimonial.webp"}
+                    src={profile?.photo || "/default-avatar.svg"}
                     alt={profile?.full_name || "Profile"}
                     fill
                     sizes="128px"
