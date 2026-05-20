@@ -163,16 +163,16 @@ export default function MyRecipy() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map(({ label, value, Icon, iconBoxClass, valueClass }) => (
-            <div key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
-              <div className="mb-3 flex items-center justify-between">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${iconBoxClass}`}>
-                  <Icon className="h-5 w-5" />
+            <div key={label} className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
+              <div className="mb-2 flex items-center justify-between">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconBoxClass}`}>
+                  <Icon className="h-4 w-4" />
                 </div>
-                <span className={`text-2xl font-bold ${valueClass}`}>{value}</span>
+                <span className={`text-xl font-bold ${valueClass}`}>{value}</span>
               </div>
-              <p className="text-base font-medium text-[#4B5563]">{label}</p>
+              <p className="text-sm font-medium text-[#4B5563]">{label}</p>
             </div>
           ))}
         </div>
