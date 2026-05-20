@@ -65,7 +65,7 @@ def get_frontend_url():
     return origins[0].rstrip("/") if origins else "http://localhost:3000"
 
 
-def get_or_create_google_user(email, name):
+def get_or_create_google_user(email, name, picture=None):
     user = User.objects.filter(email=email).first()
     if user:
         return user
@@ -77,6 +77,7 @@ def get_or_create_google_user(email, name):
         phone="",
         role="COMMUNITY_USER",
         is_active=True,
+        photo=picture or "",
     )
     user.set_unusable_password()
     user.save()
@@ -518,7 +519,7 @@ class GoogleLoginAPIView(APIView):
         if not email:
             return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = get_or_create_google_user(email, token_info.get("name"))
+        user = get_or_create_google_user(email, token_info.get("name"), token_info.get("picture"))
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 
@@ -591,7 +592,7 @@ class GoogleCallbackAPIView(APIView):
         if not email:
             return Response({"error": "Email not found"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = get_or_create_google_user(email, user_info.get("name"))
+        user = get_or_create_google_user(email, user_info.get("name"), user_info.get("picture"))
         refresh = RefreshToken.for_user(user)
         access = str(refresh.access_token)
 

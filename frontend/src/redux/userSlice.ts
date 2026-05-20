@@ -9,6 +9,7 @@ export interface UserState {
   role: string | null;
   email: string | null;
   fullName: string | null;
+  photo: string | null;
   userType: "guest" | "member" | null;
   cartCount: number;
   isAuthenticated: boolean;
@@ -21,6 +22,7 @@ const initialState: UserState = {
   role: null,
   email: null,
   fullName: null,
+  photo: null,
   userType: null,
   cartCount: 0,
   isAuthenticated: false,
@@ -123,14 +125,16 @@ const userSlice = createSlice({
         role?: string;
         email?: string;
         fullName?: string;
+        photo?: string | null;
         userType?: "guest" | "member" | null;
       }>
     ) {
-      const { userId, role, email, fullName, userType } = action.payload;
+      const { userId, role, email, fullName, photo, userType } = action.payload;
       if (userId !== undefined) state.userId = userId;
       if (role !== undefined) state.role = role;
       if (email !== undefined) state.email = email;
       if (fullName !== undefined) state.fullName = fullName;
+      if (photo !== undefined) state.photo = photo;
       if (userType !== undefined) state.userType = userType;
       state.isAuthenticated = true;
       state.error = null;
@@ -143,6 +147,7 @@ const userSlice = createSlice({
       state.role = null;
       state.email = null;
       state.fullName = null;
+      state.photo = null;
       state.userType = null;
       state.cartCount = 0;
       state.isAuthenticated = false;

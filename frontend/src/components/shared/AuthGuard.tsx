@@ -14,6 +14,7 @@ type MeResponse = {
   email?: string;
   role?: string;
   full_name?: string;
+  photo?: string;
   user_type?: string;
 };
 
@@ -102,6 +103,7 @@ function BrowserAuthGuard({
             role: role,
             email: data.email,
             fullName: data.full_name,
+            photo: data.photo ?? null,
             userType,
           })
         );
