@@ -39,7 +39,7 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
   return (
     <section className="space-y-4">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-4xl font-semibold text-[#0A4833]">Events Management</h1>
+        <h1 className="text-2xl font-semibold text-[#0A4833] md:text-[28px]">Events Management</h1>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-full min-w-[220px] md:w-[280px]">
