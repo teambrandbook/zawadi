@@ -255,11 +255,13 @@ class CartView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        return Response(_cart_response(request), status=status.HTTP_200_OK)
+        country = request.query_params.get("country", getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")).upper()
+        return Response(_cart_response(request, country=country), status=status.HTTP_200_OK)
 
     def delete(self, request):
+        country = request.query_params.get("country", getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")).upper()
         _cart_queryset(request.user).delete()
-        return Response(_cart_response(request), status=status.HTTP_200_OK)
+        return Response(_cart_response(request, country=country), status=status.HTTP_200_OK)
 
 
 class CartItemCreateView(APIView):

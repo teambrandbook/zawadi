@@ -6,6 +6,7 @@ from .views import (
     AdminStatsAPIView,
     AdminReportsAPIView,
     AdminReportsExportAPIView,
+    site_config,
 )
 
 urlpatterns = [
@@ -16,4 +17,5 @@ urlpatterns = [
     path("stats/", AdminStatsAPIView.as_view(), name="admin-stats"),
     path("reports/", AdminReportsAPIView.as_view(), name="admin-reports"),
     path("reports/export/", AdminReportsExportAPIView.as_view(), name="admin-reports-export"),
+    path("config/", site_config, name="site-config"),
 ]

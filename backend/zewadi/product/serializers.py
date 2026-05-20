@@ -136,6 +136,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     Create / Update Product with Multiple Variants
     """
 
+    from tax.models import TaxCategory as _TaxCategory
+    tax_category = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=_TaxCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     variants = ProductVariantSerializer(many=True, required=False)
     alternative_images = serializers.ListField(
         child=serializers.URLField(required=False, allow_null=True, allow_blank=True),

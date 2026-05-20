@@ -57,6 +57,23 @@ class Role(models.Model):
         return self.role_name
 
 
+class SiteSettings(models.Model):
+    platform_name = models.CharField(max_length=100, default="ZEWADI Health Community")
+    support_email = models.EmailField(default="support@zewadi.com")
+    support_phone = models.CharField(max_length=30, blank=True, default="")
+    maintenance_mode = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Site Settings"
+        verbose_name_plural = "Site Settings"
+
+    @classmethod
+    def get(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class RolePermission(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="permissions")
     module = models.CharField(max_length=30, choices=PermissionModule.choices)
