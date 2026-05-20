@@ -23,10 +23,9 @@ const Footer = () => {
   const dict = translations[locale] || translations.en;
   const { footer, socials, meaningSection } = dict;
 
-  // Next.js structural path prefix parser
-  const getLocalizedHref = (path: string) => {
+  const getHref = (path: string) => {
     if (path === "#") return "#";
-    return `/${locale}${path === "/" ? "" : path}`;
+    return path;
   };
 
   return (
@@ -50,7 +49,7 @@ const Footer = () => {
           {/* Brand Logo & Info Description Area */}
           <div className="lg:col-span-4 flex flex-col items-start mb-12 lg:mb-0">
             <Link 
-              href={getLocalizedHref("/")} 
+              href={getHref("/")} 
               className="relative w-44 h-44 md:w-52 md:h-52 lg:w-64 lg:h-64 -mb-16 md:-mb-20 lg:-mb-28 -top-16 md:-top-20 lg:-top-28 block overflow-hidden rounded-xl"
             >
                <Image 
@@ -101,7 +100,7 @@ const Footer = () => {
                 {footer.quickLinks.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
+                      href={getHref(item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}
@@ -120,7 +119,7 @@ const Footer = () => {
                 {footer.innerPages.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
+                      href={getHref(item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}
@@ -139,7 +138,7 @@ const Footer = () => {
                 {footer.support.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
+                      href={getHref(item.href)}
                       className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
                     >
                       {item.name}

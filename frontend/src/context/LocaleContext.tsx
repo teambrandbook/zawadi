@@ -8,6 +8,7 @@ import {
 } from "react";
 
 type Locale = "en" | "ar";
+const supportedLocales = new Set<Locale>(["en", "ar"]);
 
 interface LocaleContextType {
   locale: Locale;
@@ -27,10 +28,9 @@ export const LocaleProvider = ({
   const [locale, setLocale] = useState<Locale>("en");
 
   useEffect(() => {
-    const savedLang =
-      localStorage.getItem("lang") as Locale;
+    const savedLang = localStorage.getItem("lang") as Locale | null;
 
-    if (savedLang) {
+    if (savedLang && supportedLocales.has(savedLang)) {
       setLocale(savedLang);
     }
   }, []);

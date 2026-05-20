@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${inter.variable} ${dmSans.variable} ${playfair.variable} ${caveat.variable}`}
+      className={`${inter.variable} ${dmSans.variable} ${playfair.variable} ${caveat.variable}`}
     >
       <body className="antialiased font-sans">
 
