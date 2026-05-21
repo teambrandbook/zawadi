@@ -331,7 +331,7 @@ export default function CommunityProductsPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
@@ -352,7 +352,7 @@ export default function CommunityProductsPage() {
         ) : filteredProducts.length === 0 ? (
           <EmptyState message="No products match this filter yet." />
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4">
             {filteredProducts.map((product, index) => {
               const price = getSellingPrice(product);
               const outOfStock = isProductOutOfStock(product);

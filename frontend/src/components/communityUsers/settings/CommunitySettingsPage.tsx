@@ -362,7 +362,7 @@ export default function CommunitySettingsPage() {
       <div className="mx-auto max-w-[1200px] space-y-6">
         <SettingsHeader />
 
-        <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
           <SettingsSideNav activeSection={activeSection} sections={settingsSections} onSectionChange={setActiveSection} />
 
           <div className="space-y-4">

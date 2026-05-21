@@ -321,7 +321,7 @@ export default function MyOrder() {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4 xl:gap-6">
+        <div className="grid grid-cols-2 gap-5 md:grid-cols-3 xl:grid-cols-4 xl:gap-6">
           {stats.map(({ label, value, tag, valueClass, Icon }) => (
             <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
               <div className="flex h-12 items-center justify-between">

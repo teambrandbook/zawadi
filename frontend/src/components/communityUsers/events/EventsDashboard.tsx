@@ -269,8 +269,8 @@ export default function EventsDashboard() {
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-white p-8">
-      <div className="mb-8 flex items-end justify-between">
+    <div className="min-h-screen flex-1 bg-white p-4 sm:p-6 lg:p-8">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="mb-1 text-2xl font-bold text-[#06402B]">My Events</h1>
           <p className="text-sm text-gray-500">
@@ -280,14 +280,14 @@ export default function EventsDashboard() {
         <button
           type="button"
           onClick={handleExploreEvents}
-          className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020]"
+          className="flex w-full items-center justify-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020] sm:w-auto"
         >
           <Search size={16} />
           <span>Explore Events</span>
         </button>
       </div>
 
-      <div className="mb-8 grid grid-cols-4 gap-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="rounded-md bg-green-100 p-2">
@@ -341,13 +341,13 @@ export default function EventsDashboard() {
         </div>
       </div>
 
-      <div ref={eventListRef} className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
-        <div className="flex space-x-2">
+      <div ref={eventListRef} className="mb-8 flex flex-col gap-4 border-b border-gray-200 pb-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex gap-2 overflow-x-auto pb-1">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`rounded-md px-4 py-1.5 text-sm font-medium ${
+              className={`shrink-0 rounded-md px-4 py-1.5 text-sm font-medium ${
                 activeTab === tab
                   ? "bg-[#06402B] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -358,8 +358,8 @@ export default function EventsDashboard() {
           ))}
         </div>
 
-        <div className="flex space-x-4">
-          <div className="relative">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative w-full sm:w-auto">
             <Search
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 transform text-gray-400"
@@ -369,11 +369,11 @@ export default function EventsDashboard() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search events..."
-              className="rounded-md border border-gray-200 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-[#06402B]"
+              className="w-full rounded-md border border-gray-200 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-[#06402B] sm:w-[220px]"
             />
           </div>
-          <div className="relative">
-            <button className="flex items-center justify-between space-x-4 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-700">
+          <div className="relative w-full sm:w-auto">
+            <button className="flex w-full items-center justify-between space-x-4 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-700 sm:w-auto">
               <span>All Types</span>
               <ChevronDown size={14} className="text-gray-500" />
             </button>
@@ -399,7 +399,7 @@ export default function EventsDashboard() {
       {isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">Loading events...</div>
       ) : (
-        <div className="flex gap-8">
+        <div className="flex flex-col gap-8 xl:flex-row">
           <div className="flex-1 space-y-8">
             <section>
               <h2 className="mb-4 text-lg font-bold text-[#06402B]">
@@ -413,13 +413,13 @@ export default function EventsDashboard() {
                   return (
                     <div
                       key={event.id}
-                      className="flex overflow-hidden rounded-lg border border-gray-200 bg-white p-0 text-left shadow-sm"
+                      className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-0 text-left shadow-sm sm:flex-row"
                     >
-                      <div className="flex w-24 flex-shrink-0 items-center justify-center bg-[#06402B]">
+                      <div className="flex h-16 flex-shrink-0 items-center justify-center bg-[#06402B] sm:h-auto sm:w-24">
                         <Icon size={28} className="text-white" />
                       </div>
-                      <div className="flex flex-1 items-start justify-between p-4">
-                        <div className="max-w-[70%] pr-4">
+                      <div className="flex flex-1 flex-col gap-4 p-4 lg:flex-row lg:items-start lg:justify-between">
+                        <div className="min-w-0 lg:max-w-[70%] lg:pr-4">
                           <div className="mb-2 flex items-center space-x-3">
                             <h3 className="text-[15px] font-bold text-gray-800">{event.title}</h3>
                           </div>
@@ -430,7 +430,7 @@ export default function EventsDashboard() {
                           </span>
                           <p className="mb-4 text-sm text-gray-600">{event.short_description}</p>
 
-                          <div className="flex items-center space-x-6 text-xs font-medium text-gray-500">
+                          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-gray-500">
                             <div className="flex items-center space-x-1.5">
                               {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
                               <span>{event.is_online ? "Online" : event.location || "Onsite"}</span>
@@ -442,9 +442,9 @@ export default function EventsDashboard() {
                           </div>
                         </div>
 
-                        <div className="min-w-[160px] space-y-6 text-right">
+                        <div className="space-y-4 text-left lg:min-w-[160px] lg:space-y-6 lg:text-right">
                           <span className="whitespace-nowrap text-xs text-gray-500">{formatted.full}</span>
-                          <div className="flex justify-end space-x-2">
+                          <div className="flex flex-wrap gap-2 lg:justify-end">
                             <Link
                               href={`/communityDashBoard/events/${event.id}`}
                               className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
@@ -493,14 +493,14 @@ export default function EventsDashboard() {
                   return (
                     <div
                       key={eventId}
-                      className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm"
+                      className="flex flex-col gap-5 rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm lg:flex-row lg:items-center lg:justify-between"
                     >
                       <div>
                         <h3 className="mb-2 text-[15px] font-bold text-gray-800">{event.title}</h3>
                         <span className={`mb-4 inline-block rounded-xl px-2.5 py-0.5 text-[11px] font-medium ${statusClass}`}>
                           {status === "confirmed" ? "Confirmed" : "Registered"}
                         </span>
-                        <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500">
                           <div className="flex items-center space-x-1.5">
                             {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
                             <span>{event.is_online ? "Online Event" : event.location || "Onsite Event"}</span>
@@ -512,14 +512,14 @@ export default function EventsDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-6">
-                        <div className="text-right">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:space-x-6">
+                        <div className="text-left sm:text-right">
                           <p className="text-sm font-semibold text-gray-800">{when.day}</p>
                           <p className="text-xs text-gray-500">{when.time}</p>
                         </div>
                         <Link
                           href={`/communityDashBoard/events/${eventId}`}
-                          className="flex items-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
+                          className="flex items-center justify-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
                         >
                           <ExternalLink size={14} />
                           <span>View Details</span>
@@ -538,7 +538,7 @@ export default function EventsDashboard() {
             </section>
           </div>
 
-          <div className="w-80 space-y-6">
+          <div className="w-full space-y-6 xl:w-80">
             <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Calendar</h3>
               <div className="relative space-y-4 before:absolute before:inset-0 before:mx-auto before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent before:translate-x-0">

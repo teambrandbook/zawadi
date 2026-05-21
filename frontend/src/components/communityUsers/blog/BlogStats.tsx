@@ -14,7 +14,7 @@ export default function BlogStats({ posts }: Props) {
   ];
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
       {statCards.map((card) => (
         <div key={card.label} className="rounded-lg border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between">

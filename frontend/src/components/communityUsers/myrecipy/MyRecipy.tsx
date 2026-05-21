@@ -163,7 +163,7 @@ export default function MyRecipy() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {stats.map(({ label, value, Icon, iconBoxClass, valueClass }) => (
             <div key={label} className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]">
               <div className="mb-2 flex items-center justify-between">
@@ -246,7 +246,7 @@ export default function MyRecipy() {
         ) : filteredRecipes.length === 0 ? (
           <p className="py-12 text-center text-sm text-gray-400">No recipes found for this filter.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3">
             {filteredRecipes.map((recipe) => {
               const currentStatus = statusKey(recipe.status);
               const badge = STATUS_BADGE[currentStatus] ?? { label: recipe.status, cls: "bg-gray-100 text-gray-600" };
