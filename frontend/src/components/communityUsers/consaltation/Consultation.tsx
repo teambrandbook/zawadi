@@ -370,7 +370,7 @@ export default function Consultation() {
           </button>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <SummaryCard key={card.label} card={card} />
           ))}

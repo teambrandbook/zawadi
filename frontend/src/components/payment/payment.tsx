@@ -653,13 +653,14 @@ export default function Payment() {
             <h2 className="text-[16px] font-bold leading-6 text-[#143F2F]">
               Complete your order with these
             </h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-5 flex gap-3 overflow-x-auto pb-3 sm:gap-4">
               {relatedProducts.map((product) => (
-                <RelatedProductCard
-                  key={product.id}
-                  product={product}
-                  onAddToCart={() => handleAddRelatedProduct(product.id)}
-                />
+                <div key={product.id} className="min-w-0 flex-[0_0_calc((100%-0.75rem)/2)] md:flex-[0_0_calc((100%-2rem)/3)] lg:flex-[0_0_calc((100%-3rem)/4)]">
+                  <RelatedProductCard
+                    product={product}
+                    onAddToCart={() => handleAddRelatedProduct(product.id)}
+                  />
+                </div>
               ))}
             </div>
           </section>

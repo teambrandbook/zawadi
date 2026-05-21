@@ -21,6 +21,7 @@ type Product = {
   id: number;
   product_name: string;
   product_subtitle: string;
+  short_description?: string;
   category: string;
   base_price: string;
   sale_price: string | null;
@@ -43,21 +44,16 @@ function productImageUrl(path: string | null): string {
   return getImageUrl(path);
 }
 
-function Rating({ strings }: { strings: ProductCardStrings }) {
+function RatingStars({ strings }: { strings: ProductCardStrings }) {
   return (
-    <div className="flex items-center gap-2">
-      <div className="flex items-center gap-0.5 text-[#f2c94c]" aria-label={strings.ratingLabel}>
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Star
-            key={index}
-            size={16}
-            className={cn(index === 4 ? "fill-transparent" : "fill-current", "stroke-current")}
-          />
-        ))}
-      </div>
-      <span className="text-sm font-medium leading-5 tracking-[0.01em] text-[#6b7280]">
-        {strings.reviewsText}
-      </span>
+    <div className="flex items-center gap-0.5 text-[#f2c94c]" aria-label={strings.ratingLabel}>
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Star
+          key={index}
+          size={16}
+          className={cn(index === 4 ? "fill-transparent" : "fill-current", "stroke-current")}
+        />
+      ))}
     </div>
   );
 }
@@ -97,6 +93,7 @@ function ProductCard({
   const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
   const badgeText = isNewProduct(product.created_at) ? strings.newBadge : formatCategoryLabel(product.category);
+  const description = product.short_description || product.product_subtitle || "";
 
   return (
     <article
@@ -109,29 +106,29 @@ function ProductCard({
           router.push(detailHref);
         }
       }}
-      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-3xl bg-white p-5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-6"
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-3.5 lg:rounded-3xl lg:p-4 xl:p-5"
     >
-      <div className="relative mb-5 aspect-4/3 w-full overflow-hidden rounded-2xl bg-[#f8f8f8]">
+      <div className="relative mb-3 aspect-4/3 w-full overflow-hidden rounded-xl bg-[#f8f8f8] lg:mb-4 lg:rounded-2xl">
         <Image
           src={productImageUrl(product.image)}
           alt={product.product_name}
           fill
           unoptimized
-          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 45vw, 90vw"
+          sizes="(min-width: 1280px) 25vw, (min-width: 768px) 30vw, 50vw"
           className="object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <span className="absolute left-4 top-4 rounded-full bg-[#f2c94c] px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-black">
+        <span className="absolute left-2 top-2 rounded-full bg-[#f2c94c] px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-black sm:left-3 sm:top-3 sm:text-[10px] lg:left-4 lg:top-4 lg:px-3 lg:py-1 lg:text-[11px]">
           {badgeText}
         </span>
       </div>
 
       <div className="flex flex-1 flex-col">
-        <div className="flex items-start justify-between gap-4">
-          <h2 className="text-[20px] font-bold capitalize text-[#1a1a1a] sm:text-[22px]">
+        <div className="flex items-start justify-between gap-2 lg:gap-4">
+          <h2 className="min-w-0 text-[14px] font-bold capitalize leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[19px] xl:text-[21px]">
             {product.product_name}
           </h2>
           <div className="flex flex-col items-end">
-            <span className="whitespace-nowrap text-[20px] font-bold text-[#1a1a1a] sm:text-[22px]">
+            <span className="whitespace-nowrap text-[14px] font-bold leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[19px] xl:text-[21px]">
               {product.display_price
                 ? formatPrice(product.display_price, product.currency_code || "SAR", product.currency_decimal_places || 2)
                 : formatPrice(price, "SAR")}
@@ -140,8 +137,10 @@ function ProductCard({
           </div>
         </div>
         {discounted ? (
-          <div className="mt-1 flex items-center gap-2">
-            <span className="text-sm text-[#9ca3af] line-through">&#8377;{product.mrp_price}</span>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5 lg:gap-2">
+            <span className="text-xs text-[#9ca3af] line-through lg:text-sm">
+              {formatPrice(product.mrp_price ?? price, product.currency_code || "SAR", product.currency_decimal_places || 2)}
+            </span>
             <span className="text-xs font-bold text-[#15803D]">
               {Number(product.discount_percent ?? 0).toFixed(0)}% {strings.off}
             </span>
@@ -149,17 +148,19 @@ function ProductCard({
         ) : null}
 
         <div className="mt-2.5">
-          <Rating strings={strings} />
+          <RatingStars strings={strings} />
         </div>
 
-        <p className="mt-4 text-[13px] leading-[1.6] text-[#6b7280] sm:text-[14px]">
-          {product.product_subtitle || strings.fallbackSubtitle}
-        </p>
-        <p className={`mt-3 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
+        {description ? (
+          <p className="mt-2.5 line-clamp-2 text-[12px] leading-[1.5] text-[#6b7280] lg:mt-3 lg:text-[13px] lg:leading-[1.55]">
+            {description}
+          </p>
+        ) : null}
+        <p className={`mt-2.5 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
           {outOfStock ? strings.outOfStock : lowStock ? strings.onlyLeft.replace("{count}", String(product.stock_quantity)) : strings.inStock}
         </p>
 
-        <div className="mt-auto flex gap-2 pt-6">
+        <div className="mt-auto flex flex-col gap-2 pt-3.5 lg:flex-row lg:pt-5">
           <button
             type="button"
             onClick={(event) => {
@@ -167,15 +168,15 @@ function ProductCard({
               onAddToCart(product);
             }}
             disabled={outOfStock}
-            className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#1f4d3a] py-3.5 text-[15px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[16px]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#1f4d3a] py-2.5 text-[12px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[13px] lg:gap-2 lg:py-3 lg:text-[14px] xl:text-[15px]"
           >
-            <FaBagShopping size={18} />
+            <FaBagShopping size={16} />
             {outOfStock ? strings.outOfStockButton : strings.addToCart}
           </button>
           <Link
             href={detailHref}
             onClick={(event) => event.stopPropagation()}
-            className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-5 py-3.5 text-sm font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white"
+            className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-3 py-2.5 text-xs font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white lg:px-4 lg:py-3 lg:text-sm"
           >
             {strings.view}
           </Link>
@@ -252,7 +253,7 @@ export default function ProductCards() {
   }
 
   return (
-    <section className="bg-[#fffef5] px-6 py-20 sm:px-8 lg:px-20">
+    <section className="bg-[#fffef5] px-4 py-20 sm:px-6 lg:px-20">
       <div className="mx-auto max-w-355.5">
         <div className="flex justify-center overflow-x-auto pb-2">
           <div className="flex min-w-max items-center gap-2">
@@ -279,7 +280,7 @@ export default function ProductCards() {
             {strings.noProducts}
           </div>
         ) : (
-          <div className="mt-9 grid grid-cols-1 justify-items-center gap-x-6 gap-y-16 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-9 grid grid-cols-2 justify-items-center gap-x-3 gap-y-8 sm:gap-x-4 md:grid-cols-3 md:gap-x-5 md:gap-y-12 xl:grid-cols-4 xl:gap-x-6 xl:gap-y-16">
             {filtered.map((product) => (
               <ProductCard key={product.id} product={product} onAddToCart={handleAddToCart} strings={strings} />
             ))}

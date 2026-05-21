@@ -282,7 +282,7 @@ export default function CustomGiftsPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="flex-1 p-8 bg-white min-h-screen">
+    <main className="min-h-screen flex-1 bg-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <header className="rounded-lg border border-[#E8E8E8] bg-white p-6 shadow-sm">
@@ -307,18 +307,18 @@ export default function CustomGiftsPage() {
           {/* ── Left Column ── */}
           <div className="flex-1 space-y-6">
             {/* Box Size */}
-            <section className="rounded-lg border border-[#DFDFDF] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-lg font-bold text-[#06402B] mb-4">
                 Choose Your Gift Box Size
               </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-2 lg:gap-4">
                 {giftBoxSizes.map((box) => {
                   const isSelected = selectedBox.id === box.id;
                   return (
                     <article
                       key={box.id}
                       onClick={() => setSelectedBox(box)}
-                      className={`rounded-lg border-2 p-5 transition-all cursor-pointer ${
+                      className={`cursor-pointer rounded-lg border-2 p-3 transition-all sm:p-5 ${
                         isSelected
                           ? "border-[#A88751] bg-[#FBF8F1]"
                           : "border-[#DADDE1] bg-white hover:border-gray-300"
@@ -326,13 +326,13 @@ export default function CustomGiftsPage() {
                     >
                       <div className="flex items-start justify-between">
                         <span
-                          className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${
+                          className={`inline-flex h-8 w-8 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${
                             isSelected
                               ? "bg-[#A88751] text-white"
                               : "bg-gray-100 text-gray-500"
                           }`}
                         >
-                          <Package className="h-6 w-6" />
+                          <Package className="h-4 w-4 sm:h-6 sm:w-6" />
                         </span>
                         <span
                           className={`inline-flex h-5 w-5 items-center justify-center rounded-full border-2 ${
@@ -344,13 +344,13 @@ export default function CustomGiftsPage() {
                           <Check className="h-3 w-3" />
                         </span>
                       </div>
-                      <h3 className="mt-5 text-base font-bold text-gray-900">
+                      <h3 className="mt-3 text-sm font-bold text-gray-900 sm:mt-5 sm:text-base">
                         {box.name}
                       </h3>
-                      <p className="mt-1 text-sm leading-relaxed text-gray-500">
+                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500 sm:text-sm sm:leading-relaxed">
                         {box.description}
                       </p>
-                      <p className="mt-5 text-xs font-semibold text-[#A88751]">
+                      <p className="mt-3 text-xs font-semibold text-[#A88751] sm:mt-5">
                         Capacity: {box.capacity}
                       </p>
                     </article>
@@ -360,7 +360,7 @@ export default function CustomGiftsPage() {
             </section>
 
             {/* Product Selection */}
-            <section className="rounded-lg border border-[#DFDFDF] bg-white p-6 shadow-sm">
+            <section className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-sm sm:p-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <h2 className="text-lg font-bold text-[#06402B]">
                   Select Products
@@ -391,32 +391,32 @@ export default function CustomGiftsPage() {
                   No products found.
                 </p>
               ) : (
-                <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-6">
                   {filteredProducts.map((product) => (
                     <article
                       key={product.id}
-                      className={`rounded-xl border bg-white p-4 transition-all hover:shadow-md ${
+                      className={`rounded-xl border bg-white p-3 transition-all hover:shadow-md sm:p-4 ${
                         product.quantity > 0
                           ? "border-[#A88751] ring-1 ring-[#A88751]"
                           : "border-gray-200"
                       }`}
                     >
-                      <div className="relative h-40 overflow-hidden rounded-lg bg-gray-50 mb-4">
+                      <div className="relative mb-3 h-24 overflow-hidden rounded-lg bg-gray-50 sm:mb-4 sm:h-40">
                         <Image
                           src={product.image}
                           alt={product.name}
                           fill
-                          sizes="(max-width: 768px) 100vw, 300px"
+                          sizes="(max-width: 768px) 50vw, 300px"
                           className="object-cover"
                         />
                       </div>
-                      <h3 className="text-sm font-bold text-gray-900">
+                      <h3 className="line-clamp-1 text-xs font-bold text-gray-900 sm:text-sm">
                         {product.name}
                       </h3>
                       <p className="mt-1 text-xs text-gray-500 line-clamp-2">
                         {product.description}
                       </p>
-                      <div className="mt-4 flex items-center gap-2">
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:mt-4 sm:gap-2">
                         <span className="rounded-md bg-gray-100 px-2 py-1 text-[10px] font-medium text-gray-600">
                           {product.size}
                         </span>
@@ -427,14 +427,14 @@ export default function CustomGiftsPage() {
                         )}
                       </div>
                       {product.quantity > 0 ? (
-                        <div className="mt-4 flex h-9 items-center justify-between rounded-lg border border-[#A88751] bg-[#FBF8F1] px-3">
+                        <div className="mt-3 flex h-9 items-center justify-between rounded-lg border border-[#A88751] bg-[#FBF8F1] px-2 sm:mt-4 sm:px-3">
                           <button
                             onClick={() => changeQuantity(product.id, -1)}
                             className="text-[#A88751] hover:bg-[#A88751] hover:text-white rounded w-6 h-6 flex items-center justify-center transition-colors font-bold"
                           >
                             -
                           </button>
-                          <span className="text-sm font-bold text-[#06402B]">
+                          <span className="text-xs font-bold text-[#06402B] sm:text-sm">
                             Added ({product.quantity})
                           </span>
                           <button
@@ -447,7 +447,7 @@ export default function CustomGiftsPage() {
                       ) : (
                         <button
                           onClick={() => changeQuantity(product.id, 1)}
-                          className="mt-4 h-9 w-full rounded-lg bg-[#06402B] text-sm font-semibold text-white hover:bg-[#053020] transition-colors shadow-sm"
+                          className="mt-3 h-8 w-full rounded-lg bg-[#06402B] text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#053020] sm:mt-4 sm:h-9 sm:text-sm"
                         >
                           Add to Box
                         </button>

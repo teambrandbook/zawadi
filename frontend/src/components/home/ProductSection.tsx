@@ -11,6 +11,7 @@ import gsap from "gsap";
 
 const ProductSection = () => {
   const { locale } = useLocale();
+  const isRtl = locale === "ar";
   const containerRef = useRef<HTMLDivElement>(null);
   const productTextRef = useRef<HTMLParagraphElement>(null);
   const wheelLockRef = useRef(false);
@@ -144,22 +145,22 @@ const ProductSection = () => {
 
       <div className="relative z-10 w-full px-6 lg:px-24">
         {/* Header Container for Mobile Positioning */}
-        <div className="relative mb-8 flex items-center justify-between flex-row rtl:flex-row-reverse">
+        <div className="relative mb-8 flex flex-row items-center justify-between rtl:flex-row-reverse">
           <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-5xl text-left rtl:text-right">
             {sectionData.title}
           </h2>
           
-          {/* Mobile Arrows: Handled for layout swaps via flex-row-reverse */}
-          <div className="flex items-center gap-2 flex-row rtl:flex-row-reverse">
+          {/* Mobile Arrows */}
+          <div className="flex flex-row items-center gap-2 rtl:flex-row-reverse">
             <button
-              onClick={prev}
+              onClick={isRtl ? next : prev}
               aria-label="Previous product"
               className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
               <ArrowLeft className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
             </button>
             <button
-              onClick={next}
+              onClick={isRtl ? prev : next}
               aria-label="Next product"
               className="group flex h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:hidden"
             >
@@ -171,7 +172,7 @@ const ProductSection = () => {
         <div className="relative flex h-[280px] items-center justify-center sm:h-[360px] lg:h-[440px]">
           {/* Desktop/Tablet Arrows: Mirrored cleanly inside layout trees */}
           <button
-            onClick={prev}
+            onClick={isRtl ? next : prev}
             aria-label="Previous product"
             className="group absolute left-0 rtl:right-0 rtl:left-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:left-20 lg:rtl:right-20 lg:rtl:left-auto lg:h-12 lg:w-12"
           >
@@ -194,7 +195,7 @@ const ProductSection = () => {
           ))}
 
           <button
-            onClick={next}
+            onClick={isRtl ? prev : next}
             aria-label="Next product"
             className="group absolute right-0 rtl:left-0 rtl:right-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:right-20 lg:rtl:left-20 lg:rtl:right-auto lg:h-12 lg:w-12"
           >
