@@ -2,12 +2,28 @@
 
 import Image from "next/image";
 import { MoveLeft, MoveRight } from "lucide-react";
+import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 
 export default function EventTestimonials() {
   const { locale } = useLocale();
   const testimonialText = translations[locale]?.eventsPage?.testimonials || translations.en.eventsPage.testimonials;
+  const testimonials = testimonialText.items ?? [
+    {
+      quote: testimonialText.quote,
+      name: testimonialText.name,
+      role: testimonialText.role,
+    },
+  ];
+  const [activeIndex, setActiveIndex] = useState(0);
+  const activeTestimonial = testimonials[activeIndex] ?? testimonials[0];
+  const showPrevious = () => {
+    setActiveIndex((current) => (current - 1 + testimonials.length) % testimonials.length);
+  };
+  const showNext = () => {
+    setActiveIndex((current) => (current + 1) % testimonials.length);
+  };
 
   return (
     <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-8">
@@ -20,7 +36,7 @@ export default function EventTestimonials() {
           </div>
 
           <h2
-            className="mt-4 font-serif text-[36px] leading-[1.1] text-[#1f4d3a] md:text-[48px] fade-in"
+            className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
             dangerouslySetInnerHTML={{ __html: testimonialText.titleHTML }}
           />
         </div>
@@ -45,7 +61,7 @@ export default function EventTestimonials() {
 
               <div className="relative z-10">
                 <p className="fade-in text-[18px] md:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
-                  {testimonialText.quote}
+                  {activeTestimonial.quote}
                 </p>
 
                 <div className="mt-10 flex items-center justify-between">
@@ -53,18 +69,28 @@ export default function EventTestimonials() {
                   <div className="fade-in flex items-center gap-4 rtl:flex-row-reverse">
                     <div className="h-14 w-14 rounded-full bg-[#dcdcd8]" />
                     <div className="text-left rtl:text-right">
-                      <p className="text-[16px] font-bold text-[#1f4d3a]">{testimonialText.name}</p>
-                      <p className="text-[12px] text-[#7a8c78]">{testimonialText.role}</p>
+                      <p className="text-[16px] font-bold text-[#1f4d3a]">{activeTestimonial.name}</p>
+                      <p className="text-[12px] text-[#7a8c78]">{activeTestimonial.role}</p>
                     </div>
                   </div>
 
                   {/* Navigation Buttons - Positioned to overlap the card edge */}
                   <div className="absolute -right-4 bottom-10 flex gap-2 rtl:-left-4 rtl:right-auto md:-right-6 rtl:md:-left-6 rtl:md:right-auto">
-                    <button className="flex h-12 w-12 items-center justify-center rounded-full bg-white/80 border border-white backdrop-blur-sm text-[#1f4d3a] shadow-sm transition-all hover:bg-white">
-                      <MoveLeft className="h-5 w-5" />
+                    <button
+                      type="button"
+                      onClick={showPrevious}
+                      aria-label="Previous testimonial"
+                      className="flex h-12 w-12 items-center justify-center rounded-full bg-white/80 border border-white backdrop-blur-sm text-[#1f4d3a] shadow-sm transition-all hover:bg-[#1f4d3a] hover:text-white"
+                    >
+                      <MoveLeft className="h-5 w-5 rtl:rotate-180" />
                     </button>
-                    <button className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1f4d3a] text-white shadow-lg transition-all hover:bg-[#16382a]">
-                      <MoveRight className="h-5 w-5" />
+                    <button
+                      type="button"
+                      onClick={showNext}
+                      aria-label="Next testimonial"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border border-white bg-white/80 text-[#1f4d3a] shadow-lg backdrop-blur-sm transition-all hover:bg-[#1f4d3a] hover:text-white"
+                    >
+                      <MoveRight className="h-5 w-5 rtl:rotate-180" />
                     </button>
                   </div>
                 </div>
@@ -80,7 +106,7 @@ export default function EventTestimonials() {
           <div className="w-full mb-8 lg:mb-0 lg:w-[50%]">
             <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] lg:h-[500px]">
               <Image
-                src="/event/community_hands.webp" 
+                src="/about/testimonial.webp " 
                 alt="Community hands"
                 fill
                 className="object-cover"

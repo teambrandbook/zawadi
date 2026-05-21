@@ -445,6 +445,23 @@ export const translations = {
         quote: "Zewadi products truly changed the way I look at everyday food simple, high-quality, and made to fit effortlessly into my life",
         name: "Hamna Zaid",
         role: "Happy Customer",
+        items: [
+          {
+            quote: "Zewadi events made healthy living feel warm and practical. I left with simple ideas I could actually use every day.",
+            name: "Hamna Zaid",
+            role: "Happy Customer",
+          },
+          {
+            quote: "The gathering felt personal and welcoming. It was a beautiful way to connect with people who care about better everyday choices.",
+            name: "Aisha Rahman",
+            role: "Community Member",
+          },
+          {
+            quote: "I loved how the event brought food, wellness, and conversation together. It felt thoughtful from beginning to end.",
+            name: "Mariam Khalid",
+            role: "Event Guest",
+          },
+        ],
       },
     },
     galleryPage: {
@@ -989,6 +1006,23 @@ export const translations = {
         quote: "غيّرت منتجات زوادي فعلاً طريقتي في النظر إلى طعامي اليومي؛ بسيطة وعالية الجودة وتنسجم بسهولة مع حياتي.",
         name: "هامنة زايد",
         role: "عميلة سعيدة",
+        items: [
+          {
+            quote: "جعلت فعاليات زوادي الحياة الصحية أكثر دفئاً وسهولة. خرجت بأفكار بسيطة أستطيع تطبيقها كل يوم.",
+            name: "هامنة زايد",
+            role: "عميلة سعيدة",
+          },
+          {
+            quote: "كان اللقاء ودوداً وشخصياً. طريقة جميلة للتواصل مع أشخاص يهتمون باختيارات يومية أفضل.",
+            name: "عائشة رحمن",
+            role: "عضوة في المجتمع",
+          },
+          {
+            quote: "أحببت كيف جمعت الفعالية بين الطعام والعافية والحوار. كانت تجربة مدروسة من البداية إلى النهاية.",
+            name: "مريم خالد",
+            role: "ضيفة فعالية",
+          },
+        ],
       },
     },
     galleryPage: {
