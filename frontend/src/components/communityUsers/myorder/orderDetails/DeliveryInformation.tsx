@@ -1,6 +1,12 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import api from "@/services/api";
 import { DeliveryForm } from "./types";
+
+type Country = { code: string; name: string };
+
+const FALLBACK_COUNTRIES: Country[] = [{ code: "SA", name: "Saudi Arabia" }];
 
 type Props = {
   form: DeliveryForm;
@@ -11,6 +17,19 @@ const inputClass =
   "h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F4F6] px-3 text-sm text-[#0A4833] placeholder:text-[#8A8A8A] outline-none focus:border-[#0A4833]";
 
 export default function DeliveryInformation({ form, onChange }: Props) {
+  const [countries, setCountries] = useState<Country[]>(FALLBACK_COUNTRIES);
+
+  useEffect(() => {
+    api
+      .get<Country[]>("/tax/countries/")
+      .then((res) => {
+        if (Array.isArray(res.data) && res.data.length > 0) setCountries(res.data);
+      })
+      .catch(() => {
+        // keep fallback
+      });
+  }, []);
+
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
       <h3 className="text-xl font-semibold text-[#0A4833]">Delivery Information</h3>
@@ -34,6 +53,20 @@ export default function DeliveryInformation({ form, onChange }: Props) {
         <div>
           <label className="mb-1 block text-xs text-[#0A4833]">Postal Code</label>
           <input className={inputClass} value={form.postalCode} onChange={(e) => onChange("postalCode", e.target.value)} />
+        </div>
+        <div className="sm:col-span-2">
+          <label className="mb-1 block text-xs text-[#0A4833]">Country</label>
+          <select
+            className={inputClass}
+            value={form.country}
+            onChange={(e) => onChange("country", e.target.value)}
+          >
+            {countries.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="sm:col-span-2">
           <label className="mb-1 block text-xs text-[#0A4833]">Delivery Address</label>

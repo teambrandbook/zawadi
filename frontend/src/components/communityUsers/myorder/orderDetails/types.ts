@@ -14,6 +14,7 @@ export type DeliveryForm = {
   postalCode: string;
   address: string;
   instructions: string;
+  country: string;
 };
 
 export type PaymentMethod = "cod";

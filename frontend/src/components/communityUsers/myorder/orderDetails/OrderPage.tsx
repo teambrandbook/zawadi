@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -82,6 +82,7 @@ const initialForm: DeliveryForm = {
   postalCode: "",
   address: "",
   instructions: "",
+  country: "SA",
 };
 
 type MeResponse = {
@@ -162,6 +163,8 @@ export default function OrderPage() {
 
   // State for Add to Cart busy status
   const [busyProductId, setBusyProductId] = useState<number | null>(null);
+
+  const isFirstCountryRender = useRef(true);
 
   const selectedProduct = useMemo(
     () => products.find((item) => String(item.id) === selectedProductId) ?? null,
@@ -270,6 +273,26 @@ export default function OrderPage() {
     }
   }, [maxQuantity, requestedQuantity]);
 
+  useEffect(() => {
+    if (isFirstCountryRender.current) {
+      isFirstCountryRender.current = false;
+      return;
+    }
+    if (!isCartCheckout) return;
+
+    async function refreshCartTax() {
+      try {
+        const res = await api.get<CartResponse>(`/orders/cart/?country=${deliveryForm.country}`);
+        setCartItems(res.data.items);
+        setCartSummary(res.data.summary);
+      } catch {
+        toast.error("Could not update tax estimate.");
+      }
+    }
+
+    void refreshCartTax();
+  }, [deliveryForm.country, isCartCheckout]);
+
   function onDeliveryChange<K extends keyof DeliveryForm>(field: K, value: DeliveryForm[K]) {
     setDeliveryForm((prev) => ({ ...prev, [field]: value }));
   }
@@ -344,6 +367,7 @@ export default function OrderPage() {
           postal_code: deliveryForm.postalCode.trim(),
           address: deliveryForm.address.trim(),
           instructions: deliveryForm.instructions.trim(),
+          country: deliveryForm.country,
         },
       };
       setIsSubmitting(true);
