@@ -3,11 +3,13 @@ from django.urls import path
 from .views import (
     CommunityDashboardSummaryAPIView,
     CommunityProfileAPIView,
+    CommunityPublicStatsAPIView,
     AddressListCreateView,
     AddressDeleteView,
 )
 
 urlpatterns = [
+    path("public-stats/", CommunityPublicStatsAPIView.as_view(), name="community-public-stats"),
     path("profile/", CommunityProfileAPIView.as_view(), name="community-profile"),
     path(
         "dashboard/summary/",
