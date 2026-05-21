@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   title: "Zewadi | Premium Digital Experience",
   description:
     "Modern, high-performance website built with Next.js and GSAP.",
+  icons: {
+    icon: "/favicon/favicon-zoom.png",
+    shortcut: "/favicon/favicon-zoom.png",
+    apple: "/favicon/favicon-zoom.png",
+  },
 };
 
 export default function RootLayout({
