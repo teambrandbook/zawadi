@@ -39,7 +39,7 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
   return (
     <section className="space-y-4">
       <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <h1 className="text-4xl font-semibold text-[#0A4833]">Events Management</h1>
+        <h1 className="text-2xl font-semibold text-[#0A4833] md:text-[28px]">Events Management</h1>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative w-full min-w-[220px] md:w-[280px]">
@@ -64,16 +64,16 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
         {stats.map((item) => {
           const Icon = statIcon(item.icon);
           return (
-            <article key={item.id} className="rounded-[10px] border border-[#DFDFDF] bg-white p-4">
-              <div className="flex items-start justify-between">
+            <article key={item.id} className="h-[126px] overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4">
+              <div className="flex items-start justify-between gap-2">
                 <div className={`inline-flex h-9 w-9 items-center justify-center rounded-md ${statIconTone(item.id)}`}>
                   <Icon size={16} />
                 </div>
-                {item.label && <p className={`text-xs ${statBadgeTone(item.id)}`}>{item.label}</p>}
+                {item.label && <p className={`truncate text-xs ${statBadgeTone(item.id)}`}>{item.label}</p>}
               </div>
 
-              <p className="mt-3 text-[36px] font-semibold leading-none text-[#0A4833]">{item.value}</p>
-              <p className="mt-2 text-sm text-[#7F9A90]">{item.subText}</p>
+              <p className="mt-3 truncate text-[28px] font-semibold leading-none text-[#0A4833]">{item.value}</p>
+              <p className="mt-1.5 truncate text-xs text-[#7F9A90]">{item.subText}</p>
             </article>
           );
         })}

@@ -233,7 +233,7 @@ const ProductDetails = () => {
               />
             </div>
             {thumbnailImages.length > 0 ? (
-              <div className="grid grid-cols-5 gap-3">
+              <div className="grid grid-cols-4 gap-3">
                 {thumbnailImages.map((image, index) => (
                   <button
                     key={`${image}-${index}`}

@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
 import { addToGuestCart, getGuestCartCount } from "@/lib/guestCart";
+import { formatPrice } from "@/utils/formatPrice";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 
@@ -20,11 +21,15 @@ type Product = {
   id: number;
   product_name: string;
   product_subtitle: string;
+  short_description?: string;
   category: string;
   base_price: string;
   sale_price: string | null;
   mrp_price?: string | number;
   selling_price?: string | number;
+  display_price?: string | number;
+  currency_code?: string;
+  currency_decimal_places?: number;
   discount_percent?: string | number;
   image: string | null;
   stock_status: string;
@@ -88,6 +93,7 @@ function ProductCard({
   const outOfStock = product.stock_status === "out_of_stock" || product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
   const badgeText = isNewProduct(product.created_at) ? strings.newBadge : formatCategoryLabel(product.category);
+  const description = product.short_description || product.product_subtitle || "";
 
   return (
     <article
@@ -100,9 +106,9 @@ function ProductCard({
           router.push(detailHref);
         }
       }}
-      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-3 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-4 lg:rounded-3xl lg:p-5 xl:p-6"
+      className="group flex w-full cursor-pointer flex-col overflow-hidden rounded-2xl bg-white p-2.5 shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.1)] focus:outline-none focus:ring-2 focus:ring-[#1f4d3a]/30 sm:p-3.5 lg:rounded-3xl lg:p-4 xl:p-5"
     >
-      <div className="relative mb-3 aspect-4/3 w-full overflow-hidden rounded-xl bg-[#f8f8f8] lg:mb-5 lg:rounded-2xl">
+      <div className="relative mb-3 aspect-4/3 w-full overflow-hidden rounded-xl bg-[#f8f8f8] lg:mb-4 lg:rounded-2xl">
         <Image
           src={productImageUrl(product.image)}
           alt={product.product_name}
@@ -118,16 +124,23 @@ function ProductCard({
 
       <div className="flex flex-1 flex-col">
         <div className="flex items-start justify-between gap-2 lg:gap-4">
-          <h2 className="min-w-0 text-[14px] font-bold capitalize leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[20px] xl:text-[22px]">
+          <h2 className="min-w-0 text-[14px] font-bold capitalize leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[19px] xl:text-[21px]">
             {product.product_name}
           </h2>
-          <p className="whitespace-nowrap text-[14px] font-bold leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[20px] xl:text-[22px]">
-            &#8377;{price}
-          </p>
+          <div className="flex flex-col items-end">
+            <span className="whitespace-nowrap text-[14px] font-bold leading-tight text-[#1a1a1a] sm:text-[16px] lg:text-[19px] xl:text-[21px]">
+              {product.display_price
+                ? formatPrice(product.display_price, product.currency_code || "SAR", product.currency_decimal_places || 2)
+                : formatPrice(price, "SAR")}
+            </span>
+            <span className="text-xs text-gray-400">incl. VAT</span>
+          </div>
         </div>
         {discounted ? (
           <div className="mt-1 flex flex-wrap items-center gap-1.5 lg:gap-2">
-            <span className="text-xs text-[#9ca3af] line-through lg:text-sm">&#8377;{product.mrp_price}</span>
+            <span className="text-xs text-[#9ca3af] line-through lg:text-sm">
+              {formatPrice(product.mrp_price ?? price, product.currency_code || "SAR", product.currency_decimal_places || 2)}
+            </span>
             <span className="text-xs font-bold text-[#15803D]">
               {Number(product.discount_percent ?? 0).toFixed(0)}% {strings.off}
             </span>
@@ -138,14 +151,16 @@ function ProductCard({
           <RatingStars strings={strings} />
         </div>
 
-        <p className="mt-3 text-[12px] leading-[1.5] text-[#6b7280] lg:mt-4 lg:text-[14px] lg:leading-[1.6]">
-          {product.product_subtitle || strings.fallbackSubtitle}
-        </p>
-        <p className={`mt-3 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
+        {description ? (
+          <p className="mt-2.5 line-clamp-2 text-[12px] leading-[1.5] text-[#6b7280] lg:mt-3 lg:text-[13px] lg:leading-[1.55]">
+            {description}
+          </p>
+        ) : null}
+        <p className={`mt-2.5 text-xs font-semibold ${outOfStock ? "text-red-600" : lowStock ? "text-[#EA580C]" : "text-[#16A34A]"}`}>
           {outOfStock ? strings.outOfStock : lowStock ? strings.onlyLeft.replace("{count}", String(product.stock_quantity)) : strings.inStock}
         </p>
 
-        <div className="mt-auto flex flex-col gap-2 pt-4 lg:flex-row lg:pt-6">
+        <div className="mt-auto flex flex-col gap-2 pt-3.5 lg:flex-row lg:pt-5">
           <button
             type="button"
             onClick={(event) => {
@@ -153,7 +168,7 @@ function ProductCard({
               onAddToCart(product);
             }}
             disabled={outOfStock}
-            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#1f4d3a] py-2.5 text-[12px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[13px] lg:gap-2 lg:py-3.5 lg:text-[15px] xl:text-[16px]"
+            className="flex flex-1 items-center justify-center gap-1.5 rounded-full bg-[#1f4d3a] py-2.5 text-[12px] font-bold text-white transition-colors hover:bg-brand-green active:scale-[0.99] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:text-[13px] lg:gap-2 lg:py-3 lg:text-[14px] xl:text-[15px]"
           >
             <FaBagShopping size={16} />
             {outOfStock ? strings.outOfStockButton : strings.addToCart}
@@ -161,7 +176,7 @@ function ProductCard({
           <Link
             href={detailHref}
             onClick={(event) => event.stopPropagation()}
-            className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-3 py-2.5 text-xs font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white lg:px-5 lg:py-3.5 lg:text-sm"
+            className="flex items-center justify-center rounded-full border border-[#1f4d3a] px-3 py-2.5 text-xs font-bold text-[#1f4d3a] transition hover:bg-[#1f4d3a] hover:text-white lg:px-4 lg:py-3 lg:text-sm"
           >
             {strings.view}
           </Link>

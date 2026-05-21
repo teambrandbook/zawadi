@@ -46,6 +46,10 @@ class Order(models.Model):
     )
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    tax_rate_snapshot = models.DecimalField(max_digits=5, decimal_places=4, default=0)
+    tax_country_snapshot = models.CharField(max_length=2, blank=True, default="")
+    charged_currency = models.CharField(max_length=3, default="SAR")
+    charged_amount = models.DecimalField(max_digits=10, decimal_places=3, default=0)
 
     # Shipping / contact details
     full_name = models.CharField(max_length=255)

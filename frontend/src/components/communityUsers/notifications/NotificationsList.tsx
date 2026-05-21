@@ -62,7 +62,7 @@ export default function NotificationsList({ notifications, onMarkRead }: Props) 
                 <p className="mt-3 text-xs text-[#6B7280]">{item.time}</p>
               </div>
 
-              <div className="flex flex-wrap gap-2 lg:justify-end">
+              <div className="flex flex-wrap justify-end gap-2">
                 {item.actions && item.actions.length > 0 &&
                   item.actions.map((action) => (
                     <Link

@@ -1,4 +1,4 @@
-export type SettingsTab = "general" | "security" | "system";
+export type SettingsTab = "general" | "security" | "system" | "tax";
 
 export type PlatformInformation = {
   platformName: string;

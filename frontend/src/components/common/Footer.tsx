@@ -23,10 +23,9 @@ const Footer = () => {
   const dict = translations[locale] || translations.en;
   const { footer, socials, meaningSection } = dict;
 
-  // Next.js structural path prefix parser
-  const getLocalizedHref = (path: string) => {
+  const getHref = (path: string) => {
     if (path === "#") return "#";
-    return `/${locale}${path === "/" ? "" : path}`;
+    return path;
   };
 
   return (
@@ -50,7 +49,7 @@ const Footer = () => {
           {/* Brand Logo & Info Description Area */}
           <div className="lg:col-span-4 flex flex-col items-start mb-12 lg:mb-0">
             <Link 
-              href={getLocalizedHref("/")} 
+              href={getHref("/")} 
               className="relative w-44 h-44 md:w-52 md:h-52 lg:w-64 lg:h-64 -mb-16 md:-mb-20 lg:-mb-28 -top-16 md:-top-20 lg:-top-28 block overflow-hidden rounded-xl"
             >
                <Image 
@@ -90,10 +89,10 @@ const Footer = () => {
           </div>
 
           {/* Navigational Links Configuration Columns */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:col-span-8 gap-12 lg:gap-16">
+          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-12 lg:col-span-8 lg:gap-16">
             
             {/* Quick Links */}
-            <div className="col-span-2 md:col-span-1">
+            <div className="col-span-1">
               <h4 className="text-[17px] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
                 {footer.headers.quickLinks}
               </h4>
@@ -101,8 +100,8 @@ const Footer = () => {
                 {footer.quickLinks.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
-                      className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
+                      href={getHref(item.href)}
+                      className="block h-full w-full text-[14px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px]"
                     >
                       {item.name}
                     </Link>
@@ -120,8 +119,8 @@ const Footer = () => {
                 {footer.innerPages.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
-                      className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
+                      href={getHref(item.href)}
+                      className="block h-full w-full text-[14px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px]"
                     >
                       {item.name}
                     </Link>
@@ -131,7 +130,7 @@ const Footer = () => {
             </div>
 
             {/* Support Rules Links */}
-            <div className="col-span-1">
+            <div className="col-span-1 col-start-1 row-start-2 md:col-start-auto md:row-start-auto">
               <h4 className="text-[17px] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
                 {footer.headers.support}
               </h4>
@@ -139,8 +138,8 @@ const Footer = () => {
                 {footer.support.map((item) => (
                   <li key={item.name}>
                     <Link
-                      href={getLocalizedHref(item.href)}
-                      className="text-white/60 hover:text-white transition-colors text-[15px] font-medium block h-full w-full"
+                      href={getHref(item.href)}
+                      className="block h-full w-full whitespace-nowrap text-[13px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px] md:whitespace-normal"
                     >
                       {item.name}
                     </Link>

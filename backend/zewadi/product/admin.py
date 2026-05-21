@@ -1,11 +1,25 @@
 from django.contrib import admin
-from .models import Product, ProductVariant
+from .models import Product, ProductCategory, ProductVariant, ProductCountryPrice
+
+
+@admin.register(ProductCategory)
+class ProductCategoryAdmin(admin.ModelAdmin):
+    list_display = ["name", "slug", "is_active", "sort_order", "updated_at"]
+    list_filter = ["is_active"]
+    search_fields = ["name", "slug"]
+    prepopulated_fields = {"slug": ("name",)}
 
 
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
     fields = ["variant_value", "variant_unit", "cost", "price", "stock"]
+
+
+class ProductCountryPriceInline(admin.TabularInline):
+    model = ProductCountryPrice
+    extra = 1
+    fields = ["country", "currency", "selling_price", "is_active"]
 
 
 @admin.register(Product)
@@ -17,13 +31,13 @@ class ProductAdmin(admin.ModelAdmin):
         "product_status",
         "stock_status",
         "selling_price",
-        "currency",
+        "tax_category",
         "created_at",
     ]
-    list_filter = ["category", "product_status", "stock_status", "currency"]
+    list_filter = ["category", "product_status", "stock_status", "tax_category"]
     search_fields = ["product_name", "product_code"]
     readonly_fields = ["created_at", "updated_at"]
-    inlines = []
+    inlines = [ProductCountryPriceInline, ProductVariantInline]
     fieldsets = (
         ("Basic Info", {
             "fields": (
@@ -45,7 +59,7 @@ class ProductAdmin(admin.ModelAdmin):
             "fields": ("key_ingredients", "health_benefits")
         }),
         ("Pricing", {
-            "fields": ("cost_price", "mrp_price", "selling_price", "currency")
+            "fields": ("cost_price", "mrp_price", "selling_price", "tax_category")
         }),
         ("Inventory", {
             "fields": (

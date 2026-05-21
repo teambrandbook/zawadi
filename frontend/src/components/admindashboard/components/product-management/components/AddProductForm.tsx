@@ -8,7 +8,12 @@ import {
   Plus,
   UploadCloud,
 } from "lucide-react";
+import Link from "next/link";
 import { ReactNode } from "react";
+
+export type CurrencyOption = { code: string; name: string; symbol: string };
+export type TaxCategoryOption = { code: string; name: string };
+export type ProductCategoryOption = { id: number; name: string; slug: string; is_active: boolean };
 
 export type ProductVariantFormData = {
   variant_value: string;
@@ -37,6 +42,7 @@ export type ProductFormData = {
   mrp_price: string;
   selling_price: string;
   currency: string;
+  tax_category: string;
   stock_quantity: string;
   low_stock_alert: string;
   stock_status: string;
@@ -52,6 +58,9 @@ type Props = {
   formData: ProductFormData;
   mainImageUrl?: string | null;
   onChange: (data: ProductFormData) => void;
+  currencies?: CurrencyOption[];
+  taxCategories?: TaxCategoryOption[];
+  productCategories?: ProductCategoryOption[];
 };
 
 const fieldClass =
@@ -168,18 +177,6 @@ function Card({ children, className = "" }: { children: ReactNode; className?: s
   );
 }
 
-const CATEGORY_OPTIONS = [
-  { label: "Multi Grains", value: "multi_grains" },
-  { label: "Small Grains", value: "small_grains" },
-  { label: "Pulses", value: "pulses" },
-  { label: "Nuts", value: "nuts" },
-  { label: "Seeds", value: "seeds" },
-  { label: "Rices", value: "rices" },
-  { label: "Oils", value: "oils" },
-  { label: "Spices", value: "spices" },
-  { label: "Spreads & Butters", value: "spreads_butters" },
-];
-
 const STATUS_OPTIONS = [
   { label: "Draft", value: "draft" },
   { label: "Active", value: "active" },
@@ -192,11 +189,6 @@ const UNIT_OPTIONS = [
   { label: "Box", value: "box" },
 ];
 
-const CURRENCY_OPTIONS = [
-  { label: "USD ($)", value: "USD" },
-  { label: "INR (₹)", value: "INR" },
-  { label: "AED (د.إ)", value: "AED" },
-];
 
 const STOCK_STATUS_OPTIONS = [
   { label: "In Stock", value: "in_stock" },
@@ -204,7 +196,23 @@ const STOCK_STATUS_OPTIONS = [
   { label: "Out of Stock", value: "out_of_stock" },
 ];
 
-export default function AddProductForm({ formData, mainImageUrl, onChange }: Props) {
+export default function AddProductForm({
+  formData,
+  onChange,
+  mainImageUrl,
+  currencies = [],
+  taxCategories = [],
+  productCategories = [],
+}: Props) {
+
+  const currencyOptions = currencies.map((c) => ({ label: `${c.name} (${c.symbol})`, value: c.code }));
+  const taxCategoryOptions = taxCategories.map((t) => ({ label: t.name, value: t.code }));
+  const categoryOptions = productCategories
+    .filter((category) => category.is_active || category.slug === formData.category)
+    .map((category) => ({
+      label: category.is_active ? category.name : `${category.name} (Inactive)`,
+      value: category.slug,
+    }));
   function set(field: keyof ProductFormData) {
     return (value: string | boolean) => onChange({ ...formData, [field]: value });
   }
@@ -248,7 +256,22 @@ export default function AddProductForm({ formData, mainImageUrl, onChange }: Pro
             onValueChange={set("product_status")}
           />
           <TextField label="Product Code *" placeholder="BWH-001" value={formData.product_code} onValueChange={set("product_code")} />
-          <SelectField label="Category *" placeholder="Select category" value={formData.category} options={CATEGORY_OPTIONS} onValueChange={set("category")} />
+          <div className="grid grid-cols-[minmax(0,1fr)_32px] items-end gap-3">
+            <SelectField
+              label="Category *"
+              placeholder={productCategories.length ? "Select category" : "Create a category first"}
+              value={formData.category}
+              options={categoryOptions}
+              onValueChange={set("category")}
+            />
+            <Link
+              href="/admindashboard/products/categories"
+              aria-label="Manage product categories"
+              className="mb-0.5 grid h-10 w-8 place-items-center text-[#0A4833]"
+            >
+              <Plus className="h-5 w-5" />
+            </Link>
+          </div>
           <label className="space-y-2">
             <span className={labelClass}>Brand Name</span>
             <div className="flex h-12 w-full items-center rounded-[8px] border border-[#DFDFDF] bg-[#F9FAFB] px-4 text-[16px] tracking-[-0.5px] text-black/50">
@@ -398,7 +421,8 @@ export default function AddProductForm({ formData, mainImageUrl, onChange }: Pro
           <TextField label="Cost Price *" placeholder="0.00" type="number" value={formData.cost_price} onValueChange={set("cost_price")} />
           <TextField label="MRP *" placeholder="0.00" type="number" value={formData.mrp_price} onValueChange={set("mrp_price")} />
           <TextField label="Selling Price *" placeholder="0.00" type="number" value={formData.selling_price} onValueChange={set("selling_price")} />
-          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={CURRENCY_OPTIONS} onValueChange={set("currency")} />
+          <SelectField label="Currency" placeholder="Select currency" value={formData.currency} options={currencyOptions} onValueChange={set("currency")} />
+          <SelectField label="Tax Category" placeholder="Select tax category" value={formData.tax_category} options={taxCategoryOptions} onValueChange={set("tax_category")} />
         </div>
       </Card>
 

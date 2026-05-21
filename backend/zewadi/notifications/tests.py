@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from rest_framework import status
@@ -5,8 +6,23 @@ from rest_framework.test import APITestCase
 
 from accounts.models import User
 from product.models import Product, ProductStatus
+from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
 from .models import Notification, UserNotificationReceipt
 from .utils import send_low_stock_notification
+
+
+def _ensure_tax_config():
+    sar, _ = Currency.objects.get_or_create(
+        code="SAR", defaults={"name": "Saudi Riyal", "symbol": "SAR", "decimal_places": 2}
+    )
+    CountryConfig.objects.get_or_create(country="SA", defaults={"name": "Saudi Arabia", "currency": sar})
+    standard, _ = TaxCategory.objects.get_or_create(code="STANDARD", defaults={"name": "Standard Rate"})
+    TaxCategory.objects.get_or_create(code="ZERO", defaults={"name": "Zero-Rated"})
+    TaxRate.objects.get_or_create(
+        country="SA", tax_category=standard, region=None, is_active=True,
+        defaults={"rate": "0.1500", "name": "SA Standard 15%", "effective_from": datetime.date(2020, 7, 1)},
+    )
+    return standard
 
 
 class NotificationReceiptTests(APITestCase):
@@ -93,6 +109,7 @@ class LowStockNotificationTests(APITestCase):
             phone="+10000000008",
             role="COMMUNITY_USER",
         )
+        standard = _ensure_tax_config()
         self.product = Product.objects.create(
             product_name="Buckwheat 500g",
             product_code="BWH-LOW",
@@ -106,6 +123,7 @@ class LowStockNotificationTests(APITestCase):
             selling_price=Decimal("120.00"),
             stock_quantity=3,
             low_stock_alert=5,
+            tax_category=standard,
         )
 
     def test_low_stock_notification_targets_admin_and_internal_staff_only(self):

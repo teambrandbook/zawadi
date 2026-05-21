@@ -7,8 +7,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.core.cache import cache
 
-from .models import Product, ProductStatus, ProductVariant
-from .serializers import ProductSerializer, ProductCreateSerializer, ProductVariantSerializer
+from .models import Product, ProductCategory, ProductStatus, ProductVariant
+from .serializers import (
+    ProductCategorySerializer,
+    ProductSerializer,
+    ProductCreateSerializer,
+    ProductVariantSerializer,
+)
 from supperadmin.utils.permissions import has_permission
 from zewadi.pagination import StandardPagination
 
@@ -62,6 +67,114 @@ def _product_payload_from_request(request):
     return payload
 
 
+def _clear_product_cache(product_ids=None):
+    try:
+        cache.delete("product_list:::-created_at:1")
+        for product_id in product_ids or []:
+            cache.delete(f"product_detail:{product_id}")
+    except Exception:
+        pass
+
+
+class ProductCategoryListCreateView(APIView):
+    """
+    GET  /api/products/categories/ — list product categories
+    POST /api/products/categories/ — create a product category
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        can_manage = has_permission(request.user, "products", "view")
+        categories = ProductCategory.objects.all()
+        if not can_manage:
+            categories = categories.filter(is_active=True)
+        serializer = ProductCategorySerializer(categories, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        if not has_permission(request.user, "products", "create"):
+            return Response(
+                {"error": "You do not have permission to create product categories"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = ProductCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            category = serializer.save()
+            _clear_product_cache()
+            return Response(
+                {
+                    "message": "Category created successfully",
+                    "data": ProductCategorySerializer(category).data,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductCategoryDetailView(APIView):
+    """
+    PATCH  /api/products/categories/<id>/ — update a product category
+    DELETE /api/products/categories/<id>/ — delete an unused product category
+    """
+    permission_classes = [AllowAny]
+
+    def _get_object(self, pk):
+        try:
+            return ProductCategory.objects.get(pk=pk)
+        except ProductCategory.DoesNotExist:
+            return None
+
+    def patch(self, request, pk):
+        if not has_permission(request.user, "products", "edit"):
+            return Response(
+                {"error": "You do not have permission to edit product categories"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        category = self._get_object(pk)
+        if not category:
+            return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        old_slug = category.slug
+        affected_product_ids = list(Product.objects.filter(category=old_slug).values_list("id", flat=True))
+        serializer = ProductCategorySerializer(category, data=request.data, partial=True)
+        if serializer.is_valid():
+            category = serializer.save()
+            if old_slug != category.slug:
+                Product.objects.filter(category=old_slug).update(category=category.slug)
+            _clear_product_cache(affected_product_ids)
+            return Response(
+                {
+                    "message": "Category updated successfully",
+                    "data": ProductCategorySerializer(category).data,
+                },
+                status=status.HTTP_200_OK,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        if not has_permission(request.user, "products", "delete"):
+            return Response(
+                {"error": "You do not have permission to delete product categories"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        category = self._get_object(pk)
+        if not category:
+            return Response({"error": "Category not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if Product.objects.filter(category=category.slug).exists():
+            return Response(
+                {"error": "This category is assigned to products. Deactivate it instead of deleting it."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        category.delete()
+        _clear_product_cache()
+        return Response({"message": "Category deleted successfully"}, status=status.HTTP_200_OK)
+
+
 class ProductListCreateView(APIView):
     """
     GET  /api/products/          — list all products (requires products.view permission)
@@ -74,8 +187,14 @@ class ProductListCreateView(APIView):
 
     # If user has permission -> all products
         can_manage = has_permission(request.user, "products", "view")
+        country = request.query_params.get("country", "SA").upper()
         if can_manage:
-            products = Product.objects.prefetch_related("alternative_images").all().order_by("-created_at")
+            products = (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("alternative_images", "country_prices__currency")
+                .all()
+                .order_by("-created_at")
+            )
 
         # Else -> only active products
         else:
@@ -86,12 +205,17 @@ class ProductListCreateView(APIView):
                     return Response(cached, status=status.HTTP_200_OK)
             except Exception:
                 pass
-            products = Product.objects.prefetch_related("alternative_images").filter(product_status="active").order_by("-created_at")
+            products = (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("alternative_images", "country_prices__currency")
+                .filter(product_status="active")
+                .order_by("-created_at")
+            )
 
         paginator = StandardPagination()
         page = paginator.paginate_queryset(products, request)
         if page is not None:
-            serializer = ProductSerializer(page, many=True, context={"request": request})
+            serializer = ProductSerializer(page, many=True, context={"request": request, "country": country})
             response = paginator.get_paginated_response(serializer.data)
             if not can_manage:
                 try:
@@ -100,7 +224,7 @@ class ProductListCreateView(APIView):
                     pass
             return response
 
-        serializer = ProductSerializer(products, many=True, context={"request": request})
+        serializer = ProductSerializer(products, many=True, context={"request": request, "country": country})
         data = serializer.data
         if not can_manage:
             try:
@@ -153,7 +277,11 @@ class ProductDetailView(APIView):
 
     def _get_object(self, pk):
         try:
-            return Product.objects.prefetch_related("variants", "alternative_images").get(pk=pk)
+            return (
+                Product.objects.select_related("tax_category")
+                .prefetch_related("variants", "alternative_images", "country_prices__currency")
+                .get(pk=pk)
+            )
         except Product.DoesNotExist:
             return None
 
@@ -180,7 +308,8 @@ class ProductDetailView(APIView):
         if not can_manage and product.product_status != ProductStatus.ACTIVE:
             return Response({"error": "Product not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serializer = ProductSerializer(product, context={"request": request})
+        country = request.query_params.get("country", "SA").upper()
+        serializer = ProductSerializer(product, context={"request": request, "country": country})
         if not can_manage:
             try:
                 cache.set(f"product_detail:{pk}", serializer.data, timeout=600)

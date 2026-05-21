@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "orders",
     "events",
     "notifications",
+    "tax",
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "zewadi.middleware.MaintenanceModeMiddleware",
 ]
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
@@ -251,3 +253,6 @@ CACHES = {
         "KEY_PREFIX": "zawadi",
     }
 }
+
+# ─── GCC Tax & Currency ────────────────────────────────────────────────────────
+DEFAULT_TAX_COUNTRY = "SA"

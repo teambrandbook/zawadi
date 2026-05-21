@@ -19,6 +19,7 @@ import {
 import CheckoutAuthModal from "@/components/shared/CheckoutAuthModal";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { formatPrice } from "@/utils/formatPrice";
 
 type CartItem = {
   id: number;
@@ -39,6 +40,11 @@ type CartSummary = {
   subtotal: string;
   shipping: string;
   tax: string;
+  tax_rate: string;
+  tax_country: string;
+  currency_code: string;
+  currency_symbol: string;
+  currency_decimal_places: number;
   total: string;
   free_shipping_unlocked: boolean;
 };
@@ -177,14 +183,20 @@ function OrderSummary({
   subtotal,
   shipping,
   tax,
+  taxRate,
   total,
+  currencyCode,
+  decimalPlaces,
   onProceed,
   labels,
 }: {
   subtotal: string;
   shipping: string;
   tax: string;
+  taxRate?: string;
   total: string;
+  currencyCode?: string;
+  decimalPlaces?: number;
   onProceed?: () => void;
   labels: {
     orderSummary: string;
@@ -197,6 +209,8 @@ function OrderSummary({
     secureCheckout: string;
   };
 }) {
+  const code = currencyCode || "SAR";
+  const dp = decimalPlaces ?? 2;
   return (
     <aside className="h-fit rounded-[20px] border border-[#f3f4f6] bg-white p-6 shadow-[0_4px_10px_rgba(0,0,0,0.05)]">
       <h2 className="text-xl font-bold leading-7 text-[#1f4d3a]">{labels.orderSummary}</h2>
@@ -204,23 +218,25 @@ function OrderSummary({
       <div className="mt-7 space-y-5 text-sm">
         <div className="flex items-center justify-between text-[#6b7280]">
           <span>{labels.subtotal}</span>
-          <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(subtotal))}</span>
+          <span className="font-bold text-[#1f4d3a]">{formatPrice(subtotal, code, dp)}</span>
         </div>
         <div className="flex items-center justify-between text-[#6b7280]">
           <span>{labels.shipping}</span>
           <span className="font-bold text-[#1f4d3a]">
-            {parseFloat(shipping) === 0 ? labels.free : money.format(parseFloat(shipping))}
+            {parseFloat(shipping) === 0 ? labels.free : formatPrice(shipping, code, dp)}
           </span>
         </div>
         <div className="flex items-center justify-between text-[#6b7280]">
-          <span>{labels.estimatedTax}</span>
-          <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(tax))}</span>
+          <span>
+            {labels.estimatedTax} ({taxRate ? `${(parseFloat(taxRate) * 100).toFixed(0)}%` : "estimated"})
+          </span>
+          <span className="font-bold text-[#1f4d3a]">{formatPrice(tax, code, dp)}</span>
         </div>
       </div>
 
       <div className="mt-8 flex items-center justify-between border-t border-[#f3f4f6] pt-6">
         <span className="text-base font-bold text-[#1f4d3a]">{labels.total}</span>
-        <span className="text-[28px] font-bold leading-9 text-[#1f4d3a]">{money.format(parseFloat(total))}</span>
+        <span className="text-[28px] font-bold leading-9 text-[#1f4d3a]">{formatPrice(total, code, dp)}</span>
       </div>
 
       {onProceed ? (
@@ -499,6 +515,8 @@ export default function Cart() {
                 total={String(guestSubtotal)}
                 onProceed={() => setCheckoutModalOpen(true)}
                 labels={cartText}
+                currencyCode="SAR"
+                decimalPlaces={2}
               />
               <Link
                 href="/products"
@@ -570,8 +588,11 @@ export default function Cart() {
                 subtotal={summary.subtotal}
                 shipping={summary.shipping}
                 tax={summary.tax}
+                taxRate={summary.tax_rate}
                 total={summary.total}
                 labels={cartText}
+                currencyCode={summary.currency_code}
+                decimalPlaces={summary.currency_decimal_places}
               />
             )}
             <Link

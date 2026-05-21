@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock, User } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import gsap from "@/lib/gsap";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +34,7 @@ const Navbar = () => {
   const userType = useSelector((s: RootState) => s.user.userType);
   const fullName = useSelector((s: RootState) => s.user.fullName);
   const userEmail = useSelector((s: RootState) => s.user.email);
+  const userPhoto = useSelector((s: RootState) => s.user.photo);
   const [profileOpen, setProfileOpen] = useState(false);
 
   // i18n Hook and Data Selection
@@ -340,9 +341,13 @@ const Navbar = () => {
                 <button
                   onClick={() => setProfileOpen((v) => !v)}
                   aria-label="Open profile menu"
-                  className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
+                  className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
                 >
-                  {initials}
+                  {userPhoto ? (
+                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  ) : (
+                    initials
+                  )}
                 </button>
 
                 {profileOpen && (
@@ -358,8 +363,12 @@ const Navbar = () => {
                     className="absolute top-12 z-50 w-64 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden ltr:right-0 rtl:left-0"
                   >
                     <div className="flex items-center gap-3 px-4 py-4 text-left rtl:text-right">
-                      <div className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {initials}
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                        {userPhoto ? (
+                          <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                        ) : (
+                          initials
+                        )}
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-bold text-gray-900 truncate">

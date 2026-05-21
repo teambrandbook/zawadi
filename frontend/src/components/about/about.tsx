@@ -497,17 +497,9 @@ export default function About() {
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
-                                    className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:rounded-l-[999px] rtl:rounded-r-none rtl:[direction:ltr] sm:px-7 sm:py-4"
+                                    className="group approach-step-card grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-l-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white sm:px-7 sm:py-4"
                                 >
-                                    <div dir="ltr" className="flex items-center gap-4 rtl:order-last rtl:flex-row-reverse">
-                                        <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
-                                            <ApproachIcon size={24} />
-                                        </div>
-                                        <p dir="rtl" className="font-serif text-lg leading-tight text-right sm:text-[1.25rem]">
-                                            {step.label}
-                                        </p>
-                                    </div>
-                                    <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] rtl:order-first sm:h-10 sm:w-10 sm:text-lg">
+                                    <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
                                         <div
                                             className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
                                             style={{
@@ -517,6 +509,12 @@ export default function About() {
                                             }}
                                         />
                                         <span className="relative z-10">{step.number}</span>
+                                    </div>
+                                    <p dir="rtl" className="min-w-0 font-serif text-lg leading-tight text-right sm:text-[1.25rem]">
+                                        {step.label}
+                                    </p>
+                                    <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
+                                        <ApproachIcon size={24} />
                                     </div>
                                 </div>
                             ))}

@@ -32,6 +32,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "subtotal",
             "delivery_charge",
             "tax_amount",
+            "tax_rate_snapshot",
+            "tax_country_snapshot",
+            "charged_currency",
+            "charged_amount",
             "total_amount",
             "full_name",
             "phone",
@@ -59,6 +63,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             "pack_name": {"required": False},
             "pack_price": {"required": False},
             "subtotal": {"required": False},
+            "tax_rate_snapshot": {"required": False},
+            "tax_country_snapshot": {"required": False},
+            "charged_currency": {"required": False},
+            "charged_amount": {"required": False},
             "total_amount": {"required": False},
         }
 

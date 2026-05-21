@@ -9,7 +9,7 @@ type Props = {
 export default function BlogList({ posts, isLoading = false }: Props) {
   if (isLoading) {
     return (
-      <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <section className="grid grid-cols-2 gap-5 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
           <div key={index} className="h-[320px] animate-pulse rounded-lg border border-[#DFDFDF] bg-white">
             <div className="h-40 bg-[#F3F4F6]" />
@@ -37,7 +37,7 @@ export default function BlogList({ posts, isLoading = false }: Props) {
   }
 
   return (
-    <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <section className="grid grid-cols-2 gap-5 md:grid-cols-3">
       {posts.map((post) => (
         <BlogCard key={post.id} post={post} />
       ))}

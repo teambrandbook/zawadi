@@ -9,20 +9,21 @@ import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
+import { formatPrice } from "@/utils/formatPrice";
 
 type CartSummary = {
   item_count: number;
   subtotal: string;
   shipping: string;
   tax: string;
+  tax_rate: string;
+  tax_country: string;
+  currency_code: string;
+  currency_symbol: string;
+  currency_decimal_places: number;
   total: string;
+  free_shipping_unlocked: boolean;
 };
-
-const money = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  minimumFractionDigits: 2,
-});
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -39,13 +40,14 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     postal_code: "",
+    country: "SA",
     instructions: "",
   });
   const [errors, setErrors] = useState<Partial<typeof form>>({});
 
   useEffect(() => {
     api
-      .get("/orders/cart/")
+      .get(`/orders/cart/?country=${form.country}`)
       .then((res) => {
         const s: CartSummary = res.data.summary;
         if (!s || s.item_count === 0) {
@@ -64,7 +66,7 @@ export default function CheckoutPage() {
         }
       })
       .finally(() => setLoadingCart(false));
-  }, [router]);
+  }, [router, form.country]);
 
   function validate() {
     const e: Partial<typeof form> = {};
@@ -167,6 +169,22 @@ export default function CheckoutPage() {
 
             <div>
               <label className="mb-1.5 block text-sm font-semibold text-[#374151]">
+                Country <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={form.country}
+                onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+                className="w-full rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-sm text-gray-900 outline-none transition focus:border-[#1f4d3a] focus:ring-2 focus:ring-[#1f4d3a]/20"
+              >
+                <option value="SA">Saudi Arabia (SAR)</option>
+                <option value="AE">United Arab Emirates (AED)</option>
+                <option value="BH">Bahrain (BHD)</option>
+                <option value="OM">Oman (OMR)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-sm font-semibold text-[#374151]">
                 Address <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -230,23 +248,38 @@ export default function CheckoutPage() {
               <div className="mt-6 space-y-4 text-sm">
                 <div className="flex justify-between text-[#6b7280]">
                   <span>Subtotal</span>
-                  <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(summary.subtotal))}</span>
+                  <span className="font-bold text-[#1f4d3a]">
+                    {formatPrice(summary.subtotal, summary.currency_code || "SAR", summary.currency_decimal_places || 2)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-[#6b7280]">
                   <span>Shipping</span>
                   <span className="font-bold text-[#1f4d3a]">
-                    {parseFloat(summary.shipping) === 0 ? "Free" : money.format(parseFloat(summary.shipping))}
+                    {parseFloat(summary.shipping) === 0
+                      ? "Free"
+                      : formatPrice(summary.shipping, summary.currency_code || "SAR", summary.currency_decimal_places || 2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-[#6b7280]">
-                  <span>Estimated Tax</span>
-                  <span className="font-bold text-[#1f4d3a]">{money.format(parseFloat(summary.tax))}</span>
+                  <span>
+                    VAT ({summary.tax_rate ? `${(parseFloat(summary.tax_rate) * 100).toFixed(0)}%` : "estimated"})
+                  </span>
+                  <span className="font-bold text-[#1f4d3a]">
+                    {formatPrice(summary.tax, summary.currency_code || "SAR", summary.currency_decimal_places || 2)}
+                  </span>
                 </div>
               </div>
               <div className="mt-6 flex justify-between border-t border-[#f3f4f6] pt-5">
                 <span className="text-base font-bold text-[#1f4d3a]">Total</span>
-                <span className="text-2xl font-bold text-[#1f4d3a]">{money.format(parseFloat(summary.total))}</span>
+                <span className="text-2xl font-bold text-[#1f4d3a]">
+                  {formatPrice(summary.total, summary.currency_code || "SAR", summary.currency_decimal_places || 2)}
+                </span>
               </div>
+              {process.env.NEXT_PUBLIC_ZATCA_TRN && (
+                <p className="text-xs text-gray-500 mt-2">
+                  VAT Registration No: {process.env.NEXT_PUBLIC_ZATCA_TRN}
+                </p>
+              )}
               <p className="mt-4 text-center text-[10px] font-bold uppercase text-[#9ca3af]">
                 COD · Free Returns
               </p>

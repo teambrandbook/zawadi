@@ -2,11 +2,12 @@ from decimal import Decimal
 
 from django.db import models
 from django.core.validators import MinValueValidator
+from django.utils.text import slugify
 
 # Create your models here.
 
 
-class ProductCategory(models.TextChoices):
+class ProductCategoryChoice(models.TextChoices):
     FOOD = "food", "Food"
     SEED = "seed", "Seed"
     SUPPLEMENT = "supplement", "Supplement"
@@ -22,6 +23,29 @@ class ProductCategory(models.TextChoices):
     SPREADS_BUTTERS = "spreads_butters", "Spreads & Butters"
 
 
+class ProductCategory(models.Model):
+    name = models.CharField(max_length=120)
+    slug = models.SlugField(max_length=80, unique=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name_plural = "Product categories"
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name).replace("-", "_")
+        else:
+            self.slug = self.slug.strip().lower().replace("-", "_")
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
 class ProductStatus(models.TextChoices):
     DRAFT = "draft", "Draft"
     ACTIVE = "active", "Active"
@@ -33,11 +57,6 @@ class StockStatus(models.TextChoices):
     LOW_STOCK = "low_stock", "Low Stock"
     OUT_OF_STOCK = "out_of_stock", "Out of Stock"
 
-
-class CurrencyChoices(models.TextChoices):
-    USD = "USD", "USD ($)"
-    INR = "INR", "INR (₹)"
-    AED = "AED", "AED (د.إ)"
 
 
 class ProductUnit(models.TextChoices):
@@ -53,7 +72,7 @@ class Product(models.Model):
     product_subtitle = models.CharField(max_length=180, blank=True, null=True)
     product_code = models.CharField(max_length=50, unique=True)
     brand_name = "Zewadi"
-    category = models.CharField(max_length=30, choices=ProductCategory.choices, default=ProductCategory.OTHER)
+    category = models.CharField(max_length=80, default=ProductCategoryChoice.OTHER.value)
     product_status = models.CharField(max_length=20, choices=ProductStatus.choices, default=ProductStatus.DRAFT)
     image = models.URLField(blank=True, null=True)
     product_unit = models.CharField(max_length=20, choices=ProductUnit.choices, blank=True, default="")
@@ -80,7 +99,11 @@ class Product(models.Model):
     cost_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     mrp_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
     selling_price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)], default=0)
-    currency = models.CharField(max_length=3, choices=CurrencyChoices.choices, default=CurrencyChoices.USD)
+    tax_category = models.ForeignKey(
+        "tax.TaxCategory",
+        on_delete=models.PROTECT,
+        related_name="products",
+    )
 
     # Inventory
     stock_quantity = models.PositiveIntegerField(default=0)
@@ -134,6 +157,23 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.product_name} - {self.variant_value}"
+
+
+class ProductCountryPrice(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="country_prices")
+    country = models.CharField(max_length=2)
+    currency = models.ForeignKey("tax.Currency", on_delete=models.PROTECT, related_name="product_prices")
+    selling_price = models.DecimalField(max_digits=10, decimal_places=3, validators=[MinValueValidator(0)])
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["product", "country"], name="unique_product_country_price")
+        ]
+        ordering = ["country"]
+
+    def __str__(self):
+        return f"{self.product.product_code} / {self.country} / {self.currency.code} {self.selling_price}"
 
 
 class ProductImage(models.Model):

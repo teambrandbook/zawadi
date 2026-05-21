@@ -106,7 +106,7 @@ export default function FullDietPlanDetails({ plan }: { plan: DietPlanProp }) {
           </div>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           <div className="rounded-lg bg-[#F8F3E9] p-4">
             <p className="text-xs text-[#6B7280]">Daily Calories</p>
             <p className="mt-1 text-sm font-semibold text-[#0A4833]">{plan.daily_calories ? `${plan.daily_calories} kcal` : "—"}</p>
@@ -136,7 +136,7 @@ export default function FullDietPlanDetails({ plan }: { plan: DietPlanProp }) {
             </span>
           ) : null}
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           <div className="rounded-lg border border-[#E5E7EB] p-4">
             <p className="text-xs text-[#6B7280]">Goal</p>
             <p className="mt-1 text-sm font-semibold text-[#111827]">{plan.goal || "—"}</p>

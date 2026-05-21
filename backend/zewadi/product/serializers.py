@@ -1,9 +1,38 @@
-from rest_framework import serializers
-from zewadi.validators import validate_image_upload
+from decimal import Decimal
 
-from .models import Product, ProductImage, ProductVariant
+from rest_framework import serializers
+from .models import Product, ProductCategory, ProductImage, ProductVariant
 
 MAX_ALTERNATIVE_IMAGES = 4
+
+
+class ProductCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductCategory
+        fields = ["id", "name", "slug", "is_active", "sort_order", "created_at", "updated_at"]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def validate_name(self, value):
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("Category name is required.")
+        return value
+
+    def validate_slug(self, value):
+        return value.strip().lower().replace("-", "_")
+
+    def validate(self, attrs):
+        from django.utils.text import slugify
+
+        name = attrs.get("name", getattr(self.instance, "name", ""))
+        slug = attrs.get("slug") or getattr(self.instance, "slug", "") or slugify(name).replace("-", "_")
+        attrs["slug"] = slug
+        existing = ProductCategory.objects.filter(slug=slug)
+        if self.instance:
+            existing = existing.exclude(pk=self.instance.pk)
+        if existing.exists():
+            raise serializers.ValidationError({"slug": "A category with this slug already exists."})
+        return attrs
 
 
 class ProductVariantSerializer(serializers.ModelSerializer):
@@ -34,9 +63,20 @@ class ProductSerializer(serializers.ModelSerializer):
     allow_out_of_stock = serializers.BooleanField(source="allow_orders_when_out_of_stock", read_only=True)
     discount_amount = serializers.SerializerMethodField()
     discount_percent = serializers.SerializerMethodField()
+    tax_category_code = serializers.SerializerMethodField()
+    display_price = serializers.SerializerMethodField()
+    currency_code = serializers.SerializerMethodField()
+    currency_decimal_places = serializers.SerializerMethodField()
+    category_name = serializers.SerializerMethodField()
 
     def get_brand_name(self, obj):
         return obj.brand_name
+
+    def get_category_name(self, obj):
+        if not obj.category:
+            return ""
+        category = ProductCategory.objects.filter(slug=obj.category).only("name").first()
+        return category.name if category else obj.category.replace("_", " ").title()
 
     def get_image(self, obj):
         return obj.image or None
@@ -50,6 +90,40 @@ class ProductSerializer(serializers.ModelSerializer):
     def get_discount_percent(self, obj):
         return f"{obj.discount_percent:.2f}"
 
+    def get_tax_category_code(self, obj):
+        return obj.tax_category.code if obj.tax_category_id else "STANDARD"
+
+    def to_representation(self, obj):
+        from product.services import get_product_price
+        country = self.context.get("country", "SA")
+        self._country_price_cache = get_product_price(obj, country)
+        return super().to_representation(obj)
+
+    def _get_country_price(self, obj):
+        if not hasattr(self, "_country_price_cache"):
+            from product.services import get_product_price
+            country = self.context.get("country", "SA")
+            self._country_price_cache = get_product_price(obj, country)
+        return self._country_price_cache
+
+    def get_display_price(self, obj):
+        from tax.services import get_tax_rate
+        price, currency = self._get_country_price(obj)
+        cat_code = obj.tax_category.code if obj.tax_category_id else "STANDARD"
+        country = self.context.get("country", "SA")
+        rate = get_tax_rate(country, cat_code)
+        inclusive = price * (Decimal("1") + rate)
+        dp = currency.decimal_places
+        return f"{inclusive:.{dp}f}"
+
+    def get_currency_code(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.code
+
+    def get_currency_decimal_places(self, obj):
+        _, currency = self._get_country_price(obj)
+        return currency.decimal_places
+
     class Meta:
         model = Product
         fields = [
@@ -59,6 +133,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "product_code",
             "brand_name",
             "category",
+            "category_name",
             "product_status",
             "image",
             "alternative_images",
@@ -74,9 +149,12 @@ class ProductSerializer(serializers.ModelSerializer):
             "cost_price",
             "mrp_price",
             "selling_price",
+            "display_price",
+            "currency_code",
+            "currency_decimal_places",
             "discount_amount",
             "discount_percent",
-            "currency",
+            "tax_category_code",
             "stock_quantity",
             "low_stock_alert",
             "stock_status",
@@ -95,6 +173,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     Create / Update Product with Multiple Variants
     """
 
+    from tax.models import TaxCategory as _TaxCategory
+    tax_category = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=_TaxCategory.objects.all(),
+        required=False,
+        allow_null=True,
+    )
     variants = ProductVariantSerializer(many=True, required=False)
     alternative_images = serializers.ListField(
         child=serializers.URLField(required=False, allow_null=True, allow_blank=True),
@@ -150,6 +235,13 @@ class ProductCreateSerializer(serializers.ModelSerializer):
     def validate_alternative_images(self, value):
         if len(value) > MAX_ALTERNATIVE_IMAGES:
             raise serializers.ValidationError(f"Upload no more than {MAX_ALTERNATIVE_IMAGES} alternative images.")
+        return value
+
+    def validate_category(self, value):
+        if not value:
+            raise serializers.ValidationError("Category is required.")
+        if not ProductCategory.objects.filter(slug=value, is_active=True).exists():
+            raise serializers.ValidationError("Select an active product category.")
         return value
 
     def create(self, validated_data):

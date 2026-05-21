@@ -260,21 +260,21 @@ export default function AddConsaltation() {
   return (
     <section className="w-full min-h-screen bg-white px-4 py-8 lg:px-8">
       <div className="mx-auto max-w-[1120px] space-y-5">
-        <header className="rounded-xl  bg-white p-4 lg:p-5">
+        <header className="rounded-xl bg-white p-4 lg:p-5">
 
 
-          <div className="mt-4">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="mt-4 overflow-x-auto pb-2">
+            <div className="flex min-w-max items-center gap-3">
               {stepLabels.map((label, index) => {
                 const step = index + 1;
                 const completed = currentStep > step;
                 const active = currentStep === step;
 
                 return (
-                  <div key={label} className="flex items-center gap-6">
+                  <div key={label} className="flex items-center gap-3">
                     <div className="flex items-center gap-3">
                       <span
-                        className={`inline-flex h-11 w-11 items-center justify-center rounded-full text-base font-semibold ${completed
+                        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-semibold ${completed
                             ? "bg-[#0A5A3F] text-white"
                             : active
                               ? "bg-[#A88751] text-white"
@@ -285,7 +285,7 @@ export default function AddConsaltation() {
                       </span>
 
                       <span
-                        className={`text-base font-medium ${completed || active ? "text-[#0A4833]" : "text-[#9CA3AF]"
+                        className={`whitespace-nowrap text-sm font-medium leading-5 sm:text-base ${completed || active ? "text-[#0A4833]" : "text-[#9CA3AF]"
                           }`}
                       >
                         {label}
@@ -294,7 +294,7 @@ export default function AddConsaltation() {
 
                     {step < stepLabels.length && (
                       <span
-                        className={`hidden h-[2px] w-8 rounded-full sm:block ${currentStep > step ? "bg-[#0A5A3F]" : "bg-[#D1D5DB]"
+                        className={`h-[2px] w-8 shrink-0 rounded-full ${currentStep > step ? "bg-[#0A5A3F]" : "bg-[#D1D5DB]"
                           }`}
                       />
                     )}

@@ -43,20 +43,23 @@ export default function LoginComponent() {
       const data = res.data.data;
       const role = normalizeRole(data.role);
 
-      // Fetch user_type — non-blocking; if it fails, route by role alone
+      // Fetch user_type and photo — non-blocking; if it fails, route by role alone
       let userType: "guest" | "member" | null =
         data.user_type === "guest" || data.user_type === "member" ? data.user_type : null;
+      let photo: string | null = null;
       try {
         const meRes = await api.get("/account/me/");
         userType = (meRes.data.user_type as "guest" | "member") ?? null;
+        photo = meRes.data.photo ?? null;
       } catch {
-        // /me/ failed after successful login — proceed without userType
+        // /me/ failed after successful login — proceed without userType/photo
       }
 
       dispatch(setCredentials({
         userId: data.user_id,
         role,
         email: data.email,
+        photo,
         userType,
       }));
 
