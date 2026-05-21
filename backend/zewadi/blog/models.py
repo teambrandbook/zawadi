@@ -44,7 +44,7 @@ class Blog(models.Model):
     # Basic information
     title = models.CharField(max_length=200)
     slug = models.SlugField(max_length=240, unique=True, blank=True)
-    short_excerpt = models.CharField(max_length=255)
+    short_excerpt = models.CharField(max_length=200)
     category = models.CharField(max_length=30, choices=BlogCategory.choices, default=BlogCategory.OTHER)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="blogs")
     reading_time_minutes = models.PositiveIntegerField(default=5)

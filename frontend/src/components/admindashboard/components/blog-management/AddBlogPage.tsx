@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { ChevronLeft, ImagePlus, Plus } from "lucide-react";
+import { ChevronLeft, ImagePlus } from "lucide-react";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
@@ -17,6 +17,7 @@ const CATEGORIES = [
   { label: "Community", value: "community" },
   { label: "Other", value: "other" },
 ];
+const SHORT_DESCRIPTION_MAX_LENGTH = 200;
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -47,11 +48,10 @@ export default function AddBlogPage() {
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
-  const [tagInput, setTagInput] = useState("");
-  const [tags, setTags] = useState<string[]>(["Admin Stories", "Nutrition", "Wellness Tips"]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingBlog, setIsLoadingBlog] = useState(false);
   const selectedCategoryLabel = CATEGORIES.find((item) => item.value === category)?.label ?? category;
+  const isExcerptTooLong = excerpt.length > SHORT_DESCRIPTION_MAX_LENGTH;
 
   useEffect(() => {
     if (!blogId) return;
@@ -104,21 +104,11 @@ export default function AddBlogPage() {
     }
   }
 
-  function addTag() {
-    const tag = tagInput.trim();
-    if (!tag || tags.includes(tag)) return;
-    setTags((prev) => [...prev, tag]);
-    setTagInput("");
-  }
-
-  function removeTag(tag: string) {
-    setTags((prev) => prev.filter((t) => t !== tag));
-  }
-
   async function submitBlog(status: "draft" | "published") {
     if (!title.trim()) { toast.error("Blog title is required."); return; }
     if (!category) { toast.error("Please select a category."); return; }
     if (!content.trim()) { toast.error("Blog content is required."); return; }
+    if (isExcerptTooLong) { toast.error(`Short description must be ${SHORT_DESCRIPTION_MAX_LENGTH} characters or less.`); return; }
     if (isImageUploading) { toast.error("Image is still uploading, please wait."); return; }
 
     const trimmedTitle = title.trim();
@@ -137,7 +127,6 @@ export default function AddBlogPage() {
     fd.append("allow_comments", "true");
     fd.append("internal_notes", "");
     if (coverImageUrl) fd.append("cover_image", coverImageUrl);
-    tags.forEach((tag) => fd.append("tags", tag));
 
     setIsSubmitting(true);
     try {
@@ -210,13 +199,20 @@ export default function AddBlogPage() {
                 </label>
 
                 <label className="space-y-1">
-                  <span className="text-[11px] font-medium text-[#344054]">Short Excerpt</span>
+                  <span className="text-[11px] font-medium text-[#344054]">Short Description</span>
                   <input
                     value={excerpt}
                     onChange={(e) => setExcerpt(e.target.value)}
                     placeholder="Brief description of the blog..."
-                    className="h-10 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
+                    className={`h-10 w-full rounded-md border bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none ${
+                      isExcerptTooLong ? "border-[#DC2626]" : "border-[#E4E7EC]"
+                    }`}
                   />
+                  {isExcerptTooLong ? (
+                    <span className="text-[10px] text-[#DC2626]">
+                      Short description must be {SHORT_DESCRIPTION_MAX_LENGTH} characters or less.
+                    </span>
+                  ) : null}
                 </label>
 
                 <label className="space-y-1">
@@ -262,44 +258,6 @@ export default function AddBlogPage() {
               </div>
             </Section>
 
-            <Section title="Tags & Categories">
-              <div className="space-y-2">
-                <div className="flex flex-wrap gap-1.5">
-                  {tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="inline-flex items-center gap-1 rounded-md bg-[#F2F4F7] px-2 py-1 text-[11px] text-[#475467]"
-                    >
-                      {tag}
-                      <button
-                        type="button"
-                        onClick={() => removeTag(tag)}
-                        className="ml-1 text-[#9CA3AF] hover:text-[#374151]"
-                      >
-                        x
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
-                    placeholder="Enter new tag..."
-                    className="h-9 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 text-[12px] text-[#667085] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={addTag}
-                    className="grid h-9 w-9 place-items-center rounded-md bg-[#0A4833] text-white"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </Section>
-
             <Section title="Blog Content *">
               <div className="rounded-md border border-[#E4E7EC]">
                 <div className="flex flex-wrap items-center gap-2 border-b border-[#E4E7EC] bg-[#F9FAFB] px-2 py-1.5 text-[11px] text-[#475467]">
@@ -331,9 +289,8 @@ export default function AddBlogPage() {
             {!coverPreview && <div className="mb-3 h-32 rounded-md border border-[#E4E7EC] bg-[#F9FAFB]" />}
             <div className="space-y-2 text-[11px] text-[#475467]">
               <p><span className="font-semibold text-[#344054]">Blog Title:</span> {title || "..."}</p>
-              <p><span className="font-semibold text-[#344054]">Excerpt:</span> {excerpt || "..."}</p>
+              <p><span className="font-semibold text-[#344054]">Short Description:</span> {excerpt || "..."}</p>
               <p><span className="font-semibold text-[#344054]">Category:</span> {selectedCategoryLabel || "..."}</p>
-              <p><span className="font-semibold text-[#344054]">Tags:</span> {tags.join(", ") || "..."}</p>
               <p><span className="font-semibold text-[#344054]">Status:</span> {isEditMode ? "Editing" : "Draft"}</p>
             </div>
           </aside>
