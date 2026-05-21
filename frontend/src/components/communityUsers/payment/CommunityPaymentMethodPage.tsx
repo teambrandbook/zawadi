@@ -25,6 +25,7 @@ type DeliveryPayload = {
   postal_code: string;
   address: string;
   instructions: string;
+  country?: string;
 };
 
 type SingleCheckoutSession = {
@@ -149,7 +150,8 @@ export default function CommunityPaymentMethodPage() {
       }
 
       try {
-        const response = await api.get<CartResponse>("/orders/cart/");
+        const country = session.delivery.country ?? "SA";
+        const response = await api.get<CartResponse>(`/orders/cart/?country=${country}`);
         if (!isMounted) return;
         setCartItems(response.data.items);
         setCartSummary(response.data.summary);
