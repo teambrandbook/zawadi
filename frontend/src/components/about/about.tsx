@@ -9,6 +9,7 @@ import { translations } from "@/locales/translations";
 
 import { ApproachIcon } from "../common/BrandIcons";
 import ContentSection from "../common/ContentSection";
+import EventTestimonials from "../events/EventTestimonials";
 
 const introTallImage = "/about/intro-tall.webp";
 const introTopImage = "/about/intro-top.webp";
@@ -547,6 +548,12 @@ export default function About() {
                                         />
                                         <span className="relative z-10">{step.number}</span>
                                     </div>
+                                    <p dir="rtl" className="min-w-0 font-serif text-lg leading-tight text-right sm:text-[1.25rem]">
+                                        {step.label}
+                                    </p>
+                                    <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
+                                        <ApproachIcon size={24} />
+                                    </div>
                                 </div>
                             ))}
 
@@ -582,86 +589,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="testimonial-section  px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-                <div className="mx-auto max-w-[1120px]">
-                    <div className="mb-8 flex justify-center">
-                        <div className="relative inline-flex max-w-full items-center gap-4 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-5 py-2.5 shadow-sm sm:gap-5 sm:px-7">
-                            <div
-                                className="pointer-events-none absolute inset-0 opacity-10"
-                                style={{
-                                    backgroundImage: "url('/Patterns-03.webp')",
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
-                            <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 sm:tracking-[0.3em]">
-                                {aboutData.testimonialBadge}
-                            </p>
-                            <div className="relative z-10 h-3 w-px bg-white/20" />
-                            <SendHorizontal size={15} className="relative z-10 text-[#83cd20] rtl:rotate-180" />
-                        </div>
-                    </div>
-
-                    <h2
-                        className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
-                        dangerouslySetInnerHTML={{ __html: aboutData.testimonialTitleHTML }}
-                    />
-
-                    <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center">
-                        <div className="testimonial-card relative order-2 z-20 mt-8 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 text-left shadow-[0_24px_70px_rgba(0,0,0,0.08)] rtl:text-right sm:p-10 md:p-14 lg:order-1 lg:mt-0 ltr:lg:-mr-28 rtl:lg:-ml-28 lg:w-[58%]">
-                            <div className="pointer-events-none absolute inset-0 flex translate-x-6 items-center justify-center text-[#1f4d3a]/5 sm:translate-x-12">
-                                <svg width="280" height="200" viewBox="0 0 340 240" fill="none" stroke="currentColor" strokeWidth="8" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M115 130V220H25V130C25 70 65 30 115 30V80C95 80 85 95 85 110H115V130Z" />
-                                    <path d="M265 130V220H175V130C175 70 215 30 265 30V80C245 80 235 95 235 110H265V130Z" />
-                                </svg>
-                            </div>
-
-                            <p className="relative z-10 max-w-[36ch] text-[1.05rem] font-medium leading-[1.65] text-[#1f4d3a] sm:text-[1.35rem] sm:leading-[1.5]">
-                                {aboutData.testimonialQuote}
-                            </p>
-
-                            <div className="relative z-10 mt-10 flex items-center justify-between gap-4 sm:mt-12">
-                                <div className="flex items-center gap-4 rtl:flex-row-reverse">
-                                    <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9] sm:h-16 sm:w-16" />
-                                    <div>
-                                        <p className="text-base font-bold text-[#1a4331] sm:text-xl">
-                                            {aboutData.testimonialName}
-                                        </p>
-                                        <p className="text-xs font-medium text-[#727272] sm:text-sm">{aboutData.testimonialRole}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <button
-                                        type="button"
-                                        aria-label={aboutData.previousTestimonialLabel}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1a4331] shadow-sm transition-all hover:bg-white/80 sm:h-12 sm:w-12"
-                                    >
-                                        <ArrowRight size={16} className="ltr:rotate-180" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={aboutData.nextTestimonialLabel}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a4331] text-white shadow-sm transition-all hover:bg-[#1a4331]/90 sm:h-12 sm:w-12"
-                                    >
-                                        <ArrowRight size={16} className="rtl:rotate-180" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="testimonial-image order-1 w-full overflow-hidden rounded-[20px] lg:order-2 lg:w-[52%]">
-                            <img
-                                src={testimonialImage}
-                                alt="People stacking hands together"
-                                loading="lazy"
-                                decoding="async"
-                                className="h-[320px] w-full object-cover sm:h-[400px] lg:h-[500px]"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <EventTestimonials />
         </div>
     );
 }

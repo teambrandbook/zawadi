@@ -126,7 +126,7 @@ export default function DietPlanView({
                 </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
                 {stats.map((stat, index) => (
                   <div key={stat.label} className="rounded-md bg-[#E9DFCC] px-3 py-4 text-center">
                     <p className={`text-xl font-semibold ${index === 2 ? "text-[#0A4833]" : "text-[#A88751]"}`}>
