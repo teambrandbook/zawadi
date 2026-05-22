@@ -7,6 +7,7 @@ import AddNoteHeader from "@/components/consultant/notes/add/AddNoteHeader";
 import ClientConsultationReferenceSection from "@/components/consultant/notes/add/ClientConsultationReferenceSection";
 import NoteFormSection from "@/components/consultant/notes/add/NoteFormSection";
 import type { AddNoteFormState, NoteClientOption } from "@/components/consultant/notes/add/formTypes";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiClient = {
   id: number;
@@ -18,15 +19,9 @@ type ApiClient = {
   focuses_area?: string;
 };
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-2.webp";
-  if (value.startsWith("http")) return value;
-  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+  return getImageUrl(value);
 }
 
 function formatDate(value?: string | null) {

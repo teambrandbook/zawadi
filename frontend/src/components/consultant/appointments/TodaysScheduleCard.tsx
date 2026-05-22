@@ -5,7 +5,7 @@ import { todaySchedule } from "./appointmentsData";
 
 function statusTone(status: string) {
   if (status === "Confirmed") return "text-[#FFFFFF]";
-  if (status === "Pending") return "text-[#FFFFFF]";
+  if (status === "Pending") return "text-[#16A34A]";
   if (status === "Available") return "text-[#0A4833]";
   return "text-[#344054]";
 }

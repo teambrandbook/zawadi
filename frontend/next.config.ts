@@ -36,6 +36,7 @@ const nextConfig: NextConfig = {
       // Derived from NEXT_PUBLIC_API_URL — covers production automatically
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/media/**" },
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/recipes/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/profile_photos/**" },
       // Google profile photos
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       // Cloudinary profile photos

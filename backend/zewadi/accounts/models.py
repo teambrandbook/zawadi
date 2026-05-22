@@ -61,7 +61,7 @@ class User(AbstractUser):
     date_of_birth = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
     location = models.CharField(max_length=255, blank=True, null=True)
-    photo = models.URLField(blank=True, null=True)
+    photo = models.URLField(max_length=500, blank=True, null=True)
 
     # ✅ fixed default
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="COMMUNITY_USER")

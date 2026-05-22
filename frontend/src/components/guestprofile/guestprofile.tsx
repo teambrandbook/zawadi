@@ -128,6 +128,8 @@ export default function GuestProfile() {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/default-avatar.svg";
 
   const redirectToLogin = useCallback(() => {
     if (guestProfileRedirectInFlight) return;
@@ -154,6 +156,7 @@ export default function GuestProfile() {
         ]);
 
         setProfile(meRes.data);
+        setProfilePhotoFailed(false);
         setEditName(meRes.data.full_name ?? "");
         setEditPhone(meRes.data.phone ?? "");
         const list = Array.isArray(ordersRes.data)
@@ -241,11 +244,12 @@ export default function GuestProfile() {
               <div className="relative mb-5 size-32">
                 <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
                   <Image
-                    src={profile?.photo || "/default-avatar.svg"}
+                    src={profilePhotoSrc}
                     alt={profile?.full_name || "Profile"}
                     fill
                     sizes="128px"
                     className="object-cover"
+                    onError={() => setProfilePhotoFailed(true)}
                   />
                 </div>
                 <button

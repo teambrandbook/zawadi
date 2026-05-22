@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   AlertTriangle,
-  ChevronDown,
   ClipboardList,
   FilePlus2,
   MessageSquareText,
@@ -19,9 +18,39 @@ export type NotesStats = {
 
 type Props = {
   stats: NotesStats;
+  searchValue: string;
+  clientValue: string;
+  dateValue: string;
+  typeValue: string;
+  statusValue: string;
+  clientOptions: string[];
+  typeOptions: string[];
+  statusOptions: string[];
+  onSearchChange: (value: string) => void;
+  onClientChange: (value: string) => void;
+  onDateChange: (value: string) => void;
+  onTypeChange: (value: string) => void;
+  onStatusChange: (value: string) => void;
 };
 
-export default function NotesStatsAndFilters({ stats }: Props) {
+const dateOptions = ["All Dates", "Today", "Last 7 Days", "This Month", "Has Follow-up"];
+
+export default function NotesStatsAndFilters({
+  stats,
+  searchValue,
+  clientValue,
+  dateValue,
+  typeValue,
+  statusValue,
+  clientOptions,
+  typeOptions,
+  statusOptions,
+  onSearchChange,
+  onClientChange,
+  onDateChange,
+  onTypeChange,
+  onStatusChange,
+}: Props) {
   const noteStats = [
     { label: "Total Notes", value: stats.total, icon: FilePlus2, tone: "text-[#0A4833] bg-[#EBE1CF]" },
     { label: "Recent Notes", value: stats.recent, icon: MessageSquareText, tone: "text-[#0A4833] bg-[#EBE1CF]" },
@@ -75,21 +104,55 @@ export default function NotesStatsAndFilters({ stats }: Props) {
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
             <input
               type="text"
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search notes..."
               className="h-11 w-full rounded-[8px] border border-[#DFDFDF] bg-white pl-11 pr-4 text-sm text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             />
           </div>
 
-          {["All Clients", "All Dates", "All Types", "All Status"].map((label) => (
-            <button
-              key={label}
-              type="button"
-              className="inline-flex h-11 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] lg:min-w-[150px]"
-            >
-              <span>{label}</span>
-              <ChevronDown className="h-4 w-4 text-[#374151]" />
-            </button>
-          ))}
+          <select
+            value={clientValue}
+            onChange={(event) => onClientChange(event.target.value)}
+            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
+          >
+            <option>All Clients</option>
+            {clientOptions.map((client) => (
+              <option key={client}>{client}</option>
+            ))}
+          </select>
+
+          <select
+            value={dateValue}
+            onChange={(event) => onDateChange(event.target.value)}
+            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
+          >
+            {dateOptions.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
+          </select>
+
+          <select
+            value={typeValue}
+            onChange={(event) => onTypeChange(event.target.value)}
+            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
+          >
+            <option>All Types</option>
+            {typeOptions.map((type) => (
+              <option key={type}>{type}</option>
+            ))}
+          </select>
+
+          <select
+            value={statusValue}
+            onChange={(event) => onStatusChange(event.target.value)}
+            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
+          >
+            <option>All Status</option>
+            {statusOptions.map((status) => (
+              <option key={status}>{status}</option>
+            ))}
+          </select>
         </div>
       </div>
     </section>

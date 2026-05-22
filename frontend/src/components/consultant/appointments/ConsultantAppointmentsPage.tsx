@@ -18,6 +18,7 @@ import QuickAvailabilityCard from "./QuickAvailabilityCard";
 import RecentActivityCard from "./RecentActivityCard";
 import TodaysScheduleCard from "./TodaysScheduleCard";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type BookingItem = {
   id: number;
@@ -33,15 +34,9 @@ type BookingItem = {
 
 type ScheduleFilter = "daily" | "weekly" | "monthly";
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-3.webp";
-  if (value.startsWith("http")) return value;
-  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+  return getImageUrl(value);
 }
 
 function formatTimeLabel(value: string) {

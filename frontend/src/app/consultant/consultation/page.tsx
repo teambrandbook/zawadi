@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import {
   Calendar,
@@ -14,6 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ConsultationStatus = "Upcoming" | "Confirmed" | "Follow-up Due" | "Scheduled" | "Cancelled";
 type SessionType = "Video Call" | "Audio Call" | "Chat";
@@ -85,15 +85,9 @@ function getStatusBadgeTone(status: ConsultationStatus) {
   return "bg-[#FEE2E2] text-[#DC2626]";
 }
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function mediaUrl(value?: string | null) {
   if (!value) return "/recipe/recipe-3.webp";
-  if (value.startsWith("http")) return value;
-  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+  return getImageUrl(value);
 }
 
 function sessionTypeLabel(value?: string): SessionType {
@@ -159,6 +153,32 @@ function mapBookingToConsultation(booking: BookingItem): BackendConsultationUser
   };
 }
 
+function getInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "C";
+  return parts.slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+}
+
+function ClientAvatar({ src, name, size = 44 }: { src: string; name: string; size?: number }) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const initials = getInitials(name);
+
+  return (
+    <div
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#E7F0EC] text-sm font-semibold text-[#0A4833]"
+      style={{ width: size, height: size }}
+      aria-label={`${name} profile image`}
+    >
+      {src && !hasImageError ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" className="h-full w-full object-cover" onError={() => setHasImageError(true)} />
+      ) : (
+        <span>{initials}</span>
+      )}
+    </div>
+  );
+}
+
 function SummaryCards({ users }: { users: BackendConsultationUser[] }) {
   const statCards = [
     { label: "Total Consultations", value: String(users.length), icon: Search, iconClassName: "text-[#0A6A4F]" },
@@ -196,41 +216,44 @@ function SummaryCards({ users }: { users: BackendConsultationUser[] }) {
 }
 
 function ConsultationToolbar() {
+  const filterButtonClass =
+    "inline-flex h-10 w-full min-w-0 items-center justify-between gap-3 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827]";
+
   return (
     <section className="rounded-[14px] border border-[#DFDFDF] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center xl:flex-nowrap">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(118px,0.75fr)_minmax(118px,0.75fr)_minmax(150px,0.95fr)_minmax(160px,1fr)_minmax(172px,auto)] lg:items-center">
         <button
           type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[118px]"
+          className={filterButtonClass}
         >
-          <span>All Status</span>
+          <span className="truncate">All Status</span>
           <ChevronDown className="h-4 w-4 text-[#374151]" />
         </button>
 
         <button
           type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[118px]"
+          className={filterButtonClass}
         >
-          <span>All Types</span>
+          <span className="truncate">All Types</span>
           <ChevronDown className="h-4 w-4 text-[#374151]" />
         </button>
 
-        <div className="flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[126px]">
-          <span>mm/dd/yyyy</span>
+        <div className={filterButtonClass}>
+          <span className="truncate">mm/dd/yyyy</span>
           <Calendar className="h-4 w-4 text-[#111827]" />
         </div>
 
         <button
           type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[148px]"
+          className={filterButtonClass}
         >
-          <span>Sort by Newest</span>
+          <span className="truncate">Sort by Newest</span>
           <ChevronDown className="h-4 w-4 text-[#374151]" />
         </button>
 
         <button
           type="button"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] bg-[#0A4833] px-4 text-[14px] font-medium text-white hover:bg-[#083B2A] lg:w-[148px]"
+          className="inline-flex h-10 w-full min-w-[172px] items-center justify-center gap-2 whitespace-nowrap rounded-[6px] bg-[#0A4833] px-5 text-[14px] font-medium text-white hover:bg-[#083B2A] sm:col-span-2 lg:col-span-1 lg:justify-self-end lg:w-[172px]"
         >
           <Calendar className="h-[13px] w-[13px]" />
           <span>View Schedule</span>
@@ -271,9 +294,7 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
                 className="grid grid-cols-[1.4fr_1fr_1fr_1.2fr_0.9fr_0.9fr] border-b border-[#E5E7EB] px-4 py-4 last:border-b-0"
               >
                 <div className="flex items-center gap-3 px-3">
-                  <div className="h-11 w-11 overflow-hidden rounded-full bg-[#E5E7EB]">
-                    <Image src={user.avatarUrl} alt={user.fullName} width={44} height={44} className="h-full w-full object-cover" />
-                  </div>
+                  <ClientAvatar src={user.avatarUrl} name={user.fullName} />
                   <div>
                     <p className="text-base font-medium text-[#111827]">{user.fullName}</p>
                     <p className="mt-0.5 text-sm text-[#6B7280]">{user.consultationId}</p>
@@ -371,15 +392,7 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
             >
               <div className="flex items-start justify-between border-b border-[#E5E7EB] px-5 py-5 sm:px-6">
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 overflow-hidden rounded-full bg-[#E5E7EB]">
-                    <Image
-                      src={selectedUser.avatarUrl}
-                      alt={selectedUser.fullName}
-                      width={56}
-                      height={56}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+                  <ClientAvatar src={selectedUser.avatarUrl} name={selectedUser.fullName} size={56} />
                   <div>
                     <h3 className="text-xl font-semibold text-[#163229]">{selectedUser.fullName}</h3>
                     <p className="mt-1 text-sm text-[#667085]">{selectedUser.consultationId}</p>
