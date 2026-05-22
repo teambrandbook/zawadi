@@ -7,7 +7,7 @@ import gsap from "@/lib/gsap";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 
-import { StarIcon, ApproachIcon } from "../common/BrandIcons";
+import { ApproachIcon } from "../common/BrandIcons";
 import ContentSection from "../common/ContentSection";
 import EventTestimonials from "../events/EventTestimonials";
 
@@ -35,6 +35,17 @@ const desktopStoryPositions = [
     { x: -280, width: 220, height: 280, zIndex: 10, opacity: 0.6 },
     { x: 0, width: 440, height: 340, zIndex: 20, opacity: 1 },
     { x: 280, width: 220, height: 280, zIndex: 10, opacity: 0.6 },
+];
+
+const aboutImageUrls = [
+    introTallImage,
+    introTopImage,
+    introBottomImage,
+    storyLeftImage,
+    storyCenterImage,
+    storyRightImage,
+    approachImage,
+    testimonialImage,
 ];
 
 export default function About() {
@@ -133,6 +144,25 @@ export default function About() {
                 opacity: pos.opacity,
             });
         });
+    }, []);
+
+    useEffect(() => {
+        const warmImages = () => {
+            aboutImageUrls.forEach((src) => {
+                const img = new window.Image();
+                img.decoding = "async";
+                img.src = src;
+                img.decode?.().catch(() => undefined);
+            });
+        };
+
+        if ("requestIdleCallback" in window) {
+            const idleId = window.requestIdleCallback(warmImages, { timeout: 1500 });
+            return () => window.cancelIdleCallback(idleId);
+        }
+
+        const timeoutId = globalThis.setTimeout(warmImages, 300);
+        return () => globalThis.clearTimeout(timeoutId);
     }, []);
 
     useEffect(() => {
@@ -306,7 +336,7 @@ export default function About() {
                     <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-stretch lg:gap-16">
                         <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:min-h-[580px] lg:grid-cols-[1.05fr_0.95fr] ltr:lg:translate-x-4 ltr:xl:translate-x-8 rtl:lg:-translate-x-4 rtl:xl:-translate-x-8">
                             <div className="flex flex-col gap-4 sm:gap-5 h-full">
-                                <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
+                                <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0 [will-change:clip-path]">
                                     <img
                                         src={introTallImage}
                                         alt="Fresh salad bowl"
@@ -334,7 +364,7 @@ export default function About() {
                             </div>
 
                             <div className="flex flex-col gap-3 sm:gap-4 h-full lg:gap-5">
-                                <div className="intro-top-wrapper shrink-0 overflow-hidden rounded-[20px]">
+                                <div className="intro-top-wrapper shrink-0 overflow-hidden rounded-[20px] [will-change:clip-path]">
                                     <img
                                         src={introTopImage}
                                         alt="Hands preparing vegetables"
@@ -343,7 +373,7 @@ export default function About() {
                                         className="h-[120px] w-full object-cover sm:h-[140px] lg:h-[160px] xl:h-[180px]"
                                     />
                                 </div>
-                                <div className="intro-bottom-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
+                                <div className="intro-bottom-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0 [will-change:clip-path]">
                                     <img
                                         src={introBottomImage}
                                         alt="Hands holding a seedling"
@@ -383,7 +413,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="relative bg-[#1f4d3a] py-12 text-white sm:py-16">
+            <section className="relative overflow-hidden bg-[#1f4d3a] py-12 text-white sm:py-16">
                 <div
                     className="pointer-events-none absolute inset-0 opacity-10"
                     style={{
@@ -398,7 +428,7 @@ export default function About() {
                         {aboutData.storyTitle}
                     </h2>
 
-                    <div className="relative mx-auto mt-10 flex w-full max-w-[1020px] items-center justify-between">
+                    <div className="relative mx-auto mt-8 flex w-full max-w-[1020px] items-center justify-between sm:mt-10">
                         <button
                             type="button"
                             onClick={handlePrev}
@@ -409,7 +439,7 @@ export default function About() {
                         </button>
 
                         <div
-                            className="relative h-[300px] w-full max-w-[820px] md:h-[380px]"
+                            className="relative h-[280px] w-full max-w-[820px] sm:h-[300px] md:h-[380px]"
                             onTouchStart={handleTouchStart}
                             onTouchEnd={handleTouchEnd}
                             onWheel={handleWheel}
@@ -419,7 +449,7 @@ export default function About() {
                                     <div
                                         key={i}
                                         ref={el => { storyItemsRef.current[i] = el; }}
-                                        className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer"
+                                        className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer [will-change:transform,width,height,opacity]"
                                         onClick={() => {
                                             if (isAnimating.current) return;
                                             const pos =
@@ -479,7 +509,7 @@ export default function About() {
 
                     <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
                         <div>
-                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0">
+                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [will-change:clip-path]">
                                 <img
                                     src={approachImage}
                                     alt="Woman cooking in a bright kitchen"
@@ -493,14 +523,22 @@ export default function About() {
                             </p>
                         </div>
 
-                        <div className="approach-steps-container max-w-[440px] space-y-4">
+                        <div className="approach-steps-container w-full max-w-[440px] space-y-4">
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
                                     dir="ltr"
                                     className="group approach-step-card grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-l-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white sm:px-7 sm:py-4"
                                 >
-                                    <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
+                                    <div className="flex min-w-0 items-center gap-3 rtl:flex-row-reverse sm:gap-4">
+                                        <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
+                                            <ApproachIcon size={24} />
+                                        </div>
+                                        <p className="min-w-0 font-serif text-base leading-tight sm:text-[1.25rem]">
+                                            {step.label}
+                                        </p>
+                                    </div>
+                                    <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
                                         <div
                                             className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
                                             style={{
@@ -522,7 +560,7 @@ export default function About() {
 
                             <Link
                                 href="/community"
-                                className="group relative inline-flex items-center rounded-full bg-[#1f4d3a] py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331] ltr:pl-9 ltr:pr-0 rtl:pl-0 rtl:pr-9"
+                                className="group relative inline-flex max-w-[calc(100%-24px)] items-center rounded-full bg-[#1f4d3a] py-0 text-[12px] font-bold uppercase tracking-[0.12em] text-white transition-colors duration-300 hover:bg-[#1a4331] ltr:pl-7 ltr:pr-0 rtl:pl-0 rtl:pr-7 sm:text-[13px] sm:tracking-[0.15em] sm:ltr:pl-9 sm:rtl:pr-9"
                             >
                                 <div className="absolute inset-0 overflow-hidden rounded-full">
                                     <div
