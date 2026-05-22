@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import gsap, { animatePopUp, animateFadeInLeft, animateSwipeReveal, animateCounter } from "@/lib/gsap";
@@ -8,15 +8,51 @@ import { Leaf, ArrowRight } from "lucide-react";
 import communityData from "@/data/community.json";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { API_BASE_URL } from "@/lib/config";
 
 type StatItem = {
   value: number | string;
   label: string;
 };
 
-const CommunityStats = () => {
+export type PublicStats = {
+  community_members: number;
+  events_hosted: number;
+  consultants: number;
+  healthy_products: number;
+};
+
+const loadingStatValue = "...";
+const publicStatsCacheKey = "zewadi-community-public-stats";
+
+const readCachedPublicStats = () => {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const cachedStats = window.localStorage.getItem(publicStatsCacheKey);
+    if (!cachedStats) return null;
+
+    const data = JSON.parse(cachedStats) as Partial<PublicStats>;
+
+    return {
+      community_members: Number(data.community_members ?? 0),
+      events_hosted: Number(data.events_hosted ?? 0),
+      consultants: Number(data.consultants ?? 0),
+      healthy_products: Number(data.healthy_products ?? 0),
+    };
+  } catch {
+    return null;
+  }
+};
+
+type CommunityStatsProps = {
+  initialStats?: PublicStats | null;
+};
+
+const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
   const { locale } = useLocale();
   const isRtl = locale === "ar";
+  const [publicStats, setPublicStats] = useState<PublicStats | null>(() => initialStats ?? readCachedPublicStats());
   const sectionRef = useRef<HTMLDivElement>(null);
   const iconRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -25,7 +61,16 @@ const CommunityStats = () => {
 
   const { statsSection: staticStatsSection } = communityData as { statsSection: { largeImage: string; card: { title: string; description: string; ctaText: string; image: string }; stats: StatItem[] } };
   const localizedStatsSection = translations[locale]?.communityPage?.statsSection || translations.en.communityPage.statsSection;
-  const statsSection = {
+  const backendStatValues = publicStats
+    ? [
+      publicStats.community_members,
+      publicStats.events_hosted,
+      publicStats.consultants,
+      publicStats.healthy_products,
+    ]
+    : [loadingStatValue, loadingStatValue, loadingStatValue, loadingStatValue];
+
+  const statsSection = useMemo(() => ({
     ...staticStatsSection,
     card: {
       ...staticStatsSection.card,
@@ -33,9 +78,41 @@ const CommunityStats = () => {
     },
     stats: staticStatsSection.stats.map((stat, index) => ({
       ...stat,
+      value: backendStatValues[index] ?? 0,
       label: localizedStatsSection.stats[index]?.label || stat.label,
     })),
-  };
+  }), [backendStatValues, localizedStatsSection.card, localizedStatsSection.stats, staticStatsSection]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchPublicStats = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/community/public-stats/`, {
+          signal: controller.signal,
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const nextStats = {
+          community_members: Number(data.community_members ?? 0),
+          events_hosted: Number(data.events_hosted ?? 0),
+          consultants: Number(data.consultants ?? 0),
+          healthy_products: Number(data.healthy_products ?? 0),
+        };
+
+        setPublicStats(nextStats);
+        window.localStorage.setItem(publicStatsCacheKey, JSON.stringify(nextStats));
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+      }
+    };
+
+    fetchPublicStats();
+
+    return () => controller.abort();
+  }, []);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -65,12 +142,13 @@ const CommunityStats = () => {
       tl.addLabel("startCounters", "-=1.2");
       statItems.forEach((stat) => {
         const targetValueStr = stat.getAttribute("data-target") || "0";
+        if (targetValueStr === loadingStatValue) return;
         animateCounter(targetValueStr, (val) => { stat.innerText = val; }, {}, tl, "startCounters");
       });
 
     }, sectionRef);
     return () => ctx.revert();
-  }, [isRtl]);
+  }, [isRtl, publicStats]);
 
   return (
     <section ref={sectionRef} className="py-24 bg-[#fffef5] overflow-hidden">
@@ -138,7 +216,7 @@ const CommunityStats = () => {
                       className="stat-value text-3xl md:text-4xl font-bold text-white mb-2"
                       data-target={stat.value}
                     >
-                      0
+                      {stat.value}
                     </div>
                     <div className="text-xs md:text-sm text-white font-medium uppercase tracking-wider">
                       {stat.label}
