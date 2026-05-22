@@ -8,7 +8,7 @@ type Props = {
 
 export default function SettingsSideNav({ activeSection, sections, onSectionChange }: Props) {
   return (
-    <aside className="h-fit max-w-full overflow-hidden rounded-lg border border-[#DFDFDF] bg-white p-2 lg:p-5">
+    <aside className="h-fit max-w-full overflow-hidden rounded-lg border border-[#DFDFDF] bg-white p-2 lg:sticky lg:top-24 lg:p-5">
       <div className="flex w-full min-w-0 flex-nowrap gap-2 overflow-x-auto pb-1 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">
         {sections.map((section) => (
           <button

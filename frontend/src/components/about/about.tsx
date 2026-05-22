@@ -527,7 +527,8 @@ export default function About() {
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
-                                    className="group approach-step-card flex w-full cursor-pointer items-center justify-between gap-3 rounded-r-[999px] border-2 border-black/10 bg-white px-5 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-7 sm:py-4 [will-change:clip-path]"
+                                    dir="ltr"
+                                    className="group approach-step-card grid cursor-pointer grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-l-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white sm:px-7 sm:py-4"
                                 >
                                     <div className="flex min-w-0 items-center gap-3 rtl:flex-row-reverse sm:gap-4">
                                         <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">

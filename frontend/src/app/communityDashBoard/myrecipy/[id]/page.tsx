@@ -12,6 +12,7 @@ type BackendRecipeDetail = {
   cover_image?: string | null;
   category?: string;
   health_benefits?: string | null;
+  optional_ingredients?: string | null;
   nutrition?: Partial<RecipeNutrition> | null;
   calories?: string | number | null;
   fat?: string | number | null;
@@ -67,6 +68,7 @@ function mapBackendRecipe(recipe: BackendRecipeDetail): Recipe {
     image: mediaUrl(recipe.cover_image),
     categories: [String(recipe.category || "BREAKFAST").toUpperCase()],
     benefits: lines(recipe.health_benefits),
+    optional: lines(recipe.optional_ingredients),
     ingredients: (recipe.ingredients || []).map((item) =>
       [item.quantity, item.unit, item.ingredient_name].filter(Boolean).join(" ")
     ),

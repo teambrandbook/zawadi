@@ -19,13 +19,13 @@ type DraftModel = {
   servings: string;
   difficulty: string;
   ingredients: IngredientDraft[];
+  optionalIngredients: string;
   steps: string[];
   calories: string;
   protein: string;
   carbs: string;
   fat: string;
   videoUrl: string;
-  sourceUrl: string;
   country: string;
 };
 
@@ -190,14 +190,18 @@ export function BasicInformationSection({
 
 export function IngredientsSection({
   ingredients,
+  optionalIngredients,
   onAdd,
   onUpdate,
   onRemove,
+  onOptionalIngredientsChange,
 }: {
   ingredients: IngredientDraft[];
+  optionalIngredients: string;
   onAdd: () => void;
   onUpdate: (index: number, field: keyof IngredientDraft, value: string) => void;
   onRemove: (index: number) => void;
+  onOptionalIngredientsChange: (value: string) => void;
 }) {
   return (
     <SectionCard title="Ingredients">
@@ -245,6 +249,16 @@ export function IngredientsSection({
           </div>
         ))}
       </div>
+      <label className="mt-4 block">
+        <span className="mb-2 block text-sm font-medium text-[#0A4833]">Optional Ingredients</span>
+        <textarea
+          rows={3}
+          value={optionalIngredients}
+          onChange={(e) => onOptionalIngredientsChange(e.target.value)}
+          placeholder="Mushrooms, spinach, egg, grilled Chicken etc."
+          className={textareaClass}
+        />
+      </label>
     </SectionCard>
   );
 }
@@ -359,21 +373,12 @@ export function AddLinkSection({
       <div className="space-y-3">
         <div>
           <label className="mb-1 block text-xs font-medium text-[#0A4833]">Video Link</label>
-        <input
-          value={draft.videoUrl}
-          onChange={(e) => updateField("videoUrl", e.target.value)}
-          placeholder="YouTube/Video URL"
-          className={inputClass}
-        />
-        </div>
-        <div>
-          <label className="mb-1 block text-xs font-medium text-[#0A4833]">Source Link</label>
-        <input
-          value={draft.sourceUrl}
-          onChange={(e) => updateField("sourceUrl", e.target.value)}
-          placeholder="Source/Reference Link"
-          className={inputClass}
-        />
+          <input
+            value={draft.videoUrl}
+            onChange={(e) => updateField("videoUrl", e.target.value)}
+            placeholder="YouTube/Video URL"
+            className={inputClass}
+          />
         </div>
       </div>
     </SectionCard>
