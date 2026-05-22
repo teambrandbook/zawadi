@@ -449,32 +449,28 @@ export default function OrdersDashboard() {
           }}
         />
 
-        <div className="w-full overflow-x-auto rounded-lg border border-gray-100 shadow-sm">
-          <div className="min-w-[800px] lg:min-w-full">
-            <RecentOrdersTable
-              rows={paged}
-              page={safePage}
-              perPage={perPage}
-              total={filtered.length}
-              onPageChange={(nextPage) =>
-                setPage(
-                  Math.max(
-                    1,
-                    Math.min(
-                      nextPage,
-                      totalPages
-                    )
-                  )
+        <RecentOrdersTable
+          rows={paged}
+          page={safePage}
+          perPage={perPage}
+          total={filtered.length}
+          onPageChange={(nextPage) =>
+            setPage(
+              Math.max(
+                1,
+                Math.min(
+                  nextPage,
+                  totalPages
                 )
-              }
-              onOpenStatus={
-                openStatusModal
-              }
-              onViewDetails={openDetailsModal}
-              onDelete={openDeleteModal}
-            />
-          </div>
-        </div>
+              )
+            )
+          }
+          onOpenStatus={
+            openStatusModal
+          }
+          onViewDetails={openDetailsModal}
+          onDelete={openDeleteModal}
+        />
       </div>
 
       <OrderStatusModal

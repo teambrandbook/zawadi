@@ -122,7 +122,7 @@ export default function MetricsGrid({ stats }: Props) {
   const metrics = buildMetrics(stats);
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {metrics.map(({ label, value, subText, Icon, valueColor, subTextColor, iconBg, iconColor }) => (
         <article key={label} className="h-[126px] overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between gap-2">

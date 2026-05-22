@@ -287,7 +287,6 @@ export default function AddProductPage() {
       <div className="mx-auto max-w-[1184px] space-y-4">
         <AddProductHeader
           title={isEditMode ? "Edit Product" : "Add Product"}
-          onBackToProducts={() => router.push("/admindashboard/products")}
         />
 
         {isLoadingProduct ? (

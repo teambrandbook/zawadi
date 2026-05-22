@@ -13,7 +13,7 @@ export default function AnalyticsCardsGrid({ cards }: AnalyticsCardsGridProps) {
   };
 
   return (
-    <div className="grid gap-3 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
       {cards.map((card) => (
         <article key={card.id} className="rounded-lg border border-[#E5E7EB] bg-white p-4">
           <h3 className="text-sm font-semibold text-[#0A4B34]">{card.title}</h3>

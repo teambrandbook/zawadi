@@ -89,30 +89,33 @@ export default function RecentOrdersTable({
 
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
-      <div className="flex items-center justify-between gap-3 border-b border-[#DFDFDF] px-4 py-3">
-        <h3 className="text-[28px] font-semibold text-[#0A4833]">
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#DFDFDF] px-4 py-3">
+        <h3 className="text-xl font-semibold text-[#0A4833] sm:text-[28px]">
           Recent Orders
         </h3>
-
-        <label>
-          <select className="h-8 rounded-md border border-[#DFDFDF] bg-white px-2 text-sm">
-            <option>10 per page</option>
-            <option>20 per page</option>
-          </select>
-        </label>
       </div>
 
-      <div className="w-full overflow-hidden">
-        <table className="w-full table-fixed border-collapse text-left text-sm">
+      <div className="hide-scrollbar w-full overflow-x-auto">
+        <table className="w-full min-w-[800px] table-fixed border-collapse text-left text-sm">
           <colgroup>
             <col className="w-[4%]" />
             <col className="w-[14%]" />
-            <col className="w-[25%]" />
-            <col className="w-[20%]" />
+            <col className="w-[23%]" />
+            <col className="w-[18%]" />
             <col className="w-[13%]" />
             <col className="w-[9%]" />
-            <col className="w-[8%]" />
-            <col className="w-[7%]" />
+            <col className="w-[9%]" />
+            <col className="w-[10%]" />
           </colgroup>
 
           <thead className="bg-[#E9E0D0] text-[#6B7280]">
@@ -145,7 +148,7 @@ export default function RecentOrdersTable({
                 Status
               </th>
 
-              <th className="px-2 py-3 align-middle">
+              <th className="bg-[#E9E0D0] px-2 py-3 align-middle">
                 Actions
               </th>
             </tr>
@@ -264,13 +267,13 @@ export default function RecentOrdersTable({
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#DFDFDF] px-4 py-3">
-        <p className="text-sm text-[#6B7280]">
+      <div className="flex flex-col gap-3 border-t border-[#DFDFDF] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="shrink-0 text-right text-sm text-[#6B7280]">
           Showing {start} to {end} of{" "}
           {total} orders
         </p>
 
-        <div className="flex items-center gap-2 text-sm">
+        <div className="hide-scrollbar flex w-full items-center justify-end gap-2 overflow-x-auto text-sm sm:w-auto">
           <button
             type="button"
             onClick={() =>
@@ -278,7 +281,7 @@ export default function RecentOrdersTable({
                 Math.max(1, page - 1)
               )
             }
-            className="rounded border border-[#DFDFDF] px-3 py-1 text-[#374151] disabled:cursor-not-allowed disabled:opacity-50"
+            className="shrink-0 rounded border border-[#DFDFDF] px-3 py-1 text-[#374151] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={page === 1}
           >
             Previous
@@ -294,7 +297,7 @@ export default function RecentOrdersTable({
               onClick={() =>
                 onPageChange(n)
               }
-              className={`rounded border px-3 py-1 ${
+              className={`shrink-0 rounded border px-3 py-1 ${
                 page === n
                   ? "border-[#0A4833] bg-[#0A4833] text-white"
                   : "border-[#DFDFDF] text-[#374151]"
@@ -314,7 +317,7 @@ export default function RecentOrdersTable({
                 )
               )
             }
-            className="rounded border border-[#DFDFDF] px-3 py-1 text-[#374151] disabled:cursor-not-allowed disabled:opacity-50"
+            className="shrink-0 rounded border border-[#DFDFDF] px-3 py-1 text-[#374151] disabled:cursor-not-allowed disabled:opacity-50"
             disabled={page === totalPages}
           >
             Next

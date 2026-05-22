@@ -166,7 +166,7 @@ function ConsultationTopSection({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-3xl font-semibold text-[#0A4833]">Consultations</h1>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <button
             type="button"
             onClick={() => onFiltersChange({ status: "", sessionType: "", nutritionist: "", date: "" })}
