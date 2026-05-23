@@ -115,7 +115,7 @@ export default function ProductStatsGrid({ rows }: Props) {
   ];
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {cards.map(({ primary, secondary, note, Icon, iconColor, iconBg, noteColor, primaryClass }) => (
         <article key={`${secondary}-${note}`} className="h-[126px] overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between gap-2">

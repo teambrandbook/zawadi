@@ -25,7 +25,7 @@ function iconTone(tone: NutritionistStatCard["iconTone"]) {
 
 export default function NutritionistStatsGrid({ items }: NutritionistStatsGridProps) {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {items.map((item) => {
         const Icon = iconByType(item.icon);
         const isNameCard = item.id === "top";

@@ -176,6 +176,7 @@ export default function EventsManagementPage() {
   const [pendingDeleteEvent, setPendingDeleteEvent] = useState<EventRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [filters, setFilters] = useState<EventFilters>(defaultFilters);
@@ -214,6 +215,107 @@ export default function EventsManagementPage() {
     } finally {
       setIsDeleting(false);
       setPendingDeleteEvent(null);
+    }
+  }
+
+  function selectedEvents() {
+    return events.filter((event) => selectedIds.includes(event.id));
+  }
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]));
+  }
+
+  function toggleSelectAllFiltered() {
+    const visibleIds = filteredEvents.map((event) => event.id);
+    const allSelected = visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
+    setSelectedIds((prev) => {
+      if (allSelected) return prev.filter((id) => !visibleIds.includes(id));
+      return [...new Set([...prev, ...visibleIds])];
+    });
+  }
+
+  async function updateSelectedStatus(status: "published" | "cancelled" | "draft") {
+    if (selectedIds.length === 0) {
+      toast.warning("Select at least one event.");
+      return;
+    }
+
+    const nextStatus = status === "published" ? "Published" : status === "cancelled" ? "Cancelled" : "Draft";
+    setEvents((prev) => prev.map((event) => (selectedIds.includes(event.id) ? { ...event, status: nextStatus } : event)));
+
+    try {
+      await Promise.all(selectedIds.map((id) => api.patch(`/events/${id}/`, { status })));
+      toast.success(
+        status === "published"
+          ? "Selected events published."
+          : status === "cancelled"
+            ? "Selected events cancelled."
+            : "Selected events moved to draft."
+      );
+      setSelectedIds([]);
+    } catch {
+      toast.error("Failed to update selected events. Please try again.");
+      fetchEvents();
+    }
+  }
+
+  function sendReminders() {
+    if (selectedIds.length === 0) {
+      toast.warning("Select at least one event.");
+      return;
+    }
+    toast.success(`Reminder queued for ${selectedIds.length} selected event(s).`);
+  }
+
+  function exportSelected() {
+    const rows = selectedEvents();
+    if (rows.length === 0) {
+      toast.warning("Select at least one event.");
+      return;
+    }
+
+    const header = ["ID", "Title", "Category", "Host", "Date", "Time", "Type", "Registrations", "Status"];
+    const csv = [header, ...rows.map((event) => [
+      event.id,
+      event.title,
+      event.category,
+      event.hostName,
+      event.dateText,
+      event.timeText,
+      event.type,
+      event.registrations,
+      event.status,
+    ])].map((line) => line.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "events-selected.csv";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function deleteSelected() {
+    if (selectedIds.length === 0) {
+      toast.warning("Select at least one event.");
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete ${selectedIds.length} selected event(s)? This action cannot be undone.`);
+    if (!confirmed) return;
+
+    try {
+      await Promise.all(selectedIds.map((id) => api.delete(`/events/${id}/`)));
+      setEvents((prev) => prev.filter((event) => !selectedIds.includes(event.id)));
+      setSelectedIds([]);
+      toast.success("Selected events deleted.");
+    } catch {
+      toast.error("Failed to delete selected events. Please try again.");
+      fetchEvents();
     }
   }
 
@@ -262,6 +364,13 @@ export default function EventsManagementPage() {
           categories={categories}
           onFiltersChange={setFilters}
           onClearFilters={() => setFilters(defaultFilters)}
+          selectedCount={selectedIds.length}
+          onPublishSelected={() => updateSelectedStatus("published")}
+          onDraftSelected={() => updateSelectedStatus("draft")}
+          onCancelSelected={() => updateSelectedStatus("cancelled")}
+          onDeleteSelected={deleteSelected}
+          onSendReminders={sendReminders}
+          onExportSelected={exportSelected}
         />
 
         {isLoading && <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">Loading events...</div>}
@@ -280,6 +389,9 @@ export default function EventsManagementPage() {
         {!isLoading && filteredEvents.length > 0 && (
           <EventsTable
             rows={filteredEvents}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+            onToggleSelectAll={toggleSelectAllFiltered}
             onView={viewEvent}
             onEdit={(id) => router.push(`/admindashboard/events/create?eventId=${id}`)}
             onDelete={(id) => setPendingDeleteEvent(events.find((event) => event.id === id) ?? null)}

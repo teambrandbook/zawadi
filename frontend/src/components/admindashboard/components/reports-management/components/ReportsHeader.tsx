@@ -7,7 +7,7 @@ type ReportsHeaderProps = {
 
 export default function ReportsHeader({ onExport, isExporting = false }: ReportsHeaderProps) {
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <div className="flex flex-col gap-3">
       <div>
         <h1 className="text-2xl font-bold text-[#0A4B34] lg:text-3xl">Reports &amp; Analytics</h1>
         <p className="mt-1 text-xs text-[#6B7280] lg:text-sm">

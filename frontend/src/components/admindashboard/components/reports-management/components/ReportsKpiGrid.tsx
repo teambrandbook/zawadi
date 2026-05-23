@@ -21,7 +21,7 @@ export default function ReportsKpiGrid({ cards }: ReportsKpiGridProps) {
   };
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {cards.map((card) => (
         <article key={card.id} className="rounded-lg border border-[#E5E7EB] bg-white p-4">
           <div className="flex items-start justify-between">

@@ -155,9 +155,6 @@ export default function BlogManagementTable({ rows, onView, onStatusChange, onDe
             <h2 className="text-[17px] font-semibold text-[#0A4833]">All Blogs</h2>
             <span className="text-[12px] text-[#98A2B3]">{rows.length} total</span>
           </div>
-          <button type="button" className="text-[12px] font-medium text-[#0A4833]">
-            Bulk Actions
-          </button>
         </div>
 
         {rows.length === 0 && (

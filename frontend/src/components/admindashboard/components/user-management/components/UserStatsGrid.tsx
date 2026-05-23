@@ -68,7 +68,7 @@ export default function UserStatsGrid({ users }: Props) {
   ];
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
       {summaryCards.map(({ label, value, change, hint, Icon, iconBg, iconColor, changeColor }) => (
         <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className={`mb-3 inline-flex h-11 w-11 items-center justify-center rounded-lg ${iconBg}`}>

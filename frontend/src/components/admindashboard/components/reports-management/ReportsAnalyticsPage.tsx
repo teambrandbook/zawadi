@@ -209,7 +209,7 @@ export default function ReportsAnalyticsPage() {
       setIsLoading(true);
       setStatsError(false);
       try {
-        const reportsRes = await api.get("/supperadmin/reports/", {
+        const reportsRes = await api.get("/superadmin/reports/", {
           params: buildParams(period, module, startDate, endDate),
         });
         const nextReports = normalizeReports(reportsRes.data);
@@ -231,7 +231,7 @@ export default function ReportsAnalyticsPage() {
     setExportError("");
 
     try {
-      const response = await api.get("/supperadmin/reports/export/", {
+      const response = await api.get("/superadmin/reports/export/", {
         params: {
           ...buildParams(period, module, startDate, endDate),
           report_type: reportId,

@@ -113,6 +113,7 @@ export default function UpcomingEvents() {
                 month={month}
                 image={toMediaUrl(event.cover_image)}
                 description={event.short_description}
+                href={`/events/${event.id}`}
               />
             );
           })}
@@ -133,6 +134,7 @@ export default function UpcomingEvents() {
                   title={event.title}
                   date={day}
                   month={month}
+                  href={`/events/${event.id}`}
                 />
               );
             })}

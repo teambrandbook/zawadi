@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 
-import { Eye, Pencil, Star, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 export type ProductVariant = {
   variant_value: string;
@@ -35,7 +35,6 @@ type Props = {
   onToggleSelect: (id: string) => void;
   onToggleSelectAllPage: () => void;
   onPageChange: (page: number) => void;
-  onToggleFeaturedRow: (id: string) => void;
   onViewRow: (id: string) => void;
   onEditRow: (id: string) => void;
   onDeleteRow: (id: string) => void;
@@ -49,7 +48,6 @@ export default function ProductsTable({
   onToggleSelect,
   onToggleSelectAllPage,
   onPageChange,
-  onToggleFeaturedRow,
   onViewRow,
   onEditRow,
   onDeleteRow,
@@ -109,30 +107,15 @@ export default function ProductsTable({
                   {row.stockUnits} units
                 </td>
                 <td className="px-3 py-4">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-xs font-medium ${
-                        row.status === "Active"
-                          ? "text-[#15803D]"
-                          : "text-[#6B7280]"
-                      }`}
-                    >
-                      {row.status}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onToggleFeaturedRow(row.id)}
-                      title="Toggle featured"
-                    >
-                      <Star
-                        className={`h-4 w-4 ${
-                          row.featured
-                            ? "fill-[#A88751] text-[#A88751]"
-                            : "text-[#C4C4C4]"
-                        }`}
-                      />
-                    </button>
-                  </div>
+                  <span
+                    className={`text-xs font-medium ${
+                      row.status === "Active"
+                        ? "text-[#15803D]"
+                        : "text-[#6B7280]"
+                    }`}
+                  >
+                    {row.status}
+                  </span>
                 </td>
                 <td className="px-3 py-4 text-[#4B5563]">
                   {row.sales.toLocaleString()}
