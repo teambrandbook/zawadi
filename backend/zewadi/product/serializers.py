@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.db.models import Avg, Count
 from rest_framework import serializers
 from .models import Product, ProductCategory, ProductImage, ProductVariant
 
@@ -68,6 +69,8 @@ class ProductSerializer(serializers.ModelSerializer):
     currency_code = serializers.SerializerMethodField()
     currency_decimal_places = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
+    average_rating = serializers.SerializerMethodField()
+    review_count = serializers.SerializerMethodField()
 
     def get_brand_name(self, obj):
         return obj.brand_name
@@ -92,6 +95,24 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_tax_category_code(self, obj):
         return obj.tax_category.code if obj.tax_category_id else "STANDARD"
+
+    def _get_rating_stats(self, obj):
+        if not hasattr(obj, "_rating_stats_cache"):
+            obj._rating_stats_cache = obj.orders.filter(
+                status="delivered",
+                review__isnull=False,
+            ).aggregate(
+                average=Avg("review__rating"),
+                count=Count("review"),
+            )
+        return obj._rating_stats_cache
+
+    def get_average_rating(self, obj):
+        average = self._get_rating_stats(obj)["average"]
+        return f"{average:.1f}" if average is not None else None
+
+    def get_review_count(self, obj):
+        return self._get_rating_stats(obj)["count"] or 0
 
     def to_representation(self, obj):
         from product.services import get_product_price
@@ -152,6 +173,8 @@ class ProductSerializer(serializers.ModelSerializer):
             "display_price",
             "currency_code",
             "currency_decimal_places",
+            "average_rating",
+            "review_count",
             "discount_amount",
             "discount_percent",
             "tax_category_code",

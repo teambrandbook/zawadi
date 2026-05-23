@@ -13,6 +13,7 @@ import {
   Package,
   ShoppingCart,
   SlidersHorizontal,
+  Star,
 } from "lucide-react";
 import type { AppDispatch } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
@@ -41,6 +42,8 @@ type Product = {
   mrp_price?: string | number;
   selling_price?: string | number;
   discount_percent?: string | number;
+  average_rating?: string | number | null;
+  review_count?: number;
   currency: string;
   stock_quantity: number;
   stock_status: string;
@@ -145,6 +148,26 @@ function stockMessage(product: Product): { text: string; className: string } | n
     };
   }
   return null;
+}
+
+function RatingSummary({ averageRating, reviewCount = 0 }: { averageRating?: string | number | null; reviewCount?: number }) {
+  const rating = Number(averageRating ?? 0);
+  const roundedRating = Math.round(rating);
+  const hasReviews = reviewCount > 0;
+
+  return (
+    <div className="mt-2 flex items-center gap-1.5 text-[10px] text-[#6B7280] xl:text-xs">
+      <span className="flex items-center gap-0.5 text-[#f2c94c]">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star
+            key={index}
+            className={`h-3 w-3 stroke-current xl:h-3.5 xl:w-3.5 ${index < roundedRating ? "fill-current" : "fill-transparent"}`}
+          />
+        ))}
+      </span>
+      <span>{hasReviews ? `${rating.toFixed(1)} (${reviewCount})` : "No reviews"}</span>
+    </div>
+  );
 }
 
 export default function CommunityProductsPage() {
@@ -395,6 +418,7 @@ export default function CommunityProductsPage() {
                     <p className="mt-1 line-clamp-3 min-h-[51px] text-[11px] leading-[17px] text-[#4B5563] sm:min-h-[54px] sm:text-xs sm:leading-[18px] xl:min-h-[60px] xl:text-sm xl:leading-5">
                       {product.short_description}
                     </p>
+                    <RatingSummary averageRating={product.average_rating} reviewCount={product.review_count ?? 0} />
                     {stock && (
                       <p className={`mt-2 inline-flex w-fit rounded-full border px-2 py-0.5 text-[10px] font-semibold xl:px-2.5 xl:py-1 xl:text-xs ${stock.className}`}>
                         {stock.text}

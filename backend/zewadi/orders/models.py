@@ -30,6 +30,13 @@ class Order(models.Model):
     user = models.ForeignKey(
         "accounts.User", on_delete=models.CASCADE, related_name="orders"
     )
+    product = models.ForeignKey(
+        "product.Product",
+        on_delete=models.SET_NULL,
+        related_name="orders",
+        blank=True,
+        null=True,
+    )
     product_code = models.CharField(max_length=50, blank=True, default="")
     product_name = models.CharField(max_length=255)
     pack_name = models.CharField(max_length=255)

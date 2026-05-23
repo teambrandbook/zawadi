@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, Star } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 import api from "@/services/api";
@@ -47,6 +47,8 @@ type Product = {
   mrp_price?: string | number;
   selling_price?: string | number;
   discount_percent?: string | number;
+  average_rating?: string | number | null;
+  review_count?: number;
   currency: string;
   image: string | null;
   product_unit?: string;
@@ -115,6 +117,31 @@ function stockMessage(product: Product): { text: string; className: string } {
     return { text: `Only ${product.stock_quantity} left`, className: "text-[#EA580C]" };
   }
   return { text: "In stock", className: "text-[#16A34A]" };
+}
+
+function RatingSummary({ averageRating, reviewCount = 0 }: { averageRating?: string | number | null; reviewCount?: number }) {
+  const rating = Number(averageRating ?? 0);
+  const roundedRating = Math.round(rating);
+  const hasReviews = reviewCount > 0;
+
+  return (
+    <div
+      className="mt-4 flex flex-wrap items-center gap-2"
+      aria-label={hasReviews ? `Rated ${rating.toFixed(1)} out of 5 from ${reviewCount} reviews` : "No reviews yet"}
+    >
+      <span className="flex items-center gap-1 text-[#f2c94c]">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star
+            key={index}
+            className={`h-4 w-4 stroke-current ${index < roundedRating ? "fill-current" : "fill-transparent"}`}
+          />
+        ))}
+      </span>
+      <span className="text-sm font-medium text-[#6b7280]">
+        {hasReviews ? `${rating.toFixed(1)} (${reviewCount} review${reviewCount === 1 ? "" : "s"})` : "No reviews yet"}
+      </span>
+    </div>
+  );
 }
 
 const ProductDetails = () => {
@@ -265,6 +292,7 @@ const ProductDetails = () => {
               {product.product_subtitle && (
                 <p className="text-base text-[#6b7280]">{product.product_subtitle}</p>
               )}
+              <RatingSummary averageRating={product.average_rating} reviewCount={product.review_count ?? 0} />
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <p className="text-2xl font-bold text-gray-900 md:text-3xl">
                   {toCurrency(displayPrice, product.currency || "INR")}

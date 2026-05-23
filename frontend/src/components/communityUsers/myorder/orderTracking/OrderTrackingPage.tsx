@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiOrderDetail = {
   order_id: string;
@@ -54,16 +55,10 @@ type StepState = "completed" | "current" | "upcoming";
 
 const cardClass = "rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]";
 const fallbackImage = "/product/p-1.webp";
-const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
-  /\/api\/?$/,
-  ""
-);
 
 function resolveProductImage(image?: string | null): string {
   if (!image) return fallbackImage;
-  if (image.startsWith("http://") || image.startsWith("https://")) return image;
-  if (image.startsWith("/media/")) return `${apiOrigin}${image}`;
-  return image;
+  return getImageUrl(image);
 }
 
 function toNumber(value: string | number | null | undefined): number {

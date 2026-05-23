@@ -11,7 +11,7 @@ ROLE_CHOICES = (
     ("INTERNAL_STAFF", "Internal Staff"),
     ("CONSULTANT", "Consultant"),
     ("COMMUNITY_USER", "Community User"),
-)
+)       
 
 GENDER_CHOICES = (
     ("MALE", "Male"),

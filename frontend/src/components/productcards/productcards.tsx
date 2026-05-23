@@ -31,6 +31,8 @@ type Product = {
   currency_code?: string;
   currency_decimal_places?: number;
   discount_percent?: string | number;
+  average_rating?: string | number | null;
+  review_count?: number;
   image: string | null;
   stock_status: string;
   stock_quantity: number;
@@ -44,16 +46,28 @@ function productImageUrl(path: string | null): string {
   return getImageUrl(path);
 }
 
-function RatingStars({ strings }: { strings: ProductCardStrings }) {
+function RatingStars({ averageRating, reviewCount }: { averageRating?: string | number | null; reviewCount?: number }) {
+  const rating = Number(averageRating ?? 0);
+  const roundedRating = Math.round(rating);
+  const hasReviews = Boolean(reviewCount);
+
   return (
-    <div className="flex items-center gap-0.5 text-[#f2c94c]" aria-label={strings.ratingLabel}>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <Star
-          key={index}
-          size={16}
-          className={cn(index === 4 ? "fill-transparent" : "fill-current", "stroke-current")}
-        />
-      ))}
+    <div
+      className="flex flex-wrap items-center gap-x-1.5 gap-y-1"
+      aria-label={hasReviews ? `Rated ${rating.toFixed(1)} out of 5 from ${reviewCount} reviews` : "No reviews yet"}
+    >
+      <span className="flex items-center gap-0.5 text-[#f2c94c]">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star
+            key={index}
+            size={16}
+            className={cn(index < roundedRating ? "fill-current" : "fill-transparent", "stroke-current")}
+          />
+        ))}
+      </span>
+      <span className="text-xs font-medium text-[#6b7280]">
+        {hasReviews ? `${rating.toFixed(1)} (${reviewCount} review${reviewCount === 1 ? "" : "s"})` : "No reviews yet"}
+      </span>
     </div>
   );
 }
@@ -148,7 +162,7 @@ function ProductCard({
         ) : null}
 
         <div className="mt-2.5">
-          <RatingStars strings={strings} />
+          <RatingStars averageRating={product.average_rating} reviewCount={product.review_count ?? 0} />
         </div>
 
         {description ? (

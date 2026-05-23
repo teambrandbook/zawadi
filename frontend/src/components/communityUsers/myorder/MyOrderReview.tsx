@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { ChangeEvent, useEffect, useState } from "react";
-import { Leaf, MessageSquareText, ShieldCheck, Star, Trash2, UploadCloud } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Leaf, MessageSquareText, ShieldCheck, Star } from "lucide-react";
 import api from "@/services/api";
 
 type Props = {
@@ -18,12 +18,6 @@ type DraftPayload = {
   wellnessExperience: string;
   recommend: "yes" | "no" | null;
   selectedTags: string[];
-};
-
-type UploadedImage = {
-  id: string;
-  file: File;
-  previewUrl: string;
 };
 
 type ApiOrderDetail = {
@@ -89,11 +83,11 @@ export default function MyOrderReview({ orderDataId }: Props) {
   const [wellnessExperience, setWellnessExperience] = useState(initialDraft?.wellnessExperience ?? "");
   const [recommend, setRecommend] = useState<"yes" | "no" | null>(initialDraft?.recommend ?? null);
   const [selectedTags, setSelectedTags] = useState<string[]>(initialDraft?.selectedTags ?? []);
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [statusMessage, setStatusMessage] = useState(
     initialDraft ? "Draft loaded." : ""
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
   const [isLoadingOrder, setIsLoadingOrder] = useState(true);
   const [order, setOrder] = useState<ApiOrderDetail | null>(null);
 
@@ -115,36 +109,6 @@ export default function MyOrderReview({ orderDataId }: Props) {
     };
   }, [orderDataId]);
 
-  useEffect(() => {
-    return () => {
-      uploadedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-    };
-  }, [uploadedImages]);
-
-  function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const files = event.target.files;
-    if (!files || files.length === 0) return;
-
-    const nextImages = Array.from(files).map((file) => ({
-      id: `${file.name}-${file.lastModified}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
-
-    setUploadedImages((prev) => [...prev, ...nextImages].slice(0, 4));
-    setStatusMessage("Images added.");
-    event.target.value = "";
-  }
-
-  function removeImage(imageId: string) {
-    setUploadedImages((prev) => {
-      const imageToDelete = prev.find((item) => item.id === imageId);
-      if (imageToDelete) URL.revokeObjectURL(imageToDelete.previewUrl);
-      return prev.filter((item) => item.id !== imageId);
-    });
-    setStatusMessage("Image removed.");
-  }
-
   function resetForm() {
     setRating(0);
     setHoveredStar(0);
@@ -154,8 +118,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
     setWellnessExperience("");
     setRecommend(null);
     setSelectedTags([]);
-    uploadedImages.forEach((image) => URL.revokeObjectURL(image.previewUrl));
-    setUploadedImages([]);
+    setHasSubmitted(false);
     setStatusMessage("Form cleared.");
   }
 
@@ -174,6 +137,11 @@ export default function MyOrderReview({ orderDataId }: Props) {
   }
 
   async function submitReview() {
+    if (hasSubmitted) {
+      setStatusMessage("Review already submitted.");
+      return;
+    }
+
     if (rating === 0) {
       setStatusMessage("Please select a star rating.");
       return;
@@ -196,6 +164,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
       });
       localStorage.removeItem(draftKey);
       setStatusMessage("Review submitted successfully.");
+      setHasSubmitted(true);
     } catch (error: unknown) {
       const message =
         typeof error === "object" &&
@@ -445,46 +414,15 @@ export default function MyOrderReview({ orderDataId }: Props) {
               </div>
             </div>
 
-            <div className="mt-8 border-t border-[#F0ECE2] pt-6">
-              <h3 className="text-base font-semibold text-[#0A4833]">Add Photos (Optional)</h3>
-              <label className="mt-4 flex min-h-[132px] cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed border-[#DFDFDF] bg-white px-6 text-center hover:bg-[#FCFBF8]">
-                <UploadCloud className="h-7 w-7 text-[#A1A1AA]" />
-                <p className="mt-3 text-sm text-[#4B5563]">Drag and drop photos here, or click to browse</p>
-                <p className="mt-1 text-xs text-[#9CA3AF]">Share photos of the product, packaging, or recipes you made</p>
-                <span className="sr-only">Upload product photos</span>
-                <input type="file" accept="image/*" multiple className="hidden" onChange={onFileChange} />
-              </label>
-
-              {uploadedImages.length > 0 && (
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {uploadedImages.map((image) => (
-                    <div key={image.id} className="relative overflow-hidden rounded-lg border border-[#DFDFDF]">
-                      <div className="relative h-24 w-full">
-                        <Image src={image.previewUrl} alt={image.file.name} fill className="object-cover" />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeImage(image.id)}
-                        className="absolute right-1 top-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-white/90 text-[#9B1C1C] hover:bg-white"
-                        aria-label={`Remove ${image.file.name}`}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
             <div className="mt-8 flex flex-wrap gap-3 border-t border-[#F0ECE2] pt-6">
               <button
                 type="button"
                 onClick={submitReview}
-                disabled={isSubmitting}
+                disabled={isSubmitting || hasSubmitted}
                 className="inline-flex h-11 min-w-[160px] items-center justify-center gap-2 rounded-lg bg-[#0A4833] px-5 text-sm font-medium text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <MessageSquareText className="h-4 w-4" />
-                {isSubmitting ? "Submitting..." : "Submit Review"}
+                {isSubmitting ? "Submitting..." : hasSubmitted ? "Review Submitted" : "Submit Review"}
               </button>
               <button
                 type="button"
