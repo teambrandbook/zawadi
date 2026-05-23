@@ -50,17 +50,19 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
               className="h-[38px] w-full rounded-md border border-[#DFDFDF] bg-[#F3F0EA] pl-9 pr-3 text-sm text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             />
           </div>
-          <button
-            type="button"
-            onClick={() => router.push("/admindashboard/events/create")}
-            className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white"
-          >
-            + Create Event
-          </button>
+          <div className="flex w-full justify-end md:w-auto">
+            <button
+              type="button"
+              onClick={() => router.push("/admindashboard/events/create")}
+              className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white"
+            >
+              + Create Event
+            </button>
+          </div>
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {stats.map((item) => {
           const Icon = statIcon(item.icon);
           return (

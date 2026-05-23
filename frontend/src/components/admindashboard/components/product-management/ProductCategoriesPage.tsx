@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { ChevronRight, Eye, MoreVertical, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Eye, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/services/api";
 
@@ -220,13 +219,6 @@ export default function ProductCategoriesPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-[24px] font-bold leading-8 tracking-[-0.5px] text-[#0A4833]">Category</h1>
-            <div className="mt-1 flex items-center gap-2 text-[14px] leading-5 tracking-[-0.5px]">
-              <Link href="/admindashboard/products" className="text-[#6B7280] hover:text-[#0A4833]">
-                Products
-              </Link>
-              <ChevronRight className="h-4 w-4 text-[#6B7280]" />
-              <span className="text-[#9F8151]">Create category</span>
-            </div>
           </div>
 
           <button
@@ -239,8 +231,8 @@ export default function ProductCategoriesPage() {
           </button>
         </div>
 
-        <div className="mx-auto mt-14 w-full max-w-[614px] overflow-hidden rounded-[5px] border border-[#DFDFDF] bg-white">
-          <div className="grid min-h-[82px] grid-cols-[58px_minmax(0,1fr)_120px_148px] items-center bg-[#EBE1CF] px-6 text-[14px] font-semibold tracking-[-0.5px] text-[#0A4833]">
+        <div className="mx-auto mt-14 w-full max-w-[614px] overflow-x-auto rounded-[5px] border border-[#DFDFDF] bg-white">
+          <div className="grid min-h-[82px] min-w-[520px] grid-cols-[44px_minmax(120px,1fr)_88px_120px] items-center bg-[#EBE1CF] px-3 text-[14px] font-semibold tracking-[-0.5px] text-[#0A4833] sm:grid-cols-[58px_minmax(0,1fr)_120px_148px] sm:px-6">
             <input
               type="checkbox"
               checked={allSelected}
@@ -259,7 +251,7 @@ export default function ProductCategoriesPage() {
             sortedCategories.map((category) => (
               <div
                 key={category.id}
-                className="grid min-h-[78px] grid-cols-[58px_minmax(0,1fr)_120px_148px] items-center border-t border-[#DFDFDF] px-6 text-[12px] font-medium tracking-[-0.5px] text-[#0A4833]"
+                className="grid min-h-[78px] min-w-[520px] grid-cols-[44px_minmax(120px,1fr)_88px_120px] items-center border-t border-[#DFDFDF] px-3 text-[12px] font-medium tracking-[-0.5px] text-[#0A4833] sm:grid-cols-[58px_minmax(0,1fr)_120px_148px] sm:px-6"
               >
                 <input
                   type="checkbox"
@@ -272,7 +264,7 @@ export default function ProductCategoriesPage() {
                 <span className={`text-center ${category.is_active ? "text-[#15803D]" : "text-[#B45309]"}`}>
                   {category.is_active ? "Active" : "Inactive"}
                 </span>
-                <div className="flex items-center justify-center gap-5 text-[#0A4833]">
+                <div className="flex items-center justify-center gap-3 text-[#0A4833] sm:gap-5">
                   <button type="button" onClick={() => setDialog({ mode: "view", category })} aria-label={`View ${category.name}`}>
                     <Eye className="h-[18px] w-[18px]" />
                   </button>
@@ -282,7 +274,6 @@ export default function ProductCategoriesPage() {
                   <button type="button" onClick={() => deleteCategory(category)} aria-label={`Delete ${category.name}`}>
                     <Trash2 className="h-4 w-4" />
                   </button>
-                  <MoreVertical className="h-4 w-4" aria-hidden />
                 </div>
               </div>
             ))

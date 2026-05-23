@@ -1,15 +1,15 @@
-import { Download, Funnel, Plus, Search } from "lucide-react";
+import { Download, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 
 export default function NutritionistsHeader() {
   const router = useRouter();
   return (
-    <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-      <h1 className="text-2xl font-semibold text-[#0A4833] md:text-[28px]">Nutritionists</h1>
+    <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex min-w-0 items-center gap-3">
+        <h1 className="shrink-0 text-2xl font-semibold text-[#0A4833] md:text-[28px]">Nutritionists</h1>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative  min-w-[220px] max-w-[230px]">
+        <div className="relative min-w-0 flex-1 md:w-[230px] md:flex-none">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8CA39A]" />
           <input
             type="text"
@@ -17,12 +17,9 @@ export default function NutritionistsHeader() {
             className="h-10 w-full rounded-md border border-[#D9D9D9] bg-[#F2EFE8] pl-9 pr-3 text-sm text-[#0A4833] outline-none placeholder:text-[#8CA39A]"
           />
         </div>
+      </div>
 
-        <button className="inline-flex h-10 items-center gap-2 rounded-md border border-[#D9D9D9] bg-white px-3 text-sm font-medium text-[#0A4833]">
-          <Funnel size={14} />
-          Filter
-        </button>
-
+      <div className="flex items-center justify-end gap-2 md:w-auto">
         <button className="inline-flex h-10 items-center gap-2 rounded-md border border-[#D9D9D9] bg-white px-3 text-sm font-medium text-[#0A4833]">
           <Download size={14} />
           Export

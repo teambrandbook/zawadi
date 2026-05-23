@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
@@ -61,12 +62,14 @@ export function UpcomingCard({
   month,
   image,
   description,
+  href,
 }: {
   title: string;
   date: string;
   month: string;
   image: string;
   description?: string;
+  href?: string;
 }) {
   return (
     <article className="group relative h-[450px] w-full overflow-hidden rounded-[20px]">
@@ -105,9 +108,9 @@ export function UpcomingCard({
               </p>
             )}
 
-            <div className="mt-5">
+            <Link href={href || "/events"} className="mt-5 inline-flex">
               <EventLink />
-            </div>
+            </Link>
           </div>
         </div>
       </div>
@@ -119,10 +122,12 @@ export function CompactEventCard({
   title,
   date,
   month,
+  href,
 }: {
   title: string;
   date: string;
   month: string;
+  href?: string;
 }) {
   return (
     <article className="zoom-item upcoming-zoom-item relative mt-8 min-h-[106px] rounded-[10px] bg-[#f1f4eb] px-6 pb-6 pt-10">
@@ -136,9 +141,9 @@ export function CompactEventCard({
           {title}
         </h3>
 
-        <div className="flex items-center">
+        <Link href={href || "/events"} className="flex items-center">
           <EventLink />
-        </div>
+        </Link>
       </div>
     </article>
   );

@@ -3,12 +3,17 @@ import type { EventRow } from "../types";
 
 type EventsTableProps = {
   rows: EventRow[];
+  selectedIds?: string[];
+  onToggleSelect?: (id: string) => void;
+  onToggleSelectAll?: () => void;
   onView?: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
 };
 
-export default function EventsTable({ rows, onView, onEdit, onDelete }: EventsTableProps) {
+export default function EventsTable({ rows, selectedIds = [], onToggleSelect, onToggleSelectAll, onView, onEdit, onDelete }: EventsTableProps) {
+  const allSelected = rows.length > 0 && rows.every((row) => selectedIds.includes(row.id));
+
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="overflow-x-auto">
@@ -16,7 +21,12 @@ export default function EventsTable({ rows, onView, onEdit, onDelete }: EventsTa
           <thead className="bg-[#F3F0EA]">
             <tr className="text-xs text-[#0A4833]">
               <th className="px-3 py-3">
-                <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={onToggleSelectAll}
+                  className="h-3.5 w-3.5 rounded border-[#CFCFCF]"
+                />
               </th>
               <th className="px-3 py-3 font-semibold">Event</th>
               <th className="px-3 py-3 font-semibold">Category</th>
@@ -33,7 +43,12 @@ export default function EventsTable({ rows, onView, onEdit, onDelete }: EventsTa
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-[#E5E7EB] align-top">
                 <td className="px-3 py-4">
-                  <input type="checkbox" className="h-3.5 w-3.5 rounded border-[#CFCFCF]" />
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(row.id)}
+                    onChange={() => onToggleSelect?.(row.id)}
+                    className="h-3.5 w-3.5 rounded border-[#CFCFCF]"
+                  />
                 </td>
 
                 <td className="px-3 py-4">

@@ -165,6 +165,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
 
             "health_benefits",
             "buckwheat_wellness_value",
+            "optional_ingredients",
             "calories",
             "fat",
             "carbs",
@@ -222,6 +223,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             "cover_image",
             "health_benefits",
             "buckwheat_wellness_value",
+            "optional_ingredients",
             "calories",
             "fat",
             "carbs",
@@ -247,7 +249,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         data.pop("source_url", None)
         data.pop("country", None)
 
-        for field in ["calories", "fat", "carbs", "protein", "video_url"]:
+        for field in ["calories", "fat", "carbs", "protein", "video_url", "optional_ingredients"]:
             if data.get(field) is None:
                 continue
             value = str(data.get(field)).strip()

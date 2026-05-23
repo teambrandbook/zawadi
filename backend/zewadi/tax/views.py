@@ -124,3 +124,25 @@ def tax_rate_detail(request, pk):
             return Response({"rate_percent": "Must be a number."}, status=status.HTTP_400_BAD_REQUEST)
     tr.save()
     return Response(_rate_to_dict(tr))
+
+
+GCC_NAMES = {
+    "SA": "Saudi Arabia",
+    "AE": "UAE",
+    "BH": "Bahrain",
+    "OM": "Oman",
+    "KW": "Kuwait",
+    "QA": "Qatar",
+}
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def tax_countries(request):
+    codes = (
+        TaxRate.objects.filter(is_active=True)
+        .values_list("country", flat=True)
+        .distinct()
+        .order_by("country")
+    )
+    return Response([{"code": c, "name": GCC_NAMES.get(c, c)} for c in codes])

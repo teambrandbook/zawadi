@@ -46,7 +46,7 @@ class EventListCreateAPIView(APIView):
 
         else:
             events = Event.objects.filter(
-                status=Event.EventStatus.PUBLISHED,
+                status__in=[Event.EventStatus.PUBLISHED, Event.EventStatus.COMPLETED],
                 show_in_community=True,
             )
 

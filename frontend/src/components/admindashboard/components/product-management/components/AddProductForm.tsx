@@ -366,8 +366,7 @@ export default function AddProductForm({
 
       <Card>
         <SectionTitle icon={<Leaf className="h-[18px] w-[18px]" />} title="Nutritional & Wellness Information" />
-        <div className="grid gap-6 sm:grid-cols-2">
-          <TextareaField label="Key Ingredients" placeholder="List main ingredients" value={formData.key_ingredients} rows={3} onValueChange={set("key_ingredients")} />
+        <div className="grid gap-6">
           <TextareaField label="Health Benefits" placeholder="Describe health benefits" value={formData.health_benefits} rows={3} onValueChange={set("health_benefits")} />
         </div>
       </Card>

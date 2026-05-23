@@ -4,17 +4,105 @@ import React from 'react';
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Calendar } from "lucide-react";
-import { pastEvents } from './eventsData';
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { useEffect, useState } from "react";
+import api from "@/services/api";
+
+type EventListItem = {
+  id: number;
+  title: string;
+  short_description: string;
+  event_date: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  status: string;
+  cover_image: string | null;
+};
+
+type PastEventCard = {
+  id: number;
+  title: string;
+  date: string;
+  description: string;
+  image: string;
+};
+
+type EventsResponse =
+  | EventListItem[]
+  | {
+      data?: EventListItem[];
+      results?: EventListItem[];
+    };
+
+function eventsFromResponse(data: EventsResponse): EventListItem[] {
+  return Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.results)
+    ? data.results
+    : [];
+}
+
+function toMediaUrl(value?: string | null) {
+  if (!value) return "/event/past_event_1.webp";
+  if (value.startsWith("http") || value.startsWith("blob:")) return value;
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+  return `${apiBase.replace(/\/api\/?$/, "")}${value.startsWith("/") ? "" : "/"}${value}`;
+}
+
+function formatEventDate(value: string | null, locale: string) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString(locale === "ar" ? "ar" : "en-US", {
+    month: "long",
+    day: "2-digit",
+    year: "numeric",
+  });
+}
+
+function eventTime(event: EventListItem) {
+  if (!event.event_date) return 0;
+  const time = event.end_time || event.start_time;
+  return new Date(time ? `${event.event_date}T${time}` : event.event_date).getTime();
+}
 
 export default function PastEventsSection() {
   const { locale } = useLocale();
   const pastText = translations[locale]?.eventsPage?.past || translations.en.eventsPage.past;
-  const localizedPastEvents = pastEvents.map((event, index) => ({
-    ...event,
-    ...pastText.events[index],
-  }));
+  const [backendEvents, setBackendEvents] = useState<PastEventCard[]>([]);
+
+  useEffect(() => {
+    async function fetchPastEvents() {
+      try {
+        const response = await api.get<EventsResponse>("/events/");
+        const now = Date.now();
+        const completedEvents = eventsFromResponse(response.data)
+          .filter((event) => {
+            const completedByStatus = event.status === "completed";
+            const completedByDate = event.event_date ? eventTime(event) < now : false;
+            return completedByStatus || completedByDate;
+          })
+          .sort((a, b) => eventTime(b) - eventTime(a))
+          .slice(0, 2)
+          .map((event) => ({
+            id: event.id,
+            title: event.title,
+            date: formatEventDate(event.event_date, locale),
+            description: event.short_description,
+            image: toMediaUrl(event.cover_image),
+          }));
+
+        setBackendEvents(completedEvents);
+      } catch {
+        setBackendEvents([]);
+      }
+    }
+
+    void fetchPastEvents();
+  }, [locale]);
 
   return (
     <section className="w-full px-4 py-16 sm:px-6 lg:px-10 bg-[#fffef5]">
@@ -51,9 +139,9 @@ export default function PastEventsSection() {
 
           {/* Events Grid */}
           <div className="grid gap-8 lg:grid-cols-2">
-            {localizedPastEvents.map((event, index) => (
+            {backendEvents.map((event, index) => (
               <div
-                key={index}
+                key={`${event.id}-${event.title}-${index}`}
                 className="left-reveal flex flex-col sm:flex-row rtl:sm:flex-row-reverse overflow-hidden rounded-[28px] bg-white 
                 shadow-sm hover:shadow-md transition-shadow duration-300 
                 max-w-[650px] w-full mx-auto"

@@ -9,10 +9,21 @@ type SettingsTabsProps = {
 export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsProps) {
   return (
     <div className="rounded-lg border border-[#DFDFDF] bg-white p-1.5">
-      <div className="flex flex-wrap items-center gap-2">
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="hide-scrollbar overflow-x-auto">
+      <div className="flex min-w-max items-center gap-2 sm:flex-wrap">
         <button
           onClick={() => onTabChange("general")}
-          className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
+          className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
             activeTab === "general" ? "bg-[#0A4833] font-semibold text-white" : "font-medium text-[#4B5563]"
           }`}
         >
@@ -21,7 +32,7 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
         </button>
         <button
           onClick={() => onTabChange("security")}
-          className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
+          className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
             activeTab === "security" ? "bg-[#0A4833] font-semibold text-white" : "font-medium text-[#4B5563]"
           }`}
         >
@@ -30,7 +41,7 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
         </button>
         <button
           onClick={() => onTabChange("system")}
-          className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
+          className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
             activeTab === "system" ? "bg-[#0A4833] font-semibold text-white" : "font-medium text-[#4B5563]"
           }`}
         >
@@ -39,13 +50,14 @@ export default function SettingsTabs({ activeTab, onTabChange }: SettingsTabsPro
         </button>
         <button
           onClick={() => onTabChange("tax")}
-          className={`inline-flex h-9 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
+          className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-md px-3 text-xs sm:text-sm ${
             activeTab === "tax" ? "bg-[#0A4833] font-semibold text-white" : "font-medium text-[#4B5563]"
           }`}
         >
           <Percent size={13} />
           Tax &amp; Currency
         </button>
+      </div>
       </div>
     </div>
   );

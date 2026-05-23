@@ -30,71 +30,73 @@ export default function RolesTable({
         <h2 className="text-xl font-bold text-[#064e3b]">Admin Roles</h2>
       </div>
 
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-slate-50/50 border-b border-gray-200">
-            <th className="px-6 py-4 text-sm font-medium text-gray-500 w-[40%] text-left">
-              Role
-            </th>
-            <th className="px-6 py-4 text-sm font-medium text-gray-500 text-center">
-              Assigned
-            </th>
-            <th className="px-6 py-4 text-sm font-medium text-gray-500 text-center">
-              Access Level
-            </th>
-            <th className="px-6 py-4 text-sm font-medium text-gray-500 text-right">
-              Status
-            </th>
-          </tr>
-        </thead>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px] border-collapse">
+          <thead>
+            <tr className="bg-slate-50/50 border-b border-gray-200">
+              <th className="px-6 py-4 text-sm font-medium text-gray-500 w-[40%] text-left">
+                Role
+              </th>
+              <th className="px-6 py-4 text-sm font-medium text-gray-500 text-center">
+                Assigned
+              </th>
+              <th className="px-6 py-4 text-sm font-medium text-gray-500 text-center">
+                Access Level
+              </th>
+              <th className="px-6 py-4 text-sm font-medium text-gray-500 text-right">
+                Status
+              </th>
+            </tr>
+          </thead>
 
-        <tbody className="divide-y divide-gray-100">
-          {roles.length > 0 ? (
-            roles.map((role) => (
-              <tr
-                key={role.id}
-                onClick={() => onSelectRole(role)}
-                className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                  selectedRole?.id === role.id ? "bg-[#F2F7F5]" : ""
-                }`}
-              >
-                {/* Role */}
-                <td className="px-6 py-5 text-left">
-                  <div className="flex flex-col">
-                    <span className="font-semibold text-gray-800">
-                      {role.role_name}
-                    </span>
-                    <span className="text-sm text-gray-400">
-                      {role.description || "No description"}
-                    </span>
-                  </div>
-                </td>
+          <tbody className="divide-y divide-gray-100">
+            {roles.length > 0 ? (
+              roles.map((role) => (
+                <tr
+                  key={role.id}
+                  onClick={() => onSelectRole(role)}
+                  className={`cursor-pointer transition-colors hover:bg-gray-50 ${
+                    selectedRole?.id === role.id ? "bg-[#F2F7F5]" : ""
+                  }`}
+                >
+                  {/* Role */}
+                  <td className="px-6 py-5 text-left">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-gray-800">
+                        {role.role_name}
+                      </span>
+                      <span className="text-sm text-gray-400">
+                        {role.description || "No description"}
+                      </span>
+                    </div>
+                  </td>
 
-                {/* Assigned */}
-                <td className="px-6 py-5 text-center text-gray-600">
-                  {role.member_count ?? 0}
-                </td>
+                  {/* Assigned */}
+                  <td className="px-6 py-5 text-center text-gray-600">
+                    {role.member_count ?? 0}
+                  </td>
 
-                {/* Access Level */}
-                <td className="px-6 py-5 text-center font-medium text-gray-600 capitalize">
-                  {role.access_level}
-                </td>
+                  {/* Access Level */}
+                  <td className="px-6 py-5 text-center font-medium text-gray-600 capitalize">
+                    {role.access_level}
+                  </td>
 
-                {/* Status */}
-                <td className="px-6 py-5 text-right text-sm font-semibold text-green-600 capitalize">
-                  {role.role_status}
+                  {/* Status */}
+                  <td className="px-6 py-5 text-right text-sm font-semibold text-green-600 capitalize">
+                    {role.role_status}
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500">
+                  No roles match the selected filters.
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan={4} className="px-6 py-10 text-center text-sm text-gray-500">
-                No roles match the selected filters.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
