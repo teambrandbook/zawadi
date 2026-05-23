@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { CalendarDays, Eye, Pencil, UtensilsCrossed } from "lucide-react";
 import type { BackendNoteItem, NoteStatus } from "./noteTypes";
+import NoteClientAvatar from "./NoteClientAvatar";
 
 function getStatusTone(status: NoteStatus) {
   if (status === "Follow-up Required") return "text-[#A88751]";
@@ -29,9 +29,7 @@ export default function NotesList({ notes, selectedNoteId, onSelect }: Props) {
         >
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div className="flex items-start gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-full bg-[#E5E7EB]">
-                <Image src={note.clientAvatar} alt={note.clientName} width={40} height={40} className="h-full w-full object-cover" />
-              </div>
+              <NoteClientAvatar src={note.clientAvatar} name={note.clientName} size={40} className="h-10 w-10 bg-[#E5E7EB] text-xs" />
               <div>
                 <p className="text-base font-semibold text-[#0A4833]">{note.clientName}</p>
                 <p className="text-sm text-[#6B7280]">{note.noteDate}</p>

@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { BackendClientItem } from "./clientTypes";
+import ClientAvatar from "./ClientAvatar";
 
 type Props = {
   client: BackendClientItem;
@@ -20,9 +20,7 @@ export default function ClientDetailsPanel({ client, onOpenProfile }: Props) {
   return (
     <aside className="h-fit rounded-[16px] border border-[#E4E7EC] bg-white p-5 shadow-[0_12px_30px_rgba(16,24,40,0.06)] xl:sticky xl:top-6">
       <div className="border-b border-[#EAECF0] pb-5 text-center">
-        <div className="mx-auto h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB] ring-4 ring-[#F4F7F5]">
-          <Image src={client.avatar} alt={client.name} width={64} height={64} className="h-full w-full object-cover" />
-        </div>
+        <ClientAvatar src={client.avatar} name={client.name} size={64} className="mx-auto h-16 w-16 text-lg ring-4 ring-[#F4F7F5]" />
         <h2 className="mt-4 text-[28px] font-semibold tracking-[-0.03em] text-[#101828]">{client.name}</h2>
         <p className="text-sm text-[#667085]">{`${client.age} years • ${client.gender}`}</p>
         <p className="mt-2 text-sm font-medium text-[#17914F]">{client.status}</p>

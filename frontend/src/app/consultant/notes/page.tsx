@@ -30,8 +30,7 @@ type ApiNote = {
 };
 
 function mediaUrl(value?: string | null) {
-  if (!value) return "/recipe/recipe-2.webp";
-  return getImageUrl(value);
+  return value ? getImageUrl(value) : "";
 }
 
 function formatDate(value: string) {

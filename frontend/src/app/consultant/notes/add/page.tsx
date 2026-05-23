@@ -20,8 +20,7 @@ type ApiClient = {
 };
 
 function mediaUrl(value?: string | null) {
-  if (!value) return "/recipe/recipe-2.webp";
-  return getImageUrl(value);
+  return value ? getImageUrl(value) : "";
 }
 
 function formatDate(value?: string | null) {
@@ -50,7 +49,7 @@ const backendClients: NoteClientOption[] = [
   {
     id: "user-001",
     name: "Emma Richardson",
-    avatar: "/recipe/recipe-2.webp",
+    avatar: "",
     consultationId: "CONS-2024-1847",
     sessionDate: "Jan 16, 2024",
     sessionMode: "Video Call",
@@ -62,7 +61,7 @@ const backendClients: NoteClientOption[] = [
   {
     id: "user-002",
     name: "Michael Chen",
-    avatar: "/recipe/recipe-3.webp",
+    avatar: "",
     consultationId: "CONS-2024-1759",
     sessionDate: "Jan 18, 2024",
     sessionMode: "Phone Call",

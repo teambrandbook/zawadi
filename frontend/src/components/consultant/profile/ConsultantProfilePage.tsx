@@ -84,7 +84,7 @@ const CONSULTANT_PROFILE_UPDATED_EVENT = "consultant-profile-updated";
 
 const fallbackProfile: ConsultantProfileData = {
   name: "Consultant",
-  imageSrc: "/about/about-1.1.webp",
+  imageSrc: "",
   imageAlt: "Consultant profile portrait",
   photoHint: "Upload a professional photo to build trust with clients",
   basicDetails: [

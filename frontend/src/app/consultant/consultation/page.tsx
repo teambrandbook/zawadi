@@ -86,8 +86,7 @@ function getStatusBadgeTone(status: ConsultationStatus) {
 }
 
 function mediaUrl(value?: string | null) {
-  if (!value) return "/recipe/recipe-3.webp";
-  return getImageUrl(value);
+  return value ? getImageUrl(value) : "";
 }
 
 function sessionTypeLabel(value?: string): SessionType {

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import {
   CalendarDays,
   Check,
@@ -51,6 +52,7 @@ type ClientOption = {
   full_name: string;
   date_of_birth?: string | null;
   gender?: string | null;
+  photo?: string | null;
 };
 
 type DietPlanApiItem = {
@@ -173,6 +175,48 @@ function formFromPlan(plan: DietPlanApiResponse): FormState {
     personalizedAdvice,
     meals,
   };
+}
+
+function mediaUrl(value?: string | null) {
+  return value ? getImageUrl(value) : "";
+}
+
+function initials(name?: string | null) {
+  return String(name || "Client")
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "C";
+}
+
+function ClientAvatar({ client, size }: { client?: ClientOption; size: number }) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const src = mediaUrl(client?.photo);
+  const name = client?.full_name || client?.email || "Selected client";
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [src]);
+
+  return (
+    <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-[#E3D1B5] text-sm font-semibold text-[#0A4833]">
+      {src && !hasImageError ? (
+        <Image
+          src={src}
+          alt={name}
+          width={size}
+          height={size}
+          className="h-full w-full object-cover"
+          onError={() => setHasImageError(true)}
+        />
+      ) : (
+        initials(name)
+      )}
+    </div>
+  );
 }
 
 function SectionCard({
@@ -529,7 +573,7 @@ export default function ConsultantDietAddPage() {
                 <div className="rounded-lg bg-[#F1E7D5] p-4">
                   <div className="flex items-start gap-3">
                     <div className="flex h-12 w-12 items-center justify-center overflow-hidden rounded-full bg-[#E3D1B5]">
-                      <Image src="/recipe/recipe-3.webp" alt={selectedClient?.full_name || "Selected client"} width={48} height={48} className="h-full w-full object-cover" />
+                      <ClientAvatar client={selectedClient} size={48} />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-[#0A4833]">{selectedClient?.full_name || "Select a client"}</p>
@@ -732,7 +776,7 @@ export default function ConsultantDietAddPage() {
 
               <div className="mt-5 border-b border-[#E5E7EB] pb-5 text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-[#E3D1B5]">
-                  <Image src="/recipe/recipe-3.webp" alt="Emily Chen" width={64} height={64} className="h-full w-full object-cover" />
+                  <ClientAvatar client={selectedClient} size={64} />
                 </div>
                 <p className="mt-3 text-sm font-semibold text-[#0A4833]">{selectedClient?.full_name || "No client selected"}</p>
                 <p className="mt-1 text-xs text-[#6B7280]">{preview.planTitle}</p>

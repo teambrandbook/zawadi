@@ -21,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ConsultationRequestData = {
   choose_section: string;
@@ -48,6 +49,7 @@ type ConsultationScheduleItem = {
   location: string;
   notes: string;
   avatar: string;
+  avatarUrl: string;
   consultantName: string;
   backendData: ConsultationRequestData;
 };
@@ -103,6 +105,7 @@ type ApiBooking = {
   booked_slot: string;
   status: string;
   session_type?: string;
+  user_image?: string | null;
 };
 
 type ApiClient = { id: number };
@@ -158,6 +161,7 @@ const scheduleItems: ConsultationScheduleItem[] = [
     location: "Video room A",
     notes: "Reviewing weekly progress, nutrition adherence, and a gentle calorie adjustment for the next plan cycle.",
     avatar: "ET",
+    avatarUrl: "",
     consultantName: "Dr. Chen",
     backendData: backendConsultationData,
   },
@@ -172,6 +176,7 @@ const scheduleItems: ConsultationScheduleItem[] = [
     location: "Video room B",
     notes: "Discuss glucose tracking updates, carb balance, and hydration recommendations before finalizing the revised diet chart.",
     avatar: "MR",
+    avatarUrl: "",
     consultantName: "Dr. Chen",
     backendData: backendConsultationData,
   },
@@ -186,6 +191,7 @@ const scheduleItems: ConsultationScheduleItem[] = [
     location: "Phone consultation",
     notes: "Share a buckwheat-focused meal rhythm and evaluate food preferences before preparing a detailed weekly diet plan.",
     avatar: "LP",
+    avatarUrl: "",
     consultantName: "Dr. Chen",
     backendData: backendConsultationData,
   },
@@ -289,9 +295,13 @@ function ConsultationDetailsButton({ item }: { item: ConsultationScheduleItem })
           >
             <div className="flex items-start justify-between border-b border-[#E5E7EB] px-6 py-5">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0A4833,#B48A4A)] text-base font-semibold text-white">
-                  {item.avatar}
-                </div>
+                <ClientAvatar
+                  name={item.client}
+                  initialsText={item.avatar}
+                  src={item.avatarUrl}
+                  sizeClassName="h-14 w-14"
+                  textClassName="text-base"
+                />
                 <div>
                   <h3 className="text-xl font-semibold text-[#163229]">{item.client}</h3>
                   <p className="mt-1 text-sm text-[#667085]">{item.concern}</p>
@@ -385,6 +395,43 @@ function initials(name: string) {
     .toUpperCase() || "C";
 }
 
+function mediaUrl(value?: string | null) {
+  return value ? getImageUrl(value) : "";
+}
+
+function ClientAvatar({
+  name,
+  initialsText,
+  src,
+  sizeClassName,
+  textClassName = "text-xs",
+}: {
+  name: string;
+  initialsText: string;
+  src?: string;
+  sizeClassName: string;
+  textClassName?: string;
+}) {
+  const [hasImageError, setHasImageError] = useState(false);
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [src]);
+
+  return (
+    <div className={`overflow-hidden rounded-full bg-[linear-gradient(135deg,#0A4833,#B48A4A)] text-white ${sizeClassName}`}>
+      {src && !hasImageError ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt={name} className="h-full w-full object-cover" onError={() => setHasImageError(true)} />
+      ) : (
+        <div className={`flex h-full w-full items-center justify-center font-semibold ${textClassName}`}>
+          {initialsText}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function formatStatus(value: string): "In Progress" | "Upcoming" {
   return value === "confirmed" ? "In Progress" : "Upcoming";
 }
@@ -413,6 +460,7 @@ function mapBookingToSchedule(item: ApiBooking): ConsultationScheduleItem {
     location: item.session_type === "audio" ? "Phone consultation" : "Video room",
     notes: item.message || "Review client consultation details and prepare guidance.",
     avatar: initials(client),
+    avatarUrl: mediaUrl(item.user_image),
     consultantName: "You",
     backendData: {
       choose_section: item.primary_goal || "-",
@@ -509,9 +557,12 @@ export default function ConsultantDashboardPage() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#0A4833,#B48A4A)] text-xs font-semibold text-white">
-                        {item.avatar}
-                      </div>
+                      <ClientAvatar
+                        name={item.client}
+                        initialsText={item.avatar}
+                        src={item.avatarUrl}
+                        sizeClassName="h-11 w-11"
+                      />
                       <div>
                         <p className="text-sm font-semibold text-[#163229]">{item.client}</p>
                         <p className="text-xs text-[#667085]">{`${item.concern} • ${item.time}`}</p>
