@@ -1,6 +1,8 @@
 import hashlib
+import hmac as _hmac
 import logging
 import os
+import secrets as _secrets
 import time
 import uuid as _uuid
 from datetime import timedelta
@@ -543,6 +545,8 @@ class GoogleLoginAPIView(APIView):
         if not google_credentials_configured():
             return google_config_response()
 
+        state = _secrets.token_urlsafe(32)
+        request.session["google_oauth_state"] = state
         params = {
             "client_id": settings.GOOGLE_CLIENT_ID,
             "redirect_uri": request.build_absolute_uri("/api/account/google/callback/"),
@@ -550,6 +554,7 @@ class GoogleLoginAPIView(APIView):
             "scope": "openid email profile",
             "access_type": "offline",
             "prompt": "consent",
+            "state": state,
         }
         return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}")
 
@@ -564,6 +569,14 @@ class GoogleCallbackAPIView(APIView):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "No code provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        received_state = request.GET.get("state")
+        stored_state = request.session.pop("google_oauth_state", None)
+        if not stored_state or not _hmac.compare_digest(stored_state, received_state or ""):
+            return Response(
+                {"error": "Invalid OAuth state. Please try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         redirect_uri = request.build_absolute_uri("/api/account/google/callback/")
         token_response = requests.post(

@@ -384,15 +384,22 @@ class GoogleCallbackRedirectTest(TestCase):
         mock_user_resp.json.return_value = {"email": email, "name": name}
         mock_get.return_value = mock_user_resp
 
+    def _seed_oauth_state(self, state="test-state-value"):
+        """Store a known state token in the session so the callback validation passes."""
+        session = self.client.session
+        session["google_oauth_state"] = state
+        session.save()
+
     @patch("accounts.views.google_credentials_configured", return_value=True)
     @patch("accounts.views.requests.get")
     @patch("accounts.views.requests.post")
     def test_admin_redirects_to_admindashboard(self, mock_post, mock_get, mock_creds):
         self._make_user("ADMIN")
         self._mock_google_exchange(mock_post, mock_get, "test_admin@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/admindashboard", res["Location"])
@@ -404,9 +411,10 @@ class GoogleCallbackRedirectTest(TestCase):
         from communityuser.models import UserType
         self._make_user("COMMUNITY_USER", UserType.GUEST)
         self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/products", res["Location"])
@@ -418,9 +426,10 @@ class GoogleCallbackRedirectTest(TestCase):
         from communityuser.models import UserType
         self._make_user("COMMUNITY_USER", UserType.MEMBER)
         self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/communityDashBoard", res["Location"])
@@ -557,3 +566,30 @@ class OTPThrottleTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 429)
+
+
+class GoogleOAuthStateTests(APITestCase):
+    """OAuth callback must reject requests with wrong or missing state."""
+
+    def test_callback_rejects_missing_state(self):
+        """Callback without a state parameter must return 400."""
+        with patch("accounts.views.google_credentials_configured", return_value=True):
+            response = self.client.get(
+                "/api/account/google/callback/",
+                {"code": "fake-code"},
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("state", str(response.data).lower())
+
+    def test_callback_rejects_mismatched_state(self):
+        """Callback with wrong state must return 400 even with valid session state."""
+        session = self.client.session
+        session["google_oauth_state"] = "correct-state-value"
+        session.save()
+
+        with patch("accounts.views.google_credentials_configured", return_value=True):
+            response = self.client.get(
+                "/api/account/google/callback/",
+                {"code": "fake-code", "state": "wrong-state-value"},
+            )
+        self.assertEqual(response.status_code, 400)
