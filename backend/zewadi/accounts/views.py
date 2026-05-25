@@ -168,7 +168,7 @@ class UploadSignatureView(APIView):
         # Upload preset is excluded from signing because it is set to "unsigned" mode
         # in Cloudinary. If the preset is changed to "signed" mode, add
         # &upload_preset=<preset> to this string (sorted alphabetically).
-        params_to_sign = f"folder={folder}&timestamp={timestamp}"
+        params_to_sign = f"allowed_formats=jpg,jpeg,png,webp,gif&folder={folder}&timestamp={timestamp}"
         signature = hashlib.sha1(
             (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
         ).hexdigest()
@@ -179,6 +179,7 @@ class UploadSignatureView(APIView):
             "api_key": settings.CLOUDINARY_API_KEY,
             "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
             "folder": folder,
+            "allowed_formats": "jpg,jpeg,png,webp,gif",
         })
 
 
