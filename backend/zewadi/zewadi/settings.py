@@ -17,6 +17,7 @@ def env_bool(name, default=False):
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-in-production")
 DEBUG = env_bool("DEBUG", False)
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ADMIN_URL = os.getenv("ADMIN_URL", "admin/")
 
 # ─── Cloudinary ───────────────────────────────────────────────────────────────
 
