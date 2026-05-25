@@ -1,24 +1,27 @@
 from django.utils import timezone
 from .models import Notification, UserNotificationReceipt
 from accounts.models import User
+from .email import send_notification_email
+
+
+def users_for_notification(notification):
+    target_role = str(notification.target_role or "").strip()
+    if target_role.upper() == "ALL":
+        return User.objects.all()
+    if not target_role:
+        return User.objects.none()
+    return User.objects.filter(role=target_role.upper())
 
 
 def create_receipts_for_notification(notification) -> None:
     """Create unread receipt rows for every user targeted by a sent notification."""
     if notification.status != "SENT":
         return
+    if not notification.has_channel(Notification.CHANNEL_IN_APP):
+        return
 
     try:
-        from accounts.models import User
-        from .models import UserNotificationReceipt
-
-        users = User.objects.none()
-        target_role = str(notification.target_role or "").upper()
-        if target_role == "ALL":
-            users = User.objects.all()
-        elif target_role:
-            users = User.objects.filter(role=target_role)
-
+        users = users_for_notification(notification)
         existing_user_ids = set(
             UserNotificationReceipt.objects.filter(
                 notification=notification,
@@ -34,6 +37,21 @@ def create_receipts_for_notification(notification) -> None:
             UserNotificationReceipt.objects.bulk_create(receipts, ignore_conflicts=True)
     except Exception:
         pass
+
+
+def send_emails_for_notification(notification) -> None:
+    if notification.status != "SENT":
+        return
+    if not notification.has_channel(Notification.CHANNEL_EMAIL):
+        return
+
+    for user in users_for_notification(notification):
+        send_notification_email(user.email, notification.title, notification.body)
+
+
+def deliver_notification(notification) -> None:
+    create_receipts_for_notification(notification)
+    send_emails_for_notification(notification)
 
 
 def send_user_notification(user, title: str, body: str, notification_type: str = "SYSTEM") -> None:
@@ -52,11 +70,14 @@ def send_user_notification(user, title: str, body: str, notification_type: str =
             notification_type=notification_type,
             target_role=role,
             status="SENT",
+            delivery_channels=[Notification.CHANNEL_IN_APP],
             sent_at=timezone.now(),
         )
         UserNotificationReceipt.objects.create(user=user, notification=notification)
     except Exception:
         pass
+
+
 def send_low_stock_notification(product):
     if not product.enable_low_stock_alerts:
         return
@@ -85,6 +106,7 @@ def send_low_stock_notification(product):
         notification_type="ALERT",
         target_role="admin",
         status="SENT",
+        delivery_channels=[Notification.CHANNEL_IN_APP],
         sent_at=timezone.now(),
     )
 
