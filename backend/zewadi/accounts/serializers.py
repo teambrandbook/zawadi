@@ -48,7 +48,7 @@ class RegisterSerializer(serializers.Serializer):
     date_of_birth = serializers.DateField(required=False, allow_null=True, default=None)
     gender = serializers.CharField(max_length=10, required=False, allow_blank=True, default="")
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    photo = serializers.URLField(required=False, allow_null=True, allow_blank=True)
+    photo = serializers.URLField(max_length=500, required=False, allow_null=True, allow_blank=True)
     # Keep serializer role options in sync with the User model choices.
     role = serializers.ChoiceField(
         choices=[choice[0] for choice in ROLE_CHOICES],

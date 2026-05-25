@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { X } from "lucide-react";
 import type { ScheduleItem } from "./appointmentsData";
+import ScheduleAvatar from "./ScheduleAvatar";
 
 type Props = {
   appointment: ScheduleItem | null;
@@ -29,9 +29,7 @@ export default function AppointmentDetailsModal({ appointment, onClose }: Props)
       >
         <div className="flex items-start justify-between gap-4 border-b border-[#EAECF0] px-6 py-5">
           <div className="flex items-center gap-4">
-            <div className="h-14 w-14 overflow-hidden rounded-full bg-[#E5E7EB]">
-              <Image src={appointment.avatar} alt={appointment.name} width={56} height={56} className="h-full w-full object-cover" />
-            </div>
+            <ScheduleAvatar src={appointment.avatar} name={appointment.name} size={56} className="h-14 w-14 text-base" />
             <div>
               <h2 className="text-[28px] font-semibold tracking-[-0.03em] text-[#101828]">{appointment.name}</h2>
               <p className="text-sm text-[#667085]">{appointment.type}</p>

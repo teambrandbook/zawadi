@@ -7,6 +7,7 @@ from .views import (
     LoginAPIView,
     LogoutAPIView,
     LogoutAllAPIView,
+    LocalImageUploadView,
     MeAPIView,
     OTPResendAPIView,
     OTPVerifyAPIView,
@@ -38,4 +39,5 @@ urlpatterns = [
     path("google/login/", GoogleLoginAPIView.as_view()),
     path("google/callback/", GoogleCallbackAPIView.as_view(), name="google-callback"),
     path("upload-signature/", UploadSignatureView.as_view()),
+    path("upload-image/", LocalImageUploadView.as_view()),
 ]

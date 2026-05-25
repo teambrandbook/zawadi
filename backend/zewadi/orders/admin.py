@@ -7,6 +7,7 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = [
         "order_id",
         "user",
+        "product",
         "product_name",
         "product_code",
         "pack_name",
@@ -18,7 +19,7 @@ class OrderAdmin(admin.ModelAdmin):
         "created_at",
     ]
     list_filter = ["status", "payment_method", "payment_status", "created_at"]
-    search_fields = ["order_id", "user__email", "full_name", "product_name"]
+    search_fields = ["order_id", "user__email", "full_name", "product_name", "product__product_name"]
     readonly_fields = ["order_id", "created_at", "updated_at"]
     ordering = ["-created_at"]
 

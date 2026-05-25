@@ -345,26 +345,26 @@ export default function EventsDashboard() {
   }
 
   return (
-    <div className="min-h-screen flex-1 bg-white p-4 sm:p-6 lg:p-8">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="mb-1 text-2xl font-bold text-[#06402B]">My Events</h1>
-          <p className="text-sm text-gray-500">
+    <div className="min-h-screen flex-1 overflow-x-hidden bg-white px-4 py-5 sm:p-6 lg:p-8">
+      <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="mb-1 text-2xl font-bold text-[#06402B] sm:text-3xl">My Events</h1>
+          <p className="max-w-2xl text-sm leading-6 text-gray-500">
             Stay connected with wellness sessions, community meetups, and expert-led events.
           </p>
         </div>
         <button
           type="button"
           onClick={handleExploreEvents}
-          className="flex w-full items-center justify-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-white transition hover:bg-[#053020] sm:w-auto"
+          className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md bg-[#06402B] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#053020] sm:w-auto"
         >
           <Search size={16} />
           <span>Explore Events</span>
         </button>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
-        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+      <div className="mb-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:mb-8 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="flex min-h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="rounded-md bg-green-100 p-2">
               <Calendar size={20} className="text-[#06402B]" />
@@ -377,7 +377,7 @@ export default function EventsDashboard() {
           </div>
         </div>
 
-        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex min-h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="rounded-md bg-orange-100 p-2">
               <Users size={20} className="text-orange-700" />
@@ -390,7 +390,7 @@ export default function EventsDashboard() {
           </div>
         </div>
 
-        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex min-h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="rounded-md bg-green-100 p-2">
               <CheckCircle2 size={20} className="text-green-600" />
@@ -403,7 +403,7 @@ export default function EventsDashboard() {
           </div>
         </div>
 
-        <div className="flex h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
+        <div className="flex min-h-28 flex-col justify-between rounded-lg border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="rounded-md bg-orange-100 p-2">
               <Mail size={20} className="text-orange-600" />
@@ -417,7 +417,7 @@ export default function EventsDashboard() {
         </div>
       </div>
 
-      <div ref={eventListRef} className="mb-8 flex flex-col gap-4 border-b border-gray-200 pb-4 xl:flex-row xl:items-center xl:justify-between">
+      <div ref={eventListRef} className="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-4 sm:mb-8 xl:flex-row xl:items-center xl:justify-between">
         <style jsx>{`
           .hide-scrollbar {
             -ms-overflow-style: none;
@@ -428,12 +428,12 @@ export default function EventsDashboard() {
             display: none;
           }
         `}</style>
-        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
+        <div className="hide-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           {tabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`shrink-0 rounded-md px-4 py-1.5 text-sm font-medium ${
+              className={`min-h-10 shrink-0 rounded-md px-4 py-2 text-sm font-medium ${
                 activeTab === tab
                   ? "bg-[#06402B] text-white"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -444,7 +444,7 @@ export default function EventsDashboard() {
           ))}
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-[minmax(220px,1fr)_180px] xl:w-auto">
           <div className="relative w-full sm:w-auto">
             <Search
               size={16}
@@ -455,18 +455,18 @@ export default function EventsDashboard() {
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search events..."
-              className="w-full rounded-md border border-gray-200 py-1.5 pl-9 pr-4 text-sm outline-none focus:border-[#06402B] sm:w-[220px]"
+              className="min-h-11 w-full rounded-md border border-gray-200 py-2 pl-9 pr-4 text-sm outline-none focus:border-[#06402B] xl:w-[220px]"
             />
           </div>
-          <div className="relative w-full sm:w-auto">
-            <button className="flex w-full items-center justify-between space-x-4 rounded-md border border-gray-200 bg-white px-4 py-1.5 text-sm text-gray-700 sm:w-auto">
-              <span>All Types</span>
+          <div className="relative w-full">
+            <button className="flex min-h-11 w-full items-center justify-between gap-4 rounded-md border border-gray-200 bg-white px-4 py-2 text-sm text-gray-700">
+              <span>{activeType === "all" ? "All Types" : eventTypeLabel(activeType)}</span>
               <ChevronDown size={14} className="text-gray-500" />
             </button>
             <select
               value={activeType}
               onChange={(event) => setActiveType(event.target.value)}
-              className="absolute inset-0 cursor-pointer opacity-0"
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
             >
               {eventTypeOptions.map((type) => (
                 <option key={type} value={type}>
@@ -485,7 +485,7 @@ export default function EventsDashboard() {
       {isLoading ? (
         <div className="rounded-lg border border-gray-200 bg-white p-6 text-sm text-gray-600">Loading events...</div>
       ) : (
-        <div className="flex flex-col gap-8 xl:flex-row">
+        <div className="flex flex-col gap-6 xl:flex-row xl:gap-8">
           <div className="flex-1 space-y-8">
             <section>
               <h2 className="mb-4 text-lg font-bold text-[#06402B]">
@@ -499,29 +499,29 @@ export default function EventsDashboard() {
                   return (
                     <div
                       key={event.id}
-                      className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-0 text-left shadow-sm sm:flex-row"
+                      className="flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white p-0 text-left shadow-sm md:flex-row"
                     >
-                      <div className="flex h-16 flex-shrink-0 items-center justify-center bg-[#06402B] sm:h-auto sm:w-24">
+                      <div className="flex h-14 flex-shrink-0 items-center justify-center bg-[#06402B] md:h-auto md:w-20 lg:w-24">
                         <Icon size={28} className="text-white" />
                       </div>
-                      <div className="flex flex-1 flex-col gap-4 p-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0 lg:max-w-[70%] lg:pr-4">
-                          <div className="mb-2 flex items-center space-x-3">
-                            <h3 className="text-[15px] font-bold text-gray-800">{event.title}</h3>
+                          <div className="mb-2 flex min-w-0 items-center gap-3">
+                            <h3 className="min-w-0 break-words text-[15px] font-bold text-gray-800">{event.title}</h3>
                           </div>
                           <span
                             className={`mb-3 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium ${eventTypeColor(event.event_type)}`}
                           >
                             {eventTypeLabel(event.event_type)}
                           </span>
-                          <p className="mb-4 text-sm text-gray-600">{event.short_description}</p>
+                          <p className="mb-4 break-words text-sm leading-6 text-gray-600">{event.short_description}</p>
 
                           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-medium text-gray-500">
-                            <div className="flex items-center space-x-1.5">
+                            <div className="flex min-w-0 items-center gap-1.5">
                               {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
-                              <span>{event.is_online ? "Online" : event.location || "Onsite"}</span>
+                              <span className="break-words">{event.is_online ? "Online" : event.location || "Onsite"}</span>
                             </div>
-                            <div className="flex items-center space-x-1.5">
+                            <div className="flex items-center gap-1.5">
                               <Users size={14} />
                               <span>{event.registration_count} joined</span>
                             </div>
@@ -529,8 +529,8 @@ export default function EventsDashboard() {
                         </div>
 
                         <div className="space-y-4 text-left lg:min-w-[260px] lg:text-right">
-                          <span className="whitespace-nowrap text-xs text-gray-500">{formatted.full}</span>
-                          <div className="flex flex-wrap gap-2 lg:justify-end">
+                          <span className="text-xs text-gray-500 sm:whitespace-nowrap">{formatted.full}</span>
+                          <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-2 lg:flex lg:flex-wrap lg:justify-end">
                             <Link
                               href={`/communityDashBoard/events/${event.id}`}
                               className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-md bg-[#06402B] px-4 text-xs font-semibold text-white hover:bg-[#053020]"
@@ -579,33 +579,33 @@ export default function EventsDashboard() {
                   return (
                     <div
                       key={eventId}
-                      className="flex flex-col gap-5 rounded-lg border border-gray-200 bg-white p-5 text-left shadow-sm lg:flex-row lg:items-center lg:justify-between"
+                      className="flex flex-col gap-5 rounded-lg border border-gray-200 bg-white p-4 text-left shadow-sm sm:p-5 lg:flex-row lg:items-center lg:justify-between"
                     >
-                      <div>
-                        <h3 className="mb-2 text-[15px] font-bold text-gray-800">{event.title}</h3>
+                      <div className="min-w-0">
+                        <h3 className="mb-2 break-words text-[15px] font-bold text-gray-800">{event.title}</h3>
                         <span className={`mb-4 inline-block rounded-xl px-2.5 py-0.5 text-[11px] font-medium ${statusClass}`}>
                           {status === "confirmed" ? "Confirmed" : "Registered"}
                         </span>
                         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-gray-500">
-                          <div className="flex items-center space-x-1.5">
+                          <div className="flex min-w-0 items-center gap-1.5">
                             {event.is_online ? <Video size={14} /> : <MapPin size={14} />}
-                            <span>{event.is_online ? "Online Event" : event.location || "Onsite Event"}</span>
+                            <span className="break-words">{event.is_online ? "Online Event" : event.location || "Onsite Event"}</span>
                           </div>
-                          <div className="flex items-center space-x-1.5">
+                          <div className="flex items-center gap-1.5">
                             <Bell size={14} />
                             <span>Registered</span>
                           </div>
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:space-x-6">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between lg:gap-6">
                         <div className="text-left sm:text-right">
                           <p className="text-sm font-semibold text-gray-800">{when.day}</p>
                           <p className="text-xs text-gray-500">{when.time}</p>
                         </div>
                         <Link
                           href={`/communityDashBoard/events/${eventId}`}
-                          className="flex items-center justify-center space-x-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
+                          className="flex min-h-10 w-full items-center justify-center gap-2 rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020] sm:w-auto"
                         >
                           <ExternalLink size={14} />
                           <span>View Details</span>
@@ -624,7 +624,7 @@ export default function EventsDashboard() {
             </section>
           </div>
 
-          <div className="w-full space-y-6 xl:w-80">
+          <div className="w-full space-y-5 xl:w-80 xl:space-y-6">
             <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Calendar</h3>
               <div className="relative space-y-4 before:absolute before:inset-0 before:mx-auto before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent before:translate-x-0">
@@ -640,9 +640,9 @@ export default function EventsDashboard() {
                     >
                       <div className={`flex w-full items-center rounded-md p-2 ${index === 0 ? "bg-[#f3ecd9]" : "hover:bg-gray-50"}`}>
                         <div className={`mr-3 h-2 w-2 flex-shrink-0 rounded-full ${dotClass}`} />
-                        <div>
+                        <div className="min-w-0">
                           <h4 className="text-sm font-bold text-gray-800">{when.day}</h4>
-                          <p className="text-[11px] text-gray-600">{event.title}</p>
+                          <p className="break-words text-[11px] text-gray-600">{event.title}</p>
                         </div>
                       </div>
                     </Link>

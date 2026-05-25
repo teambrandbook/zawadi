@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { BackendNoteItem } from "./noteTypes";
+import NoteClientAvatar from "./NoteClientAvatar";
 
 function getRestrictionTone(item: string) {
   if (item.toLowerCase().includes("gluten")) return "text-[#DC2626]";
@@ -26,9 +26,7 @@ export default function NoteDetailsPanel({ note }: Props) {
           <h3 className="text-xl font-medium text-[#111827]">Client Summary</h3>
           <div className="mt-3 rounded-[8px] bg-[rgba(235,225,207,0.5)] p-4">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-[#E5E7EB]">
-                <Image src={note.clientAvatar} alt={note.clientName} width={48} height={48} className="h-full w-full object-cover" />
-              </div>
+              <NoteClientAvatar src={note.clientAvatar} name={note.clientName} size={48} className="h-12 w-12 bg-[#E5E7EB] text-sm" />
               <div>
                 <p className="text-base font-medium text-[#0A4833]">{note.clientName}</p>
                 <p className="text-sm text-[#4B5563]">{`Age: ${note.clientSummary.age} - ${note.clientSummary.gender}`}</p>

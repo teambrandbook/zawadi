@@ -3,6 +3,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { Search, Bell, Menu } from 'lucide-react';
 import api from '@/services/api';
+import { getImageUrl } from '@/lib/utils';
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -21,16 +22,11 @@ type ConsultantBooking = {
   status?: string;
 };
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
+const CONSULTANT_PROFILE_UPDATED_EVENT = "consultant-profile-updated";
 
 function normalizePhotoUrl(photo?: string | null) {
   if (!photo) return "";
-  if (photo.startsWith("http")) return photo;
-  if (photo.startsWith("/")) return `${getApiOrigin()}${photo}`;
-  return photo;
+  return getImageUrl(photo);
 }
 
 function getInitials(name: string) {
@@ -57,6 +53,20 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
 
     return () => {
       isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    function handleProfileUpdated(event: Event) {
+      const updatedProfile = (event as CustomEvent<ConsultantProfile>).detail;
+      if (updatedProfile) {
+        setProfile((current) => ({ ...current, ...updatedProfile }));
+      }
+    }
+
+    window.addEventListener(CONSULTANT_PROFILE_UPDATED_EVENT, handleProfileUpdated);
+    return () => {
+      window.removeEventListener(CONSULTANT_PROFILE_UPDATED_EVENT, handleProfileUpdated);
     };
   }, []);
 
@@ -99,7 +109,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const displayName = profile?.full_name || profile?.user_name || "Consultant";
   const location = profile?.location?.trim();
   const photoSrc = normalizePhotoUrl(profile?.photo);
+  const [hasPhotoError, setHasPhotoError] = useState(false);
   const initials = useMemo(() => getInitials(displayName), [displayName]);
+
+  useEffect(() => {
+    setHasPhotoError(false);
+  }, [photoSrc]);
 
   return (
     <nav className="relative flex items-center justify-between px-4 lg:px-6 h-20 bg-white border-b border-gray-100">
@@ -177,8 +192,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
             <p className="mt-1 truncate text-xs text-gray-400">{location || "Consultant"}</p>
           </div>
           <div className="relative w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
-            {photoSrc ? (
-              <img src={photoSrc} alt={`${displayName} profile`} className="h-full w-full object-cover" />
+            {photoSrc && !hasPhotoError ? (
+              <img
+                src={photoSrc}
+                alt={`${displayName} profile`}
+                className="h-full w-full object-cover"
+                onError={() => setHasPhotoError(true)}
+              />
             ) : (
               <div className="w-full h-full bg-gray-200 flex items-center justify-center">
                 <span className="text-xs font-medium text-gray-600">{initials}</span>

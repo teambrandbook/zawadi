@@ -1,7 +1,7 @@
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Send, Video } from "lucide-react";
 import type { ScheduleItem } from "./appointmentsData";
+import ScheduleAvatar from "./ScheduleAvatar";
 
 type Props = {
   appointment?: ScheduleItem | null;
@@ -98,15 +98,7 @@ export default function NextAppointmentCard({ appointment, onJoin, onShareLink }
       <h2 className="text-lg font-semibold text-[#0A4833]">Next Appointment</h2>
 
       <div className="mt-4 flex items-center gap-3">
-        <div className="h-12 w-12 overflow-hidden rounded-full bg-[#E5E7EB]">
-          <Image
-            src={appointment.avatar || "/recipe/recipe-3.webp"}
-            alt={appointment.name}
-            width={48}
-            height={48}
-            className="h-full w-full object-cover"
-          />
-        </div>
+        <ScheduleAvatar src={appointment.avatar} name={appointment.name} size={48} className="h-12 w-12 text-sm" />
         <div className="min-w-0">
           <p className="truncate text-base font-semibold leading-tight text-[#101828]">{appointment.name}</p>
           <p className="mt-0.5 truncate text-sm leading-tight text-[#667085]">{appointment.type}</p>
