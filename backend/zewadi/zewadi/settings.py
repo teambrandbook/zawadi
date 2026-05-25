@@ -75,6 +75,7 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+_frontend_url_unset = os.getenv("FRONTEND_URL") is None
 FRONTEND_URL = os.getenv("FRONTEND_URL", CORS_ALLOWED_ORIGINS[0] if CORS_ALLOWED_ORIGINS else "http://localhost:3000")
 COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None  # e.g. ".zewadi.com" in production
 AUTH_COOKIE_SECURE = env_bool("AUTH_COOKIE_SECURE", not DEBUG)
@@ -252,7 +253,7 @@ if not DEBUG and not SECURE_SSL_REDIRECT and _running_cmd not in _MANAGEMENT_CMD
         stacklevel=2,
     )
 
-if not DEBUG and not FRONTEND_URL and _running_cmd not in _MANAGEMENT_CMDS:
+if not DEBUG and _frontend_url_unset and _running_cmd not in _MANAGEMENT_CMDS:
     raise RuntimeError(
         "FRONTEND_URL is required in production. "
         "Set FRONTEND_URL=https://yourdomain.com in your .env file."
