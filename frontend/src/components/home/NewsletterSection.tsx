@@ -14,7 +14,7 @@ const NewsletterSection = () => {
   return (
     // White background + spacing container wrapper
     <section className="w-full bg-[#fffef5] ">
-      <div className="container mx-auto ">
+      <div className="w-full lg:container lg:mx-auto">
         
         {/* Inner Green Box */}
         <div className=" overflow-hidden shadow-xl">

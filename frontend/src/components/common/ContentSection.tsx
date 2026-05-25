@@ -35,18 +35,18 @@ const ContentSection = ({
         />
       </div>
 
-      <div className={cn("relative z-10 container mx-auto px-4 sm:px-40", containerClassName)}>
-        <div className={cn("h-[140px] sm:h-[180px]", spacerClassName)} />
+      <div className={cn("relative z-10 container mx-auto px-4 sm:px-6 md:px-20 lg:px-40", containerClassName)}>
+        <div className={cn("h-[140px] md:h-[180px]", spacerClassName)} />
 
         <div
           className={cn(
-            "relative -mb-px max-w-[440px] rounded-t-[24px] bg-[#fffef5] px-7 py-7 sm:px-10 sm:py-10",
+            "relative -mb-px max-w-[440px] rounded-t-[24px] bg-[#fffef5] px-7 py-7 md:px-10 md:py-10",
             cardClassName
           )}
         >
           <h1
             className={cn(
-              "font-serif text-[2.25rem] font-bold leading-none text-[#0e2207] sm:text-[2.75rem]",
+              "font-serif text-[2.25rem] font-bold leading-none text-[#0e2207] md:text-[2.75rem]",
               titleClassName
             )}
           >
@@ -55,7 +55,7 @@ const ContentSection = ({
 
           <p
             className={cn(
-              "mt-4 text-base font-bold text-[#1f6306] sm:text-lg",
+              "mt-4 text-base font-bold text-[#1f6306] md:text-lg",
               subtitleClassName
             )}
           >

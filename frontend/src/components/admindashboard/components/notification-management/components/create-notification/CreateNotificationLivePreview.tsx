@@ -1,28 +1,42 @@
 type Props = {
   title?: string;
   body?: string;
+  channels?: string[];
 };
 
-export default function CreateNotificationLivePreview({ title, body }: Props) {
+function channelLabel(channel: string) {
+  if (channel === "email") return "Email";
+  if (channel === "in_app") return "In-App";
+  return channel;
+}
+
+export default function CreateNotificationLivePreview({ title, body, channels = ["in_app"] }: Props) {
   const displayTitle = title?.trim() || "Notification Title";
   const displayBody = body?.trim() || "Your notification message will appear here...";
 
   return (
     <aside className="rounded-xl border border-[#DFDFDF] bg-white p-4">
       <h2 className="text-sm font-semibold text-[#0A4833]">Live Preview</h2>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {channels.map((channel) => (
+          <span key={channel} className="rounded-md bg-[#0A4833] px-2.5 py-1 text-[10px] font-medium text-white">
+            {channelLabel(channel)}
+          </span>
+        ))}
+      </div>
 
       {/* In-App Preview */}
-      <div className="mt-3 rounded-lg border border-[#E4E7EC] bg-[#F9FAFB] p-3">
+      {channels.includes("in_app") ? <div className="mt-3 rounded-lg border border-[#E4E7EC] bg-[#F9FAFB] p-3">
         <p className="mb-2 text-[10px] font-semibold uppercase text-[#9CA3AF]">In-App</p>
         <div className="rounded-md border border-[#E4E7EC] bg-white p-3 shadow-sm">
           <p className="text-[12px] font-semibold text-[#0A4833]">{displayTitle}</p>
           <p className="mt-1 line-clamp-3 text-[11px] text-[#6B7280]">{displayBody}</p>
           <p className="mt-2 text-[10px] text-[#A1844F]">Just now</p>
         </div>
-      </div>
+      </div> : null}
 
       {/* Email Preview */}
-      <div className="mt-3 rounded-lg border border-[#E4E7EC] bg-[#F9FAFB] p-3">
+      {channels.includes("email") ? <div className="mt-3 rounded-lg border border-[#E4E7EC] bg-[#F9FAFB] p-3">
         <p className="mb-2 text-[10px] font-semibold uppercase text-[#9CA3AF]">Email</p>
         <div className="rounded-md border border-[#E4E7EC] bg-white p-3 shadow-sm">
           <div className="flex items-center gap-2 border-b border-[#E4E7EC] pb-2">
@@ -36,14 +50,8 @@ export default function CreateNotificationLivePreview({ title, body }: Props) {
           </div>
           <p className="mt-2 text-[12px] font-semibold text-[#0A4833]">{displayTitle}</p>
           <p className="mt-1 text-[11px] text-[#6B7280] line-clamp-4">{displayBody}</p>
-          <button
-            type="button"
-            className="mt-3 rounded-md bg-[#0A4833] px-3 py-1.5 text-[11px] text-white"
-          >
-            View Details
-          </button>
         </div>
-      </div>
+      </div> : null}
     </aside>
   );
 }

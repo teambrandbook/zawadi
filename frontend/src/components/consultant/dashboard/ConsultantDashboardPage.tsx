@@ -6,14 +6,11 @@ import type { ComponentType, ReactNode } from "react";
 import {
   Bell,
   CalendarDays,
-  CheckCircle2,
   Clock3,
   Eye,
   FilePlus2,
-  MessageSquareMore,
   NotebookPen,
   Play,
-  TriangleAlert,
   Users,
   UserRound,
   UtensilsCrossed,
@@ -60,21 +57,6 @@ type SummaryCard = {
   iconColor: string;
 };
 
-type ActivityItem = {
-  id: string;
-  title: string;
-  time: string;
-  tone: string;
-};
-
-type ReminderItem = {
-  id: string;
-  title: string;
-  subtitle: string;
-  box: string;
-  icon: ComponentType<{ className?: string }>;
-};
-
 type WeekStat = {
   label: string;
   value: string;
@@ -103,10 +85,12 @@ type ApiBooking = {
   booked_slot: string;
   status: string;
   session_type?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 type ApiClient = { id: number };
-type ApiDietPlan = { id: number };
+type ApiDietPlan = { id: number; created_at?: string };
 
 const fieldLabels: Record<keyof ConsultationRequestData, string> = {
   choose_section: "Choose Section",
@@ -189,43 +173,6 @@ const scheduleItems: ConsultationScheduleItem[] = [
     consultantName: "Dr. Chen",
     backendData: backendConsultationData,
   },
-];
-
-const recentActivities: ActivityItem[] = [
-  { id: "activity-1", title: "Consultation notes updated for Emma Thompson", time: "2 hours ago", tone: "bg-[#E9F8EF] text-[#0A7F56]" },
-  { id: "activity-2", title: "New diet plan created for Michael Rodriguez", time: "4 hours ago", tone: "bg-[#FFF6D8] text-[#C78C00]" },
-  { id: "activity-3", title: "Message received from Lisa Park", time: "6 hours ago", tone: "bg-[#E7F0FF] text-[#3B82F6]" },
-];
-
-const reminders: ReminderItem[] = [
-  {
-    id: "follow-up",
-    title: "Follow-up due today",
-    subtitle: "3 clients need follow-up calls",
-    box: "border-[#F3D0D0] bg-[#FFF2F2]",
-    icon: TriangleAlert,
-  },
-  {
-    id: "appointment",
-    title: "Appointment in 15 mins",
-    subtitle: "Michael Rodriguez consultation",
-    box: "border-[#F3E4A4] bg-[#FFFBEA]",
-    icon: Clock3,
-  },
-  {
-    id: "messages",
-    title: "Unread messages",
-    subtitle: "4 client messages pending",
-    box: "border-[#CFE0FF] bg-[#EEF4FF]",
-    icon: MessageSquareMore,
-  },
-];
-
-const weekStats: WeekStat[] = [
-  { label: "Sessions Completed", value: "32" },
-  { label: "Diet Plans Created", value: "8" },
-  { label: "Client Satisfaction", value: "4.9/5", valueColor: "text-[#A88751]" },
-  { label: "Response Time", value: "<2hrs" },
 ];
 
 const quickActions: ActionItem[] = [
@@ -400,6 +347,36 @@ function formatDate(value: string) {
   return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }
 
+function isDateInCurrentWeek(value?: string) {
+  if (!value) return false;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return false;
+
+  const today = new Date();
+  const start = new Date(today);
+  const day = start.getDay();
+  start.setDate(start.getDate() + (day === 0 ? -6 : 1 - day));
+  start.setHours(0, 0, 0, 0);
+
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+
+  return date >= start && date < end;
+}
+
+function formatDuration(totalMs: number) {
+  if (totalMs <= 0) return "0hrs";
+
+  const totalMinutes = Math.round(totalMs / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) return `${minutes}min`;
+  if (minutes === 0) return `${hours}hrs`;
+  return `${hours}hrs ${minutes}min`;
+}
+
 function mapBookingToSchedule(item: ApiBooking): ConsultationScheduleItem {
   const client = item.user_name || "Client";
   return {
@@ -435,6 +412,7 @@ export default function ConsultantDashboardPage() {
   const [bookings, setBookings] = useState<ApiBooking[]>([]);
   const [clientCount, setClientCount] = useState(0);
   const [dietPlanCount, setDietPlanCount] = useState(0);
+  const [dietPlans, setDietPlans] = useState<ApiDietPlan[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -447,7 +425,9 @@ export default function ConsultantDashboardPage() {
       if (!isMounted) return;
       setBookings(bookingsResponse.status === "fulfilled" && Array.isArray(bookingsResponse.value.data) ? bookingsResponse.value.data : []);
       setClientCount(clientsResponse.status === "fulfilled" && Array.isArray(clientsResponse.value.data) ? clientsResponse.value.data.length : 0);
-      setDietPlanCount(dietPlansResponse.status === "fulfilled" && Array.isArray(dietPlansResponse.value.data) ? dietPlansResponse.value.data.length : 0);
+      const nextDietPlans = dietPlansResponse.status === "fulfilled" && Array.isArray(dietPlansResponse.value.data) ? dietPlansResponse.value.data : [];
+      setDietPlanCount(nextDietPlans.length);
+      setDietPlans(nextDietPlans);
     });
 
     return () => {
@@ -458,6 +438,17 @@ export default function ConsultantDashboardPage() {
   const scheduleItems = useMemo(() => bookings.slice(0, 4).map(mapBookingToSchedule), [bookings]);
   const pendingCount = bookings.filter((item) => item.status === "pending").length;
   const confirmedCount = bookings.filter((item) => item.status === "confirmed").length;
+  const completedThisWeek = bookings.filter((item) => item.status === "completed" && isDateInCurrentWeek(item.updated_at));
+  const responseTimeMs = completedThisWeek.reduce((total, item) => {
+    const start = item.created_at ? new Date(item.created_at).getTime() : Number.NaN;
+    const end = item.updated_at ? new Date(item.updated_at).getTime() : Number.NaN;
+    return Number.isFinite(start) && Number.isFinite(end) && end > start ? total + (end - start) : total;
+  }, 0);
+  const weekStats: WeekStat[] = [
+    { label: "Sessions Completed", value: String(completedThisWeek.length) },
+    { label: "Diet Plans Created", value: String(dietPlans.filter((item) => isDateInCurrentWeek(item.created_at)).length) },
+    { label: "Response Time", value: formatDuration(responseTimeMs) },
+  ];
   const summaryCards: SummaryCard[] = [
     { label: "Today's Appointments", value: confirmedCount + pendingCount, href: "/consultant/appointments", icon: CalendarDays, iconColor: "text-[#B48A4A]" },
     { label: "Pending Consultations", value: pendingCount, href: "/consultant/consultation", icon: Clock3, iconColor: "text-[#B48A4A]" },
@@ -469,7 +460,7 @@ export default function ConsultantDashboardPage() {
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
           {summaryCards.map((card) => {
             const Icon = card.icon;
 
@@ -491,8 +482,50 @@ export default function ConsultantDashboardPage() {
           })}
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_320px]">
-          <div className="space-y-5">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-[minmax(0,1.55fr)_320px] xl:gap-y-2">
+          <div className="order-1 xl:order-3 xl:col-start-1">
+            <SectionCard title="This Week">
+              <div className="space-y-4 p-5">
+                {weekStats.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-4 text-sm">
+                    <span className="text-[#667085]">{item.label}</span>
+                    <span className={`font-semibold text-[#0A4833] ${item.valueColor ?? ""}`}>{item.value}</span>
+                  </div>
+                ))}
+
+                <Link
+                  href="/consultant/consultation"
+                  className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#D1D5DB] bg-[#FBF8F3] text-sm font-medium text-[#0A4833] transition hover:bg-[#F3EEE4]"
+                >
+                  <FilePlus2 className="h-4 w-4" />
+                  <span>Open Consultation</span>
+                </Link>
+              </div>
+            </SectionCard>
+          </div>
+
+          <div className="order-2 xl:col-start-2 xl:row-span-2 xl:row-start-1">
+            <SectionCard title="Quick Actions">
+              <div className="space-y-3 p-4">
+                {quickActions.map((action) => {
+                  const Icon = action.icon;
+
+                  return (
+                    <Link
+                      key={action.label}
+                      href={action.href}
+                      className={`flex h-12 items-center gap-3 rounded-xl px-4 text-sm font-medium transition ${action.className}`}
+                    >
+                      <Icon className="h-5 w-5 text-[#B48A4A]" />
+                      <span>{action.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </SectionCard>
+          </div>
+
+          <div className="order-3 sm:col-span-2 xl:order-1 xl:col-span-1 xl:col-start-1 xl:row-start-1">
             <SectionCard title="Today's Schedule">
               <div className="space-y-3 p-4">
                 {scheduleItems.length === 0 ? (
@@ -536,82 +569,6 @@ export default function ConsultantDashboardPage() {
                     </div>
                   </article>
                 ))}
-              </div>
-            </SectionCard>
-
-            <SectionCard title="Recent Activity">
-              <div className="space-y-4 p-5">
-                {recentActivities.map((activity) => (
-                  <article key={activity.id} className="flex items-start gap-3">
-                    <div className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-full ${activity.tone}`}>
-                      <CheckCircle2 className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#163229]">{activity.title}</p>
-                      <p className="mt-1 text-xs text-[#98A2B3]">{activity.time}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            </SectionCard>
-          </div>
-
-          <div className="space-y-5">
-            <SectionCard title="Quick Actions">
-              <div className="space-y-3 p-4">
-                {quickActions.map((action) => {
-                  const Icon = action.icon;
-
-                  return (
-                    <Link
-                      key={action.label}
-                      href={action.href}
-                      className={`flex h-12 items-center gap-3 rounded-xl px-4 text-sm font-medium transition ${action.className}`}
-                    >
-                      <Icon className="h-5 w-5 text-[#B48A4A]" />
-                      <span>{action.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </SectionCard>
-
-            <SectionCard title="Reminders">
-              <div className="space-y-3 p-4">
-                {reminders.map((item) => {
-                  const Icon = item.icon;
-
-                  return (
-                    <article key={item.id} className={`rounded-xl border p-4 ${item.box}`}>
-                      <div className="flex items-start gap-3">
-                        <Icon className="mt-0.5 h-5 w-5 shrink-0 text-[#B48A4A]" />
-                        <div>
-                          <p className="text-sm font-medium text-[#1D2939]">{item.title}</p>
-                          <p className="mt-1 text-xs text-[#667085]">{item.subtitle}</p>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </SectionCard>
-
-            <SectionCard title="This Week">
-              <div className="space-y-4 p-5">
-                {weekStats.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-[#667085]">{item.label}</span>
-                    <span className={`font-semibold text-[#0A4833] ${item.valueColor ?? ""}`}>{item.value}</span>
-                  </div>
-                ))}
-
-                <Link
-                  href="/consultant/consultation"
-                  className="mt-2 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#D1D5DB] bg-[#FBF8F3] text-sm font-medium text-[#0A4833] transition hover:bg-[#F3EEE4]"
-                >
-                  <FilePlus2 className="h-4 w-4" />
-                  <span>Open Consultation</span>
-                </Link>
               </div>
             </SectionCard>
           </div>

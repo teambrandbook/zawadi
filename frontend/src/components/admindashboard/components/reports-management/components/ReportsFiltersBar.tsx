@@ -1,35 +1,22 @@
 import { useEffect, useState } from "react";
-import type { FilterOption, ReportModule, ReportPeriod } from "../types";
+import type { FilterOption, ReportPeriod } from "../types";
 
 type ReportsFiltersBarProps = {
   filters: FilterOption[];
   activePeriod: ReportPeriod;
-  module: ReportModule;
   startDate: string;
   endDate: string;
   onPeriodChange: (period: ReportPeriod) => void;
-  onModuleChange: (module: ReportModule) => void;
   onStartDateChange: (value: string) => void;
   onEndDateChange: (value: string) => void;
 };
 
-const moduleOptions: { id: ReportModule; label: string }[] = [
-  { id: "all", label: "All Sections" },
-  { id: "orders", label: "Orders" },
-  { id: "users", label: "Users" },
-  { id: "consultations", label: "Consultations" },
-  { id: "events", label: "Events" },
-  { id: "content", label: "Content" },
-];
-
 export default function ReportsFiltersBar({
   filters,
   activePeriod,
-  module,
   startDate,
   endDate,
   onPeriodChange,
-  onModuleChange,
   onStartDateChange,
   onEndDateChange,
 }: ReportsFiltersBarProps) {
@@ -92,18 +79,6 @@ export default function ReportsFiltersBar({
             ))}
           </div>
         </div>
-
-        <select
-          value={module}
-          onChange={(event) => onModuleChange(event.target.value as ReportModule)}
-          className="h-9 w-full rounded-md border border-[#D1D5DB] bg-white px-3 text-xs text-[#374151] outline-none focus:border-[#0A4B34] sm:ml-2 sm:w-auto"
-        >
-          {moduleOptions.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
 
         {isCustomOpen && (
           <div className="absolute left-0 top-11 z-20 w-full max-w-[320px] rounded-lg border border-[#E5E7EB] bg-white p-3 shadow-lg sm:left-auto sm:right-0 sm:top-10">

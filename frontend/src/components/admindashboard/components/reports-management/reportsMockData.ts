@@ -6,6 +6,7 @@ export const filterOptions: FilterOption[] = [
   { id: "month", label: "This Month" },
   { id: "last_3_months", label: "Last 3 Months" },
   { id: "custom", label: "Custom Range" },
+  { id: "all", label: "All" },
 ];
 
 export const kpiCards: KpiCard[] = [
