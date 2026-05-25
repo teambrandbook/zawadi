@@ -23,7 +23,7 @@ from django.utils import timezone
 from .models import OTP, User
 from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
-from .throttles import LoginRateThrottle, RegisterRateThrottle
+from .throttles import LoginRateThrottle, OTPResendRateThrottle, OTPVerifyRateThrottle, RegisterRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -261,7 +261,7 @@ class CreateNutritionistAPIView(APIView):
 
 class OTPVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -318,7 +318,7 @@ class OTPVerifyAPIView(APIView):
 
 class OTPResendAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPResendRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -367,7 +367,7 @@ class PasswordResetRequestAPIView(APIView):
 
 class PasswordResetVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()

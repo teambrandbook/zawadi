@@ -169,6 +169,8 @@ REST_FRAMEWORK = {
         "user": "300/minute",
         "login": "5/minute",
         "register": "10/hour",
+        "otp_verify": "2/minute",
+        "otp_resend": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "zewadi.pagination.StandardPagination",
     "PAGE_SIZE": 20,

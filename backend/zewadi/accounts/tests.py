@@ -507,3 +507,53 @@ class AccountLockoutTests(APITestCase):
             self._attempt_login()
         response = self._attempt_login(password="GoodPass@1234")
         self.assertEqual(response.status_code, 200)
+
+
+class OTPThrottleTests(APITestCase):
+    """OTPVerifyAPIView and PasswordResetVerifyAPIView must throttle at 2/min."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.user = User.objects.create_user(
+            email="throttle@example.com",
+            password="Pass@1234",
+            user_name="throttleuser",
+            full_name="Throttle User",
+            phone="+10000000077",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def tearDown(self):
+        from django.core.cache import cache
+        cache.clear()
+
+    def test_otp_verify_throttled_after_two_requests(self):
+        for _ in range(2):
+            self.client.post(
+                "/api/account/otp/verify/",
+                {"email": "throttle@example.com", "code": "000000", "purpose": "email_verification"},
+                format="json",
+            )
+        response = self.client.post(
+            "/api/account/otp/verify/",
+            {"email": "throttle@example.com", "code": "000000", "purpose": "email_verification"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 429)
+
+    def test_password_reset_verify_throttled_after_two_requests(self):
+        for _ in range(2):
+            self.client.post(
+                "/api/account/password-reset/verify/",
+                {"email": "throttle@example.com", "code": "000000"},
+                format="json",
+            )
+        response = self.client.post(
+            "/api/account/password-reset/verify/",
+            {"email": "throttle@example.com", "code": "000000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 429)
