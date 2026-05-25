@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
+    "axes",
 ]
 
 # ─── Middleware ────────────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "zewadi.middleware.MaintenanceModeMiddleware",
@@ -148,6 +150,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
+    "axes.backends.AxesStandaloneBackend",
 ]
 
 REST_FRAMEWORK = {
@@ -265,3 +268,11 @@ CACHES = {
 
 # ─── GCC Tax & Currency ────────────────────────────────────────────────────────
 DEFAULT_TAX_COUNTRY = "SA"
+
+# ── Account lockout (django-axes) ─────────────────────────────────────────────
+AXES_ENABLED = env_bool("AXES_ENABLED", True)
+AXES_FAILURE_LIMIT = 5
+AXES_COOLDOWN_TIME = 1          # hours
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ["username"]  # lock by username (email), not IP
+AXES_USERNAME_FORM_FIELD = "username"   # key used in Django authenticate() credentials dict

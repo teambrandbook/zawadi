@@ -7,6 +7,7 @@ from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import Consultant
 from supperadmin.models import Role
 from django.db import transaction
+from axes.handlers.proxy import AxesProxyHandler
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -198,13 +199,23 @@ class LoginSerializer(serializers.Serializer):
                 "Please verify your email before logging in. Check your inbox for a verification code."
             )
 
+        request = self.context.get("request")
+        if AxesProxyHandler.is_locked(request, credentials={"username": user_obj.email}):
+            raise serializers.ValidationError(
+                "Account temporarily locked due to too many failed login attempts. "
+                "Please try again in 1 hour or contact support."
+            )
+
         user = authenticate(
-            request=self.context.get("request"),
+            request=request,
             username=user_obj.email,
             password=data["password"],
         )
         if not user:
             raise serializers.ValidationError("Invalid credentials")
+
+        # Signal successful login so axes resets the failure counter (AXES_RESET_ON_SUCCESS)
+        AxesProxyHandler.user_logged_in(sender=user.__class__, request=request, user=user)
 
         refresh = RefreshToken.for_user(user)
         return {

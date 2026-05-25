@@ -463,3 +463,47 @@ class LoginCookieSecurityTests(APITestCase):
         refresh_cookie = response.cookies.get("refresh_token")
         self.assertIsNotNone(refresh_cookie)
         self.assertTrue(refresh_cookie["httponly"])
+
+
+class AccountLockoutTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="lockout@example.com",
+            password="GoodPass@1234",
+            user_name="lockoutuser",
+            full_name="Lockout User",
+            phone="+10000000088",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def tearDown(self):
+        from axes.models import AccessAttempt
+        AccessAttempt.objects.all().delete()
+
+    def _attempt_login(self, password="WrongPass@1234"):
+        return self.client.post(
+            "/api/account/login/",
+            {"email": "lockout@example.com", "password": password},
+            format="json",
+        )
+
+    def test_account_locks_after_five_failures(self):
+        for _ in range(5):
+            self._attempt_login()
+        response = self._attempt_login()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("locked", str(response.data).lower())
+
+    def test_successful_login_resets_failure_counter(self):
+        for _ in range(4):
+            self._attempt_login()
+        # Successful login resets counter
+        success = self._attempt_login(password="GoodPass@1234")
+        self.assertEqual(success.status_code, 200)
+        # Now 4 more failures should not lock (counter was reset)
+        for _ in range(4):
+            self._attempt_login()
+        response = self._attempt_login(password="GoodPass@1234")
+        self.assertEqual(response.status_code, 200)
