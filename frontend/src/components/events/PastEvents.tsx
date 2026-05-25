@@ -105,9 +105,9 @@ export default function PastEventsSection() {
   }, [locale]);
 
   return (
-    <section className="w-full px-4 py-16 sm:px-6 lg:px-10 bg-[#fffef5]">
+    <section className="w-full px-4 py-16 sm:px-6 md:px-10 bg-[#fffef5]">
       {/* Main Rounded Container */}
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#f1f5eb] px-6 py-12 md:px-60 md:py-20">
+      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#f1f5eb] px-6 py-12 sm:px-8 md:px-20 md:py-20 xl:px-60">
 
         {/* Background Leaf Pattern */}
         <div
@@ -131,14 +131,14 @@ export default function PastEventsSection() {
             CHANGED: Removed the button out of this container so it can be re-ordered 
             independently below the grid layout on mobile viewports.
           */}
-          <div className="mb-12">
+          <div className="mb-12 md:pr-56 rtl:md:pr-0 rtl:md:pl-56">
             <h2 className="fade-in text-[#1f4d3a] text-3xl md:text-[42px] font-bold tracking-tight font-sans text-center md:text-left rtl:md:text-right">
               {pastText.title}
             </h2>
           </div>
 
           {/* Events Grid */}
-          <div className="grid gap-8 lg:grid-cols-2">
+          <div className="grid gap-8 md:grid-cols-2">
             {backendEvents.map((event, index) => (
               <div
                 key={`${event.id}-${event.title}-${index}`}
@@ -186,7 +186,7 @@ export default function PastEventsSection() {
           */}
           <Link
             href="/gallery"
-            className="order-last mt-10 mx-auto md:mx-0 inline-flex items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg w-fit md:absolute md:top-0 md:right-0 md:mt-0 rtl:md:left-0 rtl:md:right-auto"
+            className="order-last mt-10 mx-auto inline-flex w-fit items-center gap-3 rounded-full bg-[#1f4d3a] px-7 py-3.5 text-[14px] font-semibold text-white transition-all hover:bg-[#183c2e] hover:shadow-lg md:absolute md:right-0 md:top-0 md:mt-0 md:mx-0 rtl:md:left-0 rtl:md:right-auto"
           >
             {pastText.viewGallery}
             <ArrowRight className="h-4 w-4 rtl:rotate-180" />

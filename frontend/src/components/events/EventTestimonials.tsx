@@ -46,11 +46,11 @@ export default function EventTestimonials() {
           CHANGED: Used 'flex-col-reverse' to bring the image block to the top on mobile/tablet.
           'lg:flex-row' preserves the overlapping side-by-side arrangement on desktop.
         */}
-        <div className="relative flex flex-col-reverse items-center lg:flex-row">
+        <div className="relative flex flex-col-reverse items-center md:flex-row">
           
           {/* Testimonial Card */}
-          <div className="left-move relative z-20 w-full ltr:lg:-mr-32 rtl:lg:-ml-32 lg:w-[60%]">
-            <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-14">
+          <div className="left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-32 rtl:lg:-ml-32 md:w-[60%]">
+            <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-14">
               
               {/* Giant Quote SVG Background */}
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
@@ -60,7 +60,7 @@ export default function EventTestimonials() {
               </div>
 
               <div className="relative z-10">
-                <p className="fade-in text-[18px] md:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
+                <p className="fade-in text-[18px] md:text-[18px] lg:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
                   {activeTestimonial.quote}
                 </p>
 
@@ -103,8 +103,8 @@ export default function EventTestimonials() {
             CHANGED: Removed mobile top margin ('mt-8 lg:mt-0' -> 'lg:mt-0') 
             and introduced a bottom margin ('mb-8 lg:mb-0') so it separates naturally from the text card beneath it.
           */}
-          <div className="w-full mb-8 lg:mb-0 lg:w-[50%]">
-            <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] lg:h-[500px]">
+          <div className="w-full mb-8 md:mb-0 md:w-[50%]">
+            <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[500px]">
               <Image
                 src="/about/testimonial.webp " 
                 alt="Community hands"

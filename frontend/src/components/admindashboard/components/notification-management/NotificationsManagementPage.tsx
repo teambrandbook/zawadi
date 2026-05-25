@@ -5,7 +5,7 @@ import api from "@/services/api";
 import NotificationsFilters from "./components/NotificationsFilters";
 import NotificationsHeaderAndStats from "./components/NotificationsHeaderAndStats";
 import NotificationsTable from "./components/NotificationsTable";
-import type { NotificationRow, NotificationStat } from "./types";
+import type { NotificationChannel, NotificationFiltersState, NotificationRow, NotificationStat } from "./types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapApiNotification(item: Record<string, any>): NotificationRow {
@@ -15,28 +15,39 @@ function mapApiNotification(item: Record<string, any>): NotificationRow {
     REMINDER: "Reminder",
     PROMOTIONAL: "Promotional",
   };
+  const channels: NotificationChannel[] = Array.isArray(item.delivery_channels)
+    ? item.delivery_channels
+        .map((channel: string) => (channel === "email" ? "Email" : channel === "in_app" ? "In-App" : null))
+        .filter((channel: NotificationChannel | null): channel is NotificationChannel => channel !== null)
+    : ["In-App"];
+  const typeValue = String(item.notification_type ?? "SYSTEM") as NotificationRow["typeValue"];
+
   return {
     id: String(item.id ?? ""),
     title: String(item.title ?? "Untitled"),
     description: String(item.body ?? ""),
-    type: typeMap[String(item.notification_type ?? "SYSTEM")] ?? "Announcement",
-    audience: String(item.target_role ?? "All Users"),
-    channels: ["In-App"],
-    priority: "Medium",
-    status: item.status === "SENT" ? "Sent" : item.status === "SCHEDULED" ? "Scheduled" : "Draft",
+    type: typeMap[typeValue] ?? "System Notice",
+    typeValue,
+    audience: String(item.target_role ?? "ALL"),
+    channels,
+    status: item.status === "SCHEDULED" ? "Scheduled" : "Sent",
+    createdAt: String(item.created_at ?? ""),
+    scheduledAt: item.scheduled_at ? String(item.scheduled_at) : null,
+    sentAt: item.sent_at ? String(item.sent_at) : null,
   };
 }
 
 function buildStats(rows: NotificationRow[]): NotificationStat[] {
   const total = rows.length;
-  const scheduled = rows.filter((r) => r.status === "Scheduled").length;
-  const sent = rows.filter((r) => r.status === "Sent").length;
+  const scheduled = rows.filter((row) => row.status === "Scheduled").length;
+  const sent = rows.filter((row) => row.status === "Sent").length;
+  const audiences = new Set(rows.map((row) => row.audience)).size;
 
   return [
     { id: "total", label: "Total Notifications", value: String(total), icon: "bell" },
     { id: "scheduled", label: "Scheduled", value: String(scheduled), icon: "clock", valueTone: "gold" },
     { id: "sent", label: "Sent", value: String(sent), icon: "send", valueTone: "green" },
-    { id: "open", label: "Open Rate", value: "—", icon: "rate", valueTone: "blue" },
+    { id: "audiences", label: "Audiences", value: String(audiences), icon: "users", valueTone: "blue" },
   ];
 }
 
@@ -44,6 +55,14 @@ export default function NotificationsManagementPage() {
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<NotificationFiltersState>({
+    status: "all",
+    type: "all",
+    audience: "all",
+    channel: "all",
+    sort: "newest",
+  });
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -55,8 +74,8 @@ export default function NotificationsManagementPage() {
         const raw: Record<string, any>[] = Array.isArray(res.data)
           ? res.data
           : Array.isArray(res.data?.results)
-          ? res.data.results
-          : [];
+            ? res.data.results
+            : [];
         setRows(raw.map(mapApiNotification));
       } catch {
         setFetchError("Failed to load notifications");
@@ -68,12 +87,36 @@ export default function NotificationsManagementPage() {
   }, []);
 
   const stats = useMemo(() => buildStats(rows), [rows]);
+  const audienceOptions = useMemo(() => Array.from(new Set(rows.map((row) => row.audience))), [rows]);
+  const filteredRows = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    const visible = rows.filter((row) => {
+      const searchMatch =
+        query.length === 0 ||
+        row.title.toLowerCase().includes(query) ||
+        row.description.toLowerCase().includes(query) ||
+        row.type.toLowerCase().includes(query) ||
+        row.audience.toLowerCase().includes(query) ||
+        row.status.toLowerCase().includes(query);
+      const statusMatch = filters.status === "all" || row.status === filters.status;
+      const typeMatch = filters.type === "all" || row.typeValue === filters.type;
+      const audienceMatch = filters.audience === "all" || row.audience === filters.audience;
+      const channelMatch = filters.channel === "all" || row.channels.includes(filters.channel);
+      return searchMatch && statusMatch && typeMatch && audienceMatch && channelMatch;
+    });
+
+    return visible.sort((a, b) => {
+      const aTime = new Date(a.createdAt).getTime();
+      const bTime = new Date(b.createdAt).getTime();
+      return filters.sort === "oldest" ? aTime - bTime : bTime - aTime;
+    });
+  }, [filters, rows, searchTerm]);
 
   return (
     <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <NotificationsHeaderAndStats stats={stats} />
-        <NotificationsFilters />
+        <NotificationsHeaderAndStats stats={stats} searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        <NotificationsFilters filters={filters} onChange={setFilters} audienceOptions={audienceOptions} />
 
         {isLoading && (
           <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">
@@ -90,10 +133,13 @@ export default function NotificationsManagementPage() {
             No notifications found. Create the first one using the button above.
           </div>
         )}
-
-        {!isLoading && rows.length > 0 && (
-          <NotificationsTable rows={rows} />
+        {!isLoading && !fetchError && rows.length > 0 && filteredRows.length === 0 && (
+          <div className="rounded-xl border border-[#DFDFDF] bg-white p-8 text-center text-sm text-[#6B7280]">
+            No notifications match the current search and filters.
+          </div>
         )}
+
+        {!isLoading && filteredRows.length > 0 && <NotificationsTable rows={filteredRows} />}
       </div>
     </section>
   );

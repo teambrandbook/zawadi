@@ -15,7 +15,6 @@ import {
   ChevronDown,
   Bell,
   ExternalLink,
-  HelpCircle,
   RefreshCw,
   Share2,
 } from "lucide-react";
@@ -53,9 +52,20 @@ type RegistrationItem = {
   };
 };
 
-type TabKey = "All Events" | "Upcoming" | "Joined" | "Completed" | "Invitations";
+type NotificationReceipt = {
+  receipt_id: number;
+  id: number;
+  title: string;
+  body: string;
+  notification_type: "SYSTEM" | "ALERT" | "REMINDER" | "PROMOTIONAL";
+  is_read: boolean;
+  created_at: string;
+};
 
-const tabs: TabKey[] = ["All Events", "Upcoming", "Joined", "Completed", "Invitations"];
+type TabKey = "All Events" | "Upcoming" | "Joined" | "Invitations";
+
+const tabs: TabKey[] = ["All Events", "Upcoming", "Joined", "Invitations"];
+const EVENT_CALENDAR_STORAGE_KEY = "zewadiCommunityCalendarEventIds";
 
 function eventTypeLabel(type: string): string {
   const map: Record<string, string> = {
@@ -111,10 +121,48 @@ function formatDayAndTime(dateStr: string | null, timeStr?: string | null): { da
   return { day, time, full };
 }
 
+function getEventStartTime(event: Pick<EventListItem, "event_date" | "start_time">): number {
+  if (!event.event_date) return NaN;
+  const dateTimeStr = event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date;
+  return new Date(dateTimeStr).getTime();
+}
+
+function isUpcomingEvent(event: Pick<EventListItem, "event_date" | "start_time" | "status">): boolean {
+  const status = event.status.toLowerCase();
+  if (status === "completed" || status === "cancelled") return false;
+
+  const startsAt = getEventStartTime(event);
+  return !Number.isNaN(startsAt) && startsAt >= Date.now();
+}
+
+function isEventNotification(item: NotificationReceipt): boolean {
+  const text = `${item.title} ${item.body}`.toLowerCase();
+  return (
+    item.notification_type === "PROMOTIONAL" ||
+    text.includes("event") ||
+    text.includes("workshop") ||
+    text.includes("webinar") ||
+    text.includes("wellness session")
+  );
+}
+
+function notificationTimeAgo(value: string): string {
+  const createdAt = new Date(value).getTime();
+  if (Number.isNaN(createdAt)) return "";
+  const minutes = Math.max(0, Math.floor((Date.now() - createdAt) / 60000));
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
 export default function EventsDashboard() {
   const eventListRef = useRef<HTMLDivElement | null>(null);
   const [events, setEvents] = useState<EventListItem[]>([]);
   const [registrations, setRegistrations] = useState<RegistrationItem[]>([]);
+  const [calendarEventIds, setCalendarEventIds] = useState<number[]>([]);
+  const [eventNotifications, setEventNotifications] = useState<NotificationReceipt[]>([]);
   const [activeTab, setActiveTab] = useState<TabKey>("All Events");
   const [searchTerm, setSearchTerm] = useState("");
   const [activeType, setActiveType] = useState("all");
@@ -164,8 +212,32 @@ export default function EventsDashboard() {
     }
   }
 
+  async function loadEventNotifications() {
+    try {
+      const response = await api.get<NotificationReceipt[] | { results?: NotificationReceipt[] }>("/notifications/inbox/");
+      const data = Array.isArray(response.data) ? response.data : response.data.results ?? [];
+      const latestEventNotifications = data
+        .filter(isEventNotification)
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3);
+      setEventNotifications(latestEventNotifications);
+    } catch {
+      setEventNotifications([]);
+    }
+  }
+
   useEffect(() => {
     void loadData();
+    void loadEventNotifications();
+  }, []);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(EVENT_CALENDAR_STORAGE_KEY) || "[]");
+      setCalendarEventIds(Array.isArray(saved) ? saved.filter((id): id is number => typeof id === "number") : []);
+    } catch {
+      setCalendarEventIds([]);
+    }
   }, []);
 
   const activeRegistrations = useMemo(
@@ -183,18 +255,27 @@ export default function EventsDashboard() {
   );
 
   const upcomingEvents = useMemo(() => {
-    const now = Date.now();
-    return events.filter((event) => {
-      if (!event.event_date) return false;
-      const dateTimeStr = event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date;
-      const startsAt = new Date(dateTimeStr).getTime();
-      return !Number.isNaN(startsAt) && startsAt >= now;
-    });
+    return events.filter(isUpcomingEvent);
   }, [events]);
 
+  const calendarEvents = useMemo(() => {
+    const savedIds = new Set(calendarEventIds);
+    return upcomingEvents
+      .filter((event) => savedIds.has(event.id))
+      .sort((a, b) => getEventStartTime(a) - getEventStartTime(b));
+  }, [calendarEventIds, upcomingEvents]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    const validIds = new Set(upcomingEvents.map((event) => event.id));
+    const nextIds = calendarEventIds.filter((id) => validIds.has(id));
+    if (nextIds.length === calendarEventIds.length) return;
+    setCalendarEventIds(nextIds);
+    localStorage.setItem(EVENT_CALENDAR_STORAGE_KEY, JSON.stringify(nextIds));
+  }, [calendarEventIds, isLoading, upcomingEvents]);
+
   const filteredEvents = useMemo(() => {
-    const now = Date.now();
-    return events.filter((event) => {
+    return upcomingEvents.filter((event) => {
       const searchMatch =
         searchTerm.trim().length === 0 ||
         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -202,21 +283,16 @@ export default function EventsDashboard() {
       const typeMatch = activeType === "all" || event.event_type === activeType;
       const joined = registeredEventIds.has(event.id);
 
-      const dateTimeStr = event.event_date ? (event.start_time ? `${event.event_date}T${event.start_time}` : event.event_date) : "";
-      const startsAt = dateTimeStr ? new Date(dateTimeStr).getTime() : NaN;
-      const isUpcoming = Number.isNaN(startsAt) || startsAt >= now;
-
       if (activeTab === "Joined") return joined && searchMatch && typeMatch;
-      if (activeTab === "Upcoming") return !joined && searchMatch && typeMatch && isUpcoming;
-      if (activeTab === "Completed") return false;
+      if (activeTab === "Upcoming") return !joined && searchMatch && typeMatch;
       if (activeTab === "Invitations") return false;
       return searchMatch && typeMatch;
     });
-  }, [activeTab, activeType, registeredEventIds, searchTerm, events]);
+  }, [activeTab, activeType, registeredEventIds, searchTerm, upcomingEvents]);
 
   const joinedEvents = useMemo(() => {
     return activeRegistrations
-      .filter((item) => item.event_detail)
+      .filter((item) => item.event_detail && isUpcomingEvent(item.event_detail))
       .map((item) => ({
         registrationId: item.id,
         eventId: item.event,
@@ -231,9 +307,9 @@ export default function EventsDashboard() {
   }, [activeRegistrations]);
 
   const eventTypeOptions = useMemo(() => {
-    const types = Array.from(new Set(events.map((item) => item.event_type)));
+    const types = Array.from(new Set(upcomingEvents.map((item) => item.event_type)));
     return ["all", ...types];
-  }, [events]);
+  }, [upcomingEvents]);
 
   async function handleJoin(eventId: number) {
     setPendingEventId(eventId);
@@ -306,7 +382,7 @@ export default function EventsDashboard() {
             <div className="rounded-md bg-orange-100 p-2">
               <Users size={20} className="text-orange-700" />
             </div>
-            <span className="text-2xl font-bold text-orange-700">{activeRegistrations.length}</span>
+            <span className="text-2xl font-bold text-orange-700">{joinedEvents.length}</span>
           </div>
           <div>
             <h3 className="text-sm font-semibold text-gray-800">Joined Events</h3>
@@ -342,7 +418,17 @@ export default function EventsDashboard() {
       </div>
 
       <div ref={eventListRef} className="mb-8 flex flex-col gap-4 border-b border-gray-200 pb-4 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <style jsx>{`
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="hide-scrollbar flex gap-2 overflow-x-auto pb-1">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -442,12 +528,12 @@ export default function EventsDashboard() {
                           </div>
                         </div>
 
-                        <div className="space-y-4 text-left lg:min-w-[160px] lg:space-y-6 lg:text-right">
+                        <div className="space-y-4 text-left lg:min-w-[260px] lg:text-right">
                           <span className="whitespace-nowrap text-xs text-gray-500">{formatted.full}</span>
                           <div className="flex flex-wrap gap-2 lg:justify-end">
                             <Link
                               href={`/communityDashBoard/events/${event.id}`}
-                              className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020]"
+                              className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-md bg-[#06402B] px-4 text-xs font-semibold text-white hover:bg-[#053020]"
                             >
                               View Details
                             </Link>
@@ -455,7 +541,7 @@ export default function EventsDashboard() {
                               <button
                                 onClick={() => handleCancel(event.id)}
                                 disabled={pendingEventId === event.id}
-                                className="rounded-md border border-gray-300 px-4 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
+                                className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-md border border-gray-300 px-4 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-60"
                               >
                                 {pendingEventId === event.id ? "Cancelling..." : "Cancel"}
                               </button>
@@ -463,7 +549,7 @@ export default function EventsDashboard() {
                               <button
                                 onClick={() => handleJoin(event.id)}
                                 disabled={pendingEventId === event.id}
-                                className="rounded-md bg-[#06402B] px-4 py-2 text-xs font-semibold text-white hover:bg-[#053020] disabled:opacity-60"
+                                className="inline-flex h-10 min-w-[112px] items-center justify-center rounded-md bg-[#06402B] px-4 text-xs font-semibold text-white hover:bg-[#053020] disabled:opacity-60"
                               >
                                 {pendingEventId === event.id ? "Joining..." : "Join Event"}
                               </button>
@@ -542,12 +628,16 @@ export default function EventsDashboard() {
             <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Calendar</h3>
               <div className="relative space-y-4 before:absolute before:inset-0 before:mx-auto before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent before:translate-x-0">
-                {upcomingEvents.slice(0, 3).map((event, index) => {
+                {calendarEvents.slice(0, 3).map((event, index) => {
                   const when = formatDayAndTime(event.event_date, event.start_time);
                   const dotClass =
                     index === 0 ? "bg-[#06402B]" : index === 1 ? "bg-purple-500" : "bg-blue-500";
                   return (
-                    <div key={event.id} className="relative flex items-center justify-between">
+                    <Link
+                      key={event.id}
+                      href={`/communityDashBoard/events/${event.id}`}
+                      className="relative flex items-center justify-between"
+                    >
                       <div className={`flex w-full items-center rounded-md p-2 ${index === 0 ? "bg-[#f3ecd9]" : "hover:bg-gray-50"}`}>
                         <div className={`mr-3 h-2 w-2 flex-shrink-0 rounded-full ${dotClass}`} />
                         <div>
@@ -555,34 +645,49 @@ export default function EventsDashboard() {
                           <p className="text-[11px] text-gray-600">{event.title}</p>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
+                {calendarEvents.length === 0 ? (
+                  <p className="relative rounded-md bg-gray-50 p-3 text-xs text-gray-500">
+                    No events added to calendar yet.
+                  </p>
+                ) : null}
               </div>
             </div>
 
             <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <h3 className="mb-4 text-[15px] font-bold text-[#06402B]">Event Alerts</h3>
               <div className="space-y-3">
-                <div className="rounded-lg border border-orange-100 bg-orange-50 p-3">
-                  <div className="mb-1.5 flex items-center space-x-2">
-                    <Bell size={14} className="text-orange-600" />
-                    <span className="text-xs font-bold text-orange-900">New Event Available</span>
-                  </div>
-                  <p className="mb-2 text-xs leading-relaxed text-orange-800">
-                    Fresh wellness events are now available for registration.
-                  </p>
-                  <button className="text-xs font-semibold text-orange-600 hover:text-orange-700">Browse Events</button>
-                </div>
+                {eventNotifications.map((notification, index) => {
+                  const toneClass =
+                    index === 0
+                      ? "border-orange-100 bg-orange-50 text-orange-900"
+                      : "border-blue-100 bg-blue-50 text-blue-900";
+                  const iconClass = index === 0 ? "text-orange-600" : "text-blue-600";
+                  return (
+                    <Link
+                      key={notification.receipt_id}
+                      href="/communityDashBoard/notifications"
+                      className={`block rounded-lg border p-3 transition hover:shadow-sm ${toneClass}`}
+                    >
+                      <div className="mb-1.5 flex items-center justify-between gap-2">
+                        <span className="flex min-w-0 items-center gap-2">
+                          <Bell size={14} className={`shrink-0 ${iconClass}`} />
+                          <span className="truncate text-xs font-bold">{notification.title}</span>
+                        </span>
+                        <span className="shrink-0 text-[10px] opacity-70">{notificationTimeAgo(notification.created_at)}</span>
+                      </div>
+                      <p className="line-clamp-2 text-xs leading-relaxed">{notification.body}</p>
+                    </Link>
+                  );
+                })}
 
-                <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
-                  <div className="mb-1.5 flex items-center space-x-2">
-                    <HelpCircle size={14} className="text-blue-600" />
-                    <span className="text-xs font-bold text-blue-900">Need Help?</span>
+                {eventNotifications.length === 0 ? (
+                  <div className="rounded-lg border border-gray-100 bg-gray-50 p-3 text-xs leading-relaxed text-gray-500">
+                    No event notifications yet.
                   </div>
-                  <p className="mb-2 text-xs leading-relaxed text-blue-800">Review event details and attendance updates from your dashboard.</p>
-                  <button className="text-xs font-semibold text-blue-600 hover:text-blue-700">Open Help Center</button>
-                </div>
+                ) : null}
               </div>
             </div>
 

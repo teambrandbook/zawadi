@@ -1,7 +1,21 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight, Clock3, Search } from "lucide-react";
 
-export default function AppointmentsHeader() {
+type Props = {
+  dateLabel: string;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  onTodayClick: () => void;
+  onNextDateClick: () => void;
+};
+
+export default function AppointmentsHeader({
+  dateLabel,
+  searchValue,
+  onSearchChange,
+  onTodayClick,
+  onNextDateClick,
+}: Props) {
   return (
     <section className="py-4 flex flex-col gap-4">
 
@@ -16,13 +30,14 @@ export default function AppointmentsHeader() {
         </div>
 
         {/* Right Side */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 w-full lg:w-auto">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center sm:justify-end gap-3 w-full lg:w-auto">
 
           {/* Date Selector */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto md:mr-auto">
 
             <button
               type="button"
+              onClick={onTodayClick}
               className="flex-1 sm:flex-none inline-flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#A38355] px-3 text-sm font-medium text-white hover:bg-[#8e7149]"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -30,11 +45,12 @@ export default function AppointmentsHeader() {
             </button>
 
             <span className="text-sm font-medium text-[#344054] whitespace-nowrap">
-              March 15, 2024
+              {dateLabel}
             </span>
 
             <button
               type="button"
+              onClick={onNextDateClick}
               className="inline-flex h-10 w-10 items-center justify-center rounded-[10px] bg-[#A38355] text-white hover:bg-[#8e7149]"
             >
               <ChevronRight className="h-4 w-4" />
@@ -47,6 +63,8 @@ export default function AppointmentsHeader() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98A2B3]" />
             <input
               type="text"
+              value={searchValue}
+              onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search appointments..."
               className="h-10 w-full rounded-[10px] border border-[#E4E7EC] bg-white pl-10 pr-3 text-sm text-[#344054] outline-none focus:ring-1 focus:ring-[#0A4833]/20"
             />
