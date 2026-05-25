@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Phone } from "lucide-react";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 export default function CommunitySection() {
   const { locale } = useLocale();
@@ -34,7 +35,7 @@ export default function CommunitySection() {
                 25+
               </span>
               <span className="font-sans text-[17px] font-semibold leading-7 text-white">
-                <span dangerouslySetInnerHTML={{ __html: communityText.statLabelHTML }} />
+                <span dangerouslySetInnerHTML={{ __html: sanitizeHTML(communityText.statLabelHTML) }} />
               </span>
             </div>
           </div>

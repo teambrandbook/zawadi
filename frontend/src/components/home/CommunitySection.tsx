@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 const CommunitySection = () => {
   const { locale } = useLocale();
@@ -60,7 +61,7 @@ const CommunitySection = () => {
                 <span className="text-2xl lg:text-4xl font-bold font-['Inter']">100%</span>
                 <span
                   className="text-[10px] lg:text-[14px] leading-tight font-medium opacity-90 uppercase tracking-wide"
-                  dangerouslySetInnerHTML={{ __html: communityTranslations.badgeTextHTML }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHTML(communityTranslations.badgeTextHTML) }}
                 />
               </div>
             </div>

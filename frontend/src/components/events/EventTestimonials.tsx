@@ -4,6 +4,7 @@ import Image from "next/image";
 import { MoveLeft, MoveRight } from "lucide-react";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 export default function EventTestimonials() {
   const { locale } = useLocale();
@@ -21,7 +22,7 @@ export default function EventTestimonials() {
 
           <h2
             className="mt-4 font-serif text-[36px] leading-[1.1] text-[#1f4d3a] md:text-[48px] fade-in"
-            dangerouslySetInnerHTML={{ __html: testimonialText.titleHTML }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(testimonialText.titleHTML) }}
           />
         </div>
 
