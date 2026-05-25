@@ -1,4 +1,4 @@
-from django.db import OperationalError, ProgrammingError
+from django.db import OperationalError, ProgrammingError, transaction
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.permissions import BasePermission, IsAuthenticated
@@ -32,10 +32,11 @@ class CommunityProfileAPIView(APIView):
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def _get_or_create_profile(self, user):
-        profile, _ = CommunityUser.objects.get_or_create(
-            user=user,
-            defaults={"user_type": UserType.GUEST},
-        )
+        with transaction.atomic():
+            profile, _ = CommunityUser.objects.select_for_update().get_or_create(
+                user=user,
+                defaults={"user_type": UserType.GUEST},
+            )
         return profile
 
     def get(self, request):
