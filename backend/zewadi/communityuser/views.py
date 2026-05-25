@@ -1,7 +1,7 @@
 from django.db import OperationalError, ProgrammingError, transaction
 from django.utils import timezone
 from rest_framework import status
-from rest_framework.permissions import BasePermission, IsAuthenticated
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
@@ -15,6 +15,48 @@ from events.models import EventRegistration
 from notifications.models import UserNotificationReceipt
 from orders.models import Order
 from recipes.models import Recipe
+
+
+class CommunityPublicStatsAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from consultant.models import Consultant
+        from events.models import Event
+        from product.models import Product, ProductStatus
+
+        def safe_query(query_fn, default=0):
+            try:
+                return query_fn()
+            except (ProgrammingError, OperationalError):
+                return default
+
+        return Response(
+            {
+                "community_members": safe_query(
+                    lambda: CommunityUser.objects.filter(user_type=UserType.MEMBER).count()
+                ),
+                "events_hosted": safe_query(
+                    lambda: Event.objects.filter(
+                        show_in_community=True,
+                        status__in=[
+                            Event.EventStatus.PUBLISHED,
+                            Event.EventStatus.COMPLETED,
+                        ],
+                    ).count()
+                ),
+                "consultants": safe_query(
+                    lambda: Consultant.objects.filter(
+                        available=True,
+                        user__is_active=True,
+                    ).count()
+                ),
+                "healthy_products": safe_query(
+                    lambda: Product.objects.filter(product_status=ProductStatus.ACTIVE).count()
+                ),
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class IsCommunityUser(BasePermission):

@@ -703,7 +703,10 @@ class ConsultantBookingConformApi(APIView):
             Q(status=ConsultationBooking.BookingStatus.PENDING)
             | Q(
                 consultant=request.user.consultant,
-                status=ConsultationBooking.BookingStatus.CONFIRMED,
+                status__in=[
+                    ConsultationBooking.BookingStatus.CONFIRMED,
+                    ConsultationBooking.BookingStatus.COMPLETED,
+                ],
             )
         ).select_related("user", "consultant__user").order_by("booked_date", "booked_slot", "created_at")
 

@@ -1,4 +1,5 @@
 import { Camera, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Props = {
   name: string;
@@ -21,6 +22,20 @@ export default function ProfilePhotoCard({
   onPhotoChange,
   onSave,
 }: Props) {
+  const [hasImageError, setHasImageError] = useState(false);
+  const initials = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase() || "C";
+
+  useEffect(() => {
+    setHasImageError(false);
+  }, [imageSrc]);
+
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) {
@@ -42,8 +57,14 @@ export default function ProfilePhotoCard({
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <div className="relative h-20 w-20 shrink-0 sm:h-24 sm:w-24">
           <div className="h-full w-full overflow-hidden rounded-full border-4 border-[#EBE1CF] bg-[#F7F4EE]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={imageSrc} alt={imageAlt} className="h-full w-full object-cover" />
+            {imageSrc && !hasImageError ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageSrc} alt={imageAlt} className="h-full w-full object-cover" onError={() => setHasImageError(true)} />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-[#0A4833]">
+                {initials}
+              </div>
+            )}
           </div>
 
           <label

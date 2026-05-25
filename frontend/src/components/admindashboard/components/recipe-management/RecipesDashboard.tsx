@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { Check, ChefHat, CircleAlert, Eye, Filter, Globe, Plus, Search, ShieldAlert, Sparkles, Star, Trash2, Upload, X,Pencil } from "lucide-react";
+import { Check, ChefHat, CircleAlert, Eye, Globe, Plus, Search, Sparkles, Star, Trash2, Upload, X,Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -598,121 +598,119 @@ export default function RecipesDashboard() {
               />
             </label>
             <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#0A4833]">
-              <Filter className="h-4 w-4" />
-              Filter
-            </button>
-            <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#0A4833]">
               <Upload className="h-4 w-4" />
               Export
             </button>
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           {statCards.map((card) => {
             const Icon = card.icon;
             return (
-              <article key={card.title} className="rounded-xl border border-[#E5E7EB] bg-white p-4">
-                <div className="mb-3 flex items-start justify-between">
+              <article key={card.title} className="h-[126px] overflow-hidden rounded-xl border border-[#E5E7EB] bg-white p-4">
+                <div className="mb-2 flex items-start justify-between gap-2">
                   <span className={`grid h-9 w-9 place-items-center rounded-md ${card.iconBg}`}>
                     <Icon className={`h-4 w-4 ${card.accent}`} />
                   </span>
-                  <span className={`text-[11px] font-medium ${card.accent}`}>{card.note}</span>
+                  <span className={`truncate text-[11px] font-medium ${card.accent}`}>{card.note}</span>
                 </div>
-                <p className="text-[30px] font-semibold leading-none text-[#0A4833]">{card.value}</p>
-                <p className="mt-2 text-[13px] text-[#6B7280]">{card.title}</p>
+                <p className="truncate text-[28px] font-semibold leading-none text-[#0A4833]">{card.value}</p>
+                <p className="mt-2 truncate text-[13px] text-[#6B7280]">{card.title}</p>
               </article>
             );
           })}
         </div>
 
         <section className="rounded-xl border border-[#E5E7EB] bg-white p-3">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <label className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#98A2B3]" />
+          <style jsx>{`
+            .hide-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
 
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Search by title, user, category, or tag..."
-                className="h-10 w-[300px] rounded-lg border border-[#E5E7EB] bg-white pl-8 pr-3 text-sm outline-none placeholder:text-[#98A2B3]"
-              />
-            </label>
-            <select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none"
-            >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="published">Published</option>
-              <option value="draft">Draft</option>
-              <option value="rejected">Rejected</option>
-            </select>
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none"
-            >
-              <option value="all">All Categories</option>
-              {categoryOptions.map((category) => (
-                <option key={category} value={category.toLowerCase()}>
-                  {category}
-                </option>
-              ))}
-            </select>
-            <select
-              value={sortBy}
-              onChange={(event) => setSortBy(event.target.value)}
-              className="h-10 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none"
-            >
-              <option value="newest">Sort: Newest</option>
-              <option value="oldest">Sort: Oldest</option>
-              <option value="title">Sort: Title</option>
-              <option value="category">Sort: Category</option>
-            </select>
-            <button
-              type="button"
-              onClick={() => router.push("/admindashboard/recipes/add")}
-              className="ml-auto inline-flex h-10 items-center gap-2 rounded-lg bg-[#0A4833] px-4 text-sm font-medium text-white"
-            >
-              <Plus className="h-4 w-4" />
-              Add Recipe
-            </button>
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+          <div className="space-y-3 xl:flex xl:items-center xl:gap-2 xl:space-y-0">
+            <div className="space-y-3 md:flex md:items-center md:gap-2 md:space-y-0 xl:flex-1">
+              <label className="relative block w-full md:flex-[1.5]">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#98A2B3]" />
+
+                <input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search by title, user, category, or tag..."
+                  className="h-10 w-full rounded-lg border border-[#E5E7EB] bg-white pl-8 pr-3 text-sm outline-none placeholder:text-[#98A2B3]"
+                />
+              </label>
+              <div className="hide-scrollbar overflow-x-auto md:flex-1 md:overflow-visible">
+                <div className="flex min-w-max items-center gap-2 md:min-w-0">
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => setStatusFilter(event.target.value)}
+                    className="h-10 w-[116px] shrink-0 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none md:flex-1"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="published">Published</option>
+                    <option value="draft">Draft</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <select
+                    value={categoryFilter}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
+                    className="h-10 w-[134px] shrink-0 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none md:flex-1"
+                  >
+                    <option value="all">All Categories</option>
+                    {categoryOptions.map((category) => (
+                      <option key={category} value={category.toLowerCase()}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={sortBy}
+                    onChange={(event) => setSortBy(event.target.value)}
+                    className="h-10 w-[136px] shrink-0 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#111827] outline-none md:flex-1"
+                  >
+                    <option value="newest">Sort: Newest</option>
+                    <option value="oldest">Sort: Oldest</option>
+                    <option value="title">Sort: Title</option>
+                    <option value="category">Sort: Category</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end xl:ml-auto">
+              <button
+                type="button"
+                onClick={() => router.push("/admindashboard/recipes/add")}
+                className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#0A4833] px-4 text-sm font-medium text-white"
+              >
+                <Plus className="h-4 w-4" />
+                Add Recipe
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setFeaturedOnly((prev) => !prev)}
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${featuredOnly ? "bg-[#E7F7EC] text-[#15803D]" : "bg-[#F2F4F7] text-[#475467]"}`}
-            >
-              <Filter className="h-3 w-3" />
-              Featured Only
-            </button>
-            <button
-              type="button"
-              onClick={() => setNeedsRevisionOnly((prev) => !prev)}
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${needsRevisionOnly ? "bg-[#FFF6D8] text-[#A16207]" : "bg-[#F2F4F7] text-[#475467]"}`}
-            >
-              <ShieldAlert className="h-3 w-3" />
-              Needs Revision
-            </button>
-            <button
-              type="button"
-              onClick={() => setMostEngagedOnly((prev) => !prev)}
-              className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11px] ${mostEngagedOnly ? "bg-[#EAF1FE] text-[#2563EB]" : "bg-[#F2F4F7] text-[#475467]"}`}
-            >
-              <Sparkles className="h-3 w-3" />
-              Most Engaged
-            </button>
-          </div>
         </section>
 
         <section className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white">
+          <style jsx>{`
+            .hide-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+
+            .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] p-3">
             <h2 className="text-[18px] font-semibold text-[#0A4833]">Recipe Submissions</h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="hide-scrollbar flex max-w-full gap-2 overflow-x-auto">
               <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-3 py-1.5 text-[12px] text-[#15803D]">
                 <Check className="h-3.5 w-3.5" />
                 Approve Selected
@@ -747,8 +745,17 @@ export default function RecipesDashboard() {
           )}
 
           {!isLoading && filteredRows.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
+            <div className="hide-scrollbar overflow-x-auto">
+              <table className="min-w-[760px] table-fixed text-left text-sm lg:min-w-full">
+                <colgroup>
+                  <col className="w-[48px]" />
+                  <col className="w-[230px]" />
+                  <col className="w-[180px]" />
+                  <col className="w-[120px]" />
+                  <col className="w-[110px]" />
+                  <col className="w-[110px]" />
+                  <col className="w-[120px]" />
+                </colgroup>
                 <thead className="bg-[#F9FAFB] text-[12px] text-[#475467]">
                   <tr>
                     <th className="w-10 px-3 py-3">
@@ -772,9 +779,9 @@ export default function RecipesDashboard() {
                         <div className="flex items-center gap-3">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={row.image} alt={row.name} className="h-10 w-10 rounded-lg object-cover" />
-                          <div>
-                            <p className="font-medium text-[#0F172A]">{row.name}</p>
-                            <p className="text-[12px] text-[#6B7280]">{row.meta}</p>
+                          <div className="min-w-0">
+                            <p className="truncate font-medium text-[#0F172A]">{row.name}</p>
+                            <p className="truncate text-[12px] text-[#6B7280]">{row.meta}</p>
                           </div>
                         </div>
                       </td>
@@ -787,7 +794,7 @@ export default function RecipesDashboard() {
                               {row.user.slice(0, 1).toUpperCase()}
                             </div>
                           )}
-                          <span className="text-[#475467]">{row.user}</span>
+                          <span className="truncate text-[#475467]">{row.user}</span>
                         </div>
                       </td>
                       <td className="px-3 py-3 text-[#8B5E2A]">{row.category}</td>

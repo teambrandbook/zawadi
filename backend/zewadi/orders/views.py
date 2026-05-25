@@ -231,6 +231,12 @@ class OrderReviewCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        if not order.product_id:
+            return Response(
+                {"detail": "This order cannot be reviewed because its product is no longer available."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
         if hasattr(order, "review"):
             return Response(
                 {"detail": "A review already exists for this order."},

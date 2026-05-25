@@ -14,12 +14,14 @@ import {
 import UpcomingSessions from "./components/UpcomingSessions";
 import ConsultationHistory from "./components/ConsultationHistory";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 
 type ApiBooking = {
   id: number;
   consultant_name: string;
   consultant_role: string;
+  consultant_image?: string | null;
   session_type: string;
   booked_date: string;
   booked_slot: string;
@@ -37,6 +39,7 @@ type Session = {
   mode: "Video Call" | "Phone Call";
   status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled";
   meetingLink?: string;
+  image: string;
 };
 
 type SummaryCard = {
@@ -97,11 +100,12 @@ function mapBookingToSession(booking: ApiBooking): Session {
     mode: modeMap[booking.session_type] ?? "Video Call",
     status: statusMap[booking.status] ?? "scheduled",
     meetingLink: booking.meeting_link || "",
+    image: booking.consultant_image ? getImageUrl(booking.consultant_image) : "",
   };
 }
 
-function avatarFor(index: number) {
-  return `/recipe/recipe-${(index % 4) + 1}.webp`;
+function avatarFor(session: Pick<Session, "image">, index: number) {
+  return session.image || `/recipe/recipe-${(index % 4) + 1}.webp`;
 }
 
 function SummaryCard({ card }: { card: SummaryCard }) {
@@ -135,7 +139,7 @@ function SessionJoinCard({ session, onJoin }: { session?: Session; onJoin: (id: 
     <aside className="rounded-[10px] border border-[#E1E4E8] bg-white p-5">
       <div className="flex items-center gap-3">
         <div className="relative h-10 w-10 overflow-hidden rounded-full bg-[#E5E7EB]">
-          <Image src="/recipe/recipe-2.webp" alt={session.doctor} fill className="object-cover" />
+          <Image src={session.image || "/recipe/recipe-2.webp"} alt={session.doctor} fill className="object-cover" />
         </div>
         <div>
           <p className="text-[14px] font-bold leading-tight text-[#0A4833]">{session.doctor}</p>
@@ -335,7 +339,7 @@ export default function Consultation() {
   const historyRows = (completedSessions.length > 0 ? completedSessions : sessions.slice(0, 2)).map((session, index) => ({
     id: session.id,
     nutritionist: session.doctor,
-    profileImage: avatarFor(index),
+    profileImage: avatarFor(session, index),
     date: session.dateLabel,
     type: session.mode,
     status: session.status === "completed" ? "Completed" : "Scheduled",
@@ -370,7 +374,7 @@ export default function Consultation() {
           </button>
         </header>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
           {summaryCards.map((card) => (
             <SummaryCard key={card.label} card={card} />
           ))}

@@ -15,11 +15,11 @@ const CommunitySection = () => {
 
   return (
     <section className="relative w-full py-20 lg:py-32 bg-[#fffef5] overflow-hidden">
-      <div className="container mx-auto px-6 lg:px-50 flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
+      <div className="container mx-auto px-6 lg:px-50 flex flex-col md:flex-row items-center gap-12 md:gap-8 lg:gap-20">
 
         {/* --- Heading & Tagline Block --- */}
         {/* Placed first in DOM order. On small screens, it stays at the top. */}
-        <div className="w-full lg:w-[45%] flex flex-col items-start order-1 lg:hidden">
+        <div className="w-full lg:w-[45%] flex flex-col items-start order-1 md:hidden lg:hidden">
           <p className="text-[#3d634d] text-base font-semibold font-['Inter'] mb-3 text-center w-full fade-in">
             {communityTranslations.tagline}
           </p>
@@ -31,8 +31,8 @@ const CommunitySection = () => {
 
         {/* --- Image Stack Content --- */}
         {/* On mobile/md, this comes second (under heading). On lg, it moves to the right. */}
-        <div className="w-full lg:w-[55%] relative h-[350px] lg:h-[550px] mb-6 lg:mb-0 flex justify-center lg:block order-2 lg:order-2">
-          <div className="relative w-full max-w-[400px] lg:max-w-none h-full lg:mt-10">
+        <div className="w-full md:w-[50%] lg:w-[55%] relative h-[350px] md:h-[360px] lg:h-[550px] mb-6 md:mb-0 lg:mb-0 flex justify-center lg:block order-2 md:order-2 lg:order-2">
+          <div className="relative w-full max-w-[400px] md:max-w-[360px] lg:max-w-none h-full lg:mt-10">
 
             {/* 1. Dark Green Background Box */}
             <div className="zoom-item absolute top-0 right-0 z-0 h-[95%] w-[40%] overflow-hidden rounded-lg bg-[#1a3d2e] lg:right-[-30px]">
@@ -81,25 +81,25 @@ const CommunitySection = () => {
 
         {/* --- Main Text Details & Actions Block --- */}
         {/* On mobile/md, this flows third (under image stack). On lg, it maps to the left column. */}
-        <div className="w-full lg:w-[45%] flex flex-col items-start order-3 lg:order-1">
+        <div className="w-full md:w-[50%] lg:w-[45%] flex flex-col items-start order-3 md:order-1 lg:order-1">
           
-          {/* Desktop-only Headings to preserve side-by-side flexbox columns on large viewports */}
-          <div className="hidden lg:block w-full">
-            <p className="text-[#3d634d] lg:text-[22px] font-semibold font-['Inter'] mb-3 lg:text-left fade-in">
+          {/* Tablet/desktop headings to preserve side-by-side flexbox columns */}
+          <div className="hidden md:block w-full">
+            <p className="text-[#3d634d] md:text-[18px] lg:text-[22px] font-semibold font-['Inter'] mb-3 md:text-left lg:text-left fade-in">
               {communityTranslations.tagline}
             </p>
 
-            <h2 className="text-[#121414] lg:text-[64px] font-bold font-['Playfair_Display'] leading-[1.1] mb-8 lg:text-left fade-in">
+            <h2 className="text-[#121414] md:text-[38px] lg:text-[64px] font-bold font-['Playfair_Display'] leading-[1.1] mb-8 md:text-left lg:text-left fade-in">
               {communityTranslations.title}
             </h2>
           </div>
 
-          <p className="text-[#444] text-sm lg:text-[15px] font-medium font-['Inter'] leading-relaxed mb-10 max-w-[480px] text-center lg:text-left fade-in w-full lg:w-auto">
+          <p className="text-[#444] text-sm lg:text-[15px] font-medium font-['Inter'] leading-relaxed mb-10 max-w-[480px] text-center md:text-left lg:text-left fade-in w-full md:w-auto lg:w-auto">
             {communityTranslations.description}
           </p>
 
           {/* Icons Row */}
-          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-8 lg:gap-12 mb-12 fade-in w-full lg:w-auto">
+          <div className="flex flex-wrap items-center justify-center md:justify-start lg:justify-start gap-8 md:gap-6 lg:gap-12 mb-12 fade-in w-full md:w-auto lg:w-auto">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 relative">
                 <Image src="/home/wellness.webp" alt="Wellness" width={40} height={40} />
@@ -121,7 +121,7 @@ const CommunitySection = () => {
           {/* Action Link */}
           <Link
             href="/about"
-            className="bg-[#244d3a] text-white rounded-full ps-8 pe-1.5 py-1.5 flex items-center gap-5 hover:opacity-90 transition-all font-bold font-['Inter'] text-[14px] mx-auto lg:mx-0 cursor-pointer"
+            className="bg-[#244d3a] text-white rounded-full ps-8 pe-1.5 py-1.5 flex items-center gap-5 hover:opacity-90 transition-all font-bold font-['Inter'] text-[14px] mx-auto md:mx-0 lg:mx-0 cursor-pointer"
           >
             {communityTranslations.discoverBtn}
             <div className="w-9 h-9 rounded-full bg-[#b47800] flex items-center justify-center shrink-0">

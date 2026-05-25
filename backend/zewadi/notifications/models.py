@@ -19,8 +19,13 @@ class Notification(models.Model):
 
     STATUS_CHOICES = [
         ("DRAFT", "Draft"),
+        ("SCHEDULED", "Scheduled"),
         ("SENT", "Sent"),
     ]
+
+    CHANNEL_IN_APP = "in_app"
+    CHANNEL_EMAIL = "email"
+    DEFAULT_CHANNELS = [CHANNEL_IN_APP]
 
     title = models.CharField(max_length=255)
     body = models.TextField()
@@ -39,6 +44,8 @@ class Notification(models.Model):
         choices=STATUS_CHOICES,
         default="DRAFT",
     )
+    delivery_channels = models.JSONField(default=list, blank=True)
+    scheduled_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     sent_at = models.DateTimeField(null=True, blank=True)
 
@@ -47,6 +54,14 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"{self.title} [{self.status}]"
+
+    def save(self, *args, **kwargs):
+        if not self.delivery_channels:
+            self.delivery_channels = self.DEFAULT_CHANNELS.copy()
+        super().save(*args, **kwargs)
+
+    def has_channel(self, channel: str) -> bool:
+        return channel in (self.delivery_channels or [])
 
 
 class UserNotificationReceipt(models.Model):

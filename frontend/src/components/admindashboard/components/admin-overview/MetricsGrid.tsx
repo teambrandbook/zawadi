@@ -122,14 +122,14 @@ export default function MetricsGrid({ stats }: Props) {
   const metrics = buildMetrics(stats);
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {metrics.map(({ label, value, subText, Icon, valueColor, subTextColor, iconBg, iconColor }) => (
-        <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+        <article key={label} className="h-[126px] overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between gap-2">
-            <div>
-              <p className="text-xs text-[#6B7280]">{label}</p>
-              <p className={`mt-1 text-3xl font-bold leading-none ${valueColor}`}>{value}</p>
-              <p className={`mt-1 text-xs ${subTextColor}`}>{subText}</p>
+            <div className="min-w-0">
+              <p className="truncate text-xs text-[#6B7280]">{label}</p>
+              <p className={`mt-1 truncate text-[28px] font-bold leading-none ${valueColor}`}>{value}</p>
+              <p className={`mt-1 truncate text-xs ${subTextColor}`}>{subText}</p>
             </div>
             <div className={`inline-flex h-9 w-9 items-center justify-center rounded-md ${iconBg}`}>
               <Icon className={`h-4 w-4 ${iconColor}`} />

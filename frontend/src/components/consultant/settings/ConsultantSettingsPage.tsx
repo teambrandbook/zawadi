@@ -26,11 +26,18 @@ const settingsTabs: ConsultantSettingsTab[] = [
   { id: "preferences", label: "Preferences" },
 ];
 
-const accountInfoFromBackend: AccountInfoField[] = [
-  { label: "Email Address", value: "sarah.johnson@zewadi.com" },
-  { label: "Phone Number", value: "+1 (555) 123-4567" },
-  { label: "Full Name", value: "Dr. Sarah Johnson" },
-  { label: "Specialization", value: "Nutritional Therapy" },
+const emptyAccountInfo: AccountInfoField[] = [
+  { label: "Email Address", value: "" },
+  { label: "Phone Number", value: "" },
+  { label: "Full Name", value: "" },
+  { label: "Specialization", value: "" },
+];
+
+const loadingAccountInfo: AccountInfoField[] = [
+  { label: "Email Address", value: "Loading..." },
+  { label: "Phone Number", value: "Loading..." },
+  { label: "Full Name", value: "Loading..." },
+  { label: "Specialization", value: "Loading..." },
 ];
 
 type ConsultantProfileApiResponse = {
@@ -48,6 +55,11 @@ type ConsultantSettingsApiResponse = {
   show_profile: boolean;
   auto_close_full_day: boolean;
   followup_priority: boolean;
+};
+
+type ConsultantProfileUpdateResponse = {
+  message: string;
+  data: ConsultantProfileApiResponse;
 };
 
 const passwordFieldsFromBackend: PasswordField[] = [
@@ -410,7 +422,8 @@ export default function ConsultantSettingsPage() {
   const [activeTab, setActiveTab] = useState<ConsultantSettingsTabId>("account");
   const [statusMessage, setStatusMessage] = useState("");
   const [isSaving, setIsSaving] = useState(false);
-  const [accountFields, setAccountFields] = useState(accountInfoFromBackend);
+  const [accountFields, setAccountFields] = useState(emptyAccountInfo);
+  const [isAccountLoading, setIsAccountLoading] = useState(true);
   const [accountPasswordFields, setAccountPasswordFields] = useState(passwordFieldsFromBackend);
   const [consultantSettings, setConsultantSettings] = useState<ConsultantSettingsApiResponse | null>(null);
   const [notificationPreferenceSections, setNotificationPreferenceSections] = useState(notificationPreferenceSectionsFromBackend);
@@ -425,28 +438,48 @@ export default function ConsultantSettingsPage() {
   useEffect(() => {
     let isMounted = true;
 
-    Promise.allSettled([
-      api.get<ConsultantProfileApiResponse>("/consultant/profile/"),
-      api.get<ConsultantSettingsApiResponse>("/consultant/settings/"),
-    ]).then(([profileResult, settingsResult]) => {
-      if (!isMounted) return;
-
-      if (profileResult.status === "fulfilled") {
-        setAccountFields(accountFieldsFromProfile(profileResult.value.data));
+    async function loadAccountProfile() {
+      setIsAccountLoading(true);
+      try {
+        const { data } = await api.get<ConsultantProfileApiResponse>("/consultant/profile/");
+        if (!isMounted) return;
+        setAccountFields(accountFieldsFromProfile(data));
+      } catch {
+        if (isMounted) {
+          setAccountFields(emptyAccountInfo);
+          setStatusMessage("Could not load account information.");
+        }
+      } finally {
+        if (isMounted) setIsAccountLoading(false);
       }
+    }
 
-      if (settingsResult.status === "fulfilled") {
-        const settings = settingsResult.value.data;
+    async function loadConsultantSettings() {
+      try {
+        const { data: settings } = await api.get<ConsultantSettingsApiResponse>("/consultant/settings/");
+        if (!isMounted) return;
         setConsultantSettings(settings);
         setNotificationPreferenceSections((current) => applyBackendSettingsToNotifications(current, settings));
         setPreferencesData((current) => applyBackendSettingsToPreferences(current, settings));
+      } catch {
+        // Account information should still be usable even if preference settings fail.
       }
-    });
+    }
+
+    void loadAccountProfile();
+    void loadConsultantSettings();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  function getErrorMessage(error: unknown, fallback: string) {
+    const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+    const detail = data?.error || data?.detail;
+    if (typeof detail === "string") return detail;
+    return fallback;
+  }
 
   function changeAccountField(label: string, value: string) {
     setAccountFields((current) =>
@@ -481,23 +514,41 @@ export default function ConsultantSettingsPage() {
   async function saveAccountSettings() {
     setIsSaving(true);
     setStatusMessage("");
+    const currentPassword = accountPasswordFields.find((field) => field.id === "current-password")?.value.trim() || "";
+    const newPassword = accountPasswordFields.find((field) => field.id === "new-password")?.value.trim() || "";
 
     try {
-      await api.patch("/consultant/profile/", {
+      const profileResponse = await api.patch<ConsultantProfileUpdateResponse>("/consultant/profile/", {
         full_name: accountValue("Full Name"),
         phone: accountValue("Phone Number"),
         experience_areas: accountValue("Specialization"),
       });
-      setAccountPasswordFields(passwordFieldsFromBackend);
+      setAccountFields(accountFieldsFromProfile(profileResponse.data.data));
+
+      if (currentPassword || newPassword) {
+        if (!currentPassword || !newPassword) {
+          setStatusMessage("Fill both password fields to change password.");
+          return;
+        }
+        await api.post("/account/change-password/", {
+          current_password: currentPassword,
+          new_password: newPassword,
+        });
+        setAccountPasswordFields(passwordFieldsFromBackend);
+        setStatusMessage("Account settings and password saved.");
+        return;
+      }
+
       setStatusMessage("Account settings saved.");
-    } catch {
-      setStatusMessage("Could not save account settings.");
+    } catch (error: unknown) {
+      setStatusMessage(getErrorMessage(error, "Could not save account settings."));
     } finally {
       setIsSaving(false);
     }
   }
 
   function resetAccountSettings() {
+    setIsAccountLoading(true);
     api
       .get<ConsultantProfileApiResponse>("/consultant/profile/")
       .then(({ data }) => {
@@ -505,7 +556,8 @@ export default function ConsultantSettingsPage() {
         setAccountPasswordFields(passwordFieldsFromBackend);
         setStatusMessage("Account settings reset.");
       })
-      .catch(() => setStatusMessage("Could not reset account settings."));
+      .catch(() => setStatusMessage("Could not reset account settings."))
+      .finally(() => setIsAccountLoading(false));
   }
 
   function buildSettingsPayloadFromCurrent(): ConsultantSettingsApiResponse {
@@ -832,7 +884,7 @@ export default function ConsultantSettingsPage() {
 
           <SettingsContentSwitcher
             activeTab={activeTab}
-            accountFields={accountFields}
+            accountFields={isAccountLoading ? loadingAccountInfo : accountFields}
             passwordFields={accountPasswordFields}
             securityPasswordFields={securityPasswordFields}
             notificationPreferenceSections={notificationPreferenceSections}

@@ -51,6 +51,7 @@ export default function RecipeDetailsContent({
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritePending, setFavoritePending] = useState(false);
   const ingredients = recipe.ingredients ?? [];
+  const optionalIngredients = recipe.optional ?? [];
   const steps = recipe.steps ?? [];
   const nutrition = recipe.nutrition ?? {
     calories: "-",
@@ -234,6 +235,13 @@ export default function RecipeDetailsContent({
                         </li>
                       ))}
                     </ul>
+
+                    {optionalIngredients.length > 0 ? (
+                      <p className="mt-5 font-['DM_Sans'] text-[14px] font-medium leading-snug text-[#1f4d3a] md:text-[13px]">
+                        <span className="font-bold">Optional:</span>{" "}
+                        {optionalIngredients.join(", ")}
+                      </p>
+                    ) : null}
                   </div>
                 ) : null}
               </div>

@@ -104,7 +104,7 @@ export default function AdminCartsPage() {
           <h1 className="text-2xl font-semibold text-[#0A4833]">Active Carts</h1>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
           <SummaryCard icon={UserRound} label="Customers With Carts" value={summary.users} />
           <SummaryCard icon={ShoppingCart} label="Cart Items" value={summary.items} />
           <SummaryCard icon={AlertTriangle} label="Low Stock In Carts" value={summary.lowStock} tone="warning" />

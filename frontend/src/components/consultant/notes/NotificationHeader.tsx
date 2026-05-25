@@ -6,7 +6,7 @@ type Props = {
 
 export default function NotificationHeader({ onMarkAllAsRead }: Props) {
   return (
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div>
         <h1 className="text-[30px] font-bold tracking-[-0.03em] text-[#0A4833]">Notifications</h1>
         <p className="mt-1 text-sm text-[#A88751]">
@@ -17,7 +17,7 @@ export default function NotificationHeader({ onMarkAllAsRead }: Props) {
       <button
         type="button"
         onClick={onMarkAllAsRead}
-        className="inline-flex h-10 items-center justify-center rounded-[8px] bg-[#0A4833] px-5 text-sm font-medium text-white transition hover:bg-[#083B2A]"
+        className="inline-flex h-10 w-fit self-end items-center justify-center rounded-[8px] bg-[#0A4833] px-4 text-xs font-medium text-white transition hover:bg-[#083B2A] md:self-start"
       >
         Mark All as Read
       </button>

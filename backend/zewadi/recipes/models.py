@@ -62,6 +62,7 @@ class Recipe(models.Model):
 
     health_benefits = models.TextField(blank=True, null=True)
     buckwheat_wellness_value = models.TextField(blank=True, null=True)
+    optional_ingredients = models.TextField(blank=True, null=True)
 
     calories = models.CharField(max_length=50, blank=True, null=True)
     fat = models.CharField(max_length=50, blank=True, null=True)

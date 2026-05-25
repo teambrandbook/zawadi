@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 import gsap from "@/lib/gsap";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -36,6 +36,7 @@ const Navbar = () => {
   const userEmail = useSelector((s: RootState) => s.user.email);
   const userPhoto = useSelector((s: RootState) => s.user.photo);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
 
   // i18n Hook and Data Selection
   const { locale, changeLocale } = useLocale();
@@ -43,6 +44,16 @@ const Navbar = () => {
   const { navLinks, footer } = navData;
   const innerPages = footer.innerPages;
   const loginLabel = translations[locale]?.loginPage?.navLogin || translations.en.loginPage.navLogin;
+  const isRtl = locale === "ar";
+  const profileLabels = {
+    profile: isRtl ? "ملفي الشخصي" : "My Profile",
+    orders: isRtl ? "طلباتي" : "My Orders",
+    logout: isRtl ? "تسجيل الخروج" : "Logout",
+    guest: isRtl ? "ضيف" : "Guest",
+    communityDashboard: isRtl ? "لوحة المجتمع" : "Community Dashboard",
+    membersOnly: isRtl ? "للأعضاء فقط" : "Members only",
+  };
+  const mobileLoginLabel = isRtl ? "دخول" : loginLabel;
 
   const isLinkActive = (href: string) => {
     if (href === "#") return false;
@@ -62,6 +73,10 @@ const Navbar = () => {
   useEffect(() => {
     if (isAuthenticated) dispatch(fetchCartCount());
   }, [pathname, isAuthenticated, dispatch]);
+
+  useEffect(() => {
+    setProfileImageFailed(false);
+  }, [userPhoto]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
@@ -92,12 +107,13 @@ const Navbar = () => {
     fullName?.charAt(0)?.toUpperCase() ||
     userEmail?.charAt(0)?.toUpperCase() ||
     "U";
+  const profileImageSrc = userPhoto ? getImageUrl(userPhoto) : "";
+  const showProfileImage = Boolean(userPhoto && profileImageSrc && profileImageSrc !== "/placeholder.png" && !profileImageFailed);
 
   function getProfileRoutes() {
     if (role === "admin" || role === "internal_staff") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
     if (role === "consultant") return { profile: "/consultant/profile", orders: "/consultant/appointments" };
-    if (userType === "guest") return { profile: "/guestprofile", orders: "/guestprofile/history" };
-    return { profile: "/communityDashBoard", orders: "/communityDashBoard/myorders" };
+    return { profile: "/guestprofile", orders: "/guestprofile/history" };
   }
 
   async function handleLogout() {
@@ -121,15 +137,125 @@ const Navbar = () => {
             : "bg-[#1A4331]/95 backdrop-blur-md shadow-lg"
         )}
       >
-        <div className="container mx-auto px-4 flex items-center justify-between h-14 md:h-20">
+        <div className="container relative mx-auto px-4 flex items-center justify-between h-14 md:h-20">
+          {/* Mobile Login/Profile Icon */}
+          <div className="relative flex w-25 items-center justify-start md:w-40 lg:hidden">
+            {isAuthenticated ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (isMobileMenuOpen) handleCloseMenu();
+                  setProfileOpen((v) => !v);
+                }}
+                aria-label={profileLabels.profile}
+                className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
+              >
+                {initials}
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                aria-label={mobileLoginLabel}
+                className="flex h-10 min-w-22 items-center justify-center rounded-full border border-white/30 px-4 text-sm font-bold text-white hover:bg-white/10 transition whitespace-nowrap"
+              >
+                {mobileLoginLabel}
+              </Link>
+            )}
+
+            {isAuthenticated && profileOpen && (
+              <div
+                className="fixed inset-0 z-40"
+                onClick={() => setProfileOpen(false)}
+              />
+            )}
+
+            {isAuthenticated && profileOpen && (
+              <div
+                dir={isRtl ? "rtl" : "ltr"}
+                className="absolute left-0 top-12 z-50 w-64 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden"
+              >
+                <div className="flex items-center gap-3 px-4 py-4 text-left rtl:text-right">
+                  <div className="w-10 h-10 rounded-full bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                    {initials}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {fullName || userEmail}
+                    </p>
+                    <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
+                    {userType === "guest" && (
+                      <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
+                        {profileLabels.guest}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-100 mx-1" />
+
+                <div className="py-1.5">
+                  <Link
+                    href={routes.profile}
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                  >
+                    {profileLabels.profile}
+                  </Link>
+                  <Link
+                    href={routes.orders}
+                    onClick={() => setProfileOpen(false)}
+                    className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                  >
+                    {profileLabels.orders}
+                  </Link>
+
+                  {role === "community_user" && (
+                    <Link
+                      href="/communityDashBoard"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                    >
+                      {userType === "member" ? (
+                        <>
+                          <LayoutDashboard size={14} className="shrink-0 text-[#0a4833]" />
+                          {profileLabels.communityDashboard}
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={14} className="shrink-0 text-gray-400" />
+                          <span>{profileLabels.communityDashboard}</span>
+                          <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                            {profileLabels.membersOnly}
+                          </span>
+                        </>
+                      )}
+                    </Link>
+                  )}
+                </div>
+
+                <div className="border-t border-gray-100 mx-1" />
+
+                <div className="py-1.5">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1 transition-colors"
+                  >
+                    <LogOut size={14} />
+                    {profileLabels.logout}
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Hanging Logo */}
-          <div className="relative z-50 w-25 md:w-40 lg:ml-20">
+          <div className="absolute left-1/2 z-50 w-25 -translate-x-1/2 md:w-40 lg:relative lg:left-auto lg:ml-20 lg:translate-x-0">
             <Link href="/" className="block">
               <div className={cn(
                 "absolute transition-all duration-500 overflow-hidden flex items-center justify-center p-2 md:p-3",
                 "bg-[#1A4331] border-x border-b border-white/10 rounded-b-xl shadow-2xl",
                 "w-21.25 h-21.25 md:w-26.25 md:h-26.25 lg:w-30 lg:h-30 xl:w-33.75 xl:h-33.75",
-                "-top-10 translate-y-0 left-2 md:left-6 lg:left-1 xl:left-4 2xl:-left-8"
+                "-top-10 translate-y-0 left-1/2 -translate-x-1/2 lg:left-1 lg:translate-x-0 xl:left-4 2xl:-left-8"
               )}>
                 <div className="relative w-full h-full scale-100 transition-transform duration-500">
                   <Image
@@ -224,8 +350,15 @@ const Navbar = () => {
                   aria-label="Open profile menu"
                   className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
                 >
-                  {userPhoto ? (
-                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  {showProfileImage ? (
+                    <Image
+                      src={profileImageSrc}
+                      alt={fullName || "Profile"}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                      onError={() => setProfileImageFailed(true)}
+                    />
                   ) : (
                     initials
                   )}
@@ -239,11 +372,21 @@ const Navbar = () => {
                 )}
 
                 {profileOpen && (
-                  <div className="absolute right-0 top-12 z-50 w-64 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-4">
+                  <div
+                    dir={isRtl ? "rtl" : "ltr"}
+                    className="absolute top-12 z-50 w-64 rounded-2xl bg-white shadow-xl border border-gray-100 overflow-hidden ltr:right-0 rtl:left-0"
+                  >
+                    <div className="flex items-center gap-3 px-4 py-4 text-left rtl:text-right">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {userPhoto ? (
-                          <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                        {showProfileImage ? (
+                          <Image
+                            src={profileImageSrc}
+                            alt={fullName || "Profile"}
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                            onError={() => setProfileImageFailed(true)}
+                          />
                         ) : (
                           initials
                         )}
@@ -255,7 +398,7 @@ const Navbar = () => {
                         <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
                         {userType === "guest" && (
                           <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
-                            Guest
+                            {profileLabels.guest}
                           </span>
                         )}
                       </div>
@@ -269,14 +412,14 @@ const Navbar = () => {
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
                       >
-                        My Profile
+                        {profileLabels.profile}
                       </Link>
                       <Link
                         href={routes.orders}
                         onClick={() => setProfileOpen(false)}
                         className="flex items-center px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
                       >
-                        My Orders
+                        {profileLabels.orders}
                       </Link>
 
                       {role === "community_user" && (
@@ -288,14 +431,14 @@ const Navbar = () => {
                           {userType === "member" ? (
                             <>
                               <LayoutDashboard size={14} className="shrink-0 text-[#0a4833]" />
-                              Community Dashboard
+                              {profileLabels.communityDashboard}
                             </>
                           ) : (
                             <>
                               <Lock size={14} className="shrink-0 text-gray-400" />
-                              <span>Community Dashboard</span>
-                              <span className="ml-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
-                                Members only
+                              <span>{profileLabels.communityDashboard}</span>
+                              <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                                {profileLabels.membersOnly}
                               </span>
                             </>
                           )}
@@ -311,7 +454,7 @@ const Navbar = () => {
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1 transition-colors"
                       >
                         <LogOut size={14} />
-                        Logout
+                        {profileLabels.logout}
                       </button>
                     </div>
                   </div>
@@ -343,8 +486,8 @@ const Navbar = () => {
       <div
         id="mobile-navigation"
         className={cn(
-          "fixed inset-y-0 right-0 w-[85%] md:w-[60%] bg-[#1A4331] z-1100 flex flex-col pt-24 px-8 md:px-10 transition-transform duration-700 lg:hidden shadow-2xl border-l border-white/10",
-          isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          "fixed inset-y-0 w-[85%] md:w-[60%] bg-[#1A4331] z-1100 flex flex-col pt-24 px-8 md:px-10 transition-transform duration-700 lg:hidden shadow-2xl border-white/10 ltr:right-0 ltr:left-auto ltr:border-l rtl:left-0 rtl:right-auto rtl:border-r",
+          isMobileMenuOpen ? "translate-x-0" : "ltr:translate-x-full rtl:-translate-x-full"
         )}
       >
         <button
@@ -354,7 +497,7 @@ const Navbar = () => {
           <X size={28} />
         </button>
 
-        {/* Links + Mobile Profile Container */}
+        {/* Links */}
         <div className="flex flex-col space-y-6 relative z-10 overflow-y-auto max-h-[65vh] pr-2">
           {navLinks.map((link: NavLink, idx: number) => (
             <div key={link.name} className="flex flex-col">
@@ -392,7 +535,7 @@ const Navbar = () => {
                         onClick={handleCloseMenu}
                       >
                         {item.name}
-                        <ArrowRight size={16} className="text-brand-primary/40" />
+                        <ArrowRight size={16} className="text-brand-primary/40 rtl:rotate-180" />
                       </Link>
                     ))}
                   </div>
@@ -412,7 +555,7 @@ const Navbar = () => {
                     </span>
                     {link.name}
                   </div>
-                  <ArrowRight size={20} className="text-brand-primary/40" />
+                  <ArrowRight size={20} className="text-brand-primary/40 rtl:rotate-180" />
                 </Link>
               )}
             </div>
@@ -423,8 +566,15 @@ const Navbar = () => {
             <div className="mobile-link pt-6 border-t border-white/10 flex flex-col space-y-4">
               <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {userPhoto ? (
-                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  {showProfileImage ? (
+                    <Image
+                      src={profileImageSrc}
+                      alt={fullName || "Profile"}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                      onError={() => setProfileImageFailed(true)}
+                    />
                   ) : (
                     initials
                   )}
@@ -494,18 +644,6 @@ const Navbar = () => {
             </div>
           )}
         </div>
-
-        {/* Bottom Login Link (if unauthenticated) */}
-        {!isAuthenticated && (
-          <Link
-            href="/login"
-            onClick={handleCloseMenu}
-            className="mobile-link opacity-0 relative z-10 flex items-center justify-between rounded-2xl border border-white/20 bg-white/10 px-6 py-4 mb-4 text-white font-bold text-lg hover:bg-white/20 transition mt-6"
-          >
-            {loginLabel}
-            <ArrowRight size={20} className="text-brand-primary/40" />
-          </Link>
-        )}
 
         {/* Dynamic Language Switcher (mobile bottom dock) */}
         <div className="mt-auto mb-10 mobile-link opacity-0 relative z-10">

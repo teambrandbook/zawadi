@@ -17,6 +17,10 @@ interface SignatureResponse {
   folder: string;
 }
 
+interface LocalUploadResponse {
+  url: string;
+}
+
 export function useCloudinaryUpload(uploadType: UploadType) {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,10 +30,30 @@ export function useCloudinaryUpload(uploadType: UploadType) {
   const upload = async (file: File): Promise<string> => {
     setIsUploading(true);
     setError(null);
-    try {
-      const { data } = await api.get<SignatureResponse>(
-        `/account/upload-signature/?type=${uploadType}`
+
+    const uploadLocal = async (): Promise<string> => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const { data } = await api.post<LocalUploadResponse>(
+        `/account/upload-image/?type=${uploadType}`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
       );
+      return data.url;
+    };
+
+    try {
+      let data: SignatureResponse;
+      try {
+        const signatureResponse = await api.get<SignatureResponse>(
+          `/account/upload-signature/?type=${uploadType}`
+        );
+        data = signatureResponse.data;
+      } catch (signatureError: unknown) {
+        const axiosStatus = (signatureError as { response?: { status?: number } })?.response?.status;
+        if (axiosStatus === 503) return uploadLocal();
+        throw signatureError;
+      }
 
       const formData = new FormData();
       formData.append("file", file);
@@ -45,6 +69,7 @@ export function useCloudinaryUpload(uploadType: UploadType) {
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
+        if (response.status >= 500) return uploadLocal();
         throw new Error(errBody?.error?.message || "Cloudinary upload failed");
       }
 

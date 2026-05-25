@@ -494,12 +494,6 @@ export default function ProductsDashboard() {
 
       <div className="mx-auto max-w-[1180px] space-y-4">
         <ProductsHeader
-          query={query}
-          onQueryChange={(value) => {
-            setQuery(value);
-            setPage(1);
-          }}
-          onFilter={() => setProductStatus((s) => (s === "All Status" ? "Active" : "All Status"))}
           onExport={() => downloadCsv("products.csv", filtered)}
           onAdd={() => router.push("/admindashboard/products/add")}
         />
@@ -534,7 +528,6 @@ export default function ProductsDashboard() {
             if (key === "sortBy") setSortBy(value);
             setPage(1);
           }}
-          onQuickFilter={applyQuickFilter}
           onClear={() => {
             setQuery("");
             setProductStatus("All Status");
@@ -547,9 +540,6 @@ export default function ProductsDashboard() {
         <ProductBulkActions
           selectedCount={selectedIds.length}
           totalCount={filtered.length}
-          onSelectAllCurrent={toggleSelectAllPage}
-          onChangeVisibility={changeVisibility}
-          onMarkFeatured={markFeatured}
           onExportSelected={() => {
             const rows = selectedRows();
             if (rows.length === 0) {
@@ -575,7 +565,6 @@ export default function ProductsDashboard() {
           onToggleSelect={toggleSelect}
           onToggleSelectAllPage={toggleSelectAllPage}
           onPageChange={setPage}
-          onToggleFeaturedRow={toggleFeaturedRow}
           onViewRow={handleViewRow}
           onEditRow={handleEditRow}
           onDeleteRow={handleDeleteRow}

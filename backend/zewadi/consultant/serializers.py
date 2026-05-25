@@ -157,6 +157,7 @@ class ConsultantProfileSerializer(serializers.ModelSerializer):
     location = serializers.CharField(source="user.location", required=False, allow_blank=True, allow_null=True)
     photo = serializers.URLField(
         source="user.photo",
+        max_length=500,
         required=False,
         allow_null=True,
         allow_blank=True,

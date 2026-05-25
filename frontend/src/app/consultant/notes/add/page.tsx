@@ -7,6 +7,7 @@ import AddNoteHeader from "@/components/consultant/notes/add/AddNoteHeader";
 import ClientConsultationReferenceSection from "@/components/consultant/notes/add/ClientConsultationReferenceSection";
 import NoteFormSection from "@/components/consultant/notes/add/NoteFormSection";
 import type { AddNoteFormState, NoteClientOption } from "@/components/consultant/notes/add/formTypes";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiClient = {
   id: number;
@@ -18,15 +19,8 @@ type ApiClient = {
   focuses_area?: string;
 };
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function mediaUrl(value?: string | null) {
-  if (!value) return "/recipe/recipe-2.webp";
-  if (value.startsWith("http")) return value;
-  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+  return value ? getImageUrl(value) : "";
 }
 
 function formatDate(value?: string | null) {
@@ -55,7 +49,7 @@ const backendClients: NoteClientOption[] = [
   {
     id: "user-001",
     name: "Emma Richardson",
-    avatar: "/recipe/recipe-2.webp",
+    avatar: "",
     consultationId: "CONS-2024-1847",
     sessionDate: "Jan 16, 2024",
     sessionMode: "Video Call",
@@ -67,7 +61,7 @@ const backendClients: NoteClientOption[] = [
   {
     id: "user-002",
     name: "Michael Chen",
-    avatar: "/recipe/recipe-3.webp",
+    avatar: "",
     consultationId: "CONS-2024-1759",
     sessionDate: "Jan 18, 2024",
     sessionMode: "Phone Call",

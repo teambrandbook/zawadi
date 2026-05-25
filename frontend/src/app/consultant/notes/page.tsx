@@ -99,7 +99,59 @@ export default function ConsultantNotesPage() {
   const [notesFromBackend, setNotesFromBackend] = useState<BackendNoteItem[]>([]);
   const [apiNotes, setApiNotes] = useState<ApiNote[]>([]);
   const [selectedNote, setSelectedNote] = useState<BackendNoteItem | null>(null);
+  const [searchValue, setSearchValue] = useState("");
+  const [clientFilter, setClientFilter] = useState("All Clients");
+  const [dateFilter, setDateFilter] = useState("All Dates");
+  const [typeFilter, setTypeFilter] = useState("All Types");
+  const [statusFilter, setStatusFilter] = useState("All Status");
   const noteStats = useMemo(() => calculateStats(apiNotes), [apiNotes]);
+  const clientOptions = useMemo(
+    () => ["All Clients", ...Array.from(new Set(notesFromBackend.map((note) => note.clientName))).sort()],
+    [notesFromBackend]
+  );
+  const dateOptions = ["All Dates", "Recent Notes", "Follow-up Notes", "Older Notes"];
+  const typeOptions = useMemo(
+    () => [
+      "All Types",
+      ...Array.from(
+        new Set(
+          notesFromBackend
+            .map((note) => note.clientSummary.goals)
+            .filter((value) => value && value !== "-")
+        )
+      ).sort(),
+    ],
+    [notesFromBackend]
+  );
+  const statusOptions = useMemo(
+    () => ["All Status", ...Array.from(new Set(notesFromBackend.map((note) => note.status))).sort()],
+    [notesFromBackend]
+  );
+  const filteredNotes = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+
+    return notesFromBackend.filter((note) => {
+      const apiNote = apiNotes.find((item) => String(item.id) === note.id);
+      const isRecent = apiNote ? isRecentNote(apiNote.created_at) : false;
+      const hasFollowUp = Boolean(apiNote?.follow_up_date);
+      const matchesSearch =
+        !query ||
+        note.clientName.toLowerCase().includes(query) ||
+        note.title.toLowerCase().includes(query) ||
+        note.summary.toLowerCase().includes(query) ||
+        note.clientSummary.goals.toLowerCase().includes(query);
+      const matchesClient = clientFilter === "All Clients" || note.clientName === clientFilter;
+      const matchesDate =
+        dateFilter === "All Dates" ||
+        (dateFilter === "Recent Notes" && isRecent) ||
+        (dateFilter === "Follow-up Notes" && hasFollowUp) ||
+        (dateFilter === "Older Notes" && !isRecent);
+      const matchesType = typeFilter === "All Types" || note.clientSummary.goals === typeFilter;
+      const matchesStatus = statusFilter === "All Status" || note.status === statusFilter;
+
+      return matchesSearch && matchesClient && matchesDate && matchesType && matchesStatus;
+    });
+  }, [apiNotes, clientFilter, dateFilter, notesFromBackend, searchValue, statusFilter, typeFilter]);
 
   useEffect(() => {
     let isMounted = true;
@@ -126,20 +178,47 @@ export default function ConsultantNotesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (filteredNotes.length === 0) {
+      setSelectedNote(null);
+      return;
+    }
+
+    if (!selectedNote || !filteredNotes.some((note) => note.id === selectedNote.id)) {
+      setSelectedNote(filteredNotes[0]);
+    }
+  }, [filteredNotes, selectedNote]);
+
   return (
     <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-6">
-        <NotesStatsAndFilters stats={noteStats} />
+        <NotesStatsAndFilters
+          stats={noteStats}
+          searchValue={searchValue}
+          clientFilter={clientFilter}
+          dateFilter={dateFilter}
+          typeFilter={typeFilter}
+          statusFilter={statusFilter}
+          clientOptions={clientOptions}
+          dateOptions={dateOptions}
+          typeOptions={typeOptions}
+          statusOptions={statusOptions}
+          onSearchChange={setSearchValue}
+          onClientFilterChange={setClientFilter}
+          onDateFilterChange={setDateFilter}
+          onTypeFilterChange={setTypeFilter}
+          onStatusFilterChange={setStatusFilter}
+        />
 
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_384px]">
-          {notesFromBackend.length > 0 ? (
+          {filteredNotes.length > 0 ? (
             <>
-              <NotesList notes={notesFromBackend} selectedNoteId={selectedNote?.id ?? ""} onSelect={setSelectedNote} />
+              <NotesList notes={filteredNotes} selectedNoteId={selectedNote?.id ?? ""} onSelect={setSelectedNote} />
               {selectedNote ? <NoteDetailsPanel note={selectedNote} /> : null}
             </>
           ) : (
             <section className="rounded-[14px] border border-[#DFDFDF] bg-white p-5 text-sm text-[#6B7280] xl:col-span-2">
-              No notes found. Add a note from an approved client consultation.
+              No notes found. Adjust your search or filters to show matching notes.
             </section>
           )}
         </div>

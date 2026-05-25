@@ -12,6 +12,7 @@ type Session = {
   mode: "Video Call" | "Phone Call";
   status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled";
   meetingLink?: string;
+  image: string;
 };
 
 type Props = {
@@ -56,7 +57,7 @@ export default function UpcomingSessions({ sessions, onJoin, onReschedule }: Pro
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative h-12 w-12 overflow-hidden rounded-full bg-[#E5E7EB]">
-                  <Image src={`/recipe/recipe-${(index % 4) + 1}.webp`} alt={session.doctor} fill className="object-cover" />
+                  <Image src={session.image || `/recipe/recipe-${(index % 4) + 1}.webp`} alt={session.doctor} fill className="object-cover" />
                 </div>
                 <div>
                   <p className="text-[14px] font-bold text-[#111827]">{session.doctor}</p>

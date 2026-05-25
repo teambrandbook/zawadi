@@ -4,7 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import api from "@/services/api";
-import CreateNotificationFormSections from "./components/create-notification/CreateNotificationFormSections";
+import CreateNotificationFormSections, {
+  type DeliveryChannel,
+  type ScheduleMode,
+} from "./components/create-notification/CreateNotificationFormSections";
 import CreateNotificationLivePreview from "./components/create-notification/CreateNotificationLivePreview";
 
 type NotifFormData = {
@@ -12,8 +15,15 @@ type NotifFormData = {
   body: string;
   notification_type: string;
   target_role: string;
-  status: "DRAFT" | "SENT";
+  delivery_channels: DeliveryChannel[];
+  scheduleMode: ScheduleMode;
+  scheduleDate: string;
+  scheduleTime: string;
 };
+
+function getScheduledAt(date: string, time: string): string {
+  return new Date(`${date}T${time}`).toISOString();
+}
 
 export default function CreateNotificationPage() {
   const router = useRouter();
@@ -22,26 +32,51 @@ export default function CreateNotificationPage() {
     body: "",
     notification_type: "SYSTEM",
     target_role: "ALL",
-    status: "DRAFT",
+    delivery_channels: ["in_app"],
+    scheduleMode: "now",
+    scheduleDate: "",
+    scheduleTime: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function updateField(field: keyof NotifFormData, value: string) {
+  function updateField<K extends keyof NotifFormData>(field: K, value: NotifFormData[K]) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   }
 
-  async function handleSubmit(status: "DRAFT" | "SENT") {
+  async function handleSubmit() {
     if (!formData.title.trim()) { toast.error("Notification title is required."); return; }
     if (!formData.body.trim()) { toast.error("Notification body is required."); return; }
+    if (formData.delivery_channels.length === 0) { toast.error("Select at least one delivery channel."); return; }
+    if (formData.scheduleMode === "later" && (!formData.scheduleDate || !formData.scheduleTime)) {
+      toast.error("Schedule date and time are required.");
+      return;
+    }
+
+    const status = formData.scheduleMode === "later" ? "SCHEDULED" : "SENT";
+    const scheduled_at = formData.scheduleMode === "later"
+      ? getScheduledAt(formData.scheduleDate, formData.scheduleTime)
+      : null;
 
     setIsSubmitting(true);
     try {
-      await api.post("/notifications/", { ...formData, status });
-      toast.success(status === "DRAFT" ? "Notification saved as draft." : "Notification sent! ✅");
+      await api.post("/notifications/", {
+        title: formData.title,
+        body: formData.body,
+        notification_type: formData.notification_type,
+        target_role: formData.target_role,
+        delivery_channels: formData.delivery_channels,
+        status,
+        scheduled_at,
+      });
+      toast.success(status === "SCHEDULED" ? "Notification scheduled." : "Notification sent.");
       router.push("/admindashboard/notifications");
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      toast.error(msg ?? "Failed to create notification. Please try again.");
+      const data = (err as { response?: { data?: unknown } })?.response?.data;
+      const msg =
+        typeof data === "object" && data !== null && "detail" in data
+          ? String((data as { detail?: string }).detail)
+          : "Failed to create notification. Please try again.";
+      toast.error(msg);
     } finally {
       setIsSubmitting(false);
     }
@@ -52,45 +87,49 @@ export default function CreateNotificationPage() {
       <div className="mx-auto max-w-[1180px]">
         <h1 className="text-3xl font-semibold text-[#0A4833]">Create Notification</h1>
         <p className="mt-2 text-sm text-[#6B7280]">
-          Compose and deliver announcements, reminders, alerts, and updates to the right audience across the ZEWADI platform.
+          Compose and deliver in-app and email notifications to the right audience across the ZEWADI platform.
         </p>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
           <div className="space-y-4">
-            {/* Form — CreateNotificationFormSections accepts callbacks for key fields */}
             <CreateNotificationFormSections
               title={formData.title}
-              onTitleChange={(v) => updateField("title", v)}
+              onTitleChange={(value) => updateField("title", value)}
               body={formData.body}
-              onBodyChange={(v) => updateField("body", v)}
+              onBodyChange={(value) => updateField("body", value)}
               notificationType={formData.notification_type}
-              onTypeChange={(v) => updateField("notification_type", v)}
+              onTypeChange={(value) => updateField("notification_type", value)}
               targetRole={formData.target_role}
-              onTargetRoleChange={(v) => updateField("target_role", v)}
+              onTargetRoleChange={(value) => updateField("target_role", value)}
+              deliveryChannels={formData.delivery_channels}
+              onDeliveryChannelsChange={(value) => updateField("delivery_channels", value)}
+              scheduleMode={formData.scheduleMode}
+              onScheduleModeChange={(value) => updateField("scheduleMode", value)}
+              scheduleDate={formData.scheduleDate}
+              onScheduleDateChange={(value) => updateField("scheduleDate", value)}
+              scheduleTime={formData.scheduleTime}
+              onScheduleTimeChange={(value) => updateField("scheduleTime", value)}
             />
 
-            {/* Actions */}
             <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#DFDFDF] bg-white p-4">
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => handleSubmit("SENT")}
+                onClick={handleSubmit}
                 className="inline-flex h-9 items-center rounded-md bg-[#0A4833] px-4 text-xs text-white disabled:opacity-50"
               >
-                {isSubmitting ? "Sending..." : "Create Notification"}
-              </button>
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => handleSubmit("DRAFT")}
-                className="inline-flex h-9 items-center rounded-md border border-[#DFDFDF] px-4 text-xs text-[#4B5563] disabled:opacity-50"
-              >
-                Save as Draft
+                {isSubmitting
+                  ? formData.scheduleMode === "later" ? "Scheduling..." : "Sending..."
+                  : formData.scheduleMode === "later" ? "Schedule Notification" : "Send Notification"}
               </button>
             </div>
           </div>
 
-          <CreateNotificationLivePreview title={formData.title} body={formData.body} />
+          <CreateNotificationLivePreview
+            title={formData.title}
+            body={formData.body}
+            channels={formData.delivery_channels}
+          />
         </div>
       </div>
     </section>

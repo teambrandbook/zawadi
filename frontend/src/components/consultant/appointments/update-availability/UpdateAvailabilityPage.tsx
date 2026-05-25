@@ -365,7 +365,7 @@ export default function UpdateAvailabilityPage() {
         <section className="rounded-[12px] border border-[#DFDFDF] bg-white p-4">
           <h2 className="text-sm font-semibold text-[#0A4833]">Current Availability Summary</h2>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
             <article className="rounded-[8px] bg-[#F1E8D7] px-4 py-3">
               <p className="text-[11px] text-[#8A8F98]">Status</p>
               <p className={`mt-2 text-sm font-semibold ${settings.accept_new ? "text-[#17914F]" : "text-[#B54708]"}`}>
@@ -401,7 +401,7 @@ export default function UpdateAvailabilityPage() {
                   item.enabled ? "border-[#E6D6BB] bg-[#F8F2E8]" : "border-[#ECECEC] bg-[#F8F8F8]"
                 }`}
               >
-                <div className="grid gap-3 md:grid-cols-[160px_110px_110px_minmax(0,1fr)] md:items-center">
+                <div className="grid gap-3 md:grid-cols-[160px_140px_140px_minmax(0,1fr)] md:items-center">
                   <label className={`flex items-center gap-3 text-sm font-medium ${item.enabled ? "text-[#0A4833]" : "text-[#9CA3AF]"}`}>
                     <input
                       type="checkbox"
@@ -417,7 +417,7 @@ export default function UpdateAvailabilityPage() {
                     value={item.start_time}
                     disabled={!item.enabled}
                     onChange={(event) => updateTime(item.day, "start_time", event.target.value)}
-                    className="h-9 rounded-[8px] border border-[#DFDFDF] bg-white px-3 text-sm text-[#344054] disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
+                    className="h-9 min-w-[140px] rounded-[8px] border border-[#DFDFDF] bg-white px-3 text-sm text-[#344054] disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
                   />
 
                   <input
@@ -425,7 +425,7 @@ export default function UpdateAvailabilityPage() {
                     value={item.end_time}
                     disabled={!item.enabled}
                     onChange={(event) => updateTime(item.day, "end_time", event.target.value)}
-                    className="h-9 rounded-[8px] border border-[#DFDFDF] bg-white px-3 text-sm text-[#344054] disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
+                    className="h-9 min-w-[140px] rounded-[8px] border border-[#DFDFDF] bg-white px-3 text-sm text-[#344054] disabled:bg-[#F3F4F6] disabled:text-[#9CA3AF]"
                   />
 
                   <p className={`text-xs ${item.enabled ? "text-[#8A8F98]" : "text-[#B5B8BE]"}`}>

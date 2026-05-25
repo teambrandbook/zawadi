@@ -17,7 +17,7 @@ type Props = {
 
 export default function ClientStatsGrid({ stats }: Props) {
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
       {stats.map((item) => {
         const Icon = iconMap[item.id as keyof typeof iconMap] ?? Users;
 

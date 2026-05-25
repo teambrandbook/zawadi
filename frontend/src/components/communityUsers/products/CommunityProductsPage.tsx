@@ -13,6 +13,7 @@ import {
   Package,
   ShoppingCart,
   SlidersHorizontal,
+  Star,
 } from "lucide-react";
 import type { AppDispatch } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
@@ -41,6 +42,8 @@ type Product = {
   mrp_price?: string | number;
   selling_price?: string | number;
   discount_percent?: string | number;
+  average_rating?: string | number | null;
+  review_count?: number;
   currency: string;
   stock_quantity: number;
   stock_status: string;
@@ -145,6 +148,26 @@ function stockMessage(product: Product): { text: string; className: string } | n
     };
   }
   return null;
+}
+
+function RatingSummary({ averageRating, reviewCount = 0 }: { averageRating?: string | number | null; reviewCount?: number }) {
+  const rating = Number(averageRating ?? 0);
+  const roundedRating = Math.round(rating);
+  const hasReviews = reviewCount > 0;
+
+  return (
+    <div className="mt-2 flex items-center gap-1.5 text-[10px] text-[#6B7280] xl:text-xs">
+      <span className="flex items-center gap-0.5 text-[#f2c94c]">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Star
+            key={index}
+            className={`h-3 w-3 stroke-current xl:h-3.5 xl:w-3.5 ${index < roundedRating ? "fill-current" : "fill-transparent"}`}
+          />
+        ))}
+      </span>
+      <span>{hasReviews ? `${rating.toFixed(1)} (${reviewCount})` : "No reviews"}</span>
+    </div>
+  );
 }
 
 export default function CommunityProductsPage() {
@@ -331,14 +354,14 @@ export default function CommunityProductsPage() {
         </div>
 
         {isLoading ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-5">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="h-[440px] animate-pulse rounded-xl border border-[#DFDFDF] bg-white"
+                className="h-[360px] animate-pulse rounded-xl border border-[#DFDFDF] bg-white sm:h-[390px] xl:h-[440px]"
               >
-                <div className="h-48 rounded-t-xl bg-[#F3F4F6]" />
-                <div className="space-y-4 p-4">
+                <div className="h-32 rounded-t-xl bg-[#F3F4F6] sm:h-36 xl:h-48" />
+                <div className="space-y-3 p-2.5 sm:p-3 xl:space-y-4 xl:p-4">
                   <div className="h-5 w-28 rounded bg-[#F3F4F6]" />
                   <div className="h-5 w-40 rounded bg-[#F3F4F6]" />
                   <div className="h-16 rounded bg-[#F3F4F6]" />
@@ -352,7 +375,7 @@ export default function CommunityProductsPage() {
         ) : filteredProducts.length === 0 ? (
           <EmptyState message="No products match this filter yet." />
         ) : (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4 xl:gap-5">
             {filteredProducts.map((product, index) => {
               const price = getSellingPrice(product);
               const outOfStock = isProductOutOfStock(product);
@@ -365,14 +388,14 @@ export default function CommunityProductsPage() {
                   key={product.id}
                   className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white"
                 >
-                  <div className="relative h-48 overflow-hidden bg-[#F3F4F6]">
+                  <div className="relative h-32 overflow-hidden bg-[#F3F4F6] sm:h-36 xl:h-48">
                     <Image
                       src={toImageUrl(product.image, index)}
                       alt={product.product_name}
                       fill
                       unoptimized
                       className="object-cover"
-                      sizes="(min-width: 1280px) 266px, (min-width: 640px) 50vw, 100vw"
+                      sizes="(min-width: 1280px) 266px, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
                     />
                     {productIsNew ? (
                       <span className="absolute left-3 top-3 rounded-full bg-[#22C55E] px-2 py-1 text-xs font-medium text-white">
@@ -385,25 +408,26 @@ export default function CommunityProductsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex h-[248px] flex-col p-4">
-                    <span className="w-fit rounded-full bg-[#9F8151]/10 px-2 py-1 text-xs font-medium text-[#9F8151]">
+                  <div className="flex h-[260px] flex-col p-2.5 sm:h-[254px] sm:p-3 xl:h-[248px] xl:p-4">
+                    <span className="w-fit rounded-full bg-[#9F8151]/10 px-1.5 py-0.5 text-[9px] font-medium text-[#9F8151] sm:px-2 sm:py-1 sm:text-[10px] xl:text-xs">
                       {toCategoryLabel(product.category)}
                     </span>
-                    <h2 className="mt-3 line-clamp-1 text-base font-semibold leading-6 text-[#111827]">
+                    <h2 className="mt-2 line-clamp-1 text-[13px] font-semibold leading-5 text-[#111827] sm:text-sm xl:mt-3 xl:text-base xl:leading-6">
                       {product.product_name}
                     </h2>
-                    <p className="mt-1 line-clamp-3 min-h-[60px] text-sm leading-5 text-[#4B5563]">
+                    <p className="mt-1 line-clamp-3 min-h-[51px] text-[11px] leading-[17px] text-[#4B5563] sm:min-h-[54px] sm:text-xs sm:leading-[18px] xl:min-h-[60px] xl:text-sm xl:leading-5">
                       {product.short_description}
                     </p>
+                    <RatingSummary averageRating={product.average_rating} reviewCount={product.review_count ?? 0} />
                     {stock && (
-                      <p className={`mt-2 inline-flex w-fit rounded-full border px-2.5 py-1 text-xs font-semibold ${stock.className}`}>
+                      <p className={`mt-2 inline-flex w-fit rounded-full border px-2 py-0.5 text-[10px] font-semibold xl:px-2.5 xl:py-1 xl:text-xs ${stock.className}`}>
                         {stock.text}
                       </p>
                     )}
 
                     <div className="mt-auto flex items-center justify-between">
                       <div>
-                        <strong className="text-lg font-bold text-[#0A4833]">
+                        <strong className="text-[13px] font-bold text-[#0A4833] sm:text-sm xl:text-lg">
                           {toCurrency(price, product.currency)}
                         </strong>
                         {discounted ? (
@@ -417,23 +441,23 @@ export default function CommunityProductsPage() {
                           </div>
                         ) : null}
                       </div>
-                      <span className="text-xs text-[#6B7280]">{product.unit_quantity} {product.product_unit}</span>
+                      <span className="text-[10px] text-[#6B7280] xl:text-xs">{product.unit_quantity} {product.product_unit}</span>
                     </div>
 
-                    <div className="mt-3 flex gap-2">
+                    <div className="mt-3 flex gap-1.5 xl:gap-2">
                       <button
                         type="button"
                         onClick={() => addToCart(product)}
                         disabled={outOfStock || busyProductId === product.id}
-                        className="inline-flex h-9 flex-1 items-center justify-center gap-2 rounded-lg bg-[#0A4833] px-3 text-sm font-medium text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF]"
+                        className="inline-flex h-8 flex-1 items-center justify-center gap-1 rounded-lg bg-[#0A4833] px-1.5 text-[11px] font-medium text-white transition hover:bg-[#073826] disabled:cursor-not-allowed disabled:bg-[#9CA3AF] sm:h-9 sm:gap-1.5 sm:px-2 sm:text-xs xl:gap-2 xl:px-3 xl:text-sm"
                       >
-                        <ShoppingCart className="h-4 w-4" />
+                        <ShoppingCart className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         {outOfStock ? "Out of stock" : busyProductId === product.id ? "Adding..." : "Add to cart"}
                       </button>
                       <button
                         type="button"
                         onClick={() => goToCheckout(product.id)}
-                        className="flex h-9 w-11 items-center justify-center rounded-lg border border-[#DFDFDF] text-[#0A4833] transition hover:bg-[#F9FAFB]"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#DFDFDF] text-[#0A4833] transition hover:bg-[#F9FAFB] sm:h-9 sm:w-9 xl:w-11"
                         aria-label={`View ${product.product_name}`}
                       >
                         <Eye className="h-4 w-4" />

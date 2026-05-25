@@ -21,7 +21,7 @@ export default function FindNutritionist({ nutritionists, onBook }: Props) {
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4">
       <h3 className="text-lg font-semibold text-[#0A4833]">Find a Nutritionist</h3>
 
-      <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-2">
         {nutritionists.map((item) => (
           <article
             key={item.id}

@@ -12,7 +12,7 @@ import {
   UserRound,
   ReceiptText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, getImageUrl } from "@/lib/utils";
 import type { RootState } from "@/redux/store";
 import api from "@/services/api";
 
@@ -107,6 +107,13 @@ function mapOrder(item: ApiOrderListItem): HistoryOrder {
 }
 
 function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
+  const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/about/testimonial.webp";
+
+  useEffect(() => {
+    setProfilePhotoFailed(false);
+  }, [profile?.photo]);
+
   return (
     <aside className="space-y-4 w-full">
       <section className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8">
@@ -114,11 +121,12 @@ function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
           <div className="relative mb-5 size-32">
             <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
               <Image
-                src={profile?.photo || "/about/testimonial.webp"}
+                src={profilePhotoSrc}
                 alt={profile?.full_name || "Profile"}
                 fill
                 sizes="128px"
                 className="object-cover"
+                onError={() => setProfilePhotoFailed(true)}
               />
             </div>
             <button

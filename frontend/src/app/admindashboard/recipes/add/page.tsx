@@ -36,10 +36,12 @@ type RecipeDetailResponse = {
   cooking_time_minutes?: number | string;
   servings?: number | string;
   health_benefits?: string;
+  optional_ingredients?: string | null;
   calories?: string | number | null;
   fat?: string | number | null;
   carbs?: string | number | null;
   protein?: string | number | null;
+  video_url?: string | null;
   cover_image?: string | null;
   status?: string;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
@@ -48,7 +50,7 @@ type RecipeDetailResponse = {
 
 function FormCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-lg border border-[#E4E7EC] bg-white p-4">
+    <section className="rounded-lg border border-[#E4E7EC] bg-white p-3 sm:p-4">
       <h3 className="mb-3 text-sm font-semibold text-[#0A4833]">{title}</h3>
       {children}
     </section>
@@ -86,12 +88,14 @@ export default function AddRecipePage() {
   const [difficulty, setDifficulty] = useState("easy");
   const [prepTime, setPrepTime] = useState("");
   const [cookingTime, setCookingTime] = useState("");
-  const [servings, setServings] = useState("");
+  const [servings, setServings] = useState("1");
   const [healthBenefits, setHealthBenefits] = useState("");
+  const [optionalIngredients, setOptionalIngredients] = useState("");
   const [calories, setCalories] = useState("");
   const [fat, setFat] = useState("");
   const [carbs, setCarbs] = useState("");
   const [protein, setProtein] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -121,12 +125,14 @@ export default function AddRecipePage() {
         setDifficulty(recipe.difficulty_level ?? "easy");
         setPrepTime(recipe.prep_time_minutes ? String(recipe.prep_time_minutes) : "");
         setCookingTime(recipe.cooking_time_minutes ? String(recipe.cooking_time_minutes) : "");
-        setServings(recipe.servings ? String(recipe.servings) : "");
+        setServings(recipe.servings ? String(recipe.servings) : "1");
         setHealthBenefits(recipe.health_benefits ?? "");
+        setOptionalIngredients(recipe.optional_ingredients ?? "");
         setCalories(recipe.calories ? String(recipe.calories) : "");
         setFat(recipe.fat ? String(recipe.fat) : "");
         setCarbs(recipe.carbs ? String(recipe.carbs) : "");
         setProtein(recipe.protein ? String(recipe.protein) : "");
+        setVideoUrl(recipe.video_url ?? "");
         setCoverFile(null);
         setCoverPreview(recipe.cover_image ?? null);
         if (recipe.cover_image) setCoverImageUrl(recipe.cover_image);
@@ -214,10 +220,12 @@ export default function AddRecipePage() {
     if (cookingTime) fd.append("cooking_time_minutes", cookingTime);
     if (servings) fd.append("servings", servings);
     fd.append("health_benefits", healthBenefits.trim());
+    fd.append("optional_ingredients", optionalIngredients.trim());
     fd.append("calories", calories.trim());
     fd.append("fat", fat.trim());
     fd.append("carbs", carbs.trim());
     fd.append("protein", protein.trim());
+    fd.append("video_url", videoUrl.trim());
     if (coverImageUrl) fd.append("cover_image", coverImageUrl);
 
     // Ingredients & steps as JSON strings (backend can parse)
@@ -259,8 +267,8 @@ export default function AddRecipePage() {
       <div className="mx-auto max-w-[1180px] space-y-4">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-[30px] font-semibold leading-tight text-[#0A4833]">{isEditMode ? "Edit Recipe" : "Add Recipe"}</h1>
+          <div className="min-w-0">
+            <h1 className="text-[24px] font-semibold leading-tight text-[#0A4833] sm:text-[30px]">{isEditMode ? "Edit Recipe" : "Add Recipe"}</h1>
             <p className="text-[12px] text-[#6B7280]">
               {isEditMode ? "Update the selected recipe for the ZEWADI community." : "Create a new recipe for the ZEWADI community."}
             </p>
@@ -276,8 +284,8 @@ export default function AddRecipePage() {
           </div>
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="space-y-4">
+        <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <div className="min-w-0 space-y-4">
             {isLoadingRecipe ? (
               <section className="rounded-lg border border-[#E4E7EC] bg-white p-4 text-sm text-[#6B7280]">
                 Loading recipe details...
@@ -310,7 +318,6 @@ export default function AddRecipePage() {
                 </label>
                 <InputRow label="Prep Time (minutes)" value={prepTime} onChange={setPrepTime} placeholder="15" type="number" />
                 <InputRow label="Cooking Time (minutes)" value={cookingTime} onChange={setCookingTime} placeholder="30" type="number" />
-                <InputRow label="Servings" value={servings} onChange={setServings} placeholder="4" type="number" />
               </div>
               <div className="mt-3">
                 <label className="block space-y-1">
@@ -368,7 +375,7 @@ export default function AddRecipePage() {
             <FormCard title="Ingredients">
               <div className="space-y-2">
                 {ingredients.map((ing, idx) => (
-                  <div key={idx} className="flex items-center gap-2">
+                  <div key={idx} className="grid grid-cols-[minmax(0,1fr)_72px] gap-2 sm:grid-cols-[minmax(0,1fr)_64px_80px_36px]">
                     <input
                       value={ing.ingredient_name}
                       onChange={(e) => updateIngredient(idx, "ingredient_name", e.target.value)}
@@ -379,12 +386,12 @@ export default function AddRecipePage() {
                       value={ing.quantity}
                       onChange={(e) => updateIngredient(idx, "quantity", e.target.value)}
                       placeholder="Qty"
-                      className="h-9 w-16 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
+                      className="h-9 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
                     />
                     <select
                       value={ing.unit}
                       onChange={(e) => updateIngredient(idx, "unit", e.target.value)}
-                      className="h-9 w-20 rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
+                      className="h-9 w-full rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-2 text-[12px] text-[#374151] outline-none"
                     >
                       {INGREDIENT_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
                     </select>
@@ -392,7 +399,7 @@ export default function AddRecipePage() {
                       type="button"
                       onClick={() => removeIngredient(idx)}
                       disabled={ingredients.length === 1}
-                      className="grid h-9 w-9 place-items-center rounded-md text-[#DC2626] hover:bg-[#FEF2F2] disabled:opacity-30"
+                      className="grid h-9 w-9 place-items-center justify-self-end rounded-md text-[#DC2626] hover:bg-[#FEF2F2] disabled:opacity-30"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
@@ -407,13 +414,23 @@ export default function AddRecipePage() {
                 <Plus className="h-3.5 w-3.5" />
                 Add Ingredient
               </button>
+              <label className="mt-4 block space-y-1">
+                <span className="text-[11px] font-medium text-[#344054]">Optional Ingredients</span>
+                <textarea
+                  value={optionalIngredients}
+                  onChange={(e) => setOptionalIngredients(e.target.value)}
+                  placeholder="Mushrooms, spinach, egg, grilled Chicken etc."
+                  rows={3}
+                  className="w-full resize-none rounded-md border border-[#E4E7EC] bg-[#F9FAFB] px-3 py-2 text-[12px] text-[#374151] outline-none"
+                />
+              </label>
             </FormCard>
 
             {/* Steps */}
             <FormCard title="Preparation Steps">
               <div className="space-y-3">
                 {steps.map((step, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
+                  <div key={idx} className="flex min-w-0 items-start gap-2 sm:gap-3">
                     <span className="mt-2.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#0A4833] text-[10px] font-bold text-white">
                       {idx + 1}
                     </span>
@@ -452,6 +469,16 @@ export default function AddRecipePage() {
                 <InputRow label="Carbs *" value={carbs} onChange={setCarbs} placeholder="Enter the carbs..." />
                 <InputRow label="Protein *" value={protein} onChange={setProtein} placeholder="Enter the protein..." />
               </div>
+            </FormCard>
+
+            <FormCard title="Add Link Section">
+              <InputRow
+                label="Video Link"
+                value={videoUrl}
+                onChange={setVideoUrl}
+                placeholder="YouTube/Video URL"
+                type="url"
+              />
             </FormCard>
           </div>
 

@@ -1,12 +1,14 @@
 import datetime
+import importlib
 from decimal import Decimal
 
 from rest_framework.test import APITestCase
 
 from accounts.models import User
 from notifications.models import Notification, UserNotificationReceipt
-from orders.models import Order
+from orders.models import Order, OrderReview
 from product.models import Product, ProductStatus, ProductVariant
+from product.serializers import ProductSerializer
 from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
 
 
@@ -53,6 +55,37 @@ def make_product(**overrides):
     }
     data.update(overrides)
     return Product.objects.create(**data)
+
+
+def make_order(user, product=None, status="delivered", **overrides):
+    data = {
+        "user": user,
+        "product": product,
+        "product_code": product.product_code if product else "BWH-MISSING",
+        "product_name": product.product_name if product else "Missing Product",
+        "pack_name": "500g",
+        "pack_price": Decimal("120.00"),
+        "cost_price": Decimal("80.00"),
+        "mrp_price": Decimal("150.00"),
+        "selling_price": Decimal("120.00"),
+        "discount_amount": Decimal("30.00"),
+        "discount_percent": Decimal("20.00"),
+        "quantity": 1,
+        "subtotal": Decimal("120.00"),
+        "delivery_charge": Decimal("0.00"),
+        "tax_amount": Decimal("18.00"),
+        "total_amount": Decimal("138.00"),
+        "full_name": "Buyer",
+        "phone": "1234567890",
+        "email": "buyer@example.com",
+        "city": "Mumbai",
+        "postal_code": "400001",
+        "address": "Test address",
+        "payment_method": "cod",
+        "status": status,
+    }
+    data.update(overrides)
+    return Order.objects.create(**data)
 
 
 class ProductLevelPricingAndStockTests(APITestCase):
@@ -108,6 +141,7 @@ class ProductLevelPricingAndStockTests(APITestCase):
 
         self.assertEqual(response.status_code, 201)
         order = Order.objects.get(order_id=response.data["primary_order_id"])
+        self.assertEqual(order.product_id, product.id)
         self.assertEqual(order.product_code, "BWH-500")
         self.assertEqual(order.cost_price, Decimal("80.00"))
         self.assertEqual(order.mrp_price, Decimal("150.00"))
@@ -179,3 +213,121 @@ class ProductLevelPricingAndStockTests(APITestCase):
         self.assertTrue(UserNotificationReceipt.objects.filter(user=admin, notification=notification).exists())
         self.assertTrue(UserNotificationReceipt.objects.filter(user=internal_staff, notification=notification).exists())
         self.assertFalse(UserNotificationReceipt.objects.filter(user=self.user, notification=notification).exists())
+
+
+class ProductRatingTests(APITestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.client.force_authenticate(user=self.user)
+        self.product = make_product(product_code="BWH-RATE", product_name="Buckwheat Rating Pack")
+
+    def test_delivered_order_review_succeeds(self):
+        order = make_order(self.user, self.product, status="delivered")
+
+        response = self.client.post(
+            f"/api/orders/{order.order_id}/review/",
+            {
+                "rating": 5,
+                "title": "Excellent",
+                "comment": "Excellent buckwheat quality.",
+                "recommend": True,
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(OrderReview.objects.get(order=order).rating, 5)
+
+    def test_non_delivered_order_review_fails(self):
+        order = make_order(self.user, self.product, status="processing")
+
+        response = self.client.post(
+            f"/api/orders/{order.order_id}/review/",
+            {"rating": 4, "comment": "Good product.", "recommend": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "You can only review a delivered order.")
+
+    def test_duplicate_order_review_fails(self):
+        order = make_order(self.user, self.product, status="delivered")
+        OrderReview.objects.create(order=order, user=self.user, rating=4, comment="Good product.")
+
+        response = self.client.post(
+            f"/api/orders/{order.order_id}/review/",
+            {"rating": 5, "comment": "Trying again.", "recommend": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "A review already exists for this order.")
+
+    def test_other_user_order_review_fails(self):
+        other_user = User.objects.create_user(
+            email="other@example.com",
+            password="Pass@1234",
+            user_name="other",
+            full_name="Other",
+            phone="1234567899",
+            role="COMMUNITY_USER",
+        )
+        order = make_order(other_user, self.product, status="delivered", email="other@example.com")
+
+        response = self.client.post(
+            f"/api/orders/{order.order_id}/review/",
+            {"rating": 5, "comment": "Not my order.", "recommend": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.data["detail"], "You can only review your own orders.")
+
+    def test_order_without_product_cannot_be_reviewed(self):
+        order = make_order(self.user, None, status="delivered")
+
+        response = self.client.post(
+            f"/api/orders/{order.order_id}/review/",
+            {"rating": 5, "comment": "Product missing.", "recommend": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "This order cannot be reviewed because its product is no longer available.")
+
+    def test_product_serializer_returns_rating_aggregates(self):
+        first_order = make_order(self.user, self.product, status="delivered")
+        second_order = make_order(
+            self.user,
+            self.product,
+            status="delivered",
+            product_code="BWH-RATE",
+            email="buyer@example.com",
+        )
+        processing_order = make_order(self.user, self.product, status="processing")
+        OrderReview.objects.create(order=first_order, user=self.user, rating=5, comment="Excellent.")
+        OrderReview.objects.create(order=second_order, user=self.user, rating=3, comment="Good.")
+        OrderReview.objects.create(order=processing_order, user=self.user, rating=1, comment="Ignored.")
+
+        data = ProductSerializer(self.product, context={"country": "SA"}).data
+
+        self.assertEqual(data["average_rating"], "4.0")
+        self.assertEqual(data["review_count"], 2)
+
+    def test_order_product_backfill_links_by_product_code(self):
+        order = make_order(self.user, None, status="delivered", product_code=self.product.product_code)
+        migration = importlib.import_module("orders.migrations.0006_order_product_backfill")
+
+        class Apps:
+            @staticmethod
+            def get_model(app_label, model_name):
+                if app_label == "orders" and model_name == "Order":
+                    return Order
+                if app_label == "product" and model_name == "Product":
+                    return Product
+                raise LookupError(f"{app_label}.{model_name}")
+
+        migration.backfill_order_products(Apps(), None)
+        order.refresh_from_db()
+
+        self.assertEqual(order.product_id, self.product.id)

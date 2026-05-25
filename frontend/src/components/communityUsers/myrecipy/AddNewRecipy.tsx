@@ -39,6 +39,7 @@ type RecipeDetailResponse = {
   carbs?: string | number | null;
   protein?: string | number | null;
   video_url?: string | null;
+  optional_ingredients?: string | null;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
   steps?: Array<{ description?: string }>;
 };
@@ -53,13 +54,13 @@ function emptyDraft(): DraftModel {
     servings: "",
     difficulty: "Easy",
     ingredients: [{ ...EMPTY_INGREDIENT }],
+    optionalIngredients: "",
     steps: [""],
     calories: "",
     protein: "",
     carbs: "",
     fat: "",
     videoUrl: "",
-    sourceUrl: "",
     country: "India",
   };
 }
@@ -175,6 +176,7 @@ export default function AddNewRecipy() {
           carbs: recipe.carbs ? String(recipe.carbs) : "",
           protein: recipe.protein ? String(recipe.protein) : "",
           videoUrl: recipe.video_url ?? "",
+          optionalIngredients: recipe.optional_ingredients ?? "",
           ingredients: recipe.ingredients?.length
             ? recipe.ingredients.map((ingredient) => ({
                 ingredient_name: ingredient.ingredient_name ?? "",
@@ -342,6 +344,7 @@ export default function AddNewRecipy() {
     formData.append("carbs", draft.carbs.trim());
     formData.append("protein", draft.protein.trim());
     formData.append("video_url", draft.videoUrl.trim());
+    formData.append("optional_ingredients", draft.optionalIngredients.trim());
     formData.append("status", status);
     if (coverImageUrl) formData.append("cover_image", coverImageUrl);
     formData.append(
@@ -441,9 +444,11 @@ export default function AddNewRecipy() {
             <BasicInformationSection draft={draft} updateField={updateField} />
             <IngredientsSection
               ingredients={draft.ingredients}
+              optionalIngredients={draft.optionalIngredients}
               onAdd={addIngredient}
               onUpdate={updateIngredient}
               onRemove={removeIngredient}
+              onOptionalIngredientsChange={(value) => updateField("optionalIngredients", value)}
             />
             <PreparationStepsSection steps={draft.steps} onAdd={addStep} onUpdate={updateStep} onRemove={removeStep} />
             <NutritionFactsSection draft={draft} updateField={updateField} />

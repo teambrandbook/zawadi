@@ -147,7 +147,7 @@ export default function LoginComponent() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute top-1/2 -translate-y-1/2 ltr:right-3 rtl:left-3"
+                        className="absolute top-1/2 -translate-y-1/2 text-[#0a4833] transition hover:text-[#0c5a40] ltr:right-3 rtl:left-3"
                       >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>

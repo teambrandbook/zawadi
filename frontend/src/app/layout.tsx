@@ -38,6 +38,11 @@ export const metadata: Metadata = {
   title: "Zewadi | Premium Digital Experience",
   description:
     "Modern, high-performance website built with Next.js and GSAP.",
+  icons: {
+    icon: "/favicon/favicon-zoom.png",
+    shortcut: "/favicon/favicon-zoom.png",
+    apple: "/favicon/favicon-zoom.png",
+  },
 };
 
 export default function RootLayout({
@@ -48,7 +53,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`scroll-smooth ${inter.variable} ${dmSans.variable} ${playfair.variable} ${caveat.variable}`}
+      className={`${inter.variable} ${dmSans.variable} ${playfair.variable} ${caveat.variable}`}
     >
       <body className="antialiased font-sans">
 

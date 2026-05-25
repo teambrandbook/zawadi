@@ -73,7 +73,7 @@ export default function OrderStats() {
   ] as const;
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3">
       {cards.map(({ label, value, Icon, iconBg, iconColor }) => (
         <article key={label} className="rounded-xl border border-[#DFDFDF] bg-white p-4">
           <div className="flex items-start justify-between">

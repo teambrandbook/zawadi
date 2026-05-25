@@ -1,11 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Calendar,
   CalendarCheck2,
-  ChevronDown,
   Eye,
   Pencil,
   Play,
@@ -17,6 +16,9 @@ import api from "@/services/api";
 
 type ConsultationStatus = "Upcoming" | "Confirmed" | "Follow-up Due" | "Scheduled" | "Cancelled";
 type SessionType = "Video Call" | "Audio Call" | "Chat";
+type StatusFilter = "all" | ConsultationStatus;
+type TypeFilter = "all" | SessionType;
+type SortFilter = "newest" | "oldest";
 
 type BackendConsultationUser = {
   id: string;
@@ -24,6 +26,7 @@ type BackendConsultationUser = {
   fullName: string;
   avatarUrl: string;
   sessionType: SessionType;
+  sessionDate: string;
   sessionDateLabel: string;
   sessionSubLabel: string;
   wellnessGoal: string;
@@ -131,6 +134,7 @@ function mapBookingToConsultation(booking: BookingItem): BackendConsultationUser
     fullName: booking.user_name || "Client",
     avatarUrl: mediaUrl(booking.user_image),
     sessionType: sessionTypeLabel(booking.session_type),
+    sessionDate: booking.booked_date,
     ...dateLabels,
     wellnessGoal: booking.primary_goal || booking.primary_wellness_goal || "General Wellness",
     wellnessNote: booking.buckwheat_journey_goal || booking.focuses_area || "Consultation booking",
@@ -170,7 +174,7 @@ function SummaryCards({ users }: { users: BackendConsultationUser[] }) {
   ];
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
+    <section className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
       {statCards.map((card) => {
         const Icon = card.icon;
 
@@ -195,46 +199,94 @@ function SummaryCards({ users }: { users: BackendConsultationUser[] }) {
   );
 }
 
-function ConsultationToolbar() {
+type ConsultationToolbarProps = {
+  statusFilter: StatusFilter;
+  typeFilter: TypeFilter;
+  dateFilter: string;
+  sortFilter: SortFilter;
+  onStatusChange: (value: StatusFilter) => void;
+  onTypeChange: (value: TypeFilter) => void;
+  onDateChange: (value: string) => void;
+  onSortChange: (value: SortFilter) => void;
+  onViewSchedule: () => void;
+};
+
+function ConsultationToolbar({
+  statusFilter,
+  typeFilter,
+  dateFilter,
+  sortFilter,
+  onStatusChange,
+  onTypeChange,
+  onDateChange,
+  onSortChange,
+  onViewSchedule,
+}: ConsultationToolbarProps) {
+  const controlClass =
+    "h-12 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] outline-none transition focus:border-[#0A4833] focus:ring-2 focus:ring-[#0A4833]/10";
+
   return (
     <section className="rounded-[14px] border border-[#DFDFDF] bg-white px-4 py-3 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center xl:flex-nowrap">
-        <button
-          type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[118px]"
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="hide-scrollbar -mx-1 overflow-x-auto px-1">
+        <div className="flex min-w-max items-center gap-3">
+        <select
+          value={statusFilter}
+          onChange={(event) => onStatusChange(event.target.value as StatusFilter)}
+          className={`${controlClass} w-[148px]`}
         >
-          <span>All Status</span>
-          <ChevronDown className="h-4 w-4 text-[#374151]" />
-        </button>
+          <option value="all">All Status</option>
+          <option value="Scheduled">Scheduled</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Follow-up Due">Follow-up Due</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+
+        <select
+          value={typeFilter}
+          onChange={(event) => onTypeChange(event.target.value as TypeFilter)}
+          className={`${controlClass} w-[148px]`}
+        >
+          <option value="all">All Types</option>
+          <option value="Video Call">Video Call</option>
+          <option value="Audio Call">Audio Call</option>
+          <option value="Chat">Chat</option>
+        </select>
+
+        <input
+          type="date"
+          value={dateFilter}
+          onChange={(event) => onDateChange(event.target.value)}
+          className={`${controlClass} w-[158px]`}
+        />
+
+        <select
+          value={sortFilter}
+          onChange={(event) => onSortChange(event.target.value as SortFilter)}
+          className={`${controlClass} w-[186px]`}
+        >
+          <option value="newest">Sort by Newest</option>
+          <option value="oldest">Sort by Oldest</option>
+        </select>
 
         <button
           type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[118px]"
+          onClick={onViewSchedule}
+          className="inline-flex h-12 w-[184px] items-center justify-center gap-2 rounded-[6px] bg-[#0A4833] px-5 text-[14px] font-semibold text-white transition hover:bg-[#083B2A]"
         >
-          <span>All Types</span>
-          <ChevronDown className="h-4 w-4 text-[#374151]" />
-        </button>
-
-        <div className="flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[126px]">
-          <span>mm/dd/yyyy</span>
-          <Calendar className="h-4 w-4 text-[#111827]" />
-        </div>
-
-        <button
-          type="button"
-          className="inline-flex h-10 items-center justify-between rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-[14px] font-normal text-[#111827] lg:w-[148px]"
-        >
-          <span>Sort by Newest</span>
-          <ChevronDown className="h-4 w-4 text-[#374151]" />
-        </button>
-
-        <button
-          type="button"
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-[6px] bg-[#0A4833] px-4 text-[14px] font-medium text-white hover:bg-[#083B2A] lg:w-[148px]"
-        >
-          <Calendar className="h-[13px] w-[13px]" />
+          <Calendar className="h-4 w-4" />
           <span>View Schedule</span>
         </button>
+        </div>
       </div>
     </section>
   );
@@ -242,6 +294,18 @@ function ConsultationToolbar() {
 
 function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] }) {
   const [selectedUser, setSelectedUser] = useState<BackendConsultationUser | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const rowsPerPage = 10;
+  const totalPages = Math.max(1, Math.ceil(users.length / rowsPerPage));
+  const visibleUsers = users.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [users]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   return (
     <>
@@ -265,7 +329,7 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
               <div className="px-7 py-8 text-sm text-[#6B7280]">No consultation bookings found.</div>
             ) : null}
 
-            {users.map((user) => (
+            {visibleUsers.map((user) => (
               <div
                 key={user.id}
                 className="grid grid-cols-[1.4fr_1fr_1fr_1.2fr_0.9fr_0.9fr] border-b border-[#E5E7EB] px-4 py-4 last:border-b-0"
@@ -337,22 +401,29 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
         </div>
 
         <div className="flex flex-col gap-4 border-t border-[#E5E7EB] px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-[#4B5563]">Showing {users.length} consultations</p>
+          <p className="text-sm text-[#4B5563]">
+            Showing {visibleUsers.length} of {users.length} consultations
+          </p>
 
           <div className="flex items-center gap-2 text-sm">
-            <button type="button" className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827]">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1}
+              className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Previous
             </button>
             <button type="button" className="rounded bg-[#0A4833] px-3 py-1.5 text-white">
-              1
+              {currentPage}
             </button>
-            <button type="button" className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827]">
-              2
-            </button>
-            <button type="button" className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827]">
-              3
-            </button>
-            <button type="button" className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827]">
+            <span className="text-[#6B7280]">of {totalPages}</span>
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+              disabled={currentPage === totalPages}
+              className="rounded border border-[#DFDFDF] bg-white px-3 py-1.5 text-[#111827] disabled:cursor-not-allowed disabled:opacity-50"
+            >
               Next
             </button>
           </div>
@@ -447,6 +518,10 @@ function ActiveConsultationsTable({ users }: { users: BackendConsultationUser[] 
 export default function ConsultantConsultationPage() {
   const [usersFromBackend, setUsersFromBackend] = useState<BackendConsultationUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
+  const [dateFilter, setDateFilter] = useState("");
+  const [sortFilter, setSortFilter] = useState<SortFilter>("newest");
 
   useEffect(() => {
     let isMounted = true;
@@ -469,17 +544,43 @@ export default function ConsultantConsultationPage() {
     };
   }, []);
 
+  const filteredUsers = useMemo(() => {
+    return usersFromBackend
+      .filter((user) => statusFilter === "all" || user.status === statusFilter)
+      .filter((user) => typeFilter === "all" || user.sessionType === typeFilter)
+      .filter((user) => !dateFilter || user.sessionDate === dateFilter)
+      .sort((a, b) => {
+        const first = new Date(`${a.sessionDate}T00:00:00`).getTime();
+        const second = new Date(`${b.sessionDate}T00:00:00`).getTime();
+        return sortFilter === "newest" ? second - first : first - second;
+      });
+  }, [dateFilter, sortFilter, statusFilter, typeFilter, usersFromBackend]);
+
+  function viewTodaySchedule() {
+    setDateFilter(new Date().toISOString().slice(0, 10));
+  }
+
   return (
     <main className="min-h-screen bg-[#FFFFFF] px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1220px] space-y-4">
         <SummaryCards users={usersFromBackend} />
-        <ConsultationToolbar />
+        <ConsultationToolbar
+          statusFilter={statusFilter}
+          typeFilter={typeFilter}
+          dateFilter={dateFilter}
+          sortFilter={sortFilter}
+          onStatusChange={setStatusFilter}
+          onTypeChange={setTypeFilter}
+          onDateChange={setDateFilter}
+          onSortChange={setSortFilter}
+          onViewSchedule={viewTodaySchedule}
+        />
         {isLoading ? (
           <section className="rounded-[14px] border border-[#DFDFDF] bg-white p-5 text-sm text-[#6B7280]">
             Loading consultations...
           </section>
         ) : null}
-        <ActiveConsultationsTable users={usersFromBackend} />
+        <ActiveConsultationsTable users={filteredUsers} />
       </div>
     </main>
   );

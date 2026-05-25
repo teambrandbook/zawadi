@@ -10,10 +10,11 @@ from urllib.parse import urlencode
 
 import requests
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -138,26 +139,36 @@ UPLOAD_PERMISSION_MAP = {
     "profile_photo": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
 }
 
+UPLOAD_CONTENT_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+
+
+def validate_upload_request(request, upload_type):
+    if upload_type not in UPLOAD_FOLDER_MAP:
+        return Response(
+            {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
+    if request.user.role not in allowed_roles:
+        return Response(
+            {"error": "You do not have permission to upload this image type."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    return None
+
 
 class UploadSignatureView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         upload_type = request.query_params.get("type", "")
-        if upload_type not in UPLOAD_FOLDER_MAP:
-            return Response(
-                {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        error_response = validate_upload_request(request, upload_type)
+        if error_response:
+            return error_response
 
-        allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
-        if request.user.role not in allowed_roles:
-            return Response(
-                {"error": "You do not have permission to upload this image type."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        if not settings.CLOUDINARY_API_SECRET:
+        if not all([settings.CLOUDINARY_CLOUD_NAME, settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET]):
             return Response(
                 {"error": "Cloudinary is not configured on this server."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -181,6 +192,39 @@ class UploadSignatureView(APIView):
             "folder": folder,
             "allowed_formats": "jpg,jpeg,png,webp,gif",
         })
+
+
+class LocalImageUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        upload_type = request.query_params.get("type", "")
+        error_response = validate_upload_request(request, upload_type)
+        if error_response:
+            return error_response
+
+        upload = request.FILES.get("file")
+        if not upload:
+            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        extension = UPLOAD_CONTENT_TYPES.get(upload.content_type)
+        if not extension:
+            return Response(
+                {"error": "Only JPG, PNG, and WebP images are supported."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        max_size = getattr(settings, "FILE_UPLOAD_MAX_MEMORY_SIZE", 5 * 1024 * 1024)
+        if upload.size > max_size:
+            return Response({"error": "Image must be 5 MB or smaller."}, status=status.HTTP_400_BAD_REQUEST)
+
+        folder = UPLOAD_FOLDER_MAP[upload_type]
+        filename = f"{_uuid.uuid4().hex}{extension}"
+        stored_path = default_storage.save(f"{folder}/{filename}", upload)
+        media_url = f"{settings.MEDIA_URL.rstrip('/')}/{stored_path.replace(os.sep, '/')}"
+
+        return Response({"url": request.build_absolute_uri(media_url)}, status=status.HTTP_201_CREATED)
 
 
 class RegisterAPIView(APIView):

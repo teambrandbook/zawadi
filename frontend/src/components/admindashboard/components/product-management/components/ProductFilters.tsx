@@ -6,14 +6,12 @@ type Props = {
   stockStatus: string;
   sortBy: string;
   onChange: (key: string, value: string) => void;
-  onQuickFilter: (value: string) => void;
   onClear: () => void;
 };
 
 const fieldClass = "h-10 w-full rounded-md border border-[#DFDFDF] bg-[#E9E0D0] px-3 text-sm text-[#111827] outline-none";
-const quickFilters = ["Featured", "Best Selling", "Recently Added", "Low Stock"];
 
-export default function ProductFilters({ search, productStatus, stockStatus, sortBy, onChange, onQuickFilter, onClear }: Props) {
+export default function ProductFilters({ search, productStatus, stockStatus, sortBy, onChange, onClear }: Props) {
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -55,15 +53,7 @@ export default function ProductFilters({ search, productStatus, stockStatus, sor
         </label>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#ECECEC] pt-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-[#6B7280]">Quick Filters:</span>
-          {quickFilters.map((item) => (
-            <button key={item} type="button" onClick={() => onQuickFilter(item)} className="rounded-md border border-[#DFDFDF] bg-white px-3 py-1 text-sm text-[#374151]">
-              {item}
-            </button>
-          ))}
-        </div>
+      <div className="mt-3 flex flex-wrap items-center justify-end gap-2 border-t border-[#ECECEC] pt-3">
         <button type="button" onClick={onClear} className="text-sm text-[#0A4833] hover:underline">Clear Filters</button>
       </div>
     </section>

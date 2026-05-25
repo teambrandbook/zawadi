@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Eye, MessageSquare, SquarePen } from "lucide-react";
 import { cn } from "@/utils/cn";
 import type { BackendClientItem } from "./clientTypes";
+import ClientAvatar from "./ClientAvatar";
 
 type Props = {
   client: BackendClientItem;
@@ -31,9 +31,7 @@ export default function ClientListCard({ client, isSelected, onSelect, onOpenPro
       <div className="flex flex-col gap-5 px-4 py-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="h-11 w-11 overflow-hidden rounded-full bg-[#E5E7EB]">
-              <Image src={client.avatar} alt={client.name} width={44} height={44} className="h-full w-full object-cover" />
-            </div>
+            <ClientAvatar src={client.avatar} name={client.name} size={44} className="h-11 w-11 text-sm" />
             <div>
               <h3 className="text-base font-semibold text-[#101828]">{client.name}</h3>
               <p className="text-sm text-[#667085]">{`${client.age} years • ${client.gender}`}</p>

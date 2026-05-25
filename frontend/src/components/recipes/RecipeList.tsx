@@ -22,6 +22,7 @@ type BackendRecipe = {
   id: number | string;
   title: string;
   category?: string;
+  health_benefits?: string | null;
   cover_image?: string | null;
   image?: string | null;
   image_url?: string | null;
@@ -54,6 +55,13 @@ function mediaUrl(value?: string | null) {
   return getImageUrl(value);
 }
 
+function listItems(value?: string | null) {
+  return String(value || "")
+    .split(/[\n,]+/)
+    .map((item) => item.replace(/^[-*•]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function mapBackendRecipe(recipe: BackendRecipe): Recipe {
   const category = String(recipe.category || "BREAKFAST").toUpperCase();
   return {
@@ -63,7 +71,7 @@ function mapBackendRecipe(recipe: BackendRecipe): Recipe {
     description: recipe.short_description || "",
     image: mediaUrl(recipe.cover_image ?? recipe.image ?? recipe.image_url ?? recipe.thumbnail),
     categories: [category],
-    benefits: [],
+    benefits: listItems(recipe.health_benefits),
     videoUrl: recipe.video_url ?? null,
   };
 }

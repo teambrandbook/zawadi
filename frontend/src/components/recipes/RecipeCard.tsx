@@ -33,7 +33,7 @@ export default function RecipeCard({
 
   return (
     <article
-      className={`recipe-card grid min-h-[520px] origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:min-h-[620px] lg:grid-cols-[380px_minmax(0,1fr)] lg:gap-[180px] lg:px-20 lg:pt-20
+      className={`recipe-card grid min-h-[520px] origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:min-h-[680px] lg:grid-cols-[490px_minmax(0,1fr)] lg:gap-[100px] lg:px-20 lg:pt-0
       ${
         reverse
           ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
@@ -41,7 +41,7 @@ export default function RecipeCard({
       }`}
     >
       {/* Image Section */}
-      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[16px] sm:h-[420px]">
+      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[12px] sm:h-[420px] lg:h-[600px] lg:max-w-[490px]">
         <Image
           src={imageSrc}
           alt={recipe.title}
@@ -66,34 +66,37 @@ export default function RecipeCard({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[500px] text-left rtl:text-right">
+      <div className="max-w-[560px] pt-1 text-left rtl:text-right">
         {/* Title */}
-        <h2 className="font-[600] text-[28px] leading-[36px] text-black md:text-[40px] md:leading-[48px] [font-family:'Playfair_Display']">
+        <h2 className="font-[600] text-[30px] leading-[38px] text-black md:text-[46px] md:leading-[52px] [font-family:'Playfair_Display']">
           {recipe.title}
         </h2>
 
         {/* Description */}
-        <p className="mt-4 text-[13px] font-[500] leading-[1.7] text-[#1F4D3A] md:text-[15px] [font-family:'Inter']">
+        <p className="mt-10 text-[13px] font-[700] leading-[1.2] text-[#1F4D3A] md:text-[16px] [font-family:'Inter']">
           {recipe.description}
         </p>
 
         {/* Benefits */}
         {benefits.length > 0 && (
           <>
-            <h3 className="mt-5 text-[15px] font-[800] text-black md:text-[17px] [font-family:'Inter']">
+            <h3 className="mt-5 text-[16px] font-[800] text-black md:text-[18px] [font-family:'Inter']">
               {labels.benefits}
             </h3>
 
-            <ul className="mt-2 list-disc space-y-2 pl-5 text-[13px] font-[500] leading-[1.6] text-[#1F4D3A] rtl:pl-0 rtl:pr-5 md:text-[15px] [font-family:'Inter']">
+            <ul className="mt-3 space-y-1 text-[13px] font-[700] leading-[1.2] text-[#1F4D3A] md:text-[16px] [font-family:'Inter']">
               {benefits.map((benefit: string) => (
-                <li key={benefit}>{benefit}</li>
+                <li key={benefit} className="flex gap-2">
+                  <span className="mt-[0.45em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#1F4D3A]" />
+                  <span>{benefit}</span>
+                </li>
               ))}
             </ul>
           </>
         )}
 
         {/* Action Row: Learn More & Favorite */}
-        <div className="mt-6 flex items-center gap-15">
+        <div className="mt-8 flex items-center gap-15">
           <Link
             href={`/recipes/${recipe.id}`}
             className="relative inline-flex items-center rounded-full bg-[#1f4d3a] py-4 text-[11px] font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[#163a2b] ltr:pl-6 ltr:pr-16 rtl:pl-16 rtl:pr-6"

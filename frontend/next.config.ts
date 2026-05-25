@@ -28,12 +28,18 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/products/**" },
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/recipes/**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/profile_photos/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/products/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/recipes/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/profile_photos/**" },
       // Derived from NEXT_PUBLIC_API_URL — covers production automatically
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/media/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/products/**" },
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/recipes/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/profile_photos/**" },
       // Google profile photos
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       // Cloudinary profile photos

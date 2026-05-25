@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, CircleCheck, DollarSign, Package, Star, Trophy, XCircle, FileText } from "lucide-react";
+import { AlertTriangle, CircleCheck, Package, Trophy, XCircle, FileText } from "lucide-react";
 import api from "@/services/api";
 import type { ProductRow } from "./ProductsTable";
 
@@ -106,31 +106,26 @@ export default function ProductStatsGrid({ rows }: Props) {
   const val = (v: number | string) => (stats != null ? (typeof v === "number" ? fmt(v) : v) : isLoading ? "…" : "—");
 
   const cards = [
-    { primary: val(stats?.total ?? 0), secondary: "Total Products", note: "", Icon: Package, iconColor: "text-[#0A4833]", iconBg: "bg-[#E9F2EC]", noteColor: "text-[#22C55E]", primaryClass: "text-[40px] leading-none" },
-    { primary: val(stats?.active ?? 0), secondary: "Active Products", note: "Active", Icon: CircleCheck, iconColor: "text-[#22C55E]", iconBg: "bg-[#EAFBF0]", noteColor: "text-[#0A4833]", primaryClass: "text-[40px] leading-none" },
-    { primary: val(stats?.lowStock ?? 0), secondary: "Low Stock", note: "Alert", Icon: AlertTriangle, iconColor: "text-[#A88751]", iconBg: "bg-[#F5EFE5]", noteColor: "text-[#A88751]", primaryClass: "text-[40px] leading-none" },
-    { primary: val(stats?.featured ?? 0), secondary: "Featured Items", note: "Featured", Icon: Star, iconColor: "text-[#A88751]", iconBg: "bg-[#F5EFE5]", noteColor: "text-[#A88751]", primaryClass: "text-[40px] leading-none" },
-    { primary: val(stats?.outOfStock ?? 0), secondary: "Out of Stock", note: "Urgent", Icon: XCircle, iconColor: "text-[#DC2626]", iconBg: "bg-[#FEECEC]", noteColor: "text-[#DC2626]", primaryClass: "text-[40px] leading-none" },
-    { primary: val(stats?.draft ?? 0), secondary: "Draft Products", note: "Draft", Icon: FileText, iconColor: "text-[#4B5563]", iconBg: "bg-[#F1F3F5]", noteColor: "text-[#4B5563]", primaryClass: "text-[40px] leading-none" },
-    {
-      primary: stats?.revenue != null ? `$${(stats.revenue / 1000).toFixed(1)}K` : isLoading ? "…" : "—",
-      secondary: "Total Revenue", note: "", Icon: DollarSign, iconColor: "text-[#0A4833]", iconBg: "bg-[#E9F2EC]", noteColor: "text-[#22C55E]", primaryClass: "text-[44px] leading-none",
-    },
-    { primary: stats?.bestSelling ?? (isLoading ? "…" : "—"), secondary: "Best Selling", note: "Top", Icon: Trophy, iconColor: "text-[#A88751]", iconBg: "bg-[#F5EFE5]", noteColor: "text-[#A88751]", primaryClass: "text-[36px] leading-tight" },
+    { primary: val(stats?.total ?? 0), secondary: "Total Products", note: "", Icon: Package, iconColor: "text-[#0A4833]", iconBg: "bg-[#E9F2EC]", noteColor: "text-[#22C55E]", primaryClass: "text-[30px] leading-none" },
+    { primary: val(stats?.active ?? 0), secondary: "Active Products", note: "Active", Icon: CircleCheck, iconColor: "text-[#22C55E]", iconBg: "bg-[#EAFBF0]", noteColor: "text-[#0A4833]", primaryClass: "text-[30px] leading-none" },
+    { primary: val(stats?.lowStock ?? 0), secondary: "Low Stock", note: "Alert", Icon: AlertTriangle, iconColor: "text-[#A88751]", iconBg: "bg-[#F5EFE5]", noteColor: "text-[#A88751]", primaryClass: "text-[30px] leading-none" },
+    { primary: val(stats?.outOfStock ?? 0), secondary: "Out of Stock", note: "Urgent", Icon: XCircle, iconColor: "text-[#DC2626]", iconBg: "bg-[#FEECEC]", noteColor: "text-[#DC2626]", primaryClass: "text-[30px] leading-none" },
+    { primary: val(stats?.draft ?? 0), secondary: "Draft Products", note: "Draft", Icon: FileText, iconColor: "text-[#4B5563]", iconBg: "bg-[#F1F3F5]", noteColor: "text-[#4B5563]", primaryClass: "text-[30px] leading-none" },
+    { primary: stats?.bestSelling ?? (isLoading ? "…" : "—"), secondary: "Best Selling", note: "Top", Icon: Trophy, iconColor: "text-[#A88751]", iconBg: "bg-[#F5EFE5]", noteColor: "text-[#A88751]", primaryClass: "truncate text-[18px] leading-tight" },
   ];
 
   return (
-    <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
       {cards.map(({ primary, secondary, note, Icon, iconColor, iconBg, noteColor, primaryClass }) => (
-        <article key={`${secondary}-${note}`} className="rounded-xl border border-[#DFDFDF] bg-white p-5">
-          <div className="flex items-start justify-between">
-            <div className={`inline-flex h-11 w-11 items-center justify-center rounded-md ${iconBg}`}>
-              <Icon className={`h-5 w-5 ${iconColor}`} />
+        <article key={`${secondary}-${note}`} className="h-[126px] overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4">
+          <div className="flex items-start justify-between gap-2">
+            <div className={`inline-flex h-9 w-9 items-center justify-center rounded-md ${iconBg}`}>
+              <Icon className={`h-4 w-4 ${iconColor}`} />
             </div>
-            <p className={`text-[12px] font-medium ${noteColor}`}>{note}</p>
+            <p className={`truncate text-[11px] font-medium ${noteColor}`}>{note}</p>
           </div>
-          <p className={`mt-4 font-semibold text-[#0A4833] ${primaryClass}`}>{primary}</p>
-          <p className="mt-2 text-sm leading-none text-[#6B7280]">{secondary}</p>
+          <p className={`mt-3 font-semibold text-[#0A4833] ${primaryClass}`}>{primary}</p>
+          <p className="mt-1.5 truncate text-xs leading-none text-[#6B7280]">{secondary}</p>
         </article>
       ))}
     </section>

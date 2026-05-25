@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import { Search, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { AddNoteFormState, NoteClientOption } from "./formTypes";
+import NoteClientAvatar from "../NoteClientAvatar";
 
 type Props = {
   clients: NoteClientOption[];
@@ -70,9 +70,7 @@ export default function ClientConsultationReferenceSection({ clients, selectedCl
         <div className="mt-4 rounded-[8px] bg-[#EBE1CF] p-4">
           <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_1fr_1fr]">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 overflow-hidden rounded-full bg-white">
-                <Image src={selectedClient.avatar} alt={selectedClient.name} width={48} height={48} className="h-full w-full object-cover" />
-              </div>
+              <NoteClientAvatar src={selectedClient.avatar} name={selectedClient.name} size={48} className="h-12 w-12 text-sm" />
               <div>
                 <p className="text-sm font-semibold text-[#0A4833]">{selectedClient.name}</p>
                 <p className="text-xs text-[#6B7280]">{selectedClient.wellnessGoal}</p>

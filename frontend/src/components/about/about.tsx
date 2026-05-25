@@ -8,8 +8,9 @@ import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 import { sanitizeHTML } from "@/utils/sanitize";
 
-import { StarIcon, ApproachIcon } from "../common/BrandIcons";
+import { ApproachIcon } from "../common/BrandIcons";
 import ContentSection from "../common/ContentSection";
+import EventTestimonials from "../events/EventTestimonials";
 
 const introTallImage = "/about/intro-tall.webp";
 const introTopImage = "/about/intro-top.webp";
@@ -35,6 +36,17 @@ const desktopStoryPositions = [
     { x: -280, width: 220, height: 280, zIndex: 10, opacity: 0.6 },
     { x: 0, width: 440, height: 340, zIndex: 20, opacity: 1 },
     { x: 280, width: 220, height: 280, zIndex: 10, opacity: 0.6 },
+];
+
+const aboutImageUrls = [
+    introTallImage,
+    introTopImage,
+    introBottomImage,
+    storyLeftImage,
+    storyCenterImage,
+    storyRightImage,
+    approachImage,
+    testimonialImage,
 ];
 
 export default function About() {
@@ -133,6 +145,25 @@ export default function About() {
                 opacity: pos.opacity,
             });
         });
+    }, []);
+
+    useEffect(() => {
+        const warmImages = () => {
+            aboutImageUrls.forEach((src) => {
+                const img = new window.Image();
+                img.decoding = "async";
+                img.src = src;
+                img.decode?.().catch(() => undefined);
+            });
+        };
+
+        if ("requestIdleCallback" in window) {
+            const idleId = window.requestIdleCallback(warmImages, { timeout: 1500 });
+            return () => window.cancelIdleCallback(idleId);
+        }
+
+        const timeoutId = globalThis.setTimeout(warmImages, 300);
+        return () => globalThis.clearTimeout(timeoutId);
     }, []);
 
     useEffect(() => {
@@ -306,7 +337,7 @@ export default function About() {
                     <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:items-stretch lg:gap-16">
                         <div className="intro-images-grid mx-auto grid w-full max-w-[480px] grid-cols-2 gap-4 sm:gap-5 items-start lg:items-stretch lg:h-full lg:min-h-[580px] lg:grid-cols-[1.05fr_0.95fr] ltr:lg:translate-x-4 ltr:xl:translate-x-8 rtl:lg:-translate-x-4 rtl:xl:-translate-x-8">
                             <div className="flex flex-col gap-4 sm:gap-5 h-full">
-                                <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
+                                <div className="intro-tall-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0 [will-change:clip-path]">
                                     <img
                                         src={introTallImage}
                                         alt="Fresh salad bowl"
@@ -334,7 +365,7 @@ export default function About() {
                             </div>
 
                             <div className="flex flex-col gap-3 sm:gap-4 h-full lg:gap-5">
-                                <div className="intro-top-wrapper shrink-0 overflow-hidden rounded-[20px]">
+                                <div className="intro-top-wrapper shrink-0 overflow-hidden rounded-[20px] [will-change:clip-path]">
                                     <img
                                         src={introTopImage}
                                         alt="Hands preparing vegetables"
@@ -343,7 +374,7 @@ export default function About() {
                                         className="h-[120px] w-full object-cover sm:h-[140px] lg:h-[160px] xl:h-[180px]"
                                     />
                                 </div>
-                                <div className="intro-bottom-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0">
+                                <div className="intro-bottom-wrapper flex-1 overflow-hidden rounded-[20px] min-h-0 [will-change:clip-path]">
                                     <img
                                         src={introBottomImage}
                                         alt="Hands holding a seedling"
@@ -383,7 +414,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="relative bg-[#1f4d3a] py-12 text-white sm:py-16">
+            <section className="relative overflow-hidden bg-[#1f4d3a] py-12 text-white sm:py-16">
                 <div
                     className="pointer-events-none absolute inset-0 opacity-10"
                     style={{
@@ -398,7 +429,7 @@ export default function About() {
                         {aboutData.storyTitle}
                     </h2>
 
-                    <div className="relative mx-auto mt-10 flex w-full max-w-[1020px] items-center justify-between">
+                    <div className="relative mx-auto mt-8 flex w-full max-w-[1020px] items-center justify-between sm:mt-10">
                         <button
                             type="button"
                             onClick={handlePrev}
@@ -409,7 +440,7 @@ export default function About() {
                         </button>
 
                         <div
-                            className="relative h-[300px] w-full max-w-[820px] md:h-[380px]"
+                            className="relative h-[280px] w-full max-w-[820px] sm:h-[300px] md:h-[380px]"
                             onTouchStart={handleTouchStart}
                             onTouchEnd={handleTouchEnd}
                             onWheel={handleWheel}
@@ -419,7 +450,7 @@ export default function About() {
                                     <div
                                         key={i}
                                         ref={el => { storyItemsRef.current[i] = el; }}
-                                        className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer"
+                                        className="absolute top-1/2 left-1/2 overflow-hidden rounded-[20px] cursor-pointer [will-change:transform,width,height,opacity]"
                                         onClick={() => {
                                             if (isAnimating.current) return;
                                             const pos =
@@ -479,7 +510,7 @@ export default function About() {
 
                     <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
                         <div>
-                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0">
+                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [will-change:clip-path]">
                                 <img
                                     src={approachImage}
                                     alt="Woman cooking in a bright kitchen"
@@ -497,7 +528,7 @@ export default function About() {
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
-                                    className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] shadow-[0_10px_28px_rgba(0,0,0,0.04)] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-7 sm:py-4"
+                                    className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-7 sm:py-4"
                                 >
                                     <div className="flex items-center gap-4 rtl:flex-row-reverse">
                                         <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
@@ -523,7 +554,7 @@ export default function About() {
 
                             <Link
                                 href="/community"
-                                className="group relative inline-flex items-center rounded-full bg-[#1f4d3a] py-0 text-[13px] font-bold uppercase tracking-[0.15em] text-white transition-colors duration-300 hover:bg-[#1a4331] ltr:pl-9 ltr:pr-0 rtl:pl-0 rtl:pr-9"
+                                className="group relative inline-flex max-w-[calc(100%-24px)] items-center rounded-full bg-[#1f4d3a] py-0 text-[12px] font-bold uppercase tracking-[0.12em] text-white transition-colors duration-300 hover:bg-[#1a4331] ltr:pl-7 ltr:pr-0 rtl:pl-0 rtl:pr-7 sm:text-[13px] sm:tracking-[0.15em] sm:ltr:pl-9 sm:rtl:pr-9"
                             >
                                 <div className="absolute inset-0 overflow-hidden rounded-full">
                                     <div
@@ -553,86 +584,7 @@ export default function About() {
                 </div>
             </section>
 
-            <section className="testimonial-section  px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-                <div className="mx-auto max-w-[1120px]">
-                    <div className="mb-8 flex justify-center">
-                        <div className="relative inline-flex max-w-full items-center gap-4 overflow-hidden rounded-full border border-white/10 bg-[#1a4331] px-5 py-2.5 shadow-sm sm:gap-5 sm:px-7">
-                            <div
-                                className="pointer-events-none absolute inset-0 opacity-10"
-                                style={{
-                                    backgroundImage: "url('/Patterns-03.webp')",
-                                    backgroundSize: "cover",
-                                    backgroundPosition: "center",
-                                }}
-                            />
-                            <p className="relative z-10 text-[10px] font-bold uppercase tracking-[0.2em] text-white/80 sm:tracking-[0.3em]">
-                                {aboutData.testimonialBadge}
-                            </p>
-                            <div className="relative z-10 h-3 w-px bg-white/20" />
-                            <SendHorizontal size={15} className="relative z-10 text-[#83cd20] rtl:rotate-180" />
-                        </div>
-                    </div>
-
-                    <h2
-                        className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
-                        dangerouslySetInnerHTML={{ __html: sanitizeHTML(aboutData.testimonialTitleHTML) }}
-                    />
-
-                    <div className="relative mt-12 flex flex-col items-center lg:flex-row lg:items-center">
-                        <div className="testimonial-card relative order-2 z-20 mt-8 w-full overflow-hidden rounded-[20px] bg-[#f2f6ee] p-7 text-left shadow-[0_24px_70px_rgba(0,0,0,0.08)] rtl:text-right sm:p-10 md:p-14 lg:order-1 lg:mt-0 ltr:lg:-mr-28 rtl:lg:-ml-28 lg:w-[58%]">
-                            <div className="pointer-events-none absolute inset-0 flex translate-x-6 items-center justify-center text-[#1f4d3a]/5 sm:translate-x-12">
-                                <svg width="280" height="200" viewBox="0 0 340 240" fill="none" stroke="currentColor" strokeWidth="8" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M115 130V220H25V130C25 70 65 30 115 30V80C95 80 85 95 85 110H115V130Z" />
-                                    <path d="M265 130V220H175V130C175 70 215 30 265 30V80C245 80 235 95 235 110H265V130Z" />
-                                </svg>
-                            </div>
-
-                            <p className="relative z-10 max-w-[36ch] text-[1.05rem] font-medium leading-[1.65] text-[#1f4d3a] sm:text-[1.35rem] sm:leading-[1.5]">
-                                {aboutData.testimonialQuote}
-                            </p>
-
-                            <div className="relative z-10 mt-10 flex items-center justify-between gap-4 sm:mt-12">
-                                <div className="flex items-center gap-4 rtl:flex-row-reverse">
-                                    <div className="h-12 w-12 shrink-0 rounded-full bg-[#d9d9d9] sm:h-16 sm:w-16" />
-                                    <div>
-                                        <p className="text-base font-bold text-[#1a4331] sm:text-xl">
-                                            {aboutData.testimonialName}
-                                        </p>
-                                        <p className="text-xs font-medium text-[#727272] sm:text-sm">{aboutData.testimonialRole}</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex shrink-0 items-center gap-2">
-                                    <button
-                                        type="button"
-                                        aria-label={aboutData.previousTestimonialLabel}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#1a4331] shadow-sm transition-all hover:bg-white/80 sm:h-12 sm:w-12"
-                                    >
-                                        <ArrowRight size={16} className="ltr:rotate-180" />
-                                    </button>
-                                    <button
-                                        type="button"
-                                        aria-label={aboutData.nextTestimonialLabel}
-                                        className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1a4331] text-white shadow-sm transition-all hover:bg-[#1a4331]/90 sm:h-12 sm:w-12"
-                                    >
-                                        <ArrowRight size={16} className="rtl:rotate-180" />
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="testimonial-image order-1 w-full overflow-hidden rounded-[20px] lg:order-2 lg:w-[52%]">
-                            <img
-                                src={testimonialImage}
-                                alt="People stacking hands together"
-                                loading="lazy"
-                                decoding="async"
-                                className="h-[320px] w-full object-cover sm:h-[400px] lg:h-[500px]"
-                            />
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <EventTestimonials />
         </div>
     );
 }

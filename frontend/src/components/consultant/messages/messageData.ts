@@ -4,7 +4,7 @@ export const backendConversations: ConversationItem[] = [
   {
     id: "michael-johnson",
     clientName: "Michael Johnson",
-    clientAvatar: "/recipe/recipe-3.webp",
+    clientAvatar: "",
     activeStatus: "Active 2 minutes ago",
     preview: "Thank you for the buckwheat recipe! I'll try it this week.",
     updatedAt: "2m ago",
@@ -52,7 +52,7 @@ export const backendConversations: ConversationItem[] = [
   {
     id: "emma-rodriguez",
     clientName: "Emma Rodriguez",
-    clientAvatar: "/recipe/recipe-2.webp",
+    clientAvatar: "",
     activeStatus: "Active 1 hour ago",
     preview: "Should I continue the buckwheat porridge for breakfast?",
     updatedAt: "1h ago",
@@ -76,7 +76,7 @@ export const backendConversations: ConversationItem[] = [
   {
     id: "david-park",
     clientName: "David Park",
-    clientAvatar: "/recipe/recipe-4.webp",
+    clientAvatar: "",
     activeStatus: "Active 3 hours ago",
     preview: "Feeling much better after starting the new routine!",
     updatedAt: "3h ago",
@@ -100,7 +100,7 @@ export const backendConversations: ConversationItem[] = [
   {
     id: "lisa-thompson",
     clientName: "Lisa Thompson",
-    clientAvatar: "/recipe/recipe-2.webp",
+    clientAvatar: "",
     activeStatus: "Active 5 hours ago",
     preview: "Can we reschedule tomorrow's consultation?",
     updatedAt: "5h ago",

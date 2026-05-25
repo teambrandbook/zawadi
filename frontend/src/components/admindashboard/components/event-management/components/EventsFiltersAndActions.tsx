@@ -1,4 +1,4 @@
-import { Bell, Download, Star, Upload, XCircle } from "lucide-react";
+import { Bell, Download, FileText, Trash2, Upload, XCircle } from "lucide-react";
 
 export type EventFilters = {
   status: string;
@@ -13,13 +13,32 @@ type EventsFiltersAndActionsProps = {
   categories: string[];
   onFiltersChange: (filters: EventFilters) => void;
   onClearFilters: () => void;
+  selectedCount: number;
+  onPublishSelected: () => void;
+  onDraftSelected: () => void;
+  onCancelSelected: () => void;
+  onDeleteSelected: () => void;
+  onSendReminders: () => void;
+  onExportSelected: () => void;
 };
 
 const statusOptions = ["All Status", "Published", "Draft", "Cancelled"];
 const typeOptions = ["All Types", "Online", "Offline"];
 const sortOptions = ["Newest First", "Oldest First", "Title A-Z", "Title Z-A"];
 
-export default function EventsFiltersAndActions({ filters, categories, onFiltersChange, onClearFilters }: EventsFiltersAndActionsProps) {
+export default function EventsFiltersAndActions({
+  filters,
+  categories,
+  onFiltersChange,
+  onClearFilters,
+  selectedCount,
+  onPublishSelected,
+  onDraftSelected,
+  onCancelSelected,
+  onDeleteSelected,
+  onSendReminders,
+  onExportSelected,
+}: EventsFiltersAndActionsProps) {
   function updateFilter(key: keyof EventFilters, value: string | boolean) {
     onFiltersChange({ ...filters, [key]: value });
   }
@@ -50,28 +69,45 @@ export default function EventsFiltersAndActions({ filters, categories, onFilters
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#DFDFDF] bg-white p-3">
-        <span className="mr-2 text-xs font-medium text-[#0A4833]">Bulk Actions:</span>
-        <button className="inline-flex items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
-          <Upload size={12} />
-          Publish Selected
-        </button>
-        <button className="inline-flex items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
-          <XCircle size={12} />
-          Cancel Selected
-        </button>
-        <button className="inline-flex items-center gap-1 rounded-md bg-[#F5EFE5] px-3 py-1.5 text-xs text-[#9F8151]">
-          <Star size={12} />
-          Mark Featured
-        </button>
-        <button className="inline-flex items-center gap-1 rounded-md bg-[#EEF3FF] px-3 py-1.5 text-xs text-[#2563EB]">
-          <Bell size={12} />
-          Send Reminders
-        </button>
-        <button className="inline-flex items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
-          <Download size={12} />
-          Export Selected
-        </button>
+      <div className="hide-scrollbar overflow-x-auto rounded-xl border border-[#DFDFDF] bg-white p-3">
+        <style jsx>{`
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="flex min-w-max items-center gap-2">
+          <span className="mr-2 shrink-0 text-xs font-medium text-[#0A4833]">Bulk Actions:</span>
+          <button type="button" onClick={onPublishSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
+            <Upload size={12} />
+            Publish Selected
+          </button>
+          <button type="button" onClick={onDraftSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#F3F4F6] px-3 py-1.5 text-xs text-[#475467]">
+            <FileText size={12} />
+            Draft Selected
+          </button>
+          <button type="button" onClick={onCancelSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
+            <XCircle size={12} />
+            Cancel Selected
+          </button>
+          <button type="button" onClick={onSendReminders} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF3FF] px-3 py-1.5 text-xs text-[#2563EB]">
+            <Bell size={12} />
+            Send Reminders
+          </button>
+          <button type="button" onClick={onExportSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
+            <Download size={12} />
+            Export Selected
+          </button>
+          <button type="button" onClick={onDeleteSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
+            <Trash2 size={12} />
+            Delete Selected
+          </button>
+          <span className="shrink-0 text-xs font-medium text-[#6B7280]">{selectedCount} selected</span>
+        </div>
       </div>
     </section>
   );

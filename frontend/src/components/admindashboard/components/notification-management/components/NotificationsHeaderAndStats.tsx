@@ -1,16 +1,18 @@
-import { Bell, Clock3, Plus, Search, Send, TrendingUp } from "lucide-react";
+import { Bell, Clock3, Plus, Search, Send, Users } from "lucide-react";
 import type { NotificationStat } from "../types";
 import Link from "next/link";
 
 type NotificationsHeaderAndStatsProps = {
   stats: NotificationStat[];
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
 };
 
 function statIcon(icon: NotificationStat["icon"]) {
   if (icon === "bell") return Bell;
   if (icon === "clock") return Clock3;
   if (icon === "send") return Send;
-  return TrendingUp;
+  return Users;
 }
 
 function statIconTone(icon: NotificationStat["icon"]) {
@@ -27,7 +29,7 @@ function statValueTone(tone: NotificationStat["valueTone"]) {
   return "text-[#0A4833]";
 }
 
-export default function NotificationsHeaderAndStats({ stats }: NotificationsHeaderAndStatsProps) {
+export default function NotificationsHeaderAndStats({ stats, searchTerm, onSearchChange }: NotificationsHeaderAndStatsProps) {
   return (
     <section className="space-y-4">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -37,6 +39,8 @@ export default function NotificationsHeaderAndStats({ stats }: NotificationsHead
             <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#96A39D]" />
             <input
               type="text"
+              value={searchTerm}
+              onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Search..."
               className="h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F0EA] pl-9 pr-3 text-sm text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             />
@@ -44,8 +48,6 @@ export default function NotificationsHeaderAndStats({ stats }: NotificationsHead
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button className="h-10 rounded-md border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827]">Filter</button>
-          <button className="h-10 rounded-md border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827]">Export</button>
           <Link
             href="/admindashboard/notifications/create"
             className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-sm text-white"
@@ -56,7 +58,7 @@ export default function NotificationsHeaderAndStats({ stats }: NotificationsHead
         </div>
       </header>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">
         {stats.map((item) => {
           const Icon = statIcon(item.icon);
           return (
