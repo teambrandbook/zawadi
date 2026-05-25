@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
@@ -79,99 +79,6 @@ const statConfigs: StatCardConfig[] = [
   { label: "Pending", icon: Clock3, iconColor: "text-[#F97316]", getValue: (plans) => plans.filter((plan) => plan.status === "pending").length },
 ];
 
-const dietPlans: DietPlan[] = [
-  {
-    id: "plan-1",
-    title: "Buckwheat Power Plan",
-    clientName: "Emma Johnson",
-    goal: "Weight Loss",
-    duration: "30 Days",
-    status: "active",
-    updatedAt: "Updated 2 hours ago",
-    dailyCalories: "1850 cal",
-    meals: [
-      { label: "Breakfast", calories: "420 cal" },
-      { label: "Mid-Morning", calories: "180 cal" },
-      { label: "Lunch", calories: "560 cal" },
-      { label: "Snack", calories: "190 cal" },
-      { label: "Dinner", calories: "500 cal" },
-    ],
-    highlights: ["Buckwheat-focused meals", "High fiber support", "Weekly progress tracking"],
-  },
-  {
-    id: "plan-2",
-    title: "Balanced Nutrition Guide",
-    clientName: "Michael Chen",
-    goal: "Muscle Gain",
-    duration: "60 Days",
-    status: "active",
-    updatedAt: "Updated 1 day ago",
-    dailyCalories: "2400 cal",
-    meals: [
-      { label: "Breakfast", calories: "500 cal" },
-      { label: "Mid-Morning", calories: "250 cal" },
-      { label: "Lunch", calories: "700 cal" },
-      { label: "Snack", calories: "250 cal" },
-      { label: "Dinner", calories: "700 cal" },
-    ],
-    highlights: ["Protein-balanced meals", "Strength training support", "Higher calorie target"],
-  },
-  {
-    id: "plan-3",
-    title: "Wellness Maintenance Plan",
-    clientName: "Not Assigned",
-    goal: "Maintenance",
-    duration: "45 Days",
-    status: "draft",
-    updatedAt: "Updated 3 days ago",
-    dailyCalories: "2000 cal",
-    meals: [
-      { label: "Breakfast", calories: "430 cal" },
-      { label: "Mid-Morning", calories: "170 cal" },
-      { label: "Lunch", calories: "600 cal" },
-      { label: "Snack", calories: "180 cal" },
-      { label: "Dinner", calories: "620 cal" },
-    ],
-    highlights: ["Draft plan", "Balanced maintenance goal", "Ready for assignment"],
-  },
-  {
-    id: "plan-4",
-    title: "Energy Boost Protocol",
-    clientName: "Sarah Williams",
-    goal: "Weight Loss",
-    duration: "30 Days",
-    status: "completed",
-    updatedAt: "Updated 1 week ago",
-    dailyCalories: "1750 cal",
-    meals: [
-      { label: "Breakfast", calories: "390 cal" },
-      { label: "Mid-Morning", calories: "160 cal" },
-      { label: "Lunch", calories: "520 cal" },
-      { label: "Snack", calories: "180 cal" },
-      { label: "Dinner", calories: "500 cal" },
-    ],
-    highlights: ["Completed successfully", "Energy-focused foods", "Client adherence summary"],
-  },
-  {
-    id: "plan-5",
-    title: "High Protein Buckwheat Plan",
-    clientName: "David Martinez",
-    goal: "Muscle Gain",
-    duration: "90 Days",
-    status: "pending",
-    updatedAt: "Updated 5 hours ago",
-    dailyCalories: "2600 cal",
-    meals: [
-      { label: "Breakfast", calories: "520 cal" },
-      { label: "Mid-Morning", calories: "220 cal" },
-      { label: "Lunch", calories: "760 cal" },
-      { label: "Snack", calories: "240 cal" },
-      { label: "Dinner", calories: "860 cal" },
-    ],
-    highlights: ["High-protein structure", "Buckwheat meal base", "Awaiting client approval"],
-  },
-];
-
 function formatGoal(value: string) {
   return value
     .split("_")
@@ -239,15 +146,33 @@ function SectionCard({
   return <section className={`rounded-2xl border border-[#D1D5DB] bg-white shadow-sm ${className}`}>{children}</section>;
 }
 
-function FilterSelect({ label }: { label: string }) {
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
   return (
-    <button
-      type="button"
-      className="flex h-11 items-center justify-between rounded-xl border border-[#D1D5DB] bg-white px-4 text-sm text-[#1F2937]"
-    >
-      <span>{label}</span>
-      <ChevronDown className="h-4 w-4 text-[#374151]" />
-    </button>
+    <div className="relative">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-11 w-full appearance-none rounded-xl border border-[#D1D5DB] bg-white px-4 pr-10 text-sm text-[#1F2937] outline-none focus:border-[#0A4833]"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#374151]" />
+    </div>
   );
 }
 
@@ -296,10 +221,14 @@ function getPlanActions(status: PlanStatus) {
 
 export default function ConsultantDietPlansPage() {
   const router = useRouter();
-  const [plans, setPlans] = useState<DietPlan[]>(dietPlans);
-  const [selectedPlan, setSelectedPlan] = useState<DietPlan | null>(dietPlans[0]);
+  const [plans, setPlans] = useState<DietPlan[]>([]);
+  const [selectedPlan, setSelectedPlan] = useState<DietPlan | null>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchValue, setSearchValue] = useState("");
+  const [clientFilter, setClientFilter] = useState("All Clients");
+  const [goalFilter, setGoalFilter] = useState("All Goals");
+  const [statusFilter, setStatusFilter] = useState("All Status");
 
   useEffect(() => {
     let isMounted = true;
@@ -347,11 +276,40 @@ export default function ConsultantDietPlansPage() {
     }
   }
 
+  const clientOptions = useMemo(
+    () => ["All Clients", ...Array.from(new Set(plans.map((plan) => plan.clientName))).sort()],
+    [plans]
+  );
+  const goalOptions = useMemo(
+    () => ["All Goals", ...Array.from(new Set(plans.map((plan) => plan.goal))).sort()],
+    [plans]
+  );
+  const statusOptions = useMemo(
+    () => ["All Status", ...Array.from(new Set(plans.map((plan) => plan.status))).sort()],
+    [plans]
+  );
+  const filteredPlans = useMemo(() => {
+    const query = searchValue.trim().toLowerCase();
+
+    return plans.filter((plan) => {
+      const matchesSearch =
+        !query ||
+        plan.title.toLowerCase().includes(query) ||
+        plan.clientName.toLowerCase().includes(query) ||
+        plan.goal.toLowerCase().includes(query);
+      const matchesClient = clientFilter === "All Clients" || plan.clientName === clientFilter;
+      const matchesGoal = goalFilter === "All Goals" || plan.goal === goalFilter;
+      const matchesStatus = statusFilter === "All Status" || plan.status === statusFilter;
+
+      return matchesSearch && matchesClient && matchesGoal && matchesStatus;
+    });
+  }, [clientFilter, goalFilter, plans, searchValue, statusFilter]);
+
   return (
     <>
-      <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
-        <div className="mx-auto max-w-[1220px] space-y-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <main className="min-h-screen overflow-x-hidden bg-white px-4 py-6 lg:px-6">
+        <div className="mx-auto min-w-0 max-w-[1220px] space-y-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <h1 className="text-[30px] font-bold tracking-[-0.02em] text-[#0A4833]">Diet Plans</h1>
             <p className="mt-2 text-sm text-[rgba(10,72,51,0.6)]">
@@ -361,14 +319,14 @@ export default function ConsultantDietPlansPage() {
 
           <Link
             href="/consultant/diet-plans/add"
-            className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#0A4833] px-5 text-sm font-semibold text-white shadow-[0_8px_18px_rgba(10,72,51,0.15)] transition hover:bg-[#083627]"
+            className="inline-flex h-10 w-fit self-end items-center justify-center gap-2 rounded-xl bg-[#0A4833] px-4 text-xs font-semibold text-white shadow-[0_8px_18px_rgba(10,72,51,0.15)] transition hover:bg-[#083627] md:self-start"
           >
             <Plus className="h-4 w-4" />
             <span>Create Diet Plan</span>
           </Link>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-5">
           {statConfigs.map((stat) => {
             const Icon = stat.icon;
             const value = isLoading ? "..." : String(stat.getValue(plans));
@@ -383,32 +341,46 @@ export default function ConsultantDietPlansPage() {
           })}
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="space-y-4">
-            <SectionCard className="p-4">
-              <div className="grid gap-3 md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
-                <div>
-                  <p className="mb-2 text-xs font-medium text-[#0A4833]">Search Plans</p>
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
-                    <input
-                      type="text"
-                      placeholder="Search by title..."
-                      className="h-11 w-full rounded-xl border border-[#D1D5DB] bg-white pl-10 pr-4 text-sm text-[#1F2937] outline-none focus:border-[#0A4833]"
-                    />
+        <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="min-w-0 space-y-4">
+            <SectionCard className="w-full max-w-full overflow-hidden p-4">
+              <style jsx>{`
+                .hide-scrollbar {
+                  -ms-overflow-style: none;
+                  scrollbar-width: none;
+                }
+
+                .hide-scrollbar::-webkit-scrollbar {
+                  display: none;
+                }
+              `}</style>
+              <div className="hide-scrollbar block w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain">
+                <div className="flex w-max items-end gap-3 pb-1 md:grid md:w-full md:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
+                  <div className="w-[260px] shrink-0 md:w-auto md:shrink">
+                    <p className="mb-2 text-xs font-medium text-[#0A4833]">Search Plans</p>
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
+                      <input
+                        type="text"
+                        value={searchValue}
+                        onChange={(event) => setSearchValue(event.target.value)}
+                        placeholder="Search by title..."
+                        className="h-11 w-full rounded-xl border border-[#D1D5DB] bg-white pl-10 pr-4 text-sm text-[#1F2937] outline-none focus:border-[#0A4833]"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <p className="mb-2 text-xs font-medium text-[#0A4833]">Client</p>
-                  <FilterSelect label="All Clients" />
-                </div>
-                <div>
-                  <p className="mb-2 text-xs font-medium text-[#0A4833]">Goal</p>
-                  <FilterSelect label="All Goals" />
-                </div>
-                <div>
-                  <p className="mb-2 text-xs font-medium text-[#0A4833]">Status</p>
-                  <FilterSelect label="All Status" />
+                  <div className="w-[150px] shrink-0 md:w-auto md:shrink">
+                    <p className="mb-2 text-xs font-medium text-[#0A4833]">Client</p>
+                    <FilterSelect label="Client" value={clientFilter} options={clientOptions} onChange={setClientFilter} />
+                  </div>
+                  <div className="w-[150px] shrink-0 md:w-auto md:shrink">
+                    <p className="mb-2 text-xs font-medium text-[#0A4833]">Goal</p>
+                    <FilterSelect label="Goal" value={goalFilter} options={goalOptions} onChange={setGoalFilter} />
+                  </div>
+                  <div className="w-[150px] shrink-0 md:w-auto md:shrink">
+                    <p className="mb-2 text-xs font-medium text-[#0A4833]">Status</p>
+                    <FilterSelect label="Status" value={statusFilter} options={statusOptions} onChange={setStatusFilter} />
+                  </div>
                 </div>
               </div>
             </SectionCard>
@@ -419,16 +391,16 @@ export default function ConsultantDietPlansPage() {
               </SectionCard>
             ) : null}
 
-            {!isLoading && plans.length === 0 ? (
+            {!isLoading && filteredPlans.length === 0 ? (
               <SectionCard className="p-5">
                 <p className="text-sm font-medium text-[#0A4833]">No diet plans found.</p>
                 <p className="mt-1 text-sm text-[rgba(10,72,51,0.6)]">
-                  Create a diet plan to show it here.
+                  Adjust your search or filters to show matching plans.
                 </p>
               </SectionCard>
             ) : null}
 
-            {plans.map((plan) => (
+            {filteredPlans.map((plan) => (
               <SectionCard key={plan.id} className={`p-5 ${selectedPlan?.id === plan.id ? "ring-2 ring-[#D8C092]" : ""}`}>
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>

@@ -77,7 +77,7 @@ const ExperienceSection = () => {
               
               {/* Item 01 */}
               <div className="relative lg:w-[320px]">
-                <div className="experience-number-dot absolute top-[-20px] md:top-[-62px] right-[-16px] rtl:left-[-16px] rtl:right-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
+                <div className="experience-number-dot absolute top-[-20px] right-[-16px] md:left-[-16px] md:right-auto lg:top-[-62px] lg:left-auto lg:right-[-16px] rtl:left-[-16px] rtl:right-auto md:rtl:left-auto md:rtl:right-[-16px] lg:rtl:left-[-16px] lg:rtl:right-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
                   01
                 </div>
                 <div className="experience-card-item bg-[#e6ceae] rounded-xl p-6 shadow-sm">
@@ -92,7 +92,7 @@ const ExperienceSection = () => {
 
               {/* Item 03 */}
               <div className="relative lg:w-[320px]">
-                <div className="experience-number-dot absolute bottom-[-56px] md:bottom-[-56px] right-[-16px] rtl:left-[-16px] rtl:right-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
+                <div className="experience-number-dot absolute bottom-[-56px] right-[-16px] md:bottom-auto md:top-[-20px] md:left-[-16px] md:right-auto lg:top-auto lg:bottom-[-56px] lg:left-auto lg:right-[-16px] rtl:left-[-16px] rtl:right-auto md:rtl:left-auto md:rtl:right-[-16px] lg:rtl:left-[-16px] lg:rtl:right-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
                   03
                 </div>
                 <div className="experience-card-item bg-[#e6ceae] rounded-xl p-6 shadow-sm">
@@ -111,7 +111,7 @@ const ExperienceSection = () => {
               
               {/* Item 02 */}
               <div className="relative lg:w-[320px]">
-                <div className="experience-number-dot absolute top-[-170px] md:top-[-62px] left-[-16px] rtl:right-[-16px] rtl:left-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
+                <div className="experience-number-dot absolute top-[-170px] left-[-16px] md:top-[-20px] lg:top-[-62px] rtl:right-[-16px] rtl:left-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
                   02
                 </div>
                 <div className="experience-card-item bg-[#e6ceae] rounded-xl p-6 shadow-sm">
@@ -126,7 +126,7 @@ const ExperienceSection = () => {
 
               {/* Item 04 */}
               <div className="relative lg:w-[320px]">
-                <div className="experience-number-dot absolute max-sm:top-[-20px] lg:bottom-[-62px] left-[-16px] rtl:right-[-16px] rtl:left-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
+                <div className="experience-number-dot absolute top-[-20px] left-[-16px] md:top-[-20px] lg:top-auto lg:bottom-[-62px] rtl:right-[-16px] rtl:left-auto w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md">
                   04
                 </div>
                 <div className="experience-card-item bg-[#e6ceae] rounded-xl p-6 shadow-sm">

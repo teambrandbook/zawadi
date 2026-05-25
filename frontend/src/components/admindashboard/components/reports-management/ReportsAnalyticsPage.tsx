@@ -10,7 +10,7 @@ import ReportsKpiGrid from "./components/ReportsKpiGrid";
 import RevenueTrendCard from "./components/RevenueTrendCard";
 import UserGrowthCard from "./components/UserGrowthCard";
 import { filterOptions } from "./reportsMockData";
-import type { AnalyticsCard, KpiCard, Point, ReportModule, ReportPeriod, ReportRow } from "./types";
+import type { AnalyticsCard, KpiCard, Point, ReportPeriod, ReportRow } from "./types";
 
 type StatsData = {
   total_users?: number;
@@ -161,8 +161,8 @@ function normalizeReports(data: ApiReportsData | null | undefined): ReportsData 
   };
 }
 
-function buildParams(period: ReportPeriod, module: ReportModule, startDate: string, endDate: string) {
-  const params: Record<string, string> = { period, module };
+function buildParams(period: ReportPeriod, startDate: string, endDate: string) {
+  const params: Record<string, string> = { period };
   if (period === "custom") {
     params.start_date = startDate;
     params.end_date = endDate;
@@ -193,7 +193,6 @@ export default function ReportsAnalyticsPage() {
   const [statsError, setStatsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [period, setPeriod] = useState<ReportPeriod>("month");
-  const [module, setModule] = useState<ReportModule>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [exportingReportId, setExportingReportId] = useState<string | null>(null);
@@ -210,7 +209,7 @@ export default function ReportsAnalyticsPage() {
       setStatsError(false);
       try {
         const reportsRes = await api.get("/superadmin/reports/", {
-          params: buildParams(period, module, startDate, endDate),
+          params: buildParams(period, startDate, endDate),
         });
         const nextReports = normalizeReports(reportsRes.data);
         setReports(nextReports);
@@ -222,7 +221,7 @@ export default function ReportsAnalyticsPage() {
       }
     };
     fetchAll();
-  }, [period, module, startDate, endDate]);
+  }, [period, startDate, endDate]);
 
   const handleExport = async (reportId: string = "all") => {
     if (period === "custom" && (!startDate || !endDate)) return;
@@ -233,7 +232,7 @@ export default function ReportsAnalyticsPage() {
     try {
       const response = await api.get("/superadmin/reports/export/", {
         params: {
-          ...buildParams(period, module, startDate, endDate),
+          ...buildParams(period, startDate, endDate),
           report_type: reportId,
         },
         responseType: "blob",
@@ -279,11 +278,9 @@ export default function ReportsAnalyticsPage() {
         <ReportsFiltersBar
           filters={filterOptions}
           activePeriod={period}
-          module={module}
           startDate={startDate}
           endDate={endDate}
           onPeriodChange={setPeriod}
-          onModuleChange={setModule}
           onStartDateChange={setStartDate}
           onEndDateChange={setEndDate}
         />

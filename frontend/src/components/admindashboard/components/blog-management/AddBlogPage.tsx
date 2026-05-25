@@ -17,7 +17,7 @@ const CATEGORIES = [
   { label: "Community", value: "community" },
   { label: "Other", value: "other" },
 ];
-const SHORT_DESCRIPTION_MAX_LENGTH = 200;
+const SHORT_DESCRIPTION_MAX_LENGTH = 300;
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

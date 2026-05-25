@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CalendarPlus2, CheckCircle2, Share2, Users } from "lucide-react";
 import { EventReviewData } from "./types";
 import api from "@/services/api";
@@ -12,8 +13,10 @@ type Props = {
 
 const cardClass =
   "rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0px_1px_2px_rgba(0,0,0,0.05)]";
+const EVENT_CALENDAR_STORAGE_KEY = "zewadiCommunityCalendarEventIds";
 
 export default function EventReviewSidebar({ event }: Props) {
+  const router = useRouter();
   const [pendingAction, setPendingAction] = useState<"join" | "cancel" | null>(null);
   const [actionError, setActionError] = useState("");
 
@@ -32,6 +35,19 @@ export default function EventReviewSidebar({ event }: Props) {
 
   async function handleAction(label: string) {
     setActionError("");
+    if (label === "Add to Calendar") {
+      let existing: unknown = [];
+      try {
+        existing = JSON.parse(localStorage.getItem(EVENT_CALENDAR_STORAGE_KEY) || "[]");
+      } catch {
+        existing = [];
+      }
+      const ids = Array.isArray(existing) ? existing.filter((id): id is number => typeof id === "number") : [];
+      localStorage.setItem(EVENT_CALENDAR_STORAGE_KEY, JSON.stringify(Array.from(new Set([...ids, event.eventId]))));
+      router.push("/communityDashBoard/events");
+      return;
+    }
+
     if (label === "Join Event") {
       setPendingAction("join");
       try {
@@ -93,14 +109,24 @@ export default function EventReviewSidebar({ event }: Props) {
                 </button>
               );
             }
+            if (action.label === "Add to Calendar") {
+              return (
+                <button
+                  key={action.label}
+                  onClick={() => handleAction(action.label)}
+                  className={className}
+                >
+                  <CalendarPlus2 className="h-4 w-4" />
+                  {action.label}
+                </button>
+              );
+            }
             return (
               <Link
                 key={action.label}
                 href={action.href ?? "#"}
-                download={action.label === "Add to Calendar" ? `${event.slug || "event"}.ics` : undefined}
                 className={className}
               >
-                {action.label === "Add to Calendar" && <CalendarPlus2 className="h-4 w-4" />}
                 {action.label === "Share Event" && <Share2 className="h-4 w-4" />}
                 {action.label}
               </Link>

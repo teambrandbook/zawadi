@@ -15,7 +15,6 @@ import AppointmentsStatsGrid from "./AppointmentsStatsGrid";
 import NextAppointmentCard from "./NextAppointmentCard";
 import type { AppointmentStat, ScheduleItem } from "./appointmentsData";
 import QuickAvailabilityCard from "./QuickAvailabilityCard";
-import RecentActivityCard from "./RecentActivityCard";
 import TodaysScheduleCard from "./TodaysScheduleCard";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
@@ -33,6 +32,11 @@ type BookingItem = {
 };
 
 type ScheduleFilter = "daily" | "weekly" | "monthly";
+type AvailabilityItem = {
+  day: string;
+  start_time: string;
+  end_time: string;
+};
 
 function mediaUrl(value?: string | null) {
   return value ? getImageUrl(value) : "";
@@ -87,6 +91,18 @@ function isInCurrentMonth(dateValue: string, compareDate: Date) {
   return date.getFullYear() === compareDate.getFullYear() && date.getMonth() === compareDate.getMonth();
 }
 
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
+}
+
+function addMonths(date: Date, months: number) {
+  const nextDate = new Date(date);
+  nextDate.setMonth(nextDate.getMonth() + months);
+  return nextDate;
+}
+
 function mapBookingToScheduleItem(item: BookingItem): ScheduleItem {
   const status = normalizeStatus(item.status);
   const displayStatus =
@@ -130,22 +146,41 @@ export default function ConsultantAppointmentsPage() {
   const [appointments, setAppointments] = useState<ScheduleItem[]>([]);
   const [loadingAppointments, setLoadingAppointments] = useState(true);
   const [scheduleFilter, setScheduleFilter] = useState<ScheduleFilter>("daily");
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [searchQuery, setSearchQuery] = useState("");
+  const [availability, setAvailability] = useState<AvailabilityItem[]>([]);
   const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    api
-      .get<BookingItem[]>("/consultant/bookings/")
-      .then(({ data }) => {
-        const mappedAppointments = Array.isArray(data) ? data.map(mapBookingToScheduleItem) : [];
+    let isMounted = true;
+
+    Promise.allSettled([
+      api.get<BookingItem[]>("/consultant/bookings/"),
+      api.get<AvailabilityItem[]>("/consultant/availability/"),
+    ]).then(([bookingsResponse, availabilityResponse]) => {
+      if (!isMounted) return;
+
+      if (bookingsResponse.status === "fulfilled") {
+        const mappedAppointments = Array.isArray(bookingsResponse.value.data)
+          ? bookingsResponse.value.data.map(mapBookingToScheduleItem)
+          : [];
         setAppointments(mappedAppointments);
         setSelectedAppointment(mappedAppointments[0] ?? null);
-      })
-      .catch(() => {
+      } else {
         setAppointments([]);
-      })
-      .finally(() => {
-        setLoadingAppointments(false);
-      });
+      }
+
+      setAvailability(
+        availabilityResponse.status === "fulfilled" && Array.isArray(availabilityResponse.value.data)
+          ? availabilityResponse.value.data
+          : [],
+      );
+      setLoadingAppointments(false);
+    });
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   async function handleBookingDecision(appointment: ScheduleItem, isAccept: boolean) {
@@ -230,15 +265,14 @@ export default function ConsultantAppointmentsPage() {
     setStatusMessage("Meeting link shared successfully.");
   }
 
-  const todayLabel = useMemo(
+  const selectedDateLabel = useMemo(
     () =>
-      new Date().toLocaleDateString("en-US", {
-        weekday: "long",
+      selectedDate.toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
         year: "numeric",
       }),
-    [],
+    [selectedDate],
   );
 
   const scheduleHeading = useMemo(() => {
@@ -248,10 +282,8 @@ export default function ConsultantAppointmentsPage() {
   }, [scheduleFilter]);
 
   const scheduleSubLabel = useMemo(() => {
-    const today = new Date();
-
     if (scheduleFilter === "weekly") {
-      return `Week of ${today.toLocaleDateString("en-US", {
+      return `Week of ${selectedDate.toLocaleDateString("en-US", {
         month: "long",
         day: "numeric",
         year: "numeric",
@@ -259,14 +291,19 @@ export default function ConsultantAppointmentsPage() {
     }
 
     if (scheduleFilter === "monthly") {
-      return today.toLocaleDateString("en-US", {
+      return selectedDate.toLocaleDateString("en-US", {
         month: "long",
         year: "numeric",
       });
     }
 
-    return todayLabel;
-  }, [scheduleFilter, todayLabel]);
+    return selectedDate.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+    });
+  }, [scheduleFilter, selectedDate]);
 
   const stats = useMemo<AppointmentStat[]>(() => {
     const pendingCount = appointments.filter((item) => item.sessionStatus === "pending").length;
@@ -290,22 +327,53 @@ export default function ConsultantAppointmentsPage() {
   );
 
   const filteredAppointments = useMemo(() => {
-    const today = new Date();
+    const normalizedSearch = searchQuery.trim().toLowerCase();
 
     return appointments.filter((item) => {
-      if (item.sessionStatus === "pending") return true;
-      if (!item.rawDate) return true;
-      if (scheduleFilter === "daily") return isSameDay(item.rawDate, today);
-      if (scheduleFilter === "weekly") return isInCurrentWeek(item.rawDate, today);
-      return isInCurrentMonth(item.rawDate, today);
+      const matchesDate =
+        !item.rawDate ||
+        (scheduleFilter === "daily"
+          ? isSameDay(item.rawDate, selectedDate)
+          : scheduleFilter === "weekly"
+            ? isInCurrentWeek(item.rawDate, selectedDate)
+            : isInCurrentMonth(item.rawDate, selectedDate));
+
+      if (!matchesDate) return false;
+      if (!normalizedSearch) return true;
+
+      return [
+        item.name,
+        item.type,
+        item.status,
+        item.focus,
+        item.consultationMode,
+        item.date,
+        item.time,
+      ]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedSearch));
     });
-  }, [appointments, scheduleFilter]);
+  }, [appointments, scheduleFilter, searchQuery, selectedDate]);
+
+  function handleNextDate() {
+    setSelectedDate((current) => {
+      if (scheduleFilter === "daily") return addDays(current, 1);
+      if (scheduleFilter === "weekly") return addDays(current, 7);
+      return addMonths(current, 1);
+    });
+  }
 
   return (
     <>
       <main className="min-h-screen bg-white px-4 py-6 lg:px-6">
         <div className="mx-auto max-w-[1220px] space-y-5">
-          <AppointmentsHeader />
+          <AppointmentsHeader
+            dateLabel={selectedDateLabel}
+            searchValue={searchQuery}
+            onSearchChange={setSearchQuery}
+            onTodayClick={() => setSelectedDate(new Date())}
+            onNextDateClick={handleNextDate}
+          />
           <AppointmentsStatsGrid stats={stats} />
           {statusMessage ? (
             <div className="rounded-[10px] border border-[#D8C9AE] bg-[#F8F3E9] px-4 py-3 text-sm text-[#0A4833]">
@@ -315,11 +383,11 @@ export default function ConsultantAppointmentsPage() {
 
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1.65fr)_320px]">
             {loadingAppointments ? (
-              <section className="rounded-[16px] border border-[#E4E7EC] bg-white p-6 text-sm text-[#667085]">
+              <section className="order-2 rounded-[16px] border border-[#E4E7EC] bg-white p-6 text-sm text-[#667085] xl:order-1">
                 Loading appointments...
               </section>
             ) : (
-              <div className="space-y-4">
+              <div className="order-2 space-y-4 xl:order-1">
                 <div className="inline-flex w-full max-w-[360px] items-center rounded-[16px] border border-[#D0D5DD] bg-white p-1">
                   {[
                     { id: "daily", label: "Daily" },
@@ -352,14 +420,13 @@ export default function ConsultantAppointmentsPage() {
               </div>
             )}
 
-            <div className="space-y-5">
+            <div className="order-1 grid gap-5 md:grid-cols-2 xl:order-2 xl:flex xl:flex-col">
               <NextAppointmentCard
                 appointment={selectedAppointment ?? nextAppointment}
                 onJoin={(appointment) => setSelectedAppointment(appointment)}
                 onShareLink={handleShareMeetingLink}
               />
-              <QuickAvailabilityCard />
-              <RecentActivityCard />
+              <QuickAvailabilityCard availability={availability} />
             </div>
           </div>
         </div>

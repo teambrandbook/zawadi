@@ -3,9 +3,7 @@ export type FilterOption = {
   label: string;
 };
 
-export type ReportPeriod = "today" | "week" | "month" | "last_3_months" | "custom";
-
-export type ReportModule = "all" | "orders" | "users" | "consultations" | "events" | "content";
+export type ReportPeriod = "today" | "week" | "month" | "last_3_months" | "custom" | "all";
 
 export type KpiCard = {
   id: string;

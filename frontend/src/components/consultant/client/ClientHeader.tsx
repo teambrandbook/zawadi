@@ -18,12 +18,22 @@ const goalOptions: Array<ClientGoal | "All Goals"> = ["All Goals", "Weight Loss"
 export default function ClientHeader({ searchValue, statusValue, goalValue, onSearchChange, onStatusChange, onGoalChange }: Props) {
   return (
     <section className="space-y-4">
+      <style jsx>{`
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <div>
         <h1 className="text-[30px] font-semibold tracking-[-0.03em] text-[#0A4833]">Clients</h1>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full max-w-[380px]">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <div className="relative order-1 w-full md:max-w-[320px] lg:max-w-[380px]">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#98A2B3]" />
           <input
             type="text"
@@ -34,44 +44,46 @@ export default function ClientHeader({ searchValue, statusValue, goalValue, onSe
           />
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
-          <div className="relative">
-            <select
-              value={statusValue}
-              onChange={(event) => onStatusChange(event.target.value as ClientStatus | "All Status")}
-              className="h-11 min-w-[140px] appearance-none rounded-[10px] border border-[#E4E7EC] bg-white px-4 pr-10 text-sm text-[#344054] outline-none transition focus:border-[#0A4833]"
-            >
-              {statusOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#667085]" />
-          </div>
+        <div className="order-2 md:ml-auto">
+          <div className="grid grid-cols-3 items-center gap-2 sm:gap-3">
+            <div className="relative">
+              <select
+                value={statusValue}
+                onChange={(event) => onStatusChange(event.target.value as ClientStatus | "All Status")}
+                className="h-11 w-full appearance-none rounded-[10px] border border-[#E4E7EC] bg-white px-2 pr-7 text-xs text-[#344054] outline-none transition focus:border-[#0A4833] sm:w-[148px] sm:px-4 sm:pr-10 sm:text-sm"
+              >
+                {statusOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#667085] sm:right-3" />
+            </div>
 
-          <div className="relative">
-            <select
-              value={goalValue}
-              onChange={(event) => onGoalChange(event.target.value as ClientGoal | "All Goals")}
-              className="h-11 min-w-[140px] appearance-none rounded-[10px] border border-[#E4E7EC] bg-white px-4 pr-10 text-sm text-[#344054] outline-none transition focus:border-[#0A4833]"
-            >
-              {goalOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#667085]" />
-          </div>
+            <div className="relative">
+              <select
+                value={goalValue}
+                onChange={(event) => onGoalChange(event.target.value as ClientGoal | "All Goals")}
+                className="h-11 w-full appearance-none rounded-[10px] border border-[#E4E7EC] bg-white px-2 pr-7 text-xs text-[#344054] outline-none transition focus:border-[#0A4833] sm:w-[148px] sm:px-4 sm:pr-10 sm:text-sm"
+              >
+                {goalOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-[#667085] sm:right-3" />
+            </div>
 
-          <button
-            type="button"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#0A4833] px-4 text-sm font-medium text-white transition hover:bg-[#083727]"
-          >
-            <Filter className="h-4 w-4" />
-            <span>Filters</span>
-          </button>
+            <button
+              type="button"
+              className="inline-flex h-11 w-full items-center justify-center gap-1 rounded-[10px] bg-[#0A4833] px-2 text-xs font-medium text-white transition hover:bg-[#083727] sm:w-[148px] sm:gap-2 sm:px-4 sm:text-sm"
+            >
+              <Filter className="h-4 w-4" />
+              <span>Filters</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

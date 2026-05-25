@@ -3,6 +3,9 @@ from decimal import Decimal
 
 from rest_framework import status
 from rest_framework.test import APITestCase
+from django.core.management import call_command
+from django.utils import timezone
+from unittest.mock import patch
 
 from accounts.models import User
 from product.models import Product, ProductStatus
@@ -78,6 +81,64 @@ class NotificationReceiptTests(APITestCase):
         self.assertFalse(
             UserNotificationReceipt.objects.filter(
                 user=self.consultant,
+                notification=notification,
+            ).exists()
+        )
+
+    @patch("notifications.email.send_mail")
+    def test_email_only_notification_does_not_create_in_app_receipts(self, send_mail_mock):
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post(
+            "/api/notifications/",
+            {
+                "title": "Email update",
+                "body": "This should be email only.",
+                "notification_type": "SYSTEM",
+                "target_role": "community_user",
+                "delivery_channels": ["email"],
+                "status": "SENT",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        notification = Notification.objects.get(pk=response.data["id"])
+        self.assertFalse(UserNotificationReceipt.objects.filter(notification=notification).exists())
+        send_mail_mock.assert_called_once()
+
+    def test_scheduled_notification_waits_until_command_runs(self):
+        self.client.force_authenticate(self.admin)
+        scheduled_at = timezone.now() + datetime.timedelta(minutes=10)
+
+        response = self.client.post(
+            "/api/notifications/",
+            {
+                "title": "Scheduled update",
+                "body": "This should wait.",
+                "notification_type": "REMINDER",
+                "target_role": "community_user",
+                "delivery_channels": ["in_app"],
+                "status": "SCHEDULED",
+                "scheduled_at": scheduled_at.isoformat(),
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        notification = Notification.objects.get(pk=response.data["id"])
+        self.assertEqual(notification.status, "SCHEDULED")
+        self.assertFalse(UserNotificationReceipt.objects.filter(notification=notification).exists())
+
+        notification.scheduled_at = timezone.now() - datetime.timedelta(minutes=1)
+        notification.save(update_fields=["scheduled_at"])
+        call_command("send_scheduled_notifications")
+
+        notification.refresh_from_db()
+        self.assertEqual(notification.status, "SENT")
+        self.assertTrue(
+            UserNotificationReceipt.objects.filter(
+                user=self.community_user,
                 notification=notification,
             ).exists()
         )

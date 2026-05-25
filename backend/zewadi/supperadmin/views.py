@@ -65,7 +65,7 @@ def parse_report_filters(request):
     today = now.date()
     period = request.query_params.get("period", "month")
     module = request.query_params.get("module", "all")
-    valid_periods = {"today", "week", "month", "last_3_months", "custom"}
+    valid_periods = {"today", "week", "month", "last_3_months", "custom", "all"}
     valid_modules = {"all", "orders", "users", "consultations", "events", "content"}
 
     if period not in valid_periods:
@@ -73,7 +73,10 @@ def parse_report_filters(request):
     if module not in valid_modules:
         return {"error": "Invalid module."}
 
-    if period == "today":
+    if period == "all":
+        start_date = None
+        end_date = None
+    elif period == "today":
         start_date = end_date = today
     elif period == "week":
         start_date = today - timedelta(days=today.weekday())
@@ -92,8 +95,8 @@ def parse_report_filters(request):
         if start_date > end_date:
             return {"error": "start_date cannot be after end_date."}
 
-    start_dt = timezone.make_aware(datetime.combine(start_date, time.min))
-    end_dt = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min))
+    start_dt = timezone.make_aware(datetime.combine(start_date, time.min)) if start_date else None
+    end_dt = timezone.make_aware(datetime.combine(end_date + timedelta(days=1), time.min)) if end_date else None
     return {
         "period": period,
         "module": module,
@@ -101,11 +104,13 @@ def parse_report_filters(request):
         "end_date": end_date,
         "start_dt": start_dt,
         "end_dt": end_dt,
-        "date_range_label": f"{start_date.strftime('%b %d, %Y')} - {end_date.strftime('%b %d, %Y')}",
+        "date_range_label": "All Time" if period == "all" else f"{start_date.strftime('%b %d, %Y')} - {end_date.strftime('%b %d, %Y')}",
     }
 
 
 def filter_datetime_range(qs, field, filters):
+    if filters["period"] == "all":
+        return qs
     return qs.filter(**{f"{field}__gte": filters["start_dt"], f"{field}__lt": filters["end_dt"]})
 
 

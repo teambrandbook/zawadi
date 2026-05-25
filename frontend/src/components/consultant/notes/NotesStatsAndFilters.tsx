@@ -3,6 +3,7 @@
 import Link from "next/link";
 import {
   AlertTriangle,
+  ChevronDown,
   ClipboardList,
   FilePlus2,
   MessageSquareText,
@@ -19,37 +20,67 @@ export type NotesStats = {
 type Props = {
   stats: NotesStats;
   searchValue: string;
-  clientValue: string;
-  dateValue: string;
-  typeValue: string;
-  statusValue: string;
+  clientFilter: string;
+  dateFilter: string;
+  typeFilter: string;
+  statusFilter: string;
   clientOptions: string[];
+  dateOptions: string[];
   typeOptions: string[];
   statusOptions: string[];
   onSearchChange: (value: string) => void;
-  onClientChange: (value: string) => void;
-  onDateChange: (value: string) => void;
-  onTypeChange: (value: string) => void;
-  onStatusChange: (value: string) => void;
+  onClientFilterChange: (value: string) => void;
+  onDateFilterChange: (value: string) => void;
+  onTypeFilterChange: (value: string) => void;
+  onStatusFilterChange: (value: string) => void;
 };
 
-const dateOptions = ["All Dates", "Today", "Last 7 Days", "This Month", "Has Follow-up"];
+function FilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative min-w-[150px] shrink-0">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-11 w-full appearance-none rounded-[8px] border border-[#DFDFDF] bg-white px-4 pr-10 text-sm text-[#111827] outline-none focus:border-[#0A4833]"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#374151]" />
+    </div>
+  );
+}
 
 export default function NotesStatsAndFilters({
   stats,
   searchValue,
-  clientValue,
-  dateValue,
-  typeValue,
-  statusValue,
+  clientFilter,
+  dateFilter,
+  typeFilter,
+  statusFilter,
   clientOptions,
+  dateOptions,
   typeOptions,
   statusOptions,
   onSearchChange,
-  onClientChange,
-  onDateChange,
-  onTypeChange,
-  onStatusChange,
+  onClientFilterChange,
+  onDateFilterChange,
+  onTypeFilterChange,
+  onStatusFilterChange,
 }: Props) {
   const noteStats = [
     { label: "Total Notes", value: stats.total, icon: FilePlus2, tone: "text-[#0A4833] bg-[#EBE1CF]" },
@@ -60,7 +91,7 @@ export default function NotesStatsAndFilters({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h1 className="text-[34px] font-bold tracking-[-0.03em] text-[#0A4833]">Notes</h1>
           <p className="mt-1 text-sm text-[#4B5563]">Manage and review your client consultation records</p>
@@ -68,14 +99,14 @@ export default function NotesStatsAndFilters({
 
         <Link
           href="/consultant/notes/add"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#0A4833] px-5 text-sm font-medium text-[#EBE1CF] hover:bg-[#083B2A]"
+          className="inline-flex h-10 w-fit self-end items-center justify-center gap-2 rounded-[8px] bg-[#0A4833] px-4 text-xs font-medium text-[#EBE1CF] hover:bg-[#083B2A] md:self-start"
         >
           <span className="text-base leading-none">+</span>
           <span>Add New Note</span>
         </Link>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
         {noteStats.map((stat) => {
           const Icon = stat.icon;
 
@@ -99,8 +130,19 @@ export default function NotesStatsAndFilters({
       </div>
 
       <div className="rounded-[12px] border border-[#DFDFDF] bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
-        <div className="flex flex-col gap-3 lg:flex-row">
-          <div className="relative lg:w-[255px]">
+        <style jsx>{`
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="hide-scrollbar overflow-x-auto overflow-y-hidden overscroll-x-contain">
+          <div className="flex w-max gap-3 pb-1 lg:w-full">
+          <div className="relative w-[255px] shrink-0 lg:shrink">
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9CA3AF]" />
             <input
               type="text"
@@ -111,48 +153,11 @@ export default function NotesStatsAndFilters({
             />
           </div>
 
-          <select
-            value={clientValue}
-            onChange={(event) => onClientChange(event.target.value)}
-            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
-          >
-            <option>All Clients</option>
-            {clientOptions.map((client) => (
-              <option key={client}>{client}</option>
-            ))}
-          </select>
-
-          <select
-            value={dateValue}
-            onChange={(event) => onDateChange(event.target.value)}
-            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
-          >
-            {dateOptions.map((option) => (
-              <option key={option}>{option}</option>
-            ))}
-          </select>
-
-          <select
-            value={typeValue}
-            onChange={(event) => onTypeChange(event.target.value)}
-            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
-          >
-            <option>All Types</option>
-            {typeOptions.map((type) => (
-              <option key={type}>{type}</option>
-            ))}
-          </select>
-
-          <select
-            value={statusValue}
-            onChange={(event) => onStatusChange(event.target.value)}
-            className="h-11 rounded-[8px] border border-[#DFDFDF] bg-white px-4 text-sm text-[#111827] outline-none lg:min-w-[150px]"
-          >
-            <option>All Status</option>
-            {statusOptions.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
+          <FilterSelect label="Client" value={clientFilter} options={clientOptions} onChange={onClientFilterChange} />
+          <FilterSelect label="Date" value={dateFilter} options={dateOptions} onChange={onDateFilterChange} />
+          <FilterSelect label="Type" value={typeFilter} options={typeOptions} onChange={onTypeFilterChange} />
+          <FilterSelect label="Status" value={statusFilter} options={statusOptions} onChange={onStatusFilterChange} />
+          </div>
         </div>
       </div>
     </section>
