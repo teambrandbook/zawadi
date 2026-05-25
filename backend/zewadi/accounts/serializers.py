@@ -192,6 +192,9 @@ class LoginSerializer(serializers.Serializer):
         try:
             user_obj = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
+            # Note: axes does not record this failure — no authenticate() call is made.
+            # Attackers enumerating non-existent emails bypass lockout here.
+            # IP-level rate limiting at the proxy layer mitigates this.
             raise serializers.ValidationError("Invalid credentials")
 
         if not user_obj.is_active:

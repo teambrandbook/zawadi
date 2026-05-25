@@ -8,5 +8,5 @@ psycopg2-binary>=2.9
 gunicorn>=22.0
 requests>=2.31
 django-redis>=5.4
-django-axes>=7.0
+django-axes>=8.0,<9
 cloudinary>=1.36.0
