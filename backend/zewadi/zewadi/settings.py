@@ -252,6 +252,12 @@ if not DEBUG and not SECURE_SSL_REDIRECT and _running_cmd not in _MANAGEMENT_CMD
         stacklevel=2,
     )
 
+if not DEBUG and not FRONTEND_URL and _running_cmd not in _MANAGEMENT_CMDS:
+    raise RuntimeError(
+        "FRONTEND_URL is required in production. "
+        "Set FRONTEND_URL=https://yourdomain.com in your .env file."
+    )
+
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
 # django-redis with IGNORE_EXCEPTIONS so cache misses degrade gracefully
 CACHES = {
