@@ -3,6 +3,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 import os
 import sys as _sys
+import warnings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -235,6 +236,14 @@ _running_cmd = _sys.argv[1] if len(_sys.argv) > 1 else ""
 if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT_CMDS:
     raise RuntimeError(
         "Set a real SECRET_KEY environment variable before running in production."
+    )
+
+if not DEBUG and not SECURE_SSL_REDIRECT and _running_cmd not in _MANAGEMENT_CMDS:
+    warnings.warn(
+        "SECURE_SSL_REDIRECT is disabled. Set SECURE_SSL_REDIRECT=True in .env, "
+        "or ensure your reverse proxy (Traefik/Nginx) enforces HTTPS redirection.",
+        RuntimeWarning,
+        stacklevel=2,
     )
 
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
