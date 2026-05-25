@@ -60,7 +60,7 @@ def tax_rate_list(request):
     # POST — create a new rate
     if not IsAdminRole().has_permission(request, None):
         return Response(
-            {"error": "Admin access required."},
+            {"detail": "Admin access required."},
             status=status.HTTP_403_FORBIDDEN,
         )
 

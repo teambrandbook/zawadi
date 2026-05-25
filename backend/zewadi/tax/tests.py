@@ -142,7 +142,6 @@ class TaxRateWritePermissionTests(APITestCase):
             effective_from=datetime.date(2020, 1, 1),
             is_active=True,
         )
-        self.client = APIClient()
 
     def test_community_user_cannot_patch_tax_rate(self):
         self.client.force_authenticate(user=self.community_user)
@@ -172,6 +171,7 @@ class TaxRateWritePermissionTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 403)
+        self.assertIn("detail", response.data)
 
     def test_admin_can_patch_tax_rate(self):
         self.client.force_authenticate(user=self.admin_user)
@@ -189,3 +189,42 @@ class TaxRateWritePermissionTests(APITestCase):
             format="json",
         )
         self.assertEqual(response.status_code, 401)
+
+    def test_admin_can_post_tax_rate(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.post(
+            "/api/tax/rates/",
+            {
+                "tax_category": "TC001",
+                "country": "TZ",
+                "rate_percent": "18.00",
+                "name": "Test Rate TZ",
+                "effective_from": "2020-01-01",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, 201)
+
+    def test_admin_can_delete_tax_rate(self):
+        self.client.force_authenticate(user=self.admin_user)
+        response = self.client.delete(f"/api/tax/rates/{self.rate.pk}/")
+        self.assertEqual(response.status_code, 204)
+
+    def test_internal_staff_cannot_patch_tax_rate(self):
+        internal_user = User.objects.create_user(
+            email="staff@example.com",
+            password="Pass@1234",
+            user_name="staffuser1",
+            full_name="Internal Staff",
+            phone="+10000000003",
+            role="INTERNAL_STAFF",
+        )
+        internal_user.is_active = True
+        internal_user.save(update_fields=["is_active"])
+        self.client.force_authenticate(user=internal_user)
+        response = self.client.patch(
+            f"/api/tax/rates/{self.rate.pk}/",
+            {"rate_percent": "18.00"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 403)
