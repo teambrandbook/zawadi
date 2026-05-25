@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 const LearnMoreSection = () => {
   const { locale } = useLocale();
@@ -31,7 +32,7 @@ const LearnMoreSection = () => {
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start z-10 mb-10 lg:mb-24">
             <h2 
               className="fade-in text-[#d9c5a7] text-4xl lg:text-[54px] font-bold font-['Playfair_Display'] leading-[1.1] mb-6 tracking-tight text-center lg:text-left rtl:lg:text-right"
-              dangerouslySetInnerHTML={{ __html: learnMoreTranslations.titleHTML }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHTML(learnMoreTranslations.titleHTML) }}
             />
 
             <p className="fade-in text-white/90 text-sm lg:text-[16px] font-normal font-['Inter'] leading-relaxed mb-10 max-w-[440px] text-center lg:text-left rtl:lg:text-right">

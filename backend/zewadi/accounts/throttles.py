@@ -7,3 +7,11 @@ class LoginRateThrottle(AnonRateThrottle):
 
 class RegisterRateThrottle(AnonRateThrottle):
     scope = "register"
+
+
+class OTPVerifyRateThrottle(AnonRateThrottle):
+    scope = "otp_verify"
+
+
+class OTPResendRateThrottle(AnonRateThrottle):
+    scope = "otp_resend"

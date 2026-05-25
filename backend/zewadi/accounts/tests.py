@@ -384,15 +384,22 @@ class GoogleCallbackRedirectTest(TestCase):
         mock_user_resp.json.return_value = {"email": email, "name": name}
         mock_get.return_value = mock_user_resp
 
+    def _seed_oauth_state(self, state="test-state-value"):
+        """Store a known state token in the session so the callback validation passes."""
+        session = self.client.session
+        session["google_oauth_state"] = state
+        session.save()
+
     @patch("accounts.views.google_credentials_configured", return_value=True)
     @patch("accounts.views.requests.get")
     @patch("accounts.views.requests.post")
     def test_admin_redirects_to_admindashboard(self, mock_post, mock_get, mock_creds):
         self._make_user("ADMIN")
         self._mock_google_exchange(mock_post, mock_get, "test_admin@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/admindashboard", res["Location"])
@@ -404,9 +411,10 @@ class GoogleCallbackRedirectTest(TestCase):
         from communityuser.models import UserType
         self._make_user("COMMUNITY_USER", UserType.GUEST)
         self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/products", res["Location"])
@@ -418,9 +426,170 @@ class GoogleCallbackRedirectTest(TestCase):
         from communityuser.models import UserType
         self._make_user("COMMUNITY_USER", UserType.MEMBER)
         self._mock_google_exchange(mock_post, mock_get, "test_community_user@test.com")
+        self._seed_oauth_state()
         res = self.client.get(
             reverse("google-callback"),
-            {"code": "fake-code"},
+            {"code": "fake-code", "state": "test-state-value"},
             HTTP_HOST="localhost",
         )
         self.assertIn("/communityDashBoard", res["Location"])
+
+
+class LoginCookieSecurityTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="cookie-sec@example.com",
+            password="Pass@1234",
+            user_name="cookiesec",
+            full_name="Cookie Security",
+            phone="+10000000099",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def test_access_token_cookie_is_httponly(self):
+        response = self.client.post(
+            "/api/account/login/",
+            {"email": "cookie-sec@example.com", "password": "Pass@1234"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        access_cookie = response.cookies.get("access_token")
+        self.assertIsNotNone(access_cookie, "access_token cookie must be set on login")
+        self.assertTrue(
+            access_cookie["httponly"],
+            "access_token cookie must be httpOnly — JS must not be able to read it",
+        )
+
+    def test_refresh_token_cookie_is_httponly(self):
+        response = self.client.post(
+            "/api/account/login/",
+            {"email": "cookie-sec@example.com", "password": "Pass@1234"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        refresh_cookie = response.cookies.get("refresh_token")
+        self.assertIsNotNone(refresh_cookie)
+        self.assertTrue(refresh_cookie["httponly"])
+
+
+class AccountLockoutTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="lockout@example.com",
+            password="GoodPass@1234",
+            user_name="lockoutuser",
+            full_name="Lockout User",
+            phone="+10000000088",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def tearDown(self):
+        from axes.models import AccessAttempt
+        AccessAttempt.objects.all().delete()
+
+    def _attempt_login(self, password="WrongPass@1234"):
+        return self.client.post(
+            "/api/account/login/",
+            {"email": "lockout@example.com", "password": password},
+            format="json",
+        )
+
+    def test_account_locks_after_five_failures(self):
+        for _ in range(5):
+            self._attempt_login()
+        response = self._attempt_login()
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("locked", str(response.data).lower())
+
+    def test_successful_login_resets_failure_counter(self):
+        for _ in range(4):
+            self._attempt_login()
+        # Successful login resets counter
+        success = self._attempt_login(password="GoodPass@1234")
+        self.assertEqual(success.status_code, 200)
+        # Now 4 more failures should not lock (counter was reset)
+        for _ in range(4):
+            self._attempt_login()
+        response = self._attempt_login(password="GoodPass@1234")
+        self.assertEqual(response.status_code, 200)
+
+
+class OTPThrottleTests(APITestCase):
+    """OTPVerifyAPIView and PasswordResetVerifyAPIView must throttle at 2/min."""
+
+    def setUp(self):
+        from django.core.cache import cache
+        cache.clear()
+        self.user = User.objects.create_user(
+            email="throttle@example.com",
+            password="Pass@1234",
+            user_name="throttleuser",
+            full_name="Throttle User",
+            phone="+10000000077",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def tearDown(self):
+        from django.core.cache import cache
+        cache.clear()
+
+    def test_otp_verify_throttled_after_two_requests(self):
+        for _ in range(2):
+            self.client.post(
+                "/api/account/otp/verify/",
+                {"email": "throttle@example.com", "code": "000000", "purpose": "email_verification"},
+                format="json",
+            )
+        response = self.client.post(
+            "/api/account/otp/verify/",
+            {"email": "throttle@example.com", "code": "000000", "purpose": "email_verification"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 429)
+
+    def test_password_reset_verify_throttled_after_two_requests(self):
+        for _ in range(2):
+            self.client.post(
+                "/api/account/password-reset/verify/",
+                {"email": "throttle@example.com", "code": "000000"},
+                format="json",
+            )
+        response = self.client.post(
+            "/api/account/password-reset/verify/",
+            {"email": "throttle@example.com", "code": "000000"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 429)
+
+
+class GoogleOAuthStateTests(APITestCase):
+    """OAuth callback must reject requests with wrong or missing state."""
+
+    def test_callback_rejects_missing_state(self):
+        """Callback without a state parameter must return 400."""
+        with patch("accounts.views.google_credentials_configured", return_value=True):
+            response = self.client.get(
+                "/api/account/google/callback/",
+                {"code": "fake-code"},
+            )
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("state", str(response.data).lower())
+
+    def test_callback_rejects_mismatched_state(self):
+        """Callback with wrong state must return 400 even with valid session state."""
+        session = self.client.session
+        session["google_oauth_state"] = "correct-state-value"
+        session.save()
+
+        with patch("accounts.views.google_credentials_configured", return_value=True):
+            response = self.client.get(
+                "/api/account/google/callback/",
+                {"code": "fake-code", "state": "wrong-state-value"},
+            )
+        self.assertEqual(response.status_code, 400)

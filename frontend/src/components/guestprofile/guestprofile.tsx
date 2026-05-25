@@ -13,7 +13,9 @@ import {
 import { cn, getImageUrl } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api, { getAccessToken } from "@/services/api";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import api from "@/services/api";
 import { toast } from "sonner";
 
 type UserProfile = {
@@ -117,6 +119,8 @@ let guestProfileRedirectInFlight = false;
 
 export default function GuestProfile() {
   const router = useRouter();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
+  const isRehydrating = useSelector((s: RootState) => s.user.isRehydrating);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
@@ -141,7 +145,10 @@ export default function GuestProfile() {
   }, [router]);
 
   useEffect(() => {
-    if (!getAccessToken()) {
+    // Wait until rehydration completes before making routing decisions.
+    if (isRehydrating) return;
+
+    if (!isAuthenticated) {
       redirectToLogin();
       return;
     }
@@ -174,7 +181,7 @@ export default function GuestProfile() {
     }
 
     void loadProfile();
-  }, [redirectToLogin]);
+  }, [isRehydrating, isAuthenticated, redirectToLogin]);
 
   async function handleUpgrade() {
     setUpgrading(true);
@@ -226,7 +233,7 @@ export default function GuestProfile() {
     }
   }
 
-  if (loading) {
+  if (isRehydrating || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
         Loading profile...

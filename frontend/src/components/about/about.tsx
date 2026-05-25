@@ -6,6 +6,7 @@ import { ArrowRight, Leaf, MoveRight, SendHorizontal } from "lucide-react";
 import gsap from "@/lib/gsap";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 import { ApproachIcon } from "../common/BrandIcons";
 import ContentSection from "../common/ContentSection";
@@ -356,7 +357,7 @@ export default function About() {
                                             </p>
                                             <p
                                                 className="text-[10px] leading-3 text-[#727272] sm:text-[13px] sm:leading-5"
-                                                dangerouslySetInnerHTML={{ __html: aboutData.introBadgeSubtitleHTML }}
+                                                dangerouslySetInnerHTML={{ __html: sanitizeHTML(aboutData.introBadgeSubtitleHTML) }}
                                             />
                                         </div>
                                     </div>
@@ -389,7 +390,7 @@ export default function About() {
                             <div className="flex h-full flex-col lg:justify-between">
                                 <h2
                                     className="intro-text-heading font-serif font-bold text-[1.6rem] leading-[1.25] sm:text-[2rem] lg:text-[2.4rem] xl:text-[2.6rem] text-[#034833] tracking-normal"
-                                    dangerouslySetInnerHTML={{ __html: aboutData.introTitleHTML }}
+                                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(aboutData.introTitleHTML) }}
                                 />
 
                                 <div className="mt-8 flex flex-col gap-4 sm:gap-5">

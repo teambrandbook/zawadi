@@ -13,6 +13,8 @@ export interface UserState {
   userType: "guest" | "member" | null;
   cartCount: number;
   isAuthenticated: boolean;
+  /** True from app boot until the /account/me/ rehydration call settles (success or failure). */
+  isRehydrating: boolean;
   loading: boolean;
   error: string | null;
 }
@@ -26,6 +28,7 @@ const initialState: UserState = {
   userType: null,
   cartCount: 0,
   isAuthenticated: false,
+  isRehydrating: true,
   loading: false,
   error: null,
 };
@@ -153,6 +156,10 @@ const userSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
     },
+    /** Marks the AuthRehydrator /account/me/ call as settled (success or failure). */
+    setRehydrated(state) {
+      state.isRehydrating = false;
+    },
   },
   extraReducers: (builder) => {
     // login
@@ -221,5 +228,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { setCredentials, clearCredentials, setCartCount } = userSlice.actions;
+export const { setCredentials, clearCredentials, setCartCount, setRehydrated } = userSlice.actions;
 export default userSlice.reducer;

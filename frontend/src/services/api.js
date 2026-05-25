@@ -2,7 +2,6 @@ import axios from "axios";
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-const ACCESS_TOKEN_KEY = "zawadi_access_token";
 const AUTH_ROUTES = ["/login", "/signup", "/register", "/otp", "/forgot-password"];
 const PROTECTED_ROUTES = [
   "/admindashboard",
@@ -22,35 +21,14 @@ let _memoryToken = null;
 
 export const setAccessToken = (token) => {
   _memoryToken = token || null;
-  if (typeof window !== "undefined" && token) {
-    window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
-  }
 };
 
 export const clearAccessToken = () => {
   _memoryToken = null;
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-    document.cookie = "access_token=; Max-Age=0; path=/";
-  }
 };
 
 export const getAccessToken = () => {
-  if (_memoryToken) return _memoryToken;
-  if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (stored) {
-      _memoryToken = stored;
-      return stored;
-    }
-  }
-
-  // Fallback: cookie (works when COOKIE_DOMAIN=.zewadi.com is set in production)
-  if (typeof document === "undefined") return null;
-  const match = document.cookie
-    .split("; ")
-    .find((c) => c.startsWith("access_token="));
-  return match ? decodeURIComponent(match.split("=")[1]) : null;
+  return _memoryToken;
 };
 
 // ─── Request interceptor — attach Bearer token ────────────────────────────────

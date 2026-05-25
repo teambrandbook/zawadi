@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -49,14 +49,6 @@ const fallbackUserInfo: UserInfo = {
   photo: null,
 };
 
-function decodeJwtPayload(token: string): Record<string, string> | null {
-  try {
-    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(base64));
-  } catch {
-    return null;
-  }
-}
 
 function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -106,37 +98,16 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
   };
 }
 
-function getUserFromTokenCookie(): UserInfo {
-  if (typeof document === "undefined") {
-    return fallbackUserInfo;
-  }
-
-  const token = getAccessToken();
-  if (!token) {
-    return fallbackUserInfo;
-  }
-
-  const payload = decodeJwtPayload(token);
-  if (!payload) {
-    return fallbackUserInfo;
-  }
-
-  const firstName: string = payload.first_name || "";
-  const lastName: string = payload.last_name || "";
-  const fullName = [firstName, lastName].filter(Boolean).join(" ");
-  const email: string = payload.email || "";
-  const role: string = payload.role || "";
-  const initials = getInitials(fullName, email);
-  const userType = isCommunityRole(role) ? "member" : "";
-
-  return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
+// Returns fallback on initial render; the useEffect loadProfile call populates real data from the API.
+function getUserInitialState(): UserInfo {
+  return fallbackUserInfo;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
+  const [user, setUser] = useState<UserInfo>(getUserInitialState);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
@@ -165,8 +136,6 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     let isMounted = true;
 
     async function loadProfile() {
-      if (!getAccessToken()) return;
-
       try {
         const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {

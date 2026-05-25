@@ -1,6 +1,8 @@
 import hashlib
+import hmac as _hmac
 import logging
 import os
+import secrets as _secrets
 import time
 import uuid as _uuid
 from datetime import timedelta
@@ -24,7 +26,7 @@ from django.utils import timezone
 from .models import OTP, User
 from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
-from .throttles import LoginRateThrottle, RegisterRateThrottle
+from .throttles import LoginRateThrottle, OTPResendRateThrottle, OTPVerifyRateThrottle, RegisterRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +107,7 @@ def set_auth_cookies(response, refresh, access):
     response.set_cookie(
         key="access_token",
         value=access,
-        httponly=False,
+        httponly=True,
         secure=secure,
         samesite=samesite,
         max_age=30 * 60,
@@ -177,7 +179,7 @@ class UploadSignatureView(APIView):
         # Upload preset is excluded from signing because it is set to "unsigned" mode
         # in Cloudinary. If the preset is changed to "signed" mode, add
         # &upload_preset=<preset> to this string (sorted alphabetically).
-        params_to_sign = f"folder={folder}&timestamp={timestamp}"
+        params_to_sign = f"allowed_formats=jpg,jpeg,png,webp,gif&folder={folder}&timestamp={timestamp}"
         signature = hashlib.sha1(
             (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
         ).hexdigest()
@@ -188,6 +190,7 @@ class UploadSignatureView(APIView):
             "api_key": settings.CLOUDINARY_API_KEY,
             "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
             "folder": folder,
+            "allowed_formats": "jpg,jpeg,png,webp,gif",
         })
 
 
@@ -305,7 +308,7 @@ class CreateNutritionistAPIView(APIView):
 
 class OTPVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -362,7 +365,7 @@ class OTPVerifyAPIView(APIView):
 
 class OTPResendAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPResendRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -411,7 +414,7 @@ class PasswordResetRequestAPIView(APIView):
 
 class PasswordResetVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -587,6 +590,8 @@ class GoogleLoginAPIView(APIView):
         if not google_credentials_configured():
             return google_config_response()
 
+        state = _secrets.token_urlsafe(32)
+        request.session["google_oauth_state"] = state
         params = {
             "client_id": settings.GOOGLE_CLIENT_ID,
             "redirect_uri": request.build_absolute_uri("/api/account/google/callback/"),
@@ -594,6 +599,7 @@ class GoogleLoginAPIView(APIView):
             "scope": "openid email profile",
             "access_type": "offline",
             "prompt": "consent",
+            "state": state,
         }
         return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}")
 
@@ -608,6 +614,14 @@ class GoogleCallbackAPIView(APIView):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "No code provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        received_state = request.GET.get("state")
+        stored_state = request.session.pop("google_oauth_state", None)
+        if not stored_state or not _hmac.compare_digest(stored_state, received_state or ""):
+            return Response(
+                {"error": "Invalid OAuth state. Please try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         redirect_uri = request.build_absolute_uri("/api/account/google/callback/")
         token_response = requests.post(
