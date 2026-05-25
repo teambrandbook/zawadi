@@ -27,6 +27,8 @@ CLOUDINARY_UPLOAD_PRESET = os.getenv("CLOUDINARY_UPLOAD_PRESET", "zawadi_uploads
 # ─── Applications ─────────────────────────────────────────────────────────────
 
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     "corsheaders",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -65,6 +67,16 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "zewadi.middleware.MaintenanceModeMiddleware",
 ]
+
+
+ASGI_APPLICATION = 'zewadi.asgi.application'
+
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
 
