@@ -104,7 +104,7 @@ def set_auth_cookies(response, refresh, access):
     response.set_cookie(
         key="access_token",
         value=access,
-        httponly=False,
+        httponly=True,
         secure=secure,
         samesite=samesite,
         max_age=30 * 60,

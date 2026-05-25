@@ -424,3 +424,42 @@ class GoogleCallbackRedirectTest(TestCase):
             HTTP_HOST="localhost",
         )
         self.assertIn("/communityDashBoard", res["Location"])
+
+
+class LoginCookieSecurityTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            email="cookie-sec@example.com",
+            password="Pass@1234",
+            user_name="cookiesec",
+            full_name="Cookie Security",
+            phone="+10000000099",
+            role="COMMUNITY_USER",
+        )
+        self.user.is_active = True
+        self.user.save(update_fields=["is_active"])
+
+    def test_access_token_cookie_is_httponly(self):
+        response = self.client.post(
+            "/api/account/login/",
+            {"email": "cookie-sec@example.com", "password": "Pass@1234"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        access_cookie = response.cookies.get("access_token")
+        self.assertIsNotNone(access_cookie, "access_token cookie must be set on login")
+        self.assertTrue(
+            access_cookie["httponly"],
+            "access_token cookie must be httpOnly — JS must not be able to read it",
+        )
+
+    def test_refresh_token_cookie_is_httponly(self):
+        response = self.client.post(
+            "/api/account/login/",
+            {"email": "cookie-sec@example.com", "password": "Pass@1234"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        refresh_cookie = response.cookies.get("refresh_token")
+        self.assertIsNotNone(refresh_cookie)
+        self.assertTrue(refresh_cookie["httponly"])
