@@ -6,7 +6,7 @@ import RecipeCard from "@/components/recipes/RecipeCard";
 import RecipeFilter from "@/components/recipes/RecipeFilter";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 import { stackRecipeCards } from "@/utils/animations";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSelector } from "react-redux";
@@ -93,6 +93,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
   const recipeText = translations[locale]?.recipesPage?.list || translations.en.recipesPage.list;
   const router = useRouter();
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
+  const isRehydrating = useSelector((state: RootState) => state.user.isRehydrating);
   const [recipes, setRecipes] = useState(initialRecipes);
   const [isLoading, setIsLoading] = useState(initialRecipes.length === 0);
   const [activeCategory, setActiveCategory] = useState(DEFAULT_CATEGORY);
@@ -145,7 +146,9 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated && !getAccessToken()) {
+    // Wait for rehydration before deciding; skip fetch if unauthenticated.
+    if (isRehydrating) return;
+    if (!isAuthenticated) {
       setFavorites({});
       return;
     }
@@ -176,10 +179,10 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
     return () => {
       mounted = false;
     };
-  }, [isAuthenticated]);
+  }, [isRehydrating, isAuthenticated]);
 
   const handleToggleFavorite = async (recipeId: string) => {
-    if (!isAuthenticated && !getAccessToken()) {
+    if (!isAuthenticated) {
       router.push(`/login?next=${encodeURIComponent("/recipes")}`);
       return;
     }

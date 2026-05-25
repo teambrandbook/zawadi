@@ -10,7 +10,7 @@ import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
 import { type Recipe } from "@/components/recipes/recipeTypes";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import type { RootState } from "@/redux/store";
 
 type FavoriteRecipeItem = {
@@ -47,6 +47,7 @@ export default function RecipeDetailsContent({
   const router = useRouter();
   const pathname = usePathname();
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
+  const isRehydrating = useSelector((state: RootState) => state.user.isRehydrating);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritePending, setFavoritePending] = useState(false);
   const ingredients = recipe.ingredients ?? [];
@@ -69,7 +70,9 @@ export default function RecipeDetailsContent({
   }, []);
 
   useEffect(() => {
-    if (!isAuthenticated && !getAccessToken()) {
+    // Wait for rehydration before deciding; skip fetch if unauthenticated.
+    if (isRehydrating) return;
+    if (!isAuthenticated) {
       setIsFavorite(false);
       return;
     }
@@ -93,10 +96,10 @@ export default function RecipeDetailsContent({
     return () => {
       mounted = false;
     };
-  }, [isAuthenticated, recipe.id]);
+  }, [isRehydrating, isAuthenticated, recipe.id]);
 
   const handleToggleFavorite = async () => {
-    if (!isAuthenticated && !getAccessToken()) {
+    if (!isAuthenticated) {
       router.push(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }

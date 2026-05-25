@@ -5,7 +5,7 @@ import { store } from "@/redux/store";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import api from "@/services/api";
-import { setCredentials, fetchCartCount, drainGuestCart } from "@/redux/userSlice";
+import { setCredentials, fetchCartCount, drainGuestCart, setRehydrated } from "@/redux/userSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 
@@ -45,6 +45,10 @@ function AuthRehydrator() {
       })
       .catch(() => {
         // Cookie expired or invalid — stay logged out, no action needed
+      })
+      .finally(() => {
+        // Signal that rehydration is complete so auth guards can make routing decisions.
+        dispatch(setRehydrated());
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
