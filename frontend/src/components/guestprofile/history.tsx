@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import {
   ArrowRight,
   Camera,
@@ -12,7 +13,8 @@ import {
   ReceiptText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import api, { getAccessToken } from "@/services/api";
+import type { RootState } from "@/redux/store";
+import api from "@/services/api";
 
 const menuItems = [
   { label: "My Profile", Icon: UserRound, href: "/guestprofile#personal-info" },
@@ -348,6 +350,8 @@ function Pagination({
 
 export default function History() {
   const router = useRouter();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
+  const isRehydrating = useSelector((s: RootState) => s.user.isRehydrating);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -359,7 +363,10 @@ export default function History() {
   }, [router]);
 
   useEffect(() => {
-    if (!getAccessToken()) {
+    // Wait until rehydration completes before making routing decisions.
+    if (isRehydrating) return;
+
+    if (!isAuthenticated) {
       redirectToLogin();
       return;
     }
@@ -389,13 +396,21 @@ export default function History() {
     return () => {
       isMounted = false;
     };
-  }, [redirectToLogin]);
+  }, [isRehydrating, isAuthenticated, redirectToLogin]);
 
   const totalPages = Math.max(1, Math.ceil(orders.length / ITEMS_PER_PAGE));
   const paginatedOrders = useMemo(
     () => orders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [currentPage, orders]
   );
+
+  if (isRehydrating || isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
+        Loading profile...
+      </div>
+    );
+  }
 
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
