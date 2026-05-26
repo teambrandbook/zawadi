@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "@/services/api";
+import { getNotificationSocketUrl } from "@/lib/notificationsSocket";
 import NotificationsFilters from "./components/NotificationsFilters";
 import NotificationsHeaderAndStats from "./components/NotificationsHeaderAndStats";
 import NotificationsTable from "./components/NotificationsTable";
@@ -84,6 +85,45 @@ export default function NotificationsManagementPage() {
       }
     };
     fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    const socket = new WebSocket(getNotificationSocketUrl());
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data?.type !== "notification") {
+          return;
+        }
+
+        setRows((currentRows) => {
+          const nextRow = mapApiNotification({
+            id: data.notification_id ?? data.id,
+            title: data.title,
+            body: data.body ?? data.message,
+            notification_type: data.notification_type,
+            target_role: data.target_role,
+            delivery_channels: ["in_app"],
+            status: "SENT",
+            created_at: data.created_at ?? new Date().toISOString(),
+            sent_at: data.created_at ?? new Date().toISOString(),
+          });
+
+          if (currentRows.some((row) => row.id === nextRow.id)) {
+            return currentRows;
+          }
+
+          return [nextRow, ...currentRows];
+        });
+      } catch {
+        // Ignore malformed socket payloads.
+      }
+    };
+
+    return () => {
+      socket.close();
+    };
   }, []);
 
   const stats = useMemo(() => buildStats(rows), [rows]);

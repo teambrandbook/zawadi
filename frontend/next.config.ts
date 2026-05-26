@@ -10,6 +10,18 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 // Derive media hostname from NEXT_PUBLIC_API_URL at build time so production
 // images work without manually editing this file.
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "").replace(/\/$/, "");
+const wsOrigin =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  apiOrigin.replace(/^https?:/, apiOrigin.startsWith("https:") ? "wss:" : "ws:") + "/ws/notifications/";
+let wsConnectOrigin = "ws://127.0.0.1:8000";
+
+try {
+  const parsed = new URL(wsOrigin);
+  wsConnectOrigin = parsed.origin;
+} catch {
+  // fallback to local websocket during development if URL is malformed
+}
+
 let mediaHost = { protocol: "https" as "http" | "https", hostname: "localhost", port: undefined as string | undefined };
 try {
   const parsed = new URL(apiOrigin);
@@ -28,19 +40,46 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/products/**" },
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/recipes/**" },
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/profile_photos/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/products/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/recipes/**" },
       { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/profile_photos/**" },
       // Derived from NEXT_PUBLIC_API_URL — covers production automatically
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/media/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/products/**" },
       { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/recipes/**" },
+      { protocol: mediaHost.protocol, hostname: mediaHost.hostname, ...(mediaHost.port ? { port: mediaHost.port } : {}), pathname: "/profile_photos/**" },
       // Google profile photos
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       // Cloudinary profile photos
       { protocol: "https", hostname: "res.cloudinary.com" },
     ],
+  },
+  async headers() {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline'",
+      "style-src 'self' 'unsafe-inline'",
+      `img-src 'self' data: blob: https://lh3.googleusercontent.com https://res.cloudinary.com`,
+      "font-src 'self' data:",
+      `connect-src 'self' ${apiOrigin} ${wsConnectOrigin} ws://localhost:8000 ws://127.0.0.1:8000 https://api.cloudinary.com`,
+      "frame-ancestors 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "object-src 'none'",
+    ].join("; ");
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Content-Security-Policy", value: csp },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
   },
 };
 

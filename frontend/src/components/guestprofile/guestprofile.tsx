@@ -13,7 +13,9 @@ import {
 import { cn, getImageUrl } from "@/lib/utils";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import api, { getAccessToken } from "@/services/api";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import api from "@/services/api";
 import { toast } from "sonner";
 
 type UserProfile = {
@@ -117,6 +119,8 @@ let guestProfileRedirectInFlight = false;
 
 export default function GuestProfile() {
   const router = useRouter();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
+  const isRehydrating = useSelector((s: RootState) => s.user.isRehydrating);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<RecentOrder[]>([]);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
@@ -128,6 +132,8 @@ export default function GuestProfile() {
   const [editName, setEditName] = useState("");
   const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
+  const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/default-avatar.svg";
 
   const redirectToLogin = useCallback(() => {
     if (guestProfileRedirectInFlight) return;
@@ -139,7 +145,10 @@ export default function GuestProfile() {
   }, [router]);
 
   useEffect(() => {
-    if (!getAccessToken()) {
+    // Wait until rehydration completes before making routing decisions.
+    if (isRehydrating) return;
+
+    if (!isAuthenticated) {
       redirectToLogin();
       return;
     }
@@ -154,6 +163,7 @@ export default function GuestProfile() {
         ]);
 
         setProfile(meRes.data);
+        setProfilePhotoFailed(false);
         setEditName(meRes.data.full_name ?? "");
         setEditPhone(meRes.data.phone ?? "");
         const list = Array.isArray(ordersRes.data)
@@ -171,7 +181,7 @@ export default function GuestProfile() {
     }
 
     void loadProfile();
-  }, [redirectToLogin]);
+  }, [isRehydrating, isAuthenticated, redirectToLogin]);
 
   async function handleUpgrade() {
     setUpgrading(true);
@@ -223,7 +233,7 @@ export default function GuestProfile() {
     }
   }
 
-  if (loading) {
+  if (isRehydrating || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
         Loading profile...
@@ -241,11 +251,12 @@ export default function GuestProfile() {
               <div className="relative mb-5 size-32">
                 <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
                   <Image
-                    src={profile?.photo || "/default-avatar.svg"}
+                    src={profilePhotoSrc}
                     alt={profile?.full_name || "Profile"}
                     fill
                     sizes="128px"
                     className="object-cover"
+                    onError={() => setProfilePhotoFailed(true)}
                   />
                 </div>
                 <button

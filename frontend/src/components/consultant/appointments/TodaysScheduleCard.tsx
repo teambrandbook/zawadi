@@ -1,11 +1,11 @@
 import type { ScheduleItem } from "./appointmentsData";
-import Image from "next/image";
 import { Check, ExternalLink, Play, X } from "lucide-react";
 import { todaySchedule } from "./appointmentsData";
+import ScheduleAvatar from "./ScheduleAvatar";
 
 function statusTone(status: string) {
   if (status === "Confirmed") return "text-[#FFFFFF]";
-  if (status === "Pending") return "text-[#FFFFFF]";
+  if (status === "Pending") return "text-[#16A34A]";
   if (status === "Available") return "text-[#0A4833]";
   return "text-[#344054]";
 }
@@ -72,9 +72,7 @@ export default function TodaysScheduleCard({
               {item.isEmpty ? (
                 <div className="h-10 w-10 rounded-full border border-dashed border-[#D0D5DD]" />
               ) : (
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-[#E5E7EB]">
-                  <Image src={item.avatar} alt={item.name} width={40} height={40} className="h-full w-full object-cover" />
-                </div>
+                <ScheduleAvatar src={item.avatar} name={item.name} size={40} className="h-10 w-10 text-xs" />
               )}
 
               <div className="min-w-0">

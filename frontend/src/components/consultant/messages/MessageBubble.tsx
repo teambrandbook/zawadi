@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { FileText } from "lucide-react";
 import type { ConversationItem, MessageItem } from "./messageTypes";
+import MessageClientAvatar from "./MessageClientAvatar";
 
 type Props = {
   message: MessageItem;
@@ -35,9 +35,7 @@ export default function MessageBubble({ message, clientAvatar }: Props) {
 
   return (
     <div className="flex gap-3">
-      <div className="h-8 w-8 overflow-hidden rounded-full bg-[#E5E7EB]">
-        <Image src={clientAvatar} alt="" width={32} height={32} className="h-full w-full object-cover" />
-      </div>
+      <MessageClientAvatar src={clientAvatar} name="Client" size={32} className="h-8 w-8 text-[11px]" />
       <div className="max-w-[448px]">
         <div className="rounded-[8px] bg-white px-4 py-3 text-[#0A4833] shadow-[0_1px_2px_rgba(0,0,0,0.05)]">
           <p className="text-sm leading-6">{message.text}</p>

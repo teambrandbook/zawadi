@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 const MeaningSection = () => {
   const { locale } = useLocale();
@@ -33,7 +34,7 @@ const MeaningSection = () => {
 
             <h2 
               className="text-[#121414] text-4xl lg:text-[54px] font-serif leading-[1.1] mb-6 fade-in"
-              dangerouslySetInnerHTML={{ __html: sectionData.titleHTML }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHTML(sectionData.titleHTML) }}
             />
 
             <p className="text-[#121414] text-[14px] font-normal font-sans leading-relaxed mb-12 max-w-[460px] fade-in lg:rtl:ml-auto">

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { MoreVertical, Phone, Video } from "lucide-react";
 import type { ConversationItem } from "./messageTypes";
+import MessageClientAvatar from "./MessageClientAvatar";
 
 type Props = {
   conversation: ConversationItem;
@@ -10,9 +10,7 @@ export default function MessageThreadHeader({ conversation }: Props) {
   return (
     <div className="flex items-center justify-between border-b border-[#DFDFDF] bg-white px-5 py-4">
       <div className="flex items-center gap-3">
-        <div className="h-10 w-10 overflow-hidden rounded-full bg-[#E5E7EB]">
-          <Image src={conversation.clientAvatar} alt={conversation.clientName} width={40} height={40} className="h-full w-full object-cover" />
-        </div>
+        <MessageClientAvatar src={conversation.clientAvatar} name={conversation.clientName} size={40} className="h-10 w-10 text-xs" />
         <div>
           <p className="text-base font-semibold text-[#0A4833]">{conversation.clientName}</p>
           <p className="text-sm text-[#6B7280]">{conversation.activeStatus}</p>

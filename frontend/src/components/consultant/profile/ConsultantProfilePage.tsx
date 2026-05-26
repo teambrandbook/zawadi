@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import type { AxiosError } from "axios";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
@@ -79,9 +80,11 @@ type ConsultantProfileForm = {
   certifications: string;
 };
 
+const CONSULTANT_PROFILE_UPDATED_EVENT = "consultant-profile-updated";
+
 const fallbackProfile: ConsultantProfileData = {
   name: "Consultant",
-  imageSrc: "/about/about-1.1.webp",
+  imageSrc: "",
   imageAlt: "Consultant profile portrait",
   photoHint: "Upload a professional photo to build trust with clients",
   basicDetails: [
@@ -197,6 +200,34 @@ function formatDateRange(fromDate: string, toDate: string) {
 function normalizePhotoUrl(photo: string | null) {
   if (!photo) return fallbackProfile.imageSrc;
   return getImageUrl(photo);
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosError<Record<string, unknown>>;
+  const data = axiosError.response?.data;
+
+  if (data) {
+    const detail = data.detail || data.error || data.photo;
+    if (Array.isArray(detail)) return detail.join(", ");
+    if (typeof detail === "string") return detail;
+  }
+
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}
+
+function notifyConsultantProfileUpdated(profile: ConsultantProfileApiResponse) {
+  window.dispatchEvent(
+    new CustomEvent(CONSULTANT_PROFILE_UPDATED_EVENT, {
+      detail: {
+        full_name: profile.full_name,
+        user_name: profile.user_name,
+        location: profile.location,
+        photo: profile.photo,
+        role: profile.role,
+      },
+    }),
+  );
 }
 
 function mapProfile(profile: ConsultantProfileApiResponse): ConsultantProfileData {
@@ -366,8 +397,9 @@ export default function ConsultantProfilePage() {
         professionalProfile: updatedProfile.professionalProfile,
         availability: updatedProfile.availability,
       }));
-    } catch {
-      setErrorMessage("Unable to update profile photo. Please try another image.");
+      notifyConsultantProfileUpdated(response.data.data);
+    } catch (error: unknown) {
+      setErrorMessage(getErrorMessage(error, "Unable to update profile photo. Please try another image."));
     }
   }
 
@@ -409,6 +441,7 @@ export default function ConsultantProfilePage() {
         blockedDates: current.blockedDates,
       }));
       setProfileForm(mapProfileForm(response.data.data));
+      notifyConsultantProfileUpdated(response.data.data);
       setSuccessMessage("Profile updated successfully.");
     } catch {
       setErrorMessage("Unable to save profile details right now.");

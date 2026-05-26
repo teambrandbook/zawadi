@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock, User } from "lucide-react";
+import { cn, getImageUrl } from "@/lib/utils";
 import gsap from "@/lib/gsap";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -36,6 +36,7 @@ const Navbar = () => {
   const userEmail = useSelector((s: RootState) => s.user.email);
   const userPhoto = useSelector((s: RootState) => s.user.photo);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [profileImageFailed, setProfileImageFailed] = useState(false);
 
   // i18n Hook and Data Selection
   const { locale, changeLocale } = useLocale();
@@ -115,6 +116,8 @@ const Navbar = () => {
     fullName?.charAt(0)?.toUpperCase() ||
     userEmail?.charAt(0)?.toUpperCase() ||
     "U";
+  const profileImageSrc = userPhoto ? getImageUrl(userPhoto) : "";
+  const showProfileImage = Boolean(userPhoto && profileImageSrc && profileImageSrc !== "/placeholder.png" && !profileImageFailed);
 
   function getProfileRoutes() {
     if (role === "admin" || role === "internal_staff") return { profile: "/admindashboard", orders: "/admindashboard/orders" };
@@ -356,8 +359,15 @@ const Navbar = () => {
                   aria-label="Open profile menu"
                   className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold hover:opacity-90 transition"
                 >
-                  {userPhoto ? (
-                    <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                  {showProfileImage ? (
+                    <Image
+                      src={profileImageSrc}
+                      alt={fullName || "Profile"}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                      onError={() => setProfileImageFailed(true)}
+                    />
                   ) : (
                     initials
                   )}
@@ -377,8 +387,15 @@ const Navbar = () => {
                   >
                     <div className="flex items-center gap-3 px-4 py-4 text-left rtl:text-right">
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                        {userPhoto ? (
-                          <Image src={userPhoto} alt={fullName || "Profile"} width={40} height={40} className="object-cover w-full h-full" />
+                        {showProfileImage ? (
+                          <Image
+                            src={profileImageSrc}
+                            alt={fullName || "Profile"}
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                            onError={() => setProfileImageFailed(true)}
+                          />
                         ) : (
                           initials
                         )}
@@ -553,6 +570,88 @@ const Navbar = () => {
             </div>
           ))}
 
+          {/* Mobile Profile Section View (appears when authenticated) */}
+          {isAuthenticated && (
+            <div className="mobile-link pt-6 border-t border-white/10 flex flex-col space-y-4">
+              <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl">
+                <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {showProfileImage ? (
+                    <Image
+                      src={profileImageSrc}
+                      alt={fullName || "Profile"}
+                      width={40}
+                      height={40}
+                      className="object-cover w-full h-full"
+                      onError={() => setProfileImageFailed(true)}
+                    />
+                  ) : (
+                    initials
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-white truncate">
+                    {fullName || userEmail}
+                  </p>
+                  <p className="text-xs text-white/40 truncate">{userEmail}</p>
+                </div>
+              </div>
+
+              <Link
+                href={routes.profile}
+                onClick={handleCloseMenu}
+                className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
+              >
+                <span className="flex items-center gap-3"><User size={18} className="text-brand-primary/60" /> My Profile</span>
+                <ArrowRight size={18} className="text-brand-primary/40" />
+              </Link>
+
+              <Link
+                href={routes.orders}
+                onClick={handleCloseMenu}
+                className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
+              >
+                <span className="flex items-center gap-3"><ShoppingCart size={18} className="text-brand-primary/60" /> My Orders</span>
+                <ArrowRight size={18} className="text-brand-primary/40" />
+              </Link>
+
+              {role === "community_user" && (
+                <Link
+                  href="/communityDashBoard"
+                  onClick={handleCloseMenu}
+                  className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
+                >
+                  <span className="flex items-center gap-3">
+                    {userType === "member" ? (
+                      <>
+                        <LayoutDashboard size={18} className="text-brand-primary/60" />
+                        Community Dashboard
+                      </>
+                    ) : (
+                      <>
+                        <Lock size={18} className="text-white/30" />
+                        <span className="text-white/40">Community Dashboard</span>
+                      </>
+                    )}
+                  </span>
+                  {userType === "member" ? (
+                    <ArrowRight size={18} className="text-brand-primary/40" />
+                  ) : (
+                    <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                      Members only
+                    </span>
+                  )}
+                </Link>
+              )}
+
+              <button
+                onClick={handleLogout}
+                className="text-xl font-playfair font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-3 py-2 mt-2 w-fit"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Dynamic Language Switcher (mobile bottom dock) */}

@@ -1,6 +1,8 @@
 import hashlib
+import hmac as _hmac
 import logging
 import os
+import secrets as _secrets
 import time
 import uuid as _uuid
 from datetime import timedelta
@@ -8,10 +10,11 @@ from urllib.parse import urlencode
 
 import requests
 from django.conf import settings
+from django.core.files.storage import default_storage
 from django.shortcuts import redirect
 from rest_framework import status
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework.parsers import JSONParser
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -23,7 +26,7 @@ from django.utils import timezone
 from .models import OTP, User
 from .email import send_otp_email
 from .serializers import LoginSerializer, MeSerializer, RegisterSerializer
-from .throttles import LoginRateThrottle, RegisterRateThrottle
+from .throttles import LoginRateThrottle, OTPResendRateThrottle, OTPVerifyRateThrottle, RegisterRateThrottle
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +107,7 @@ def set_auth_cookies(response, refresh, access):
     response.set_cookie(
         key="access_token",
         value=access,
-        httponly=False,
+        httponly=True,
         secure=secure,
         samesite=samesite,
         max_age=30 * 60,
@@ -136,26 +139,36 @@ UPLOAD_PERMISSION_MAP = {
     "profile_photo": {"ADMIN", "INTERNAL_STAFF", "CONSULTANT", "COMMUNITY_USER"},
 }
 
+UPLOAD_CONTENT_TYPES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
+
+
+def validate_upload_request(request, upload_type):
+    if upload_type not in UPLOAD_FOLDER_MAP:
+        return Response(
+            {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
+    if request.user.role not in allowed_roles:
+        return Response(
+            {"error": "You do not have permission to upload this image type."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    return None
+
 
 class UploadSignatureView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         upload_type = request.query_params.get("type", "")
-        if upload_type not in UPLOAD_FOLDER_MAP:
-            return Response(
-                {"error": f"Invalid type. Must be one of: {', '.join(UPLOAD_FOLDER_MAP.keys())}"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        error_response = validate_upload_request(request, upload_type)
+        if error_response:
+            return error_response
 
-        allowed_roles = UPLOAD_PERMISSION_MAP[upload_type]
-        if request.user.role not in allowed_roles:
-            return Response(
-                {"error": "You do not have permission to upload this image type."},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-
-        if not settings.CLOUDINARY_API_SECRET:
+        if not all([settings.CLOUDINARY_CLOUD_NAME, settings.CLOUDINARY_API_KEY, settings.CLOUDINARY_API_SECRET]):
             return Response(
                 {"error": "Cloudinary is not configured on this server."},
                 status=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -166,7 +179,7 @@ class UploadSignatureView(APIView):
         # Upload preset is excluded from signing because it is set to "unsigned" mode
         # in Cloudinary. If the preset is changed to "signed" mode, add
         # &upload_preset=<preset> to this string (sorted alphabetically).
-        params_to_sign = f"folder={folder}&timestamp={timestamp}"
+        params_to_sign = f"allowed_formats=jpg,jpeg,png,webp,gif&folder={folder}&timestamp={timestamp}"
         signature = hashlib.sha1(
             (params_to_sign + settings.CLOUDINARY_API_SECRET).encode("utf-8")
         ).hexdigest()
@@ -177,7 +190,41 @@ class UploadSignatureView(APIView):
             "api_key": settings.CLOUDINARY_API_KEY,
             "cloud_name": settings.CLOUDINARY_CLOUD_NAME,
             "folder": folder,
+            "allowed_formats": "jpg,jpeg,png,webp,gif",
         })
+
+
+class LocalImageUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        upload_type = request.query_params.get("type", "")
+        error_response = validate_upload_request(request, upload_type)
+        if error_response:
+            return error_response
+
+        upload = request.FILES.get("file")
+        if not upload:
+            return Response({"error": "Image file is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        extension = UPLOAD_CONTENT_TYPES.get(upload.content_type)
+        if not extension:
+            return Response(
+                {"error": "Only JPG, PNG, and WebP images are supported."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        max_size = getattr(settings, "FILE_UPLOAD_MAX_MEMORY_SIZE", 5 * 1024 * 1024)
+        if upload.size > max_size:
+            return Response({"error": "Image must be 5 MB or smaller."}, status=status.HTTP_400_BAD_REQUEST)
+
+        folder = UPLOAD_FOLDER_MAP[upload_type]
+        filename = f"{_uuid.uuid4().hex}{extension}"
+        stored_path = default_storage.save(f"{folder}/{filename}", upload)
+        media_url = f"{settings.MEDIA_URL.rstrip('/')}/{stored_path.replace(os.sep, '/')}"
+
+        return Response({"url": request.build_absolute_uri(media_url)}, status=status.HTTP_201_CREATED)
 
 
 class RegisterAPIView(APIView):
@@ -261,7 +308,7 @@ class CreateNutritionistAPIView(APIView):
 
 class OTPVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -318,7 +365,7 @@ class OTPVerifyAPIView(APIView):
 
 class OTPResendAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPResendRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -367,7 +414,7 @@ class PasswordResetRequestAPIView(APIView):
 
 class PasswordResetVerifyAPIView(APIView):
     permission_classes = [AllowAny]
-    throttle_classes = [LoginRateThrottle]
+    throttle_classes = [OTPVerifyRateThrottle]
 
     def post(self, request):
         email = request.data.get("email", "").strip().lower()
@@ -543,6 +590,8 @@ class GoogleLoginAPIView(APIView):
         if not google_credentials_configured():
             return google_config_response()
 
+        state = _secrets.token_urlsafe(32)
+        request.session["google_oauth_state"] = state
         params = {
             "client_id": settings.GOOGLE_CLIENT_ID,
             "redirect_uri": request.build_absolute_uri("/api/account/google/callback/"),
@@ -550,6 +599,7 @@ class GoogleLoginAPIView(APIView):
             "scope": "openid email profile",
             "access_type": "offline",
             "prompt": "consent",
+            "state": state,
         }
         return redirect(f"https://accounts.google.com/o/oauth2/v2/auth?{urlencode(params)}")
 
@@ -564,6 +614,14 @@ class GoogleCallbackAPIView(APIView):
         code = request.GET.get("code")
         if not code:
             return Response({"error": "No code provided"}, status=status.HTTP_400_BAD_REQUEST)
+
+        received_state = request.GET.get("state")
+        stored_state = request.session.pop("google_oauth_state", None)
+        if not stored_state or not _hmac.compare_digest(stored_state, received_state or ""):
+            return Response(
+                {"error": "Invalid OAuth state. Please try again."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         redirect_uri = request.build_absolute_uri("/api/account/google/callback/")
         token_response = requests.post(

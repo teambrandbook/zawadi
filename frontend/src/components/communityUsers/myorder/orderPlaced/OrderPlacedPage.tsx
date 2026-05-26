@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiOrderDetail = {
   order_id: string;
@@ -60,6 +61,11 @@ type ProgressStep = {
 const fallbackImage = "/product/p-1.webp";
 const cardClass = "rounded-2xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]";
 const statusOrder = ["pending", "confirmed", "processing", "shipped", "delivered"];
+
+function toProductImageUrl(imagePath?: string | null): string {
+  if (!imagePath) return fallbackImage;
+  return getImageUrl(imagePath);
+}
 
 function toNumber(value: string | number | null | undefined): number {
   const amount = Number(value);
@@ -197,7 +203,7 @@ export default function OrderPlacedPage() {
   }, [order]);
 
   const productName = order?.product_name || "ZEWADI Buckwheat Product";
-  const productImage = order?.product_image || fallbackImage;
+  const productImage = toProductImageUrl(order?.product_image);
   const packName = order?.pack_name || "Wellness Pack";
   const quantity = order?.quantity ?? 1;
   const subtotal = order?.subtotal ?? 0;

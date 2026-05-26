@@ -2,6 +2,8 @@ from django.utils import timezone
 from .models import Notification, UserNotificationReceipt
 from accounts.models import User
 from .email import send_notification_email
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 def users_for_notification(notification):
@@ -10,34 +12,57 @@ def users_for_notification(notification):
         return User.objects.all()
     if not target_role:
         return User.objects.none()
-    return User.objects.filter(role=target_role.upper())
+    if target_role.lower() == "admin":
+        return User.objects.filter(role__in=["ADMIN", "admin", "INTERNAL_STAFF", "internal_staff"])
+    return User.objects.filter(role__in=[target_role.upper(), target_role.lower()])
 
 
 def create_receipts_for_notification(notification) -> None:
     """Create unread receipt rows for every user targeted by a sent notification."""
+
     if notification.status != "SENT":
         return
+
     if not notification.has_channel(Notification.CHANNEL_IN_APP):
         return
 
     try:
+
         users = users_for_notification(notification)
+
         existing_user_ids = set(
             UserNotificationReceipt.objects.filter(
                 notification=notification,
                 user__in=users,
             ).values_list("user_id", flat=True)
         )
-        receipts = [
-            UserNotificationReceipt(user=user, notification=notification)
-            for user in users
-            if user.pk not in existing_user_ids
-        ]
-        if receipts:
-            UserNotificationReceipt.objects.bulk_create(receipts, ignore_conflicts=True)
-    except Exception:
-        pass
 
+        receipts = []
+        users_to_notify = []
+
+        for user in users:
+
+            if user.pk not in existing_user_ids:
+
+                receipts.append(
+                    UserNotificationReceipt(
+                        user=user,
+                        notification=notification
+                    )
+                )
+
+                users_to_notify.append(user)
+
+        if receipts:
+            UserNotificationReceipt.objects.bulk_create(
+                receipts,
+                ignore_conflicts=True
+            )
+            for user in users_to_notify:
+                send_realtime_notification(user, notification)
+
+    except Exception as e:
+        print(e)
 
 def send_emails_for_notification(notification) -> None:
     if notification.status != "SENT":
@@ -74,6 +99,7 @@ def send_user_notification(user, title: str, body: str, notification_type: str =
             sent_at=timezone.now(),
         )
         UserNotificationReceipt.objects.create(user=user, notification=notification)
+        send_realtime_notification(user, notification)
     except Exception:
         pass
 
@@ -115,6 +141,7 @@ def send_low_stock_notification(product):
     )
 
     receipts = []
+    users_to_notify = []
     for user in users:
         receipts.append(
             UserNotificationReceipt(
@@ -123,8 +150,41 @@ def send_low_stock_notification(product):
                 is_read=False,
             )
         )
+        users_to_notify.append(user)
 
     UserNotificationReceipt.objects.bulk_create(
         receipts,
         ignore_conflicts=True
     )
+    for user in users_to_notify:
+        send_realtime_notification(user, notification)
+
+
+# WebSocket
+
+
+def send_realtime_notification(user, notification):
+
+    try:
+
+        channel_layer = get_channel_layer()
+        if channel_layer is None:
+            return
+
+        async_to_sync(channel_layer.group_send)(
+            f"user_{user.id}",
+            {
+                "type": "send_notification",
+                "id": notification.id,
+                "title": notification.title,
+                "body": notification.body,
+                "message": notification.body,
+                "notification_id": notification.id,
+                "notification_type": notification.notification_type,
+                "target_role": notification.target_role,
+                "created_at": notification.created_at.isoformat() if notification.created_at else None,
+            }
+        )
+
+    except Exception:
+        pass

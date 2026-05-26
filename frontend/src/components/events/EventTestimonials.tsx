@@ -5,6 +5,7 @@ import { MoveLeft, MoveRight } from "lucide-react";
 import { useState } from "react";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 export default function EventTestimonials() {
   const { locale } = useLocale();
@@ -37,7 +38,7 @@ export default function EventTestimonials() {
 
           <h2
             className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
-            dangerouslySetInnerHTML={{ __html: testimonialText.titleHTML }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(testimonialText.titleHTML) }}
           />
         </div>
 

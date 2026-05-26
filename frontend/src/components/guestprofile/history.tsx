@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import {
   ArrowRight,
   Camera,
@@ -11,8 +12,9 @@ import {
   UserRound,
   ReceiptText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import api, { getAccessToken } from "@/services/api";
+import { cn, getImageUrl } from "@/lib/utils";
+import type { RootState } from "@/redux/store";
+import api from "@/services/api";
 
 const menuItems = [
   { label: "My Profile", Icon: UserRound, href: "/guestprofile#personal-info" },
@@ -105,6 +107,13 @@ function mapOrder(item: ApiOrderListItem): HistoryOrder {
 }
 
 function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
+  const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/about/testimonial.webp";
+
+  useEffect(() => {
+    setProfilePhotoFailed(false);
+  }, [profile?.photo]);
+
   return (
     <aside className="space-y-4 w-full">
       <section className="rounded-[25px] border border-[#e3dbd8] bg-white p-6 shadow-sm sm:p-8">
@@ -112,11 +121,12 @@ function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
           <div className="relative mb-5 size-32">
             <div className="relative size-32 overflow-hidden rounded-full border-4 border-[#d8c29a]">
               <Image
-                src={profile?.photo || "/about/testimonial.webp"}
+                src={profilePhotoSrc}
                 alt={profile?.full_name || "Profile"}
                 fill
                 sizes="128px"
                 className="object-cover"
+                onError={() => setProfilePhotoFailed(true)}
               />
             </div>
             <button
@@ -348,6 +358,8 @@ function Pagination({
 
 export default function History() {
   const router = useRouter();
+  const isAuthenticated = useSelector((s: RootState) => s.user.isAuthenticated);
+  const isRehydrating = useSelector((s: RootState) => s.user.isRehydrating);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [orders, setOrders] = useState<HistoryOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -359,7 +371,10 @@ export default function History() {
   }, [router]);
 
   useEffect(() => {
-    if (!getAccessToken()) {
+    // Wait until rehydration completes before making routing decisions.
+    if (isRehydrating) return;
+
+    if (!isAuthenticated) {
       redirectToLogin();
       return;
     }
@@ -389,13 +404,21 @@ export default function History() {
     return () => {
       isMounted = false;
     };
-  }, [redirectToLogin]);
+  }, [isRehydrating, isAuthenticated, redirectToLogin]);
 
   const totalPages = Math.max(1, Math.ceil(orders.length / ITEMS_PER_PAGE));
   const paginatedOrders = useMemo(
     () => orders.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
     [currentPage, orders]
   );
+
+  if (isRehydrating || isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
+        Loading profile...
+      </div>
+    );
+  }
 
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">

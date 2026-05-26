@@ -3,6 +3,7 @@ from datetime import timedelta
 from dotenv import load_dotenv
 import os
 import sys as _sys
+import warnings
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -16,6 +17,7 @@ def env_bool(name, default=False):
 SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-change-me-in-production")
 DEBUG = env_bool("DEBUG", False)
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ADMIN_URL = os.getenv("ADMIN_URL", "admin/")
 
 # ─── Cloudinary ───────────────────────────────────────────────────────────────
 
@@ -51,6 +53,7 @@ INSTALLED_APPS = [
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt.token_blacklist",
+    "axes",
 ]
 
 # ─── Middleware ────────────────────────────────────────────────────────────────
@@ -63,6 +66,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "axes.middleware.AxesMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "zewadi.middleware.MaintenanceModeMiddleware",
@@ -83,6 +87,7 @@ CHANNEL_LAYERS = {
 CORS_ALLOW_CREDENTIALS = True
 _cors_origins = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:3000")
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_origins.split(",") if o.strip()]
+_frontend_url_unset = os.getenv("FRONTEND_URL") is None
 FRONTEND_URL = os.getenv("FRONTEND_URL", CORS_ALLOWED_ORIGINS[0] if CORS_ALLOWED_ORIGINS else "http://localhost:3000")
 COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN") or None  # e.g. ".zewadi.com" in production
 AUTH_COOKIE_SECURE = env_bool("AUTH_COOKIE_SECURE", not DEBUG)
@@ -158,6 +163,7 @@ else:
 AUTH_USER_MODEL = "accounts.User"
 
 AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
@@ -177,6 +183,8 @@ REST_FRAMEWORK = {
         "user": "300/minute",
         "login": "5/minute",
         "register": "10/hour",
+        "otp_verify": "2/minute",
+        "otp_resend": "3/hour",
     },
     "DEFAULT_PAGINATION_CLASS": "zewadi.pagination.StandardPagination",
     "PAGE_SIZE": 20,
@@ -249,6 +257,20 @@ if not DEBUG and SECRET_KEY == _INSECURE_KEY and _running_cmd not in _MANAGEMENT
         "Set a real SECRET_KEY environment variable before running in production."
     )
 
+if not DEBUG and not SECURE_SSL_REDIRECT and _running_cmd not in _MANAGEMENT_CMDS:
+    warnings.warn(
+        "SECURE_SSL_REDIRECT is disabled. Set SECURE_SSL_REDIRECT=True in .env, "
+        "or ensure your reverse proxy (Traefik/Nginx) enforces HTTPS redirection.",
+        RuntimeWarning,
+        stacklevel=2,
+    )
+
+if not DEBUG and _frontend_url_unset and _running_cmd not in _MANAGEMENT_CMDS:
+    raise RuntimeError(
+        "FRONTEND_URL is required in production. "
+        "Set FRONTEND_URL=https://yourdomain.com in your .env file."
+    )
+
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
 # django-redis with IGNORE_EXCEPTIONS so cache misses degrade gracefully
 CACHES = {
@@ -268,3 +290,11 @@ CACHES = {
 
 # ─── GCC Tax & Currency ────────────────────────────────────────────────────────
 DEFAULT_TAX_COUNTRY = "SA"
+
+# ── Account lockout (django-axes) ─────────────────────────────────────────────
+AXES_ENABLED = env_bool("AXES_ENABLED", True)
+AXES_FAILURE_LIMIT = 5
+AXES_COOLDOWN_TIME = 1          # hours
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_PARAMETERS = ["username"]  # lock by username (email), not IP
+AXES_USERNAME_FORM_FIELD = "username"   # key used in Django authenticate() credentials dict

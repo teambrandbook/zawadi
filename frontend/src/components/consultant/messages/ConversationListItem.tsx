@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import type { ConversationItem } from "./messageTypes";
+import MessageClientAvatar from "./MessageClientAvatar";
 
 type Props = {
   conversation: ConversationItem;
@@ -26,9 +26,7 @@ export default function ConversationListItem({ conversation, isSelected, onSelec
       }`}
     >
       <div className="flex gap-3">
-        <div className="h-12 w-12 overflow-hidden rounded-full bg-[#E5E7EB]">
-          <Image src={conversation.clientAvatar} alt={conversation.clientName} width={48} height={48} className="h-full w-full object-cover" />
-        </div>
+        <MessageClientAvatar src={conversation.clientAvatar} name={conversation.clientName} size={48} className="h-12 w-12 text-sm" />
 
         <div className="min-w-0 flex-1">
           <div className="flex items-start justify-between gap-3">

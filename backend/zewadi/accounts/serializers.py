@@ -7,6 +7,7 @@ from communityuser.models import CommunityUser, CommunityUserAddress, UserType
 from consultant.models import Consultant
 from supperadmin.models import Role
 from django.db import transaction
+from axes.handlers.proxy import AxesProxyHandler
 
 
 class MeSerializer(serializers.ModelSerializer):
@@ -48,7 +49,7 @@ class RegisterSerializer(serializers.Serializer):
     date_of_birth = serializers.DateField(required=False, allow_null=True, default=None)
     gender = serializers.CharField(max_length=10, required=False, allow_blank=True, default="")
     location = serializers.CharField(max_length=255, required=False, allow_blank=True)
-    photo = serializers.URLField(required=False, allow_null=True, allow_blank=True)
+    photo = serializers.URLField(max_length=500, required=False, allow_null=True, allow_blank=True)
     # Keep serializer role options in sync with the User model choices.
     role = serializers.ChoiceField(
         choices=[choice[0] for choice in ROLE_CHOICES],
@@ -191,6 +192,9 @@ class LoginSerializer(serializers.Serializer):
         try:
             user_obj = User.objects.get(email__iexact=email)
         except User.DoesNotExist:
+            # Note: axes does not record this failure — no authenticate() call is made.
+            # Attackers enumerating non-existent emails bypass lockout here.
+            # IP-level rate limiting at the proxy layer mitigates this.
             raise serializers.ValidationError("Invalid credentials")
 
         if not user_obj.is_active:
@@ -198,13 +202,23 @@ class LoginSerializer(serializers.Serializer):
                 "Please verify your email before logging in. Check your inbox for a verification code."
             )
 
+        request = self.context.get("request")
+        if AxesProxyHandler.is_locked(request, credentials={"username": user_obj.email}):
+            raise serializers.ValidationError(
+                "Account temporarily locked due to too many failed login attempts. "
+                "Please try again in 1 hour or contact support."
+            )
+
         user = authenticate(
-            request=self.context.get("request"),
+            request=request,
             username=user_obj.email,
             password=data["password"],
         )
         if not user:
             raise serializers.ValidationError("Invalid credentials")
+
+        # Signal successful login so axes resets the failure counter (AXES_RESET_ON_SUCCESS)
+        AxesProxyHandler.user_logged_in(sender=user.__class__, request=request, user=user)
 
         refresh = RefreshToken.for_user(user)
         return {

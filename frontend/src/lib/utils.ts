@@ -9,10 +9,19 @@ export function cn(...inputs: ClassValue[]) {
 export function getImageUrl(path: string | null | undefined): string {
   if (!path) return "/placeholder.png";
   const base = API_BASE_URL.replace(/\/api$/, ""); // strip /api suffix if present
+  if (path.startsWith("media/")) {
+    return `${base}/${path}`;
+  }
+  if (path.startsWith("profile_photos/")) {
+    return `${base}/media/${path}`;
+  }
   if (path.startsWith("http://") || path.startsWith("https://")) {
     try {
       const imageUrl = new URL(path);
       const apiUrl = new URL(base);
+      if (imageUrl.pathname.startsWith("/profile_photos/")) {
+        return `${apiUrl.origin}/media${imageUrl.pathname}${imageUrl.search}`;
+      }
       if (imageUrl.pathname.startsWith("/media/") && imageUrl.origin !== apiUrl.origin) {
         return `${apiUrl.origin}${imageUrl.pathname}${imageUrl.search}`;
       }
@@ -21,7 +30,12 @@ export function getImageUrl(path: string | null | undefined): string {
     }
     return path;
   }
-  if (path.startsWith("/") && !path.startsWith("/media/") && !path.startsWith("/recipes/")) {
+  if (
+    path.startsWith("/") &&
+    !path.startsWith("/media/") &&
+    !path.startsWith("/recipes/") &&
+    !path.startsWith("/profile_photos/")
+  ) {
     return path;
   }
   return `${base}${path.startsWith("/") ? "" : "/"}${path}`;

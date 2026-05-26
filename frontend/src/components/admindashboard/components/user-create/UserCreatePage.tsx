@@ -14,7 +14,7 @@ import PermissionsSection from "./components/PermissionsSection";
 import PreferencesSection from "./components/PreferencesSection";
 import ProfilePhotoSection from "./components/ProfilePhotoSection";
 import RoleMembershipSection from "./components/RoleMembershipSection";
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 // ✅ FIXED TYPE
@@ -196,16 +196,12 @@ export default function UserCreatePage() {
 
     try {
       setIsSubmitting(true);
-      const token = getAccessToken();
-      const config = token
-        ? { headers: { Authorization: `Bearer ${token}` } }
-        : undefined;
 
       if (isEditMode && editUserId) {
-        await api.patch(`/superadmin/users/${editUserId}/`, formData, config);
+        await api.patch(`/superadmin/users/${editUserId}/`, formData);
         toast.success("User updated successfully.");
       } else {
-        await api.post("/account/register/", formData, config);
+        await api.post("/account/register/", formData);
         toast.success("User created successfully.");
       }
       router.push("/admindashboard/users");

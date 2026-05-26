@@ -7,6 +7,7 @@ import ClientList from "./ClientList";
 import ClientProfileModal from "./ClientProfileModal";
 import ClientStatsGrid from "./ClientStatsGrid";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import type { BackendClientItem, ClientGoal, ClientStatCard, ClientStatus } from "./clientTypes";
 
 const INITIAL_VISIBLE_COUNT = 3;
@@ -35,15 +36,8 @@ type ApiClient = {
   created_at?: string;
 };
 
-function getApiOrigin() {
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
-  return apiBase.replace(/\/api\/?$/, "");
-}
-
 function mediaUrl(value?: string | null) {
-  if (!value) return "/recipe/recipe-3.webp";
-  if (value.startsWith("http")) return value;
-  return `${getApiOrigin()}${value.startsWith("/") ? "" : "/"}${value}`;
+  return value ? getImageUrl(value) : "";
 }
 
 function formatGoal(value?: string): ClientGoal {

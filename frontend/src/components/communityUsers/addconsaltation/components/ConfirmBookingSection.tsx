@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, CalendarCheck2, Check, CheckCircle2, Edit3, Shield, Star } from "lucide-react";
+import { getImageUrl } from "@/lib/utils";
 
 type Expert = {
   id: string;
@@ -149,7 +150,7 @@ export default function ConfirmBookingSection({
   const duration = getDuration(sessionType);
   const focusArea = formData.focus_area || healthDetails.mainConcern || "belly";
   const wellnessGoal = formData.primary_wellness_goal || healthDetails.primaryWellnessGoal || "fitness";
-  const expertPhoto = matchedConsultant?.photo || null;
+  const expertPhoto = matchedConsultant?.photo ? getImageUrl(matchedConsultant.photo) : null;
   const consultationFee = matchedConsultant?.consultation_fee ?? 75;
 
   return (

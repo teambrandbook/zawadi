@@ -17,6 +17,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "order_id",
+            "product",
             "product_id",
             "variant_id",
             "product_code",
@@ -53,6 +54,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         read_only_fields = [
             "id",
             "order_id",
+            "product",
             "payment_status",
             "status",
             "created_at",
@@ -87,6 +89,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"product_id": "Product not found."})
 
         attrs["product_name"] = product.product_name
+        attrs["product"] = product
         attrs["product_code"] = product.product_code
         attrs["pack_name"] = self._format_pack_name(
             product.unit_quantity,
@@ -259,6 +262,10 @@ class OrderReviewSerializer(serializers.ModelSerializer):
         if order.status != "delivered":
             raise serializers.ValidationError(
                 "You can only review a delivered order."
+            )
+        if not order.product_id:
+            raise serializers.ValidationError(
+                "This order cannot be reviewed because its product is no longer available."
             )
         if hasattr(order, "review"):
             raise serializers.ValidationError(

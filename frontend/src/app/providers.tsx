@@ -4,8 +4,8 @@ import { Provider } from "react-redux";
 import { store } from "@/redux/store";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
-import api, { getAccessToken } from "@/services/api";
-import { setCredentials, fetchCartCount, drainGuestCart } from "@/redux/userSlice";
+import api from "@/services/api";
+import { setCredentials, fetchCartCount, drainGuestCart, setRehydrated } from "@/redux/userSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
 
@@ -15,8 +15,10 @@ function AuthRehydrator() {
   const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    if (!getAccessToken()) return;
-
+    // Call /account/me/ unconditionally on mount. The httpOnly cookie will be sent
+    // automatically via axios' withCredentials: true. Success populates Redux auth state;
+    // 401/error leaves Redux empty (user appears logged out). This fixes cold page load
+    // where getAccessToken() is null but the httpOnly cookie is still valid.
     api
       .get<{
         user_id?: string;
@@ -43,6 +45,10 @@ function AuthRehydrator() {
       })
       .catch(() => {
         // Cookie expired or invalid — stay logged out, no action needed
+      })
+      .finally(() => {
+        // Signal that rehydration is complete so auth guards can make routing decisions.
+        dispatch(setRehydrated());
       });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { getImageUrl } from "@/lib/utils";
 
 type ApiOrderListItem = {
   order_id: string;
@@ -165,6 +166,11 @@ function getDateMeta(order: OrderItem) {
   return { label: "Expected Delivery", value: order.dateValue };
 }
 
+function toOrderImageUrl(imagePath: string | null | undefined, index: number): string {
+  if (!imagePath) return fallbackImages[index % fallbackImages.length];
+  return getImageUrl(imagePath);
+}
+
 export default function MyOrder() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderItem[]>([]);
@@ -193,7 +199,7 @@ export default function MyOrder() {
             id: item.order_id,
             title: toOrderTitle(item.product_name),
             orderId: item.order_id,
-            image: item.product_image || fallbackImages[index % fallbackImages.length],
+            image: toOrderImageUrl(item.product_image, index),
             orderDate: toDateLabel(item.created_at),
             quantity: `${item.quantity ?? 1} x ${item.pack_name || "pack"}`,
             totalAmount: toCurrency(item.total_amount),

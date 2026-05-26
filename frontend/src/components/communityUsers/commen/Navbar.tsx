@@ -5,13 +5,14 @@ import Image from 'next/image';
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Search, Bell, Menu, Settings, LogOut, ShoppingCart } from 'lucide-react';
-import api, { getAccessToken } from "@/services/api";
+import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { getNotificationSocketUrl } from "@/lib/notificationsSocket";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -49,14 +50,6 @@ const fallbackUserInfo: UserInfo = {
   photo: null,
 };
 
-function decodeJwtPayload(token: string): Record<string, string> | null {
-  try {
-    const base64 = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
-    return JSON.parse(atob(base64));
-  } catch {
-    return null;
-  }
-}
 
 function formatRole(role: string): string {
   return role.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -106,43 +99,21 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
   };
 }
 
-function getUserFromTokenCookie(): UserInfo {
-  if (typeof document === "undefined") {
-    return fallbackUserInfo;
-  }
-
-  const token = getAccessToken();
-  if (!token) {
-    return fallbackUserInfo;
-  }
-
-  const payload = decodeJwtPayload(token);
-  if (!payload) {
-    return fallbackUserInfo;
-  }
-
-  const firstName: string = payload.first_name || "";
-  const lastName: string = payload.last_name || "";
-  const fullName = [firstName, lastName].filter(Boolean).join(" ");
-  const email: string = payload.email || "";
-  const role: string = payload.role || "";
-  const initials = getInitials(fullName, email);
-  const userType = isCommunityRole(role) ? "member" : "";
-
-  return { fullName, firstName, lastName, email, role, userType, initials, photo: null };
+function getUserInitialState(): UserInfo {
+  return fallbackUserInfo;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/communityDashBoard/settings" }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [user, setUser] = useState<UserInfo>(getUserFromTokenCookie);
+  const [liveNotifications, setLiveNotifications] = useState<any[]>([]);
+  const [user, setUser] = useState<UserInfo>(getUserInitialState);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
   const hasNotificationInbox = canReceiveNotifications(user.role);
-  // ref kept for future use (e.g. click-outside on bell area)
   const _bellRef = useRef<HTMLDivElement>(null);
 
   const fetchUnreadCount = useCallback(async () => {
@@ -161,12 +132,46 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
+  // WebSocket for Realtime Notifications
+  useEffect(() => {
+    if (!hasNotificationInbox) {
+      return;
+    }
+
+    const socket = new WebSocket(getNotificationSocketUrl());
+
+    socket.onopen = () => {
+      console.log("Notification Socket Connected");
+    };
+
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log("Realtime Notification:", data);
+
+      // update unread count
+      setUnreadCount((prev) => prev + 1);
+
+      // update dropdown instantly
+      setLiveNotifications((prev) => [data, ...prev]);
+    };
+
+    socket.onerror = (e) => {
+      console.log("WebSocket Error", e);
+    };
+
+    socket.onclose = () => {
+      console.log("Notification Socket Closed");
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [hasNotificationInbox]);
+
   useEffect(() => {
     let isMounted = true;
 
     async function loadProfile() {
-      if (!getAccessToken()) return;
-
       try {
         const { data: me } = await api.get<CommunityProfileSummary>("/account/me/");
         if (isMounted) {
@@ -278,26 +283,29 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
         {/* Notification bell */}
         <ErrorBoundary fallback={null}>
-        <div className="relative" ref={_bellRef}>
-          <button
-            onClick={() => {
-              setShowNotifications((v) => !v);
-              if (!showNotifications) setUnreadCount(0);
-            }}
-            className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-            {unreadCount > 0 && (
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
+          <div className="relative" ref={_bellRef}>
+            <button
+              onClick={() => {
+                setShowNotifications((v) => !v);
+                if (!showNotifications) setUnreadCount(0);
+              }}
+              className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+              aria-label="Notifications"
+            >
+              <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifications && (
+              <NotificationDropdown 
+                onClose={() => setShowNotifications(false)} 
+                liveNotifications={liveNotifications}
+              />
             )}
-          </button>
-          {showNotifications && (
-            <NotificationDropdown onClose={() => setShowNotifications(false)} />
-          )}
-        </div>
+          </div>
         </ErrorBoundary>
 
         <Link

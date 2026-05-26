@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { X } from "lucide-react";
 import type { BackendClientItem } from "./clientTypes";
+import ClientAvatar from "./ClientAvatar";
 
 type Props = {
   client: BackendClientItem | null;
@@ -29,9 +29,7 @@ export default function ClientProfileModal({ client, onClose }: Props) {
       >
         <div className="flex items-start justify-between gap-4 border-b border-[#EAECF0] px-6 py-5">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 overflow-hidden rounded-full bg-[#E5E7EB]">
-              <Image src={client.avatar} alt={client.name} width={64} height={64} className="h-full w-full object-cover" />
-            </div>
+            <ClientAvatar src={client.avatar} name={client.name} size={64} className="h-16 w-16 text-lg" />
             <div>
               <h2 className="text-[30px] font-semibold tracking-[-0.03em] text-[#101828]">{client.name}</h2>
               <p className="text-sm text-[#667085]">{`${client.age} years • ${client.gender}`}</p>

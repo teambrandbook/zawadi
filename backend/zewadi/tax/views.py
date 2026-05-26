@@ -3,6 +3,8 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from supperadmin.utils.permissions import IsAdminRole
+
 from .models import Currency, TaxCategory, TaxRate
 
 
@@ -56,6 +58,12 @@ def tax_rate_list(request):
         return Response([_rate_to_dict(r) for r in rates])
 
     # POST — create a new rate
+    if not IsAdminRole().has_permission(request, None):
+        return Response(
+            {"detail": "Admin access required."},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     country = str(request.data.get("country", "")).upper().strip()
     tax_category_code = str(request.data.get("tax_category", "")).upper().strip()
     rate_percent = request.data.get("rate_percent")
@@ -101,7 +109,7 @@ def tax_rate_list(request):
 
 
 @api_view(["PATCH", "DELETE"])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsAuthenticated, IsAdminRole])
 def tax_rate_detail(request, pk):
     try:
         tr = TaxRate.objects.select_related("tax_category").get(pk=pk)
@@ -124,3 +132,25 @@ def tax_rate_detail(request, pk):
             return Response({"rate_percent": "Must be a number."}, status=status.HTTP_400_BAD_REQUEST)
     tr.save()
     return Response(_rate_to_dict(tr))
+
+
+GCC_NAMES = {
+    "SA": "Saudi Arabia",
+    "AE": "UAE",
+    "BH": "Bahrain",
+    "OM": "Oman",
+    "KW": "Kuwait",
+    "QA": "Qatar",
+}
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def tax_countries(request):
+    codes = (
+        TaxRate.objects.filter(is_active=True)
+        .values_list("country", flat=True)
+        .distinct()
+        .order_by("country")
+    )
+    return Response([{"code": c, "name": GCC_NAMES.get(c, c)} for c in codes])

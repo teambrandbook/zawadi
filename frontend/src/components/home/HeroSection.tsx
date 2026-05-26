@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
+import { sanitizeHTML } from "@/utils/sanitize";
 
 const images = [
   "/home/a1.webp",
@@ -144,7 +145,7 @@ const HeroSection = () => {
         <div className="w-full lg:w-7/12 flex justify-center lg:justify-end -mt-6 lg:-mt-17">
           <h1 
             className="font-['Playfair_Display'] font-black text-4xl md:text-7xl lg:text-[76px] xl:text-[100px] text-white text-center lg:text-right rtl:lg:text-left leading-[1.1] lg:leading-[0.95] tracking-tight fade-in"
-            dangerouslySetInnerHTML={{ __html: heroTranslations.titleHTML }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHTML(heroTranslations.titleHTML) }}
           />
         </div>
 
