@@ -18,6 +18,7 @@ type DraftModel = {
   cookTime: string;
   servings: string;
   difficulty: string;
+  healthBenefits: string;
   ingredients: IngredientDraft[];
   optionalIngredients: string;
   steps: string[];
@@ -256,6 +257,29 @@ export function IngredientsSection({
           value={optionalIngredients}
           onChange={(e) => onOptionalIngredientsChange(e.target.value)}
           placeholder="Mushrooms, spinach, egg, grilled Chicken etc."
+          className={textareaClass}
+        />
+      </label>
+    </SectionCard>
+  );
+}
+
+export function HealthBenefitsSection({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <SectionCard title="Health Benefits">
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-[#0A4833]">Health Benefits</span>
+        <textarea
+          rows={3}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Describe the health benefits of this recipe..."
           className={textareaClass}
         />
       </label>

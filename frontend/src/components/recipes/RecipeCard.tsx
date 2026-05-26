@@ -66,7 +66,7 @@ export default function RecipeCard({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[560px] pt-1 text-left rtl:text-right">
+      <div className="max-w-[560px] pt-1 text-left rtl:text-right md:max-w-none lg:max-w-[560px]">
         {/* Title */}
         <h2 className="font-[600] text-[30px] leading-[38px] text-black md:text-[46px] md:leading-[52px] [font-family:'Playfair_Display']">
           {recipe.title}

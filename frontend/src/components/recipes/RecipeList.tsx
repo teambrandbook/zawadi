@@ -57,7 +57,7 @@ function mediaUrl(value?: string | null) {
 
 function listItems(value?: string | null) {
   return String(value || "")
-    .split(/[\n,]+/)
+    .split(/\r?\n+/)
     .map((item) => item.replace(/^[-*•]\s*/, "").trim())
     .filter(Boolean);
 }

@@ -48,10 +48,10 @@ class NotificationListCreateView(APIView):
         serializer = NotificationSerializer(data=request.data)
         if serializer.is_valid():
             notification = serializer.save()
-            # If status is SENT on creation, record sent_at
-            if notification.status == "SENT" and notification.sent_at is None:
-                notification.sent_at = timezone.now()
-                notification.save(update_fields=["sent_at"])
+            if notification.status == "SENT":
+                if notification.sent_at is None:
+                    notification.sent_at = timezone.now()
+                    notification.save(update_fields=["sent_at"])
                 deliver_notification(notification)
             return Response(NotificationSerializer(notification).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -77,13 +77,14 @@ class NotificationDetailView(APIView):
         if obj is None:
             return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        was_sent = obj.status == "SENT"
         serializer = NotificationSerializer(obj, data=request.data, partial=True)
         if serializer.is_valid():
             notification = serializer.save()
-            # Auto-set sent_at when status transitions to SENT
-            if notification.status == "SENT" and notification.sent_at is None:
-                notification.sent_at = timezone.now()
-                notification.save(update_fields=["sent_at"])
+            if notification.status == "SENT" and not was_sent:
+                if notification.sent_at is None:
+                    notification.sent_at = timezone.now()
+                    notification.save(update_fields=["sent_at"])
                 deliver_notification(notification)
             return Response(NotificationSerializer(notification).data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

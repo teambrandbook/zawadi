@@ -18,8 +18,9 @@ interface NotificationItem {
   created_at: string;
 }
 
-interface Props {
+interface NotificationDropdownProps {
   onClose: () => void;
+  liveNotifications?: any[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -32,7 +33,7 @@ function timeAgo(dateStr: string): string {
   return `${Math.floor(hrs / 24)}d ago`;
 }
 
-export default function NotificationDropdown({ onClose }: Props) {
+export default function NotificationDropdown({ onClose, liveNotifications = [] }: NotificationDropdownProps) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -65,9 +66,31 @@ export default function NotificationDropdown({ onClose }: Props) {
     >
       <div className="px-4 py-3 border-b font-semibold text-sm text-gray-700">Notifications</div>
       <div className="max-h-80 overflow-y-auto">
+        
+        {/* Realtime Notifications UI Section */}
+        {liveNotifications && liveNotifications.length > 0 && (
+          <div className="flex flex-col">
+            {liveNotifications.map((item, index) => (
+              <div
+                key={`live-${index}`}
+                className="border-b border-gray-100 bg-[#F9F6F1] p-4"
+              >
+                <h3 className="text-sm font-semibold text-gray-900">
+                  {item.title}
+                </h3>
+                <p className="mt-1 text-xs text-gray-600">
+                  {item.message || item.body}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">just now</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Historical Database Notifications Section */}
         {loading ? (
-          <p className="text-center text-sm text-gray-500 py-6">Loading…</p>
-        ) : items.length === 0 ? (
+          <p className="text-center text-sm text-gray-500 py-6">Loading...</p>
+        ) : items.length === 0 && liveNotifications.length === 0 ? (
           <p className="text-center text-sm text-gray-500 py-6">No notifications yet</p>
         ) : (
           items.map((item) => {

@@ -11,6 +11,7 @@ import {
   BasicInformationSection,
   ChooseDishCountrySection,
   CoverImageSection,
+  HealthBenefitsSection,
   IngredientsSection,
   NutritionFactsSection,
   PreparationStepsSection,
@@ -39,6 +40,7 @@ type RecipeDetailResponse = {
   carbs?: string | number | null;
   protein?: string | number | null;
   video_url?: string | null;
+  health_benefits?: string | null;
   optional_ingredients?: string | null;
   ingredients?: Array<{ ingredient_name?: string; quantity?: string; unit?: string }>;
   steps?: Array<{ description?: string }>;
@@ -53,6 +55,7 @@ function emptyDraft(): DraftModel {
     cookTime: "",
     servings: "",
     difficulty: "Easy",
+    healthBenefits: "",
     ingredients: [{ ...EMPTY_INGREDIENT }],
     optionalIngredients: "",
     steps: [""],
@@ -171,6 +174,7 @@ export default function AddNewRecipy() {
           cookTime: recipe.cooking_time_minutes ? String(recipe.cooking_time_minutes) : "",
           servings: recipe.servings ? String(recipe.servings) : "",
           difficulty: toSelectLabel(recipe.difficulty_level, "Easy"),
+          healthBenefits: recipe.health_benefits ?? "",
           calories: recipe.calories ? String(recipe.calories) : "",
           fat: recipe.fat ? String(recipe.fat) : "",
           carbs: recipe.carbs ? String(recipe.carbs) : "",
@@ -344,6 +348,7 @@ export default function AddNewRecipy() {
     formData.append("carbs", draft.carbs.trim());
     formData.append("protein", draft.protein.trim());
     formData.append("video_url", draft.videoUrl.trim());
+    formData.append("health_benefits", draft.healthBenefits.trim());
     formData.append("optional_ingredients", draft.optionalIngredients.trim());
     formData.append("status", status);
     if (coverImageUrl) formData.append("cover_image", coverImageUrl);
@@ -442,6 +447,10 @@ export default function AddNewRecipy() {
               onRemoveImage={removeImage}
             />
             <BasicInformationSection draft={draft} updateField={updateField} />
+            <HealthBenefitsSection
+              value={draft.healthBenefits}
+              onChange={(value) => updateField("healthBenefits", value)}
+            />
             <IngredientsSection
               ingredients={draft.ingredients}
               optionalIngredients={draft.optionalIngredients}

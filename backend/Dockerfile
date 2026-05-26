@@ -29,5 +29,5 @@ EXPOSE 8000
 
 USER appuser
 
-# Run migrations then start gunicorn
-CMD ["sh", "-c", "python manage.py migrate && gunicorn zewadi.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 120 --max-requests 1000 --max-requests-jitter 100 --access-logfile - --error-logfile -"]
+# Run migrations then start the ASGI server so HTTP and WebSockets are both served.
+CMD ["sh", "-c", "python manage.py migrate && daphne -b 0.0.0.0 -p 8000 zewadi.asgi:application"]

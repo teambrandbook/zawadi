@@ -85,6 +85,51 @@ class NotificationReceiptTests(APITestCase):
             ).exists()
         )
 
+    def test_admin_target_creates_receipts_for_admin_users(self):
+        lowercase_admin = User.objects.create_user(
+            email="lower-admin@example.com",
+            password="Pass@1234",
+            full_name="Lower Admin",
+            user_name="loweradmin",
+            phone="+10000000009",
+            role="admin",
+        )
+        self.client.force_authenticate(self.admin)
+
+        response = self.client.post(
+            "/api/notifications/",
+            {
+                "title": "Admin update",
+                "body": "This should go to admins.",
+                "notification_type": "SYSTEM",
+                "target_role": "admin",
+                "delivery_channels": ["in_app"],
+                "status": "SENT",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        notification = Notification.objects.get(pk=response.data["id"])
+        self.assertTrue(
+            UserNotificationReceipt.objects.filter(
+                user=self.admin,
+                notification=notification,
+            ).exists()
+        )
+        self.assertTrue(
+            UserNotificationReceipt.objects.filter(
+                user=lowercase_admin,
+                notification=notification,
+            ).exists()
+        )
+        self.assertFalse(
+            UserNotificationReceipt.objects.filter(
+                user=self.community_user,
+                notification=notification,
+            ).exists()
+        )
+
     @patch("notifications.email.send_mail")
     def test_email_only_notification_does_not_create_in_app_receipts(self, send_mail_mock):
         self.client.force_authenticate(self.admin)

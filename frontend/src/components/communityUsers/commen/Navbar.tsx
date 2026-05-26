@@ -12,6 +12,7 @@ import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import { getNotificationSocketUrl } from "@/lib/notificationsSocket";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -98,7 +99,6 @@ function mergeProfileIntoUser(user: UserInfo, profile: CommunityProfileSummary):
   };
 }
 
-// Returns fallback on initial render; the useEffect loadProfile call populates real data from the API.
 function getUserInitialState(): UserInfo {
   return fallbackUserInfo;
 }
@@ -107,13 +107,13 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [liveNotifications, setLiveNotifications] = useState<any[]>([]);
   const [user, setUser] = useState<UserInfo>(getUserInitialState);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
   const isCommunityUser = isCommunityRole(user.role);
   const hasNotificationInbox = canReceiveNotifications(user.role);
-  // ref kept for future use (e.g. click-outside on bell area)
   const _bellRef = useRef<HTMLDivElement>(null);
 
   const fetchUnreadCount = useCallback(async () => {
@@ -131,6 +131,42 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     const interval = setInterval(() => { void fetchUnreadCount(); }, 60_000);
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
+
+  // WebSocket for Realtime Notifications
+  useEffect(() => {
+    if (!hasNotificationInbox) {
+      return;
+    }
+
+    const socket = new WebSocket(getNotificationSocketUrl());
+
+    socket.onopen = () => {
+      console.log("Notification Socket Connected");
+    };
+
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      console.log("Realtime Notification:", data);
+
+      // update unread count
+      setUnreadCount((prev) => prev + 1);
+
+      // update dropdown instantly
+      setLiveNotifications((prev) => [data, ...prev]);
+    };
+
+    socket.onerror = (e) => {
+      console.log("WebSocket Error", e);
+    };
+
+    socket.onclose = () => {
+      console.log("Notification Socket Closed");
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, [hasNotificationInbox]);
 
   useEffect(() => {
     let isMounted = true;
@@ -247,26 +283,29 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
         {/* Notification bell */}
         <ErrorBoundary fallback={null}>
-        <div className="relative" ref={_bellRef}>
-          <button
-            onClick={() => {
-              setShowNotifications((v) => !v);
-              if (!showNotifications) setUnreadCount(0);
-            }}
-            className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
-            {unreadCount > 0 && (
-              <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
-                {unreadCount > 9 ? "9+" : unreadCount}
-              </span>
+          <div className="relative" ref={_bellRef}>
+            <button
+              onClick={() => {
+                setShowNotifications((v) => !v);
+                if (!showNotifications) setUnreadCount(0);
+              }}
+              className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+              aria-label="Notifications"
+            >
+              <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
+              {unreadCount > 0 && (
+                <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#B48745] px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </button>
+            {showNotifications && (
+              <NotificationDropdown 
+                onClose={() => setShowNotifications(false)} 
+                liveNotifications={liveNotifications}
+              />
             )}
-          </button>
-          {showNotifications && (
-            <NotificationDropdown onClose={() => setShowNotifications(false)} />
-          )}
-        </div>
+          </div>
         </ErrorBoundary>
 
         <Link

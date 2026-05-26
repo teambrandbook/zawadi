@@ -13,6 +13,7 @@ import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 
 const fallbackBlogImage = "/blogs/blog-1.webp";
+const PAGE_SIZE = 10;
 
 
 type BlogPost = {
@@ -72,6 +73,7 @@ export default function Blogs() {
   const [isLoading, setIsLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredPosts = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -90,6 +92,20 @@ export default function Blogs() {
         .slice(0, 3),
     [posts]
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE));
+  const paginatedPosts = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredPosts.slice(start, start + PAGE_SIZE);
+  }, [currentPage, filteredPosts]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setCurrentPage((page) => Math.min(page, totalPages));
+  }, [totalPages]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {
@@ -175,15 +191,20 @@ export default function Blogs() {
     }, containerRef);
 
     return () => ctx.revert();
-  }, [filteredPosts.length, popularPosts.length]);
+  }, [currentPage, filteredPosts.length, popularPosts.length]);
 
   useEffect(() => {
     let mounted = true;
     api.get(`/blog/?public=1`)
       .then(({ data }) => {
         const raw = Array.isArray(data) ? data : Array.isArray(data?.results) ? data.results : [];
+        const latestBlogs = [...raw].sort((a: BackendBlog, b: BackendBlog) => {
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return dateB - dateA;
+        });
         if (mounted) {
-          setPosts(raw.map((blog: BackendBlog) => mapBackendBlog(blog, locale, blogsText.labels.fallbackDate)));
+          setPosts(latestBlogs.map((blog: BackendBlog) => mapBackendBlog(blog, locale, blogsText.labels.fallbackDate)));
           setStatusMessage("");
         }
       })
@@ -239,8 +260,8 @@ export default function Blogs() {
                 </div>
               ) : null}
 
-              {!isLoading && filteredPosts.map((post, index) => (
-                <article key={post.title} className="blog-article max-w-[850px] text-left rtl:text-right">
+              {!isLoading && paginatedPosts.map((post, index) => (
+                <article key={post.href} className="blog-article max-w-[850px] text-left rtl:text-right">
                   <div className="blog-main-image relative overflow-hidden rounded-[20px] h-[220px] sm:h-[300px] lg:h-[400px] xl:h-[480px]">
                     <Image
                       src={post.image}
@@ -275,14 +296,16 @@ export default function Blogs() {
                 </article>
               ))}
 
-              {!isLoading && filteredPosts.length > 0 && (
+              {!isLoading && filteredPosts.length > PAGE_SIZE && (
               <div className="flex items-center justify-center gap-3 pt-12">
-                {[1, 2, 3].map((page, index) => (
+                {Array.from({ length: totalPages }, (_, index) => index + 1).map((page) => (
                   <button
                     key={page}
                     type="button"
+                    onClick={() => setCurrentPage(page)}
+                    aria-current={currentPage === page ? "page" : undefined}
                     className={`flex h-[52px] w-[52px] items-center justify-center rounded-[5px] border text-lg font-bold transition-colors ${
-                      index === 0
+                      currentPage === page
                         ? "border-[#1f4d3a] text-[#1f4d3a]"
                         : "border-[#e3dbd8] text-[#1f4d3a]"
                     }`}
@@ -293,7 +316,9 @@ export default function Blogs() {
                 <button
                   type="button"
                   aria-label={blogsText.labels.nextPage}
-                  className="flex h-[52px] w-[52px] items-center justify-center rounded-[5px] border border-[#e3dbd8] text-[#1f4d3a] transition-colors hover:border-[#1f4d3a]"
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((page) => Math.min(page + 1, totalPages))}
+                  className="flex h-[52px] w-[52px] items-center justify-center rounded-[5px] border border-[#e3dbd8] text-[#1f4d3a] transition-colors hover:border-[#1f4d3a] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   <ChevronRight size={22} className="rtl:rotate-180" />
                 </button>

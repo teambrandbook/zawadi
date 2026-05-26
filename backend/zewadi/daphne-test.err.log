@@ -1,0 +1,7 @@
+C:\Program Files\Python313\Lib\importlib\__init__.py:88: RuntimeWarning: SECURE_SSL_REDIRECT is disabled. Set SECURE_SSL_REDIRECT=True in .env, or ensure your reverse proxy (Traefik/Nginx) enforces HTTPS redirection.
+  return _bootstrap._gcd_import(name[level:], package, level)
+2026-05-26 11:21:54,543 INFO     AXES: BEGIN version 8.3.1, blocking by username
+2026-05-26 11:21:54,563 INFO     Starting server at tcp:port=8765:interface=127.0.0.1
+2026-05-26 11:21:54,570 INFO     HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+2026-05-26 11:21:54,573 INFO     Configuring endpoint tcp:port=8765:interface=127.0.0.1
+2026-05-26 11:21:54,575 INFO     Listening on TCP address 127.0.0.1:8765

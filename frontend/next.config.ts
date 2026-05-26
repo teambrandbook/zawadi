@@ -10,6 +10,18 @@ if (!process.env.NEXT_PUBLIC_API_URL) {
 // Derive media hostname from NEXT_PUBLIC_API_URL at build time so production
 // images work without manually editing this file.
 const apiOrigin = process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "").replace(/\/$/, "");
+const wsOrigin =
+  process.env.NEXT_PUBLIC_WS_URL ||
+  apiOrigin.replace(/^https?:/, apiOrigin.startsWith("https:") ? "wss:" : "ws:") + "/ws/notifications/";
+let wsConnectOrigin = "ws://127.0.0.1:8000";
+
+try {
+  const parsed = new URL(wsOrigin);
+  wsConnectOrigin = parsed.origin;
+} catch {
+  // fallback to local websocket during development if URL is malformed
+}
+
 let mediaHost = { protocol: "https" as "http" | "https", hostname: "localhost", port: undefined as string | undefined };
 try {
   const parsed = new URL(apiOrigin);
@@ -53,7 +65,7 @@ const nextConfig: NextConfig = {
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: https://lh3.googleusercontent.com https://res.cloudinary.com`,
       "font-src 'self' data:",
-      `connect-src 'self' ${apiOrigin} https://api.cloudinary.com`,
+      `connect-src 'self' ${apiOrigin} ${wsConnectOrigin} ws://localhost:8000 ws://127.0.0.1:8000 https://api.cloudinary.com`,
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",
