@@ -83,7 +83,7 @@ export default function LoginComponent() {
   };
 
   return (
-    <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 py-8 sm:px-6 lg:px-8">
+    <section className="relative isolate flex min-h-screen items-center justify-center bg-[#d9d1c5] px-4 py-8 sm:px-6 md:px-20 lg:px-8">
       <div className="absolute inset-0 -z-20 bg-cover bg-center" aria-hidden="true">
         <video
           className="absolute inset-0 h-full w-full object-cover"

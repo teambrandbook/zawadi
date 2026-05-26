@@ -74,6 +74,19 @@ const Navbar = () => {
   }, [pathname, isAuthenticated, dispatch]);
 
   useEffect(() => {
+    if (!profileOpen) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest("[data-profile-menu]")) return;
+      setProfileOpen(false);
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [profileOpen]);
+
+  useEffect(() => {
     if (isMobileMenuOpen) {
       const timer = setTimeout(() => setIsMenuBgVisible(true), 300);
       gsap.fromTo(
@@ -132,7 +145,7 @@ const Navbar = () => {
       >
         <div className="container relative mx-auto px-4 flex items-center justify-between h-14 md:h-20">
           {/* Mobile Login/Profile Icon */}
-          <div className="relative flex w-25 items-center justify-start md:w-40 lg:hidden">
+          <div className="relative flex w-25 items-center justify-start md:w-40 lg:hidden" data-profile-menu>
             {isAuthenticated ? (
               <button
                 type="button"
@@ -337,7 +350,7 @@ const Navbar = () => {
                 {loginLabel}
               </Link>
             ) : (
-              <div className="hidden lg:block relative">
+              <div className="hidden lg:block relative" data-profile-menu>
                 <button
                   onClick={() => setProfileOpen((v) => !v)}
                   aria-label="Open profile menu"

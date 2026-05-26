@@ -493,7 +493,7 @@ export default function About() {
                             </p>
                         </div>
 
-                        <div className="approach-steps-container max-w-[440px] space-y-4">
+                        <div className="approach-steps-container max-w-[440px] space-y-4 lg:ml-auto lg:w-full lg:justify-self-end">
                             {approachSteps.map((step) => (
                                 <div
                                     key={step.number}
@@ -511,7 +511,7 @@ export default function About() {
                                         />
                                         <span className="relative z-10">{step.number}</span>
                                     </div>
-                                    <p dir="rtl" className="min-w-0 font-serif text-lg leading-tight text-right sm:text-[1.25rem]">
+                                    <p dir="rtl" className="min-w-0 font-serif text-lg leading-tight text-right sm:text-[1.25rem] lg:text-center">
                                         {step.label}
                                     </p>
                                     <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">

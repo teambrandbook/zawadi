@@ -51,7 +51,7 @@ function mediaUrl(value?: string | null) {
 
 function lines(value?: string | null) {
   return String(value || "")
-    .split(/[\n,]+/)
+    .split(/\r?\n+/)
     .map((item) => item.trim())
     .filter(Boolean);
 }
