@@ -343,47 +343,49 @@ export default function MyOrder() {
         </div>
 
         <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 shadow-[0_1px_1px_rgba(0,0,0,0.04)]">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-            <div className="flex flex-wrap gap-2">
-              {tabs.map((tab) => (
+          <div className="overflow-x-auto pb-1">
+            <div className="flex min-w-max items-center gap-3 xl:min-w-full xl:justify-between">
+              <div className="flex shrink-0 flex-nowrap gap-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => onTabClick(tab)}
+                    className={`h-9 shrink-0 whitespace-nowrap rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
+                      activeTab === tab ? "bg-[#0A4833] text-white" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <label className="relative block shrink-0">
+                  <select
+                    value={sortMode}
+                    onChange={(event) => setSortMode(event.target.value as SortMode)}
+                    className="h-10 min-w-[180px] appearance-none rounded-lg border-0 bg-[#EBE1CF] px-4 pr-10 text-sm font-medium tracking-[-0.02em] text-[#0A4833] outline-none"
+                  >
+                    <option value="latest">Sort by: Latest</option>
+                    <option value="oldest">Sort by: Oldest</option>
+                    <option value="amount">Sort by: Amount</option>
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0A4833]" />
+                </label>
                 <button
-                  key={tab}
                   type="button"
-                  onClick={() => onTabClick(tab)}
-                  className={`h-9 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
-                    activeTab === tab ? "bg-[#0A4833] text-white" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
+                  onClick={() => {
+                    setLast30DaysOnly((v) => !v);
+                    setCurrentPage(1);
+                  }}
+                  className={`inline-flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
+                    last30DaysOnly ? "bg-[#0A4833] text-white" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
                   }`}
                 >
-                  {tab}
+                  <Filter className="h-4 w-4" />
+                  Filter by Date
                 </button>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <label className="relative block">
-                <select
-                  value={sortMode}
-                  onChange={(event) => setSortMode(event.target.value as SortMode)}
-                  className="h-10 min-w-[180px] appearance-none rounded-lg border-0 bg-[#EBE1CF] px-4 pr-10 text-sm font-medium tracking-[-0.02em] text-[#0A4833] outline-none"
-                >
-                  <option value="latest">Sort by: Latest</option>
-                  <option value="oldest">Sort by: Oldest</option>
-                  <option value="amount">Sort by: Amount</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#0A4833]" />
-              </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setLast30DaysOnly((v) => !v);
-                  setCurrentPage(1);
-                }}
-                className={`inline-flex h-10 items-center justify-center gap-2 rounded-lg px-4 text-sm font-medium tracking-[-0.02em] transition-colors ${
-                  last30DaysOnly ? "bg-[#0A4833] text-white" : "bg-[#EBE1CF] text-[#0A4833] hover:bg-[#E4D7C1]"
-                }`}
-              >
-                <Filter className="h-4 w-4" />
-                Filter by Date
-              </button>
+              </div>
             </div>
           </div>
         </div>

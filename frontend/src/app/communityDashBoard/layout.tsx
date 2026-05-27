@@ -14,7 +14,7 @@ export default function CommunityLayout({ children }: Props) {
 
   return (
     <AuthGuard allowedRoles={["community_user"]} allowedUserTypes={["guest", "member"]}>
-    <div className="min-h-screen">
+    <div className="community-dashboard-shell min-h-screen">
 
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">

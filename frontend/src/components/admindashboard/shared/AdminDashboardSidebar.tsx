@@ -112,7 +112,7 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
                     }
                   }}
 
-                  className="group flex items-center space-x-3 outline-none"
+                  className="group flex cursor-pointer items-center space-x-3 outline-none"
                 >
                   {/* Icon */}
                   <div className={`
@@ -148,7 +148,7 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
                             }
                           }}
                           className={`
-                            flex min-h-9 items-center justify-center rounded-full px-3 text-sm font-medium transition-all
+                            flex min-h-9 cursor-pointer items-center justify-center rounded-full px-3 text-sm font-medium transition-all
                             ${childActive
                               ? "bg-[#06402B] text-white"
                               : "bg-[#EFE7D6] text-[#06402B] hover:bg-[#e5dbc4]"}

@@ -69,6 +69,48 @@ html:not(.dashboard-native-scrollbar) *::-webkit-scrollbar {
   height: 0 !important;
 }
 
+.admin-dashboard-shell a,
+.admin-dashboard-shell button:not(:disabled),
+.admin-dashboard-shell [role="button"],
+.admin-dashboard-shell input[type="button"]:not(:disabled),
+.admin-dashboard-shell input[type="submit"]:not(:disabled),
+.admin-dashboard-shell input[type="checkbox"]:not(:disabled),
+.admin-dashboard-shell input[type="radio"]:not(:disabled),
+.admin-dashboard-shell select:not(:disabled),
+.admin-dashboard-shell label[for],
+.community-dashboard-shell a,
+.community-dashboard-shell button:not(:disabled),
+.community-dashboard-shell [role="button"],
+.community-dashboard-shell input[type="button"]:not(:disabled),
+.community-dashboard-shell input[type="submit"]:not(:disabled),
+.community-dashboard-shell input[type="checkbox"]:not(:disabled),
+.community-dashboard-shell input[type="radio"]:not(:disabled),
+.community-dashboard-shell select:not(:disabled),
+.community-dashboard-shell label[for],
+.consultant-dashboard-shell a,
+.consultant-dashboard-shell button:not(:disabled),
+.consultant-dashboard-shell [role="button"],
+.consultant-dashboard-shell input[type="button"]:not(:disabled),
+.consultant-dashboard-shell input[type="submit"]:not(:disabled),
+.consultant-dashboard-shell input[type="checkbox"]:not(:disabled),
+.consultant-dashboard-shell input[type="radio"]:not(:disabled),
+.consultant-dashboard-shell select:not(:disabled),
+.consultant-dashboard-shell label[for] {
+  cursor: pointer !important;
+}
+
+.admin-dashboard-shell button:disabled,
+.admin-dashboard-shell input:disabled,
+.admin-dashboard-shell select:disabled,
+.community-dashboard-shell button:disabled,
+.community-dashboard-shell input:disabled,
+.community-dashboard-shell select:disabled,
+.consultant-dashboard-shell button:disabled,
+.consultant-dashboard-shell input:disabled,
+.consultant-dashboard-shell select:disabled {
+  cursor: not-allowed !important;
+}
+
 .glass-morphism {
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);

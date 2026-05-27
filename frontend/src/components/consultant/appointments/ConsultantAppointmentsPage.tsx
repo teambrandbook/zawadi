@@ -185,12 +185,14 @@ export default function ConsultantAppointmentsPage() {
 
   async function handleBookingDecision(appointment: ScheduleItem, isAccept: boolean) {
     setStatusMessage("");
+    let successMessage = isAccept ? "Booking approved successfully." : "Booking rejected successfully.";
 
     try {
-      await api.post("/consultant/bookings/", {
+      const response = await api.post<{ message?: string }>("/consultant/bookings/", {
         booking_id: Number(appointment.id),
         is_accept: isAccept,
       });
+      successMessage = response.data.message || successMessage;
     } catch (error: unknown) {
       const responseData =
         typeof error === "object" && error !== null && "response" in error
@@ -220,13 +222,13 @@ export default function ConsultantAppointmentsPage() {
           ? { ...current, status: "Confirmed", action: "Join", sessionStatus: "confirmed" }
           : current,
       );
-      setStatusMessage("Booking approved successfully.");
+      setStatusMessage(successMessage);
       return;
     }
 
     setAppointments((current) => current.filter((item) => item.id !== appointment.id));
     setSelectedAppointment((current) => (current?.id === appointment.id ? null : current));
-    setStatusMessage("Booking rejected successfully.");
+    setStatusMessage(successMessage);
   }
 
   async function handleShareMeetingLink(appointment: ScheduleItem, meetingLink: string) {

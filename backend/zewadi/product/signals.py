@@ -36,8 +36,22 @@ def invalidate_product_cache(sender, instance, signal=None, **kwargs):
 
 def notify_admin_stock_status(product):
     from django.utils import timezone
+    from django.db import connection
     from notifications.models import Notification
     from notifications.utils import create_receipts_for_notification
+
+    notification_columns = {
+        column.name
+        for column in connection.introspection.get_table_description(
+            connection.cursor(),
+            Notification._meta.db_table,
+        )
+    }
+    if "delivery_channels" not in notification_columns:
+        logger.warning(
+            "Skipping product stock notification because notifications migrations are not applied."
+        )
+        return
 
     stock = int(product.stock_quantity or 0)
     if stock > 5:

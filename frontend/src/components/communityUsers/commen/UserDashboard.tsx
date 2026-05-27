@@ -60,7 +60,7 @@ const UserDashboard = ({ onClose }: Props) => {
               }
             }}
 
-            className="group flex items-center space-x-3"
+            className="group flex cursor-pointer items-center space-x-3"
           >
             {/* Icon */}
             <div

@@ -13,6 +13,10 @@ BOOKING_STATUS_MESSAGES = {
         "Consultation cancelled",
         "Your consultation scheduled for {date} has been cancelled. Contact support if you have questions.",
     ),
+    "needs_reschedule": (
+        "Consultation needs rescheduling",
+        "Your consultation on {date} could not be assigned to another consultant. Please choose a new slot.",
+    ),
     "completed": (
         "Consultation completed",
         "Your consultation on {date} has been marked as completed. We hope it was helpful!",

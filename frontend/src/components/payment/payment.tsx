@@ -25,10 +25,10 @@ import { getImageUrl } from "@/lib/utils";
 // address field is named "address" (not "address_line") in the local form state
 const checkoutSchema = z.object({
   full_name: z.string().min(1, "Name is required"),
-  phone: z.string().regex(/^\d{10}$/, "Enter a valid 10-digit phone number"),
+  phone: z.string().min(7, "Enter a valid phone number").max(20, "Enter a valid phone number"),
   address: z.string().min(5, "Address is required"),
   city: z.string().min(1, "City is required"),
-  postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+  postal_code: z.string().min(3, "Enter a valid postal code").max(20, "Enter a valid postal code"),
 });
 
 type SavedAddress = {
@@ -108,6 +108,31 @@ function productImageUrl(path?: string | null): string {
 
 function productPrice(product: RelatedProduct): string | number {
   return product.selling_price ?? product.sale_price ?? product.base_price ?? 0;
+}
+
+function normalizePhone(value: string) {
+  return value.trim().replace(/[^\d+]/g, "");
+}
+
+function firstApiErrorMessage(value: unknown): string {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) {
+    return value.map(firstApiErrorMessage).find(Boolean) ?? "";
+  }
+  if (typeof value === "object") {
+    const data = value as Record<string, unknown>;
+    if (typeof data.detail === "string") return data.detail;
+    if (Array.isArray(data.missing) && data.missing.length > 0) {
+      return `Missing required fields: ${data.missing.join(", ")}`;
+    }
+    for (const [key, item] of Object.entries(data)) {
+      if (key === "detail" || key === "missing") continue;
+      const message = firstApiErrorMessage(item);
+      if (message) return key === "non_field_errors" ? message : `${key}: ${message}`;
+    }
+  }
+  return "";
 }
 
 function CheckoutBreadcrumb() {
@@ -305,13 +330,17 @@ export default function Payment() {
           };
         }
       } else if (saveAddress) {
-        await api.post("/community/addresses/", {
-          full_name: form.full_name,
-          phone: form.phone,
-          address_line: form.address,
-          city: form.city,
-          postal_code: form.postal_code,
-        });
+        try {
+          await api.post("/community/addresses/", {
+            full_name: form.full_name.trim(),
+            phone: normalizePhone(form.phone),
+            address_line: form.address.trim(),
+            city: form.city.trim(),
+            postal_code: form.postal_code.trim(),
+          });
+        } catch {
+          toast.warning("Address could not be saved, but checkout will continue.");
+        }
       }
 
       const requiredDeliveryFields = [
@@ -328,13 +357,13 @@ export default function Payment() {
       }
 
       const res = await api.post("/orders/cart/checkout/", {
-        full_name: addressPayload.full_name,
-        phone: addressPayload.phone,
+        full_name: addressPayload.full_name.trim(),
+        phone: normalizePhone(addressPayload.phone),
         email: meRes.data.email,
-        city: addressPayload.city,
-        postal_code: addressPayload.postal_code,
-        address: addressPayload.address,
-        instructions: addressPayload.instructions || "",
+        city: addressPayload.city.trim(),
+        postal_code: addressPayload.postal_code.trim(),
+        address: addressPayload.address.trim(),
+        instructions: addressPayload.instructions?.trim() || "",
         payment_method: "cod",
       });
 
@@ -344,28 +373,14 @@ export default function Payment() {
         return;
       }
 
+      dispatch(setCartCount(0));
       router.replace(`/orderplaced?order_id=${encodeURIComponent(createdOrderId)}`);
     } catch (err: unknown) {
       const data =
         typeof err === "object" && err !== null && "response" in err
-          ? (err as { response?: { data?: Record<string, unknown> } }).response?.data
+          ? (err as { response?: { data?: unknown } }).response?.data
           : null;
-      const detail = typeof data?.detail === "string" ? data.detail : "";
-      const missing = Array.isArray(data?.missing) ? data.missing.join(", ") : "";
-      const fieldErrors = data
-        ? Object.entries(data)
-            .filter(([key]) => !["detail", "missing"].includes(key))
-            .flatMap(([key, value]) => {
-              if (Array.isArray(value)) return value.map((item) => `${key}: ${String(item)}`);
-              if (typeof value === "string") return [`${key}: ${value}`];
-              return [];
-            })
-        : [];
-      const msg =
-        detail ||
-        (missing ? `Missing required fields: ${missing}` : "") ||
-        fieldErrors[0] ||
-        "Checkout failed. Please try again.";
+      const msg = firstApiErrorMessage(data) || "Checkout failed. Please try again.";
       toast.error(msg);
     } finally {
       setSubmitting(false);

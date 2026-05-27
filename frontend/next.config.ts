@@ -37,6 +37,7 @@ try {
 const nextConfig: NextConfig = {
   output: "standalone",
   images: {
+    unoptimized: true,
     dangerouslyAllowLocalIP: process.env.NODE_ENV !== "production",
     remotePatterns: [
       { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },

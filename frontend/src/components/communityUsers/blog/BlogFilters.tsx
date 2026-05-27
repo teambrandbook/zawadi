@@ -6,17 +6,19 @@ export default function BlogFilters() {
   return (
     <section className="rounded-lg border border-[#DFDFDF] bg-white p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {tabs.map((tab, index) => (
-            <button
-              key={tab}
-              className={`h-8 rounded-md px-4 text-xs font-semibold ${
-                index === 0 ? "bg-[#06402B] text-white" : "bg-[#F3F4F6] text-[#4B5563]"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+        <div className="overflow-x-auto pb-1">
+          <div className="flex min-w-max flex-nowrap gap-2">
+            {tabs.map((tab, index) => (
+              <button
+                key={tab}
+                className={`h-8 shrink-0 whitespace-nowrap rounded-md px-4 text-xs font-semibold ${
+                  index === 0 ? "bg-[#06402B] text-white" : "bg-[#F3F4F6] text-[#4B5563]"
+                }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <div className="relative">

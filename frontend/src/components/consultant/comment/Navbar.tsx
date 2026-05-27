@@ -123,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
       <div className="flex items-center lg:hidden">
         <button 
           onClick={onMenuClick}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          className="cursor-pointer p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Open Menu"
         >
           <Menu className="w-6 h-6" />
@@ -135,7 +135,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         <div className="relative h-20 w-[96px] flex-shrink-0 lg:w-[190px]">
           <Link
             href="/"
-            className="absolute left-1/2 top-0 z-20 flex h-[96px] w-[96px] -translate-x-1/2 items-center justify-center overflow-hidden rounded-b-[20px] bg-[#EBE1CF] p-3 shadow-[0_3px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#E3D6BE] lg:left-0 lg:h-[111px] lg:w-[124px] lg:translate-x-0 lg:p-4"
+            className="absolute left-1/2 top-0 z-20 flex h-[96px] w-[96px] -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-b-[20px] bg-[#EBE1CF] p-3 shadow-[0_3px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#E3D6BE] lg:left-0 lg:h-[111px] lg:w-[124px] lg:translate-x-0 lg:p-4"
             aria-label="Go to Zewadi home"
           >
             <Image
@@ -174,7 +174,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         {/* Notification Icon */}
         <Link
           href="/consultant/notification"
-          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          className="relative cursor-pointer rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open notifications"
         >
           <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
@@ -186,7 +186,11 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         </Link>
 
         {/* Profile Info */}
-        <div className="flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
+        <Link
+          href="/consultant/profile"
+          className="flex cursor-pointer items-center lg:pl-6 lg:border-l lg:border-gray-200"
+          aria-label="Open consultant profile"
+        >
           <div className="text-right mr-3 hidden max-w-[170px] lg:block">
             <p className="truncate text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
             <p className="mt-1 truncate text-xs text-gray-400">{location || "Consultant"}</p>
@@ -205,7 +209,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
               </div>
             )}
           </div>
-        </div>
+        </Link>
       </div>
     </nav>
   );
