@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import RecipeCard from "@/components/recipes/RecipeCard";
 import RecipeFilter from "@/components/recipes/RecipeFilter";
-import { type Recipe } from "@/components/recipes/recipeTypes";
+import { type Recipe, type RecipeNutrition } from "@/components/recipes/recipeTypes";
 import { stackRecipeCards } from "@/utils/animations";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
@@ -28,6 +28,11 @@ type BackendRecipe = {
   image_url?: string | null;
   thumbnail?: string | null;
   short_description?: string;
+  nutrition?: Partial<RecipeNutrition> | null;
+  calories?: string | number | null;
+  fat?: string | number | null;
+  carbs?: string | number | null;
+  protein?: string | number | null;
   video_url?: string | null;
 };
 
@@ -62,6 +67,27 @@ function listItems(value?: string | null) {
     .filter(Boolean);
 }
 
+function valueWithFallback(value: unknown) {
+  return value === null || value === undefined || value === "" ? "-" : String(value);
+}
+
+function mapNutrition(recipe: BackendRecipe): RecipeNutrition | undefined {
+  const source = recipe.nutrition ?? recipe;
+  const hasNutrition = ["calories", "fat", "carbs", "protein"].some((key) => {
+    const value = source[key as keyof typeof source];
+    return value !== null && value !== undefined && value !== "";
+  });
+
+  if (!hasNutrition) return undefined;
+
+  return {
+    calories: valueWithFallback(source.calories),
+    fat: valueWithFallback(source.fat),
+    carbs: valueWithFallback(source.carbs),
+    protein: valueWithFallback(source.protein),
+  };
+}
+
 function mapBackendRecipe(recipe: BackendRecipe): Recipe {
   const category = String(recipe.category || "BREAKFAST").toUpperCase();
   return {
@@ -72,6 +98,7 @@ function mapBackendRecipe(recipe: BackendRecipe): Recipe {
     image: mediaUrl(recipe.cover_image ?? recipe.image ?? recipe.image_url ?? recipe.thumbnail),
     categories: [category],
     benefits: listItems(recipe.health_benefits),
+    nutrition: mapNutrition(recipe),
     videoUrl: recipe.video_url ?? null,
   };
 }
@@ -99,6 +126,7 @@ function favoriteListFromResponse(data: FavoriteRecipesResponse): FavoriteRecipe
 export default function RecipeList({ recipes: initialRecipes }: { recipes: Recipe[] }) {
   const { locale } = useLocale();
   const recipeText = translations[locale]?.recipesPage?.list || translations.en.recipesPage.list;
+  const recipeDetailText = translations[locale]?.recipesPage?.detail || translations.en.recipesPage.detail;
   const router = useRouter();
   const isAuthenticated = useSelector((state: RootState) => state.user.isAuthenticated);
   const isRehydrating = useSelector((state: RootState) => state.user.isRehydrating);
@@ -247,6 +275,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
                 toggleFavorite={() => handleToggleFavorite(recipe.id)}
                 reverse={index % 2 === 1}
                 labels={recipeText}
+                nutritionLabels={recipeDetailText}
               />
             ))}
           </div>

@@ -31,6 +31,7 @@ type ApiOrderDetail = {
   subtotal: string | number;
   delivery_charge: string | number;
   total_amount: string | number;
+  charged_currency?: string;
   full_name: string;
   phone: string;
   email: string;
@@ -42,10 +43,47 @@ type ApiOrderDetail = {
   payment_status: string;
   status: string;
   created_at: string;
+  gift_items?: GiftDisplayItem[];
+};
+
+type GiftDisplayItem = {
+  name: string;
+  image?: string | null;
+  size?: string;
+  quantity: number;
+  price: string | number;
 };
 
 type ApiOrderListItem = {
   order_id: string;
+};
+
+type ApiCustomGiftDetail = {
+  custom_gift_id: string;
+  box_name: string;
+  box_price: string | number;
+  items: Array<{
+    name?: string;
+    image?: string | null;
+    size?: string;
+    price?: string | number;
+    quantity?: number;
+  }>;
+  subtotal: string | number;
+  delivery_charge: string | number;
+  total_amount: string | number;
+  charged_currency?: string;
+  full_name: string;
+  phone: string;
+  email?: string;
+  city?: string;
+  postal_code?: string;
+  address: string;
+  message?: string;
+  occasion?: string;
+  payment_method: string;
+  payment_status: string;
+  created_at: string;
 };
 
 type PaginatedResponse<T> = {
@@ -72,10 +110,10 @@ function toNumber(value: string | number | null | undefined): number {
   return Number.isNaN(amount) ? 0 : amount;
 }
 
-function toCurrency(value: string | number | null | undefined): string {
+function toCurrency(value: string | number | null | undefined, currency = "SAR"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(toNumber(value));
@@ -154,6 +192,42 @@ function toList<T>(data: T[] | PaginatedResponse<T>): T[] {
   return Array.isArray(data) ? data : data.results ?? [];
 }
 
+function mapCustomGiftOrder(order: ApiCustomGiftDetail): ApiOrderDetail {
+  const quantity = order.items.reduce((sum, item) => sum + Number(item.quantity ?? 0), 0) || 1;
+  const itemNames = order.items.map((item) => item.name).filter(Boolean).join(", ");
+  return {
+    order_id: order.custom_gift_id,
+    product_name: itemNames ? `Custom Gift Box - ${itemNames}` : "Custom Gift Box",
+    product_image: order.items[0]?.image ?? null,
+    pack_name: order.box_name,
+    pack_price: order.box_price,
+    quantity,
+    subtotal: order.subtotal,
+    delivery_charge: order.delivery_charge,
+    total_amount: order.total_amount,
+    full_name: order.full_name,
+    phone: order.phone,
+    email: order.email ?? "",
+    city: order.city ?? "",
+    postal_code: order.postal_code ?? "",
+    address: order.address,
+    instructions: [order.occasion ? `Occasion: ${order.occasion}` : "", order.message ? `Message: ${order.message}` : ""]
+      .filter(Boolean)
+      .join(". "),
+    payment_method: order.payment_method,
+    payment_status: order.payment_status,
+    status: order.payment_status === "confirmed" ? "confirmed" : "pending",
+    created_at: order.created_at,
+    gift_items: order.items.map((item) => ({
+      name: item.name || "Gift Box Product",
+      image: item.image ?? null,
+      size: item.size || "",
+      quantity: item.quantity ?? 1,
+      price: item.price ?? 0,
+    })),
+  };
+}
+
 export default function OrderPlacedPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -177,6 +251,14 @@ export default function OrderPlacedPage() {
 
         if (!selectedOrderId) {
           if (isMounted) setOrder(null);
+          return;
+        }
+
+        if (selectedOrderId.startsWith("CG-")) {
+          const response = await api.get<ApiCustomGiftDetail>(
+            `/orders/custom-gifts/${encodeURIComponent(selectedOrderId)}/`
+          );
+          if (isMounted) setOrder(mapCustomGiftOrder(response.data));
           return;
         }
 
@@ -206,9 +288,11 @@ export default function OrderPlacedPage() {
   const productImage = toProductImageUrl(order?.product_image);
   const packName = order?.pack_name || "Wellness Pack";
   const quantity = order?.quantity ?? 1;
+  const giftItems = order?.gift_items ?? [];
   const subtotal = order?.subtotal ?? 0;
   const shipping = order?.delivery_charge ?? 0;
   const total = order?.total_amount ?? 0;
+  const currency = order?.charged_currency || "SAR";
 
   if (!orderId && !isLoading) {
     return (
@@ -276,31 +360,64 @@ export default function OrderPlacedPage() {
             <section className={cardClass}>
               <h2 className="text-xl font-semibold tracking-[-0.02em] text-[#0A4833]">Ordered Products</h2>
 
-              <div className="mt-5 flex flex-col gap-4 rounded-xl bg-[#EBE1CF] p-4 sm:flex-row sm:items-center">
-                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-white">
-                  <Image src={productImage} alt={productName} fill sizes="64px" className="object-cover" />
+              {giftItems.length > 0 ? (
+                <div className="mt-5 space-y-3">
+                  <div className="rounded-xl bg-[#EBE1CF] p-4">
+                    <h3 className="text-base font-semibold leading-6 tracking-[-0.01em] text-[#1F2937]">
+                      {packName}
+                    </h3>
+                    <p className="text-sm font-medium leading-5 tracking-[-0.01em] text-[#9F8151]">
+                      Quantity: {quantity} products
+                    </p>
+                  </div>
+                  {giftItems.map((item, index) => (
+                    <div key={`${item.name}-${index}`} className="flex flex-col gap-4 rounded-xl bg-[#F8F4EB] p-4 sm:flex-row sm:items-center">
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-white">
+                        <Image src={toProductImageUrl(item.image)} alt={item.name} fill sizes="64px" className="object-cover" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-base font-semibold leading-6 tracking-[-0.01em] text-[#1F2937]">
+                          {item.name}
+                        </h3>
+                        <p className="text-sm leading-5 tracking-[-0.01em] text-[#4B5563]">{item.size || "Gift box item"}</p>
+                        <p className="text-sm font-medium leading-5 tracking-[-0.01em] text-[#9F8151]">Quantity: {item.quantity}</p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className="text-base font-semibold leading-6 tracking-[-0.01em] text-[#0A4833]">
+                          {toCurrency(item.price, currency)}
+                        </p>
+                        <p className="text-sm leading-5 tracking-[-0.01em] text-[#6B7280]">each</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-base font-semibold leading-6 tracking-[-0.01em] text-[#1F2937]">
-                    {productName}
-                  </h3>
-                  <p className="text-sm leading-5 tracking-[-0.01em] text-[#4B5563]">{packName}</p>
-                  <p className="text-sm font-medium leading-5 tracking-[-0.01em] text-[#9F8151]">Quantity: {quantity}</p>
+              ) : (
+                <div className="mt-5 flex flex-col gap-4 rounded-xl bg-[#EBE1CF] p-4 sm:flex-row sm:items-center">
+                  <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-white">
+                    <Image src={productImage} alt={productName} fill sizes="64px" className="object-cover" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-base font-semibold leading-6 tracking-[-0.01em] text-[#1F2937]">
+                      {productName}
+                    </h3>
+                    <p className="text-sm leading-5 tracking-[-0.01em] text-[#4B5563]">{packName}</p>
+                    <p className="text-sm font-medium leading-5 tracking-[-0.01em] text-[#9F8151]">Quantity: {quantity}</p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className="text-base font-semibold leading-6 tracking-[-0.01em] text-[#0A4833]">
+                      {toCurrency(order?.pack_price ?? subtotal, currency)}
+                    </p>
+                    <p className="text-sm leading-5 tracking-[-0.01em] text-[#6B7280]">each</p>
+                  </div>
                 </div>
-                <div className="text-left sm:text-right">
-                  <p className="text-base font-semibold leading-6 tracking-[-0.01em] text-[#0A4833]">
-                    {toCurrency(order?.pack_price ?? subtotal)}
-                  </p>
-                  <p className="text-sm leading-5 tracking-[-0.01em] text-[#6B7280]">each</p>
-                </div>
-              </div>
+              )}
 
               <div className="mt-6 space-y-3 border-t border-[#DFDFDF] pt-4">
-                <SummaryRow label="Subtotal" value={toCurrency(subtotal)} />
-                <SummaryRow label="Shipping" value={toNumber(shipping) === 0 ? "Free" : toCurrency(shipping)} />
+                <SummaryRow label="Subtotal" value={toCurrency(subtotal, currency)} />
+                <SummaryRow label="Shipping" value={toNumber(shipping) === 0 ? "Free" : toCurrency(shipping, currency)} />
                 <div className="flex items-center justify-between gap-4 border-t border-[#DFDFDF] pt-4 text-lg font-semibold tracking-[-0.01em] text-[#0A4833]">
                   <span>{order?.payment_method === "cod" ? "Total Due" : "Total Paid"}</span>
-                  <span>{toCurrency(total)}</span>
+                  <span>{toCurrency(total, currency)}</span>
                 </div>
               </div>
             </section>
@@ -354,7 +471,7 @@ export default function OrderPlacedPage() {
                 <SummaryRow label="Transaction ID" value={order?.payment_method === "cod" ? "Pending" : order?.order_id ?? "-"} small />
                 <div className="flex items-center justify-between gap-4 border-t border-[#DFDFDF] pt-4 font-semibold text-[#0A4833]">
                   <span>{order?.payment_method === "cod" ? "Amount Due" : "Amount Paid"}</span>
-                  <span>{toCurrency(total)}</span>
+                  <span>{toCurrency(total, currency)}</span>
                 </div>
               </div>
             </section>

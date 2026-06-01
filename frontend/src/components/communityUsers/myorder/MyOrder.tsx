@@ -34,9 +34,23 @@ type ApiOrderListItem = {
   pack_name?: string;
   quantity?: number;
   total_amount: string | number;
+  charged_currency?: string;
   status: string;
   payment_method?: string;
   payment_status?: string;
+  created_at: string;
+  updated_at?: string;
+};
+
+type ApiCustomGiftListItem = {
+  custom_gift_id: string;
+  box_name: string;
+  items?: Array<{
+    name?: string;
+    quantity?: number;
+  }>;
+  total_amount: string | number;
+  payment_status: string;
   created_at: string;
   updated_at?: string;
 };
@@ -50,6 +64,7 @@ type OrderItem = {
   title: string;
   orderId: string;
   image: string;
+  isCustomGift?: boolean;
   orderDate: string;
   quantity: string;
   totalAmount: string;
@@ -61,6 +76,7 @@ type OrderItem = {
 };
 
 type ApiOrderResponse = ApiOrderListItem[] | { results?: ApiOrderListItem[] };
+type ApiCustomGiftResponse = ApiCustomGiftListItem[] | { results?: ApiCustomGiftListItem[] };
 
 const ITEMS_PER_PAGE = 4;
 const tabs: TabFilter[] = ["All Orders", "Processing", "Shipped", "Delivered", "Cancelled"];
@@ -72,8 +88,9 @@ const progressStages = [
   "Delivered",
 ];
 const fallbackImages = ["/product/p-1.webp", "/product/p-2.webp", "/product/p-3.webp", "/product/p-4.webp"];
+const customGiftImage = "/userdash/custom-gift-box.svg";
 
-function toList(data: ApiOrderResponse): ApiOrderListItem[] {
+function toList<T>(data: T[] | { results?: T[] }): T[] {
   return Array.isArray(data) ? data : data.results ?? [];
 }
 
@@ -90,12 +107,12 @@ function toOrderTitle(productName: string): string {
   return productName?.trim() || "ZEWADI Buckwheat Product";
 }
 
-function toCurrency(value: string | number): string {
+function toCurrency(value: string | number, currency = "SAR"): string {
   const amount = Number(value);
-  if (Number.isNaN(amount)) return "$0.00";
+  if (Number.isNaN(amount)) return `${currency} 0.00`;
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -171,6 +188,47 @@ function toOrderImageUrl(imagePath: string | null | undefined, index: number): s
   return getImageUrl(imagePath);
 }
 
+function mapRegularOrder(item: ApiOrderListItem, index: number): OrderItem {
+  const lifecycleStatus = toLifecycleStatus(item.status);
+  const createdAt = new Date(item.created_at).getTime();
+  const dateLabel = lifecycleStatus === "Delivered" ? "Delivered On" : "Expected Delivery";
+  return {
+    id: item.order_id,
+    title: toOrderTitle(item.product_name),
+    orderId: item.order_id,
+    image: toOrderImageUrl(item.product_image, index),
+    orderDate: toDateLabel(item.created_at),
+    quantity: `${item.quantity ?? 1} x ${item.pack_name || "pack"}`,
+    totalAmount: toCurrency(item.total_amount, item.charged_currency || "SAR"),
+    totalValue: Number(item.total_amount) || 0,
+    dateLabel,
+    dateValue: lifecycleStatus === "Delivered" ? toDateLabel(item.updated_at || item.created_at) : addDaysLabel(item.created_at, 4),
+    lifecycleStatus,
+    createdAt: Number.isNaN(createdAt) ? 0 : createdAt,
+  };
+}
+
+function mapCustomGiftOrder(item: ApiCustomGiftListItem): OrderItem {
+  const lifecycleStatus = toLifecycleStatus(item.payment_status);
+  const createdAt = new Date(item.created_at).getTime();
+  const quantity = item.items?.reduce((sum, product) => sum + Number(product.quantity ?? 0), 0) || 1;
+  return {
+    id: item.custom_gift_id,
+    title: item.box_name || "Custom Gift Box",
+    orderId: item.custom_gift_id,
+    image: customGiftImage,
+    isCustomGift: true,
+    orderDate: toDateLabel(item.created_at),
+    quantity: `${quantity} x gift box`,
+    totalAmount: toCurrency(item.total_amount),
+    totalValue: Number(item.total_amount) || 0,
+    dateLabel: "Expected Delivery",
+    dateValue: addDaysLabel(item.created_at, 4),
+    lifecycleStatus,
+    createdAt: Number.isNaN(createdAt) ? 0 : createdAt,
+  };
+}
+
 export default function MyOrder() {
   const router = useRouter();
   const [orders, setOrders] = useState<OrderItem[]>([]);
@@ -188,28 +246,16 @@ export default function MyOrder() {
 
     async function loadOrders() {
       try {
-        const response = await api.get<ApiOrderResponse>("/orders/");
+        const [ordersResponse, customGiftsResponse] = await Promise.all([
+          api.get<ApiOrderResponse>("/orders/"),
+          api.get<ApiCustomGiftResponse>("/orders/custom-gifts/"),
+        ]);
         if (!isMounted) return;
 
-        const mapped = toList(response.data).map<OrderItem>((item, index) => {
-          const lifecycleStatus = toLifecycleStatus(item.status);
-          const createdAt = new Date(item.created_at).getTime();
-          const dateLabel = lifecycleStatus === "Delivered" ? "Delivered On" : "Expected Delivery";
-          return {
-            id: item.order_id,
-            title: toOrderTitle(item.product_name),
-            orderId: item.order_id,
-            image: toOrderImageUrl(item.product_image, index),
-            orderDate: toDateLabel(item.created_at),
-            quantity: `${item.quantity ?? 1} x ${item.pack_name || "pack"}`,
-            totalAmount: toCurrency(item.total_amount),
-            totalValue: Number(item.total_amount) || 0,
-            dateLabel,
-            dateValue: lifecycleStatus === "Delivered" ? toDateLabel(item.updated_at || item.created_at) : addDaysLabel(item.created_at, 4),
-            lifecycleStatus,
-            createdAt: Number.isNaN(createdAt) ? 0 : createdAt,
-          };
-        });
+        const mapped = [
+          ...toList(ordersResponse.data).map(mapRegularOrder),
+          ...toList(customGiftsResponse.data).map(mapCustomGiftOrder),
+        ];
 
         setOrders(mapped);
         setExpandedOrderId(mapped.find((item) => item.lifecycleStatus === "Out for Delivery")?.id ?? null);
@@ -435,7 +481,7 @@ export default function MyOrder() {
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-4 text-sm md:grid-cols-4">
                           <OrderMeta label="Order Date" value={order.orderDate} />
-                          <OrderMeta label="Quantity" value={order.quantity} />
+                          {!order.isCustomGift && <OrderMeta label="Quantity" value={order.quantity} />}
                           <OrderMeta label="Total Amount" value={order.totalAmount} />
                           <OrderMeta label={dateMeta.label} value={dateMeta.value} />
                         </div>

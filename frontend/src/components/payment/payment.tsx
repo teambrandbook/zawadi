@@ -21,6 +21,7 @@ import { z } from "zod";
 import type { AppDispatch } from "@/redux/store";
 import { setCartCount } from "@/redux/userSlice";
 import { getImageUrl } from "@/lib/utils";
+import { formatPrice } from "@/utils/formatPrice";
 
 // address field is named "address" (not "address_line") in the local form state
 const checkoutSchema = z.object({
@@ -59,6 +60,8 @@ type CartSummary = {
   shipping: string;
   tax: string;
   total: string;
+  currency_code?: string;
+  currency_decimal_places?: number;
 };
 
 type RelatedProduct = {
@@ -71,6 +74,8 @@ type RelatedProduct = {
   sale_price?: string | null;
   selling_price?: string | number | null;
   currency?: string;
+  currency_code?: string;
+  currency_decimal_places?: number;
   stock_quantity?: number;
   stock_status?: string;
 };
@@ -84,12 +89,6 @@ const emptySummary: CartSummary = {
   total: "0.00",
 };
 
-const money = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  minimumFractionDigits: 2,
-});
-
 const paymentIcons = [
   { label: "Visa", Icon: FaCcVisa, className: "text-[#1a1f71]" },
   { label: "Mastercard", Icon: FaCcMastercard, className: "text-[#eb001b]" },
@@ -97,8 +96,8 @@ const paymentIcons = [
   { label: "Apple Pay", Icon: FaCcApplePay, className: "text-[#111827]" },
 ];
 
-function formatMoney(value: string | number) {
-  return money.format(Number(value) || 0);
+function formatMoney(value: string | number, currency = "SAR", decimalPlaces = 2) {
+  return formatPrice(value, currency, decimalPlaces);
 }
 
 function productImageUrl(path?: string | null): string {
@@ -179,7 +178,9 @@ function RelatedProductCard({
         </div>
       </Link>
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-[12px] font-bold leading-4 text-[#143F2F]">{formatMoney(productPrice(product))}</p>
+        <p className="text-[12px] font-bold leading-4 text-[#143F2F]">
+          {formatMoney(productPrice(product), product.currency_code || product.currency || "SAR", product.currency_decimal_places ?? 2)}
+        </p>
         <button
           type="button"
           onClick={onAddToCart}
@@ -579,17 +580,17 @@ export default function Payment() {
               <div className="mt-5 space-y-3 text-[11px] leading-4 text-[#7C857E]">
                 <div className="flex items-center justify-between gap-4">
                   <span>Subtotal</span>
-                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.subtotal)}</span>
+                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.subtotal, cartSummary.currency_code, cartSummary.currency_decimal_places)}</span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>Shipping</span>
                   <span className="font-bold text-[#143F2F]">
-                    {Number(cartSummary.shipping) === 0 ? "Free" : formatMoney(cartSummary.shipping)}
+                    {Number(cartSummary.shipping) === 0 ? "Free" : formatMoney(cartSummary.shipping, cartSummary.currency_code, cartSummary.currency_decimal_places)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-4">
                   <span>Estimated Tax</span>
-                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.tax)}</span>
+                  <span className="font-bold text-[#143F2F]">{formatMoney(cartSummary.tax, cartSummary.currency_code, cartSummary.currency_decimal_places)}</span>
                 </div>
               </div>
 
@@ -606,7 +607,7 @@ export default function Payment() {
 
               <div className="mt-5 flex items-center justify-between border-t border-[#ECEDE7] pt-4">
                 <span className="text-[12px] font-bold text-[#143F2F]">Total</span>
-                <span className="text-[22px] font-bold leading-7 text-[#1f4d3a]">{formatMoney(cartSummary.total)}</span>
+                <span className="text-[22px] font-bold leading-7 text-[#1f4d3a]">{formatMoney(cartSummary.total, cartSummary.currency_code, cartSummary.currency_decimal_places)}</span>
               </div>
 
               <button
@@ -653,7 +654,7 @@ export default function Payment() {
                     <p className="truncate text-[11px] font-bold leading-4 text-[#143F2F]">{cartItems[0].product_name}</p>
                     <p className="text-[10px] leading-4 text-[#8A928C]">Quantity: {cartItems[0].quantity}</p>
                   </div>
-                  <p className="text-[10px] font-bold text-[#143F2F]">{formatMoney(cartItems[0].line_total)}</p>
+                  <p className="text-[10px] font-bold text-[#143F2F]">{formatMoney(cartItems[0].line_total, cartItems[0].currency)}</p>
                 </div>
                 {cartItems.length > 1 ? (
                   <p className="mt-2 text-center text-[10px] text-[#8A928C]">+{cartItems.length - 1} more item{cartItems.length > 2 ? "s" : ""}</p>

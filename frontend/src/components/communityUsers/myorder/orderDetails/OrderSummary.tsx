@@ -10,6 +10,7 @@ type Props = {
   selectedPack: PackOption;
   quantity: number;
   deliveryCharge: number;
+  currency?: string;
   isSubmitting?: boolean;
   isDisabled?: boolean;
   actionLabel?: string;
@@ -17,10 +18,10 @@ type Props = {
   onPlaceOrder: () => void;
 };
 
-function formatCurrency(amount: number) {
+function formatCurrency(amount: number, currency: string) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "USD",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -32,6 +33,7 @@ export default function OrderSummary({
   selectedPack,
   quantity,
   deliveryCharge,
+  currency = "SAR",
   isSubmitting = false,
   isDisabled = false,
   actionLabel = "Place Order",
@@ -57,10 +59,10 @@ export default function OrderSummary({
         </div>
 
         <div className="mt-3 space-y-1 text-sm text-[#374151]">
-          <div className="flex items-center justify-between"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-          <div className="flex items-center justify-between"><span>Delivery Charge</span><span>{deliveryCharge === 0 ? "FREE" : formatCurrency(deliveryCharge)}</span></div>
+          <div className="flex items-center justify-between"><span>Subtotal</span><span>{formatCurrency(subtotal, currency)}</span></div>
+          <div className="flex items-center justify-between"><span>Delivery Charge</span><span>{deliveryCharge === 0 ? "FREE" : formatCurrency(deliveryCharge, currency)}</span></div>
           <div className="mt-1 flex items-center justify-between border-t border-[#DDD2BE] pt-1 text-base font-semibold text-[#0A4833]">
-            <span>Total</span><span>{formatCurrency(total)}</span>
+            <span>Total</span><span>{formatCurrency(total, currency)}</span>
           </div>
         </div>
       </div>
