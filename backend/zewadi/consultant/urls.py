@@ -16,6 +16,7 @@ from .views import (
     FindConsultantView,
     CreateConsultationBookingView,
     CommunityBookingCancelView,
+    CommunityBookingRescheduleView,
     ConsultantBookingConformApi,
     ConsultantBookingMeetingLinkView,
 )
@@ -37,6 +38,7 @@ urlpatterns = [
     path("find-consultant/", FindConsultantView.as_view()),
     path("community/create-booking/", CreateConsultationBookingView.as_view()),
     path("bookings/<int:pk>/cancel/", CommunityBookingCancelView.as_view()),
+    path("bookings/<int:pk>/reschedule/", CommunityBookingRescheduleView.as_view()),
     path("bookings/<int:pk>/meeting-link/", ConsultantBookingMeetingLinkView.as_view()),
     path("bookings/", ConsultantBookingConformApi.as_view()),
 ]

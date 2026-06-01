@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
 import type { AxiosError } from "axios";
 import api from "@/services/api";
@@ -73,6 +74,9 @@ const initialFormData: ConsultationFormData = {
 };
 
 export default function AddConsaltation() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rescheduleBookingId = searchParams.get("rescheduleBookingId");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedExpertId] = useState<string | null>(experts[0].id);
   const [selectedSessionType, setSelectedSessionType] = useState<SessionType | "">("Video Call");
@@ -241,6 +245,20 @@ export default function AddConsaltation() {
         language: selectedLanguage || formData.language,
         is_agreed: isAgreed,
       };
+
+      if (rescheduleBookingId) {
+        const response = await api.patch<{ message?: string }>(
+          `/consultant/bookings/${rescheduleBookingId}/reschedule/`,
+          {
+            consultant_id: Number(matchedConsultant.consultant_id),
+            booked_date: payload.booked_date,
+            booked_slot: payload.time,
+          },
+        );
+        setStatusMessage(response.data.message || "Consultation rescheduled successfully.");
+        router.push("/communityDashBoard/consultation");
+        return;
+      }
 
       const response = await api.post<CreateBookingResponse>("/consultant/community/create-booking/", payload);
       setStatusMessage(response.data.message || "Consultation booked successfully.");

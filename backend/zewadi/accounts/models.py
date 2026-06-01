@@ -15,7 +15,7 @@ ROLE_CHOICES = (
 
 GENDER_CHOICES = (
     ("MALE", "Male"),
-    ("FEMALE", "Female"),  # ✅ fixed spelling
+    ("FEMALE", "Female"), 
     ("OTHER", "Other"),
 )
 
@@ -34,7 +34,7 @@ class UserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        # ✅ fixed role assignment
+
         extra_fields.setdefault("role", "ADMIN")
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
@@ -63,7 +63,6 @@ class User(AbstractUser):
     location = models.CharField(max_length=255, blank=True, null=True)
     photo = models.URLField(max_length=500, blank=True, null=True)
 
-    # ✅ fixed default
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="COMMUNITY_USER")
     role_obj = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
 

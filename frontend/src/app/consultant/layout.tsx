@@ -12,7 +12,7 @@ export default function ConsultantLayout({ children }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     return (
         <AuthGuard allowedRoles={["consultant"]}>
-        <div className="min-h-screen">
+        <div className="consultant-dashboard-shell min-h-screen">
 
             {/* Navbar */}
             <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">

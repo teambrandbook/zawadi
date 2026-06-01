@@ -363,11 +363,8 @@ class ConsultantBookingConformSerializer(serializers.Serializer):
         if booking.status != ConsultationBooking.BookingStatus.PENDING:
             raise serializers.ValidationError("Booking already processed")
 
-        if not data["is_accept"] and booking.consultant != consultant:
-            raise serializers.ValidationError("Only the assigned consultant can reject this booking")
-
-        if data["is_accept"]:
-            booking.consultant = consultant
+        if booking.consultant != consultant:
+            raise serializers.ValidationError("Only the assigned consultant can process this booking")
 
         # attach booking for later use
         data["booking"] = booking

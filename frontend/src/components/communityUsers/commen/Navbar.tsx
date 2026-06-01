@@ -231,7 +231,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
       <div className="flex items-center lg:hidden">
         <button
           onClick={onMenuClick}
-          className="p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+          className="cursor-pointer p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
           aria-label="Open Menu"
         >
           <Menu className="w-6 h-6" />
@@ -243,7 +243,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         <div className="relative h-20 w-[96px] flex-shrink-0 lg:w-[190px]">
           <Link
             href="/"
-            className="absolute left-1/2 top-0 z-20 flex h-[96px] w-[96px] -translate-x-1/2 items-center justify-center overflow-hidden rounded-b-[20px] bg-[#EBE1CF] p-3 shadow-[0_3px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#E3D6BE] lg:left-0 lg:h-[111px] lg:w-[124px] lg:translate-x-0 lg:p-4"
+            className="absolute left-1/2 top-0 z-20 flex h-[96px] w-[96px] -translate-x-1/2 cursor-pointer items-center justify-center overflow-hidden rounded-b-[20px] bg-[#EBE1CF] p-3 shadow-[0_3px_10px_rgba(0,0,0,0.12)] transition-colors hover:bg-[#E3D6BE] lg:left-0 lg:h-[111px] lg:w-[124px] lg:translate-x-0 lg:p-4"
             aria-label="Go to Zewadi home"
           >
             <Image
@@ -289,7 +289,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
                 setShowNotifications((v) => !v);
                 if (!showNotifications) setUnreadCount(0);
               }}
-              className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+              className="relative cursor-pointer rounded-full p-2 text-gray-600 hover:bg-gray-100"
               aria-label="Notifications"
             >
               <Bell className="w-5 h-5 lg:w-6 lg:h-6" />
@@ -310,7 +310,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
         <Link
           href="/communityDashBoard/cart"
-          className="relative rounded-full p-2 text-gray-600 hover:bg-gray-100"
+          className="relative cursor-pointer rounded-full p-2 text-gray-600 hover:bg-gray-100"
           aria-label="Open cart"
         >
           <ShoppingCart className="w-5 h-5 lg:w-6 lg:h-6" />
@@ -325,7 +325,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
         <div className="relative flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
           <button
             onClick={() => setIsProfileOpen((v) => !v)}
-            className="flex items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
+            className="flex cursor-pointer items-center gap-3 hover:opacity-80 transition-opacity focus:outline-none"
             aria-label="Open profile menu"
           >
             <div className="text-right hidden lg:block">
@@ -344,7 +344,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
           {/* Backdrop */}
           {isProfileOpen && (
             <div
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-40 cursor-pointer"
               onClick={() => setIsProfileOpen(false)}
             />
           )}
@@ -378,7 +378,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
                 <Link
                   href={settingsHref}
                   onClick={() => setIsProfileOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
+                  className="flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 rounded-lg mx-1 transition-colors"
                 >
                   <Settings className="w-4 h-4 text-gray-500 flex-shrink-0" />
                   Profile Settings
@@ -386,7 +386,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
 
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1 transition-colors"
+                  className="w-full flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 rounded-lg mx-1 transition-colors"
                 >
                   <LogOut className="w-4 h-4 flex-shrink-0" />
                   Logout

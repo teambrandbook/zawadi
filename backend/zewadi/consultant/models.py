@@ -30,6 +30,7 @@ class ConsultationBooking(models.Model):
         CONFIRMED = "confirmed", "Confirmed"
         COMPLETED = "completed", "Completed"
         CANCELLED = "cancelled", "Cancelled"
+        NEEDS_RESCHEDULE = "needs_reschedule", "Needs Reschedule"
 
     class CommunicationType(models.TextChoices):
         VIDEO = "video", "Video Call"
@@ -38,6 +39,11 @@ class ConsultationBooking(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="consultation_bookings")
     consultant = models.ForeignKey(Consultant, on_delete=models.CASCADE, related_name="bookings")
+    rejected_consultants = models.ManyToManyField(
+        Consultant,
+        blank=True,
+        related_name="rejected_consultation_bookings",
+    )
     session_type = models.CharField(max_length=30, choices=CommunicationType.choices, default=CommunicationType.VIDEO)
     booked_date = models.DateField()
     booked_slot = models.CharField(max_length=20)

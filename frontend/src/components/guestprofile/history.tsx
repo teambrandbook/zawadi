@@ -15,6 +15,8 @@ import {
 import { cn, getImageUrl } from "@/lib/utils";
 import type { RootState } from "@/redux/store";
 import api from "@/services/api";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
+import { toast } from "sonner";
 
 const menuItems = [
   { label: "My Profile", Icon: UserRound, href: "/guestprofile#personal-info" },
@@ -106,13 +108,44 @@ function mapOrder(item: ApiOrderListItem): HistoryOrder {
   };
 }
 
-function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
+function ProfileSidebar({
+  profile,
+  onProfileChange,
+}: {
+  profile: UserProfile | null;
+  onProfileChange: (profile: UserProfile) => void;
+}) {
   const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/about/testimonial.webp";
 
   useEffect(() => {
     setProfilePhotoFailed(false);
   }, [profile?.photo]);
+
+  async function handleProfilePhotoPick(file: File | null) {
+    if (!file || isPhotoUploading) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be 5MB or less.");
+      return;
+    }
+
+    const blobUrl = URL.createObjectURL(file);
+    setProfilePhotoFailed(false);
+    if (profile) onProfileChange({ ...profile, photo: blobUrl });
+
+    try {
+      const url = await uploadPhoto(file);
+      const res = await api.patch<UserProfile>("/account/me/", { photo: url });
+      onProfileChange(res.data);
+      toast.success("Profile photo updated.");
+    } catch {
+      if (profile) onProfileChange(profile);
+      toast.error("Could not update profile photo.");
+    } finally {
+      URL.revokeObjectURL(blobUrl);
+    }
+  }
 
   return (
     <aside className="space-y-4 w-full">
@@ -129,13 +162,22 @@ function ProfileSidebar({ profile }: { profile: UserProfile | null }) {
                 onError={() => setProfilePhotoFailed(true)}
               />
             </div>
-            <button
-              type="button"
+            <label
               aria-label="Change profile photo"
-              className="absolute bottom-1 right-1 flex size-8 items-center justify-center rounded-full bg-[#1f4d3a] text-white"
+              className="absolute bottom-1 right-1 flex size-8 cursor-pointer items-center justify-center rounded-full bg-[#1f4d3a] text-white"
             >
               <Camera size={15} />
-            </button>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={isPhotoUploading}
+                onChange={(event) => {
+                  void handleProfilePhotoPick(event.target.files?.[0] ?? null);
+                  event.currentTarget.value = "";
+                }}
+              />
+            </label>
           </div>
 
           <h1 className="text-2xl font-bold leading-9 tracking-[0.001em] text-[#121414]">
@@ -423,7 +465,7 @@ export default function History() {
   return (
     <main className="bg-[#fffef5] px-4 pb-20 pt-32 sm:px-6 md:pt-40 lg:px-12 lg:pt-48 xl:px-24">
       <div className="mx-auto grid max-w-[1100px] gap-8 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <ProfileSidebar profile={profile} />
+        <ProfileSidebar profile={profile} onProfileChange={setProfile} />
 
         <div className="space-y-4 sm:space-y-6">
           <LatestOrderCard latestOrder={orders[0] ?? null} />

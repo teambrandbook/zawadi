@@ -37,7 +37,7 @@ type Session = {
   dateLabel: string;
   timeLabel: string;
   mode: "Video Call" | "Phone Call";
-  status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled";
+  status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled" | "needs_reschedule";
   meetingLink?: string;
   image: string;
 };
@@ -85,10 +85,12 @@ function mapBookingToSession(booking: ApiBooking): Session {
     confirmed: "confirmed",
     completed: "completed",
     cancelled: "cancelled",
+    needs_reschedule: "needs_reschedule",
     PENDING: "pending",
     CONFIRMED: "confirmed",
     COMPLETED: "completed",
     CANCELLED: "cancelled",
+    NEEDS_RESCHEDULE: "needs_reschedule",
   };
 
   return {
@@ -389,7 +391,7 @@ export default function Consultation() {
             <UpcomingSessions
               sessions={upcomingSessions}
               onJoin={joinSession}
-              onReschedule={(id) => setMessage(`Reschedule requested for: ${id}`)}
+              onReschedule={(id) => router.push(`/communityDashBoard/addconsaltation?rescheduleBookingId=${id}`)}
             />
           )}
           <div className="space-y-5">

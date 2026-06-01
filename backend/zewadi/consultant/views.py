@@ -14,6 +14,7 @@ from datetime import datetime
 from django.utils import timezone
 from django.db.models import Q
 from supperadmin.utils.permissions import has_permission
+from notifications.utils import send_user_notification
 
 
 
@@ -627,6 +628,7 @@ class CreateConsultationBookingView(APIView):
                     ConsultationBooking.BookingStatus.PENDING,
                     ConsultationBooking.BookingStatus.CONFIRMED,
                     ConsultationBooking.BookingStatus.CANCELLED,
+                    ConsultationBooking.BookingStatus.NEEDS_RESCHEDULE,
                 ],
             )
             .select_related("consultant__user")
@@ -667,6 +669,82 @@ class CommunityBookingCancelView(APIView):
         )
 
 
+class CommunityBookingRescheduleView(APIView):
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+
+    def patch(self, request, pk):
+        try:
+            booking = ConsultationBooking.objects.select_related("consultant").get(pk=pk)
+        except ConsultationBooking.DoesNotExist:
+            return Response({"detail": "Booking not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        if booking.user != request.user:
+            return Response(
+                {"detail": "You do not have permission to reschedule this booking."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        date_value = request.data.get("booked_date")
+        time_value = request.data.get("booked_slot") or request.data.get("time")
+        if not date_value or not time_value:
+            return Response(
+                {"detail": "booked_date and booked_slot are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            new_date = datetime.strptime(str(date_value), "%Y-%m-%d").date()
+            start_time = convert_time(str(time_value))
+        except (TypeError, ValueError):
+            return Response(
+                {"detail": "Use booked_date as YYYY-MM-DD and booked_slot like 10:30 AM."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        consultant_id = request.data.get("consultant_id")
+        if consultant_id:
+            try:
+                consultant = Consultant.objects.get(id=consultant_id)
+            except Consultant.DoesNotExist:
+                return Response({"detail": "Consultant not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            available, error = is_slot_available(consultant, new_date, str(time_value))
+            if not available:
+                return Response({"detail": error}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            consultant = find_available_consultant(new_date, start_time)
+            if not consultant:
+                return Response(
+                    {"detail": "No consultant is available for the selected date and time."},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+        booking.consultant = consultant
+        booking.booked_date = new_date
+        booking.booked_slot = str(time_value)
+        booking.status = ConsultationBooking.BookingStatus.PENDING
+        booking.meeting_link = ""
+        booking.save(
+            update_fields=[
+                "consultant",
+                "booked_date",
+                "booked_slot",
+                "status",
+                "meeting_link",
+                "updated_at",
+            ]
+        )
+        booking.rejected_consultants.clear()
+
+        return Response(
+            {
+                "message": "Booking rescheduled and sent to an available consultant.",
+                "booking": ConsultationBookingListSerializer(booking).data,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
 class ConsultantBookingMeetingLinkView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -698,16 +776,28 @@ class ConsultantBookingMeetingLinkView(APIView):
 class ConsultantBookingConformApi(APIView):
     permission_classes = [IsAuthenticated, IsConsultantUser]
 
+    def _notify_reassigned_consultant(self, booking):
+        user_name = (
+            booking.user.get_full_name()
+            or getattr(booking.user, "user_name", "")
+            or booking.user.email
+        )
+        date_text = booking.booked_date.strftime("%d %b %Y")
+        send_user_notification(
+            booking.consultant.user,
+            "New consultation request",
+            f"{user_name} requested a consultation on {date_text} at {booking.booked_slot}.",
+            "ALERT",
+        )
+
     def get(self, request):
         bookings = ConsultationBooking.objects.filter(
-            Q(status=ConsultationBooking.BookingStatus.PENDING)
-            | Q(
-                consultant=request.user.consultant,
-                status__in=[
-                    ConsultationBooking.BookingStatus.CONFIRMED,
-                    ConsultationBooking.BookingStatus.COMPLETED,
-                ],
-            )
+            consultant=request.user.consultant,
+            status__in=[
+                ConsultationBooking.BookingStatus.PENDING,
+                ConsultationBooking.BookingStatus.CONFIRMED,
+                ConsultationBooking.BookingStatus.COMPLETED,
+            ],
         ).select_related("user", "consultant__user").order_by("booked_date", "booked_slot", "created_at")
 
         serializer = ConsultationBookingListSerializer(bookings, many=True)
@@ -735,9 +825,34 @@ class ConsultantBookingConformApi(APIView):
                 "message": "Booking accepted and client created"
             })
 
-        booking.status = ConsultationBooking.BookingStatus.CANCELLED
-        booking.save()
+        rejected_consultant = booking.consultant
+        booking.rejected_consultants.add(rejected_consultant)
+        excluded_consultants = list(booking.rejected_consultants.all())
+        next_consultant = find_available_consultant(
+            booking.booked_date,
+            convert_time(booking.booked_slot),
+            exclude=excluded_consultants,
+        )
+
+        if next_consultant:
+            booking.consultant = next_consultant
+            booking.status = ConsultationBooking.BookingStatus.PENDING
+            booking.meeting_link = ""
+            booking.save(update_fields=["consultant", "status", "meeting_link", "updated_at"])
+            self._notify_reassigned_consultant(booking)
+
+            return Response({
+                "message": "Booking rejected and reassigned to the next available consultant",
+                "reassigned": True,
+                "booking": ConsultationBookingListSerializer(booking).data,
+            })
+
+        booking.status = ConsultationBooking.BookingStatus.NEEDS_RESCHEDULE
+        booking.save(update_fields=["status", "updated_at"])
 
         return Response({
-            "message": "Booking rejected"
+            "message": "Booking rejected. No other consultant is available, so the user can reschedule",
+            "reassigned": False,
+            "needs_reschedule": True,
+            "booking": ConsultationBookingListSerializer(booking).data,
         })

@@ -17,6 +17,7 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import api from "@/services/api";
 import { toast } from "sonner";
+import { useCloudinaryUpload } from "@/hooks/useCloudinaryUpload";
 
 type UserProfile = {
   user_id: string;
@@ -133,6 +134,7 @@ export default function GuestProfile() {
   const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [profilePhotoFailed, setProfilePhotoFailed] = useState(false);
+  const { upload: uploadPhoto, isUploading: isPhotoUploading } = useCloudinaryUpload("profile_photo");
   const profilePhotoSrc = profile?.photo && !profilePhotoFailed ? getImageUrl(profile.photo) : "/default-avatar.svg";
 
   const redirectToLogin = useCallback(() => {
@@ -233,6 +235,31 @@ export default function GuestProfile() {
     }
   }
 
+  async function handleProfilePhotoPick(file: File | null) {
+    if (!file || isPhotoUploading) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image size should be 5MB or less.");
+      return;
+    }
+
+    const previousPhoto = profile?.photo ?? null;
+    const blobUrl = URL.createObjectURL(file);
+    setProfilePhotoFailed(false);
+    setProfile((prev) => (prev ? { ...prev, photo: blobUrl } : prev));
+
+    try {
+      const url = await uploadPhoto(file);
+      const res = await api.patch("/account/me/", { photo: url });
+      setProfile((prev) => (prev ? { ...prev, photo: res.data.photo ?? url } : prev));
+      toast.success("Profile photo updated.");
+    } catch {
+      setProfile((prev) => (prev ? { ...prev, photo: previousPhoto } : prev));
+      toast.error("Could not update profile photo.");
+    } finally {
+      URL.revokeObjectURL(blobUrl);
+    }
+  }
+
   if (isRehydrating || loading) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center text-sm text-[#0A4833]">
@@ -259,13 +286,22 @@ export default function GuestProfile() {
                     onError={() => setProfilePhotoFailed(true)}
                   />
                 </div>
-                <button
-                  type="button"
+                <label
                   aria-label="Change profile photo"
-                  className="absolute bottom-1 right-1 flex size-8 items-center justify-center rounded-full bg-[#1f4d3a] text-white"
+                  className="absolute bottom-1 right-1 flex size-8 cursor-pointer items-center justify-center rounded-full bg-[#1f4d3a] text-white"
                 >
                   <Camera size={15} />
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={isPhotoUploading}
+                    onChange={(event) => {
+                      void handleProfilePhotoPick(event.target.files?.[0] ?? null);
+                      event.currentTarget.value = "";
+                    }}
+                  />
+                </label>
               </div>
               <h1 className="text-2xl font-bold leading-9 tracking-[0.001em] text-[#121414]">
                 {profile?.full_name || "Guest User"}

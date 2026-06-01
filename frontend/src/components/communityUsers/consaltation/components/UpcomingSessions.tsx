@@ -10,7 +10,7 @@ type Session = {
   dateLabel: string;
   timeLabel: string;
   mode: "Video Call" | "Phone Call";
-  status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled";
+  status: "scheduled" | "pending" | "confirmed" | "completed" | "cancelled" | "needs_reschedule";
   meetingLink?: string;
   image: string;
 };
@@ -26,11 +26,13 @@ function getStatusLabel(status: Session["status"]) {
   if (status === "completed") return "Completed";
   if (status === "pending") return "Pending";
   if (status === "cancelled") return "Cancelled";
+  if (status === "needs_reschedule") return "Needs Reschedule";
   return "Scheduled";
 }
 
 function getStatusTone(status: Session["status"]) {
   if (status === "cancelled") return "bg-[#FEF2F2] text-[#B42318]";
+  if (status === "needs_reschedule") return "bg-[#FFF7ED] text-[#C2410C]";
   if (status === "pending") return "bg-[#F8F3E9] text-[#A88751]";
   if (status === "confirmed") return "bg-[#ECFDF3] text-[#027A48]";
   if (status === "completed") return "bg-[#F2F4F7] text-[#344054]";
@@ -122,7 +124,22 @@ export default function UpcomingSessions({ sessions, onJoin, onReschedule }: Pro
                   </>
                 )}
 
-                {session.status !== "confirmed" && session.status !== "cancelled" && !session.meetingLink && (
+                {session.status === "needs_reschedule" && (
+                  <>
+                    <span className={`inline-flex h-10 items-center rounded-[6px] px-5 text-[13px] font-medium ${getStatusTone(session.status)}`}>
+                      {getStatusLabel(session.status)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => onReschedule(session.id)}
+                      className="inline-flex h-10 items-center justify-center rounded-[6px] border border-[#D0D5DD] bg-white px-5 text-[13px] font-medium text-[#111827] hover:bg-[#F9FAFB]"
+                    >
+                      Reschedule
+                    </button>
+                  </>
+                )}
+
+                {session.status !== "confirmed" && session.status !== "cancelled" && session.status !== "needs_reschedule" && !session.meetingLink && (
                   <span className={`inline-flex h-10 items-center rounded-[6px] px-5 text-[13px] font-medium ${getStatusTone(session.status)}`}>
                     {getStatusLabel(session.status)}
                   </span>

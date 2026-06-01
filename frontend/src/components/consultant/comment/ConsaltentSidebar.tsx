@@ -53,7 +53,7 @@ function ConsultantSidebar({ onClose }: Props) {
                 onClose?.();
               }
             }}
-            className="group flex items-center space-x-3"
+            className="group flex cursor-pointer items-center space-x-3"
           >
             {/* Icon */}
             <div
