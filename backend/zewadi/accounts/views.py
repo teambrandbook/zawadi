@@ -199,6 +199,12 @@ class LocalImageUploadView(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request):
+        if not settings.DEBUG:
+            return Response(
+                {"error": "Local image uploads are disabled. Configure Cloudinary for production uploads."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
         upload_type = request.query_params.get("type", "")
         error_response = validate_upload_request(request, upload_type)
         if error_response:

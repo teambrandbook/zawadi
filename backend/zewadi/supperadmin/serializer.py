@@ -63,8 +63,8 @@ class UserUpdateSerializer(serializers.ModelSerializer):
     """Serializer for admin partial user updates — only safe editable fields."""
     class Meta:
         model = User
-        fields = ["full_name", "phone", "role", "location", "date_of_birth", "gender", "is_active"]
-        extra_kwargs = {field: {"required": False} for field in ["full_name", "phone", "role", "location", "date_of_birth", "gender", "is_active"]}
+        fields = ["full_name", "phone", "role", "location", "date_of_birth", "gender", "is_active", "photo"]
+        extra_kwargs = {field: {"required": False} for field in ["full_name", "phone", "role", "location", "date_of_birth", "gender", "is_active", "photo"]}
 
 
 class RolePermissionSerializer(serializers.ModelSerializer):

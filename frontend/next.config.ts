@@ -64,7 +64,7 @@ const nextConfig: NextConfig = {
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline'",
       "style-src 'self' 'unsafe-inline'",
-      `img-src 'self' data: blob: https://lh3.googleusercontent.com https://res.cloudinary.com`,
+      `img-src 'self' data: blob: ${apiOrigin} https://lh3.googleusercontent.com https://res.cloudinary.com`,
       "font-src 'self' data:",
       `connect-src 'self' ${apiOrigin} ${wsConnectOrigin} ws://localhost:8000 ws://127.0.0.1:8000 https://api.cloudinary.com`,
       "frame-ancestors 'none'",
