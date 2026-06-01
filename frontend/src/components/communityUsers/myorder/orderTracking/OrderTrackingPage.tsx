@@ -44,6 +44,35 @@ type ApiOrderDetail = {
   updated_at: string;
 };
 
+type ApiCustomGiftDetail = {
+  custom_gift_id: string;
+  box_name: string;
+  box_price: string | number;
+  items: Array<{
+    name?: string;
+    image?: string | null;
+    size?: string;
+    price?: string | number;
+    quantity?: number;
+  }>;
+  subtotal: string | number;
+  delivery_charge: string | number;
+  total_amount: string | number;
+  full_name: string;
+  phone: string;
+  email?: string;
+  city?: string;
+  postal_code?: string;
+  address: string;
+  message?: string;
+  occasion?: string;
+  payment_method: string;
+  payment_status: string;
+  status: string;
+  created_at: string;
+  updated_at?: string;
+};
+
 type TimelineStep = {
   title: string;
   description: string;
@@ -117,15 +146,16 @@ function toTitleCase(value: string): string {
 }
 
 /**
- * Updated to match: confirmed, processing, shipped, out_for_delivery, delivered
+ * Updated to match: pending, confirmed, processing, shipped, out_for_delivery, delivered
  */
 function activeStepIndex(status?: string): number {
   const normalized = (status || "confirmed").toLowerCase();
-  if (normalized === "delivered") return 4;
-  if (normalized === "out_for_delivery") return 3;
-  if (normalized === "shipped") return 2;
-  if (normalized === "processing") return 1;
-  if (normalized === "confirmed") return 0;
+  if (normalized === "delivered") return 5;
+  if (normalized === "out_for_delivery") return 4;
+  if (normalized === "shipped") return 3;
+  if (normalized === "processing") return 2;
+  if (normalized === "confirmed") return 1;
+  if (normalized === "pending") return 0;
   if (normalized === "cancelled") return 0;
   return 0;
 }
@@ -148,13 +178,19 @@ function getPaymentLabel(order?: ApiOrderDetail | null): string {
 }
 
 /**
- * Updated Timeline to match the 5 main status steps
+ * Updated Timeline to match the 6 main status steps
  */
 function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
   const createdAt = order?.created_at;
   const updatedAt = order?.updated_at;
   
   return [
+    {
+      title: "Pending",
+      description: "Your order is waiting for confirmation",
+      date: toShortDateTime(createdAt),
+      Icon: Check,
+    },
     {
       title: "Confirmed",
       description: "Your order has been confirmed",
@@ -185,6 +221,36 @@ function buildTimeline(order?: ApiOrderDetail | null): TimelineStep[] {
   ];
 }
 
+function mapCustomGiftOrder(order: ApiCustomGiftDetail): ApiOrderDetail {
+  const quantity = order.items.reduce((sum, item) => sum + Number(item.quantity ?? 0), 0) || 1;
+  const itemNames = order.items.map((item) => item.name).filter(Boolean).join(", ");
+  return {
+    order_id: order.custom_gift_id,
+    product_name: itemNames ? `Custom Gift Box - ${itemNames}` : "Custom Gift Box",
+    product_image: order.items[0]?.image ?? null,
+    pack_name: order.box_name,
+    pack_price: order.box_price,
+    quantity,
+    subtotal: order.subtotal,
+    delivery_charge: order.delivery_charge,
+    total_amount: order.total_amount,
+    full_name: order.full_name,
+    phone: order.phone,
+    email: order.email ?? "",
+    city: order.city ?? "",
+    postal_code: order.postal_code ?? "",
+    address: order.address,
+    instructions: [order.occasion ? `Occasion: ${order.occasion}` : "", order.message ? `Message: ${order.message}` : ""]
+      .filter(Boolean)
+      .join(". "),
+    payment_method: order.payment_method,
+    payment_status: order.payment_status,
+    status: order.status,
+    created_at: order.created_at,
+    updated_at: order.updated_at ?? order.created_at,
+  };
+}
+
 export default function OrderTrackingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -205,6 +271,12 @@ export default function OrderTrackingPage() {
 
       try {
         setIsLoading(true);
+        if (orderId.startsWith("CG-")) {
+          const response = await api.get<ApiCustomGiftDetail>(`/orders/custom-gifts/${encodeURIComponent(orderId)}/`);
+          if (isMounted) setOrder(mapCustomGiftOrder(response.data));
+          return;
+        }
+
         const response = await api.get<ApiOrderDetail>(`/orders/${encodeURIComponent(orderId)}/`);
         if (isMounted) setOrder(response.data);
       } catch {

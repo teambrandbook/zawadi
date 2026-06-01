@@ -60,3 +60,24 @@ def handle_order_status_change(sender, instance, created, **kwargs):
         f"{title} — Zawadi",
         body,
     )
+
+
+@receiver(post_save, sender="orders.CustomGiftOrder")
+def handle_custom_gift_order_created(sender, instance, created, **kwargs):
+    if not created:
+        return
+
+    send_user_notification(
+        instance.user,
+        "Custom gift order placed",
+        f"Your custom gift order {instance.custom_gift_id} has been placed successfully.",
+        "ALERT",
+    )
+    send_notification_email(
+        instance.user.email,
+        "Custom gift order placed - Zawadi",
+        (
+            f"Your custom gift order {instance.custom_gift_id} has been placed successfully.\n\n"
+            "Thank you for shopping with Zawadi!"
+        ),
+    )

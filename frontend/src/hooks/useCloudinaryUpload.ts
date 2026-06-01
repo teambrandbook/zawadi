@@ -15,6 +15,7 @@ interface SignatureResponse {
   api_key: string;
   cloud_name: string;
   folder: string;
+  allowed_formats: string;
 }
 
 export function useCloudinaryUpload(uploadType: UploadType) {
@@ -44,6 +45,7 @@ export function useCloudinaryUpload(uploadType: UploadType) {
       formData.append("timestamp", String(data.timestamp));
       formData.append("api_key", data.api_key);
       formData.append("folder", data.folder);
+      formData.append("allowed_formats", data.allowed_formats);
 
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${data.cloud_name}/image/upload`,

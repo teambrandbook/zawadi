@@ -24,6 +24,8 @@ type ApiProduct = {
   sale_price?: number | string;
   selling_price?: number | string;
   weight?: string;
+  stock_quantity?: number | string;
+  stock_status?: string;
 };
 
 type CartProduct = {
@@ -34,6 +36,8 @@ type CartProduct = {
   size: string;
   price: number;
   quantity: number;
+  stockQuantity: number;
+  stockStatus: string;
 };
 
 type BoxSize = {
@@ -89,6 +93,11 @@ function formatPrice(p: number | string | undefined): number {
   return typeof p === "string" ? parseFloat(p) || 0 : p;
 }
 
+function formatStock(value: number | string | undefined): number {
+  const stock = Number(value ?? 0);
+  return Number.isNaN(stock) ? 0 : stock;
+}
+
 function mapApiProduct(p: ApiProduct): CartProduct {
   const firstVariant = p.variants?.[0];
   const productName = p.name ?? p.product_name ?? "ZEWADI Product";
@@ -103,6 +112,8 @@ function mapApiProduct(p: ApiProduct): CartProduct {
     size,
     price,
     quantity: 0,
+    stockQuantity: formatStock(p.stock_quantity),
+    stockStatus: p.stock_status ?? "in_stock",
   };
 }
 
@@ -191,9 +202,24 @@ export default function CustomGiftsPage() {
 
   const changeQuantity = useCallback((id: number, delta: number) => {
     setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p))
+      prev.map((p) => {
+        if (p.id !== id) return p;
+        if (p.stockStatus === "out_of_stock" || p.stockQuantity <= 0) return p;
+
+        const nextQuantity = Math.max(0, p.quantity + delta);
+        if (delta > 0) {
+          const currentUsedGrams = prev.reduce((acc, item) => acc + parseGrams(item.size) * item.quantity, 0);
+          const nextUsedGrams = currentUsedGrams + parseGrams(p.size);
+          if (nextUsedGrams > selectedBox.capacityGrams) return p;
+        }
+
+        return {
+          ...p,
+          quantity: Math.min(nextQuantity, p.stockQuantity),
+        };
+      })
     );
-  }, []);
+  }, [selectedBox.capacityGrams]);
 
   const onRecipientChange = (field: keyof typeof recipient, value: string) => {
     setRecipient((prev) => ({ ...prev, [field]: value }));
@@ -204,6 +230,10 @@ export default function CustomGiftsPage() {
 
     if (addedProducts.length === 0) {
       setSubmitError("Please add at least one product to your gift box.");
+      return;
+    }
+    if (usedGrams > selectedBox.capacityGrams) {
+      setSubmitError("Your selected products exceed the gift box capacity.");
       return;
     }
 
@@ -361,7 +391,13 @@ export default function CustomGiftsPage() {
             <p className="py-8 text-center text-sm text-gray-400">No products found.</p>
           ) : (
             <div className="grid grid-cols-3 gap-3">
-              {filteredProducts.map((product) => (
+              {filteredProducts.map((product) => {
+                const isOutOfStock = product.stockStatus === "out_of_stock" || product.stockQuantity <= 0;
+                const isAtStockLimit = product.quantity >= product.stockQuantity;
+                const productGrams = parseGrams(product.size);
+                const isAtBoxLimit = productGrams > 0 && productGrams > remainingGrams;
+
+                return (
                 <article
                   key={product.id}
                   className={`rounded-md border bg-white p-2 transition-all hover:shadow-md ${
@@ -404,7 +440,8 @@ export default function CustomGiftsPage() {
                       <span className="text-[9px] font-bold text-[#06402B]">Added ({product.quantity})</span>
                       <button
                         onClick={() => changeQuantity(product.id, 1)}
-                        className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-[#A88751] transition-colors hover:bg-[#A88751] hover:text-white"
+                        disabled={isAtStockLimit || isAtBoxLimit}
+                        className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-[#A88751] transition-colors hover:bg-[#A88751] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#A88751]"
                       >
                         +
                       </button>
@@ -412,13 +449,15 @@ export default function CustomGiftsPage() {
                   ) : (
                     <button
                       onClick={() => changeQuantity(product.id, 1)}
-                      className="mt-2 h-8 w-full rounded-md bg-[#06402B] text-[9px] font-semibold text-white shadow-sm transition-colors hover:bg-[#053020]"
+                      disabled={isOutOfStock || isAtBoxLimit}
+                      className="mt-2 h-8 w-full rounded-md bg-[#06402B] text-[9px] font-semibold text-white shadow-sm transition-colors hover:bg-[#053020] disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600"
                     >
-                      Add to Box
+                      {isOutOfStock ? "Out of Stock" : isAtBoxLimit ? "Box Full" : "Add to Box"}
                     </button>
                   )}
                 </article>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

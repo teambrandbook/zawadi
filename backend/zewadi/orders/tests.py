@@ -1,13 +1,14 @@
 import datetime
 import importlib
 from decimal import Decimal
+from unittest.mock import patch
 
 from rest_framework.test import APITestCase
 
 from accounts.models import User
 from notifications.models import Notification, UserNotificationReceipt
-from orders.models import Order, OrderReview
-from product.models import Product, ProductStatus, ProductVariant
+from orders.models import CustomGiftOrder, Order, OrderReview
+from product.models import Product, ProductStatus, ProductVariant, StockStatus
 from product.serializers import ProductSerializer
 from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
 
@@ -213,6 +214,209 @@ class ProductLevelPricingAndStockTests(APITestCase):
         self.assertTrue(UserNotificationReceipt.objects.filter(user=admin, notification=notification).exists())
         self.assertTrue(UserNotificationReceipt.objects.filter(user=internal_staff, notification=notification).exists())
         self.assertFalse(UserNotificationReceipt.objects.filter(user=self.user, notification=notification).exists())
+
+
+class CustomGiftOrderTests(APITestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.client.force_authenticate(user=self.user)
+
+    @patch("notifications.email.send_mail")
+    def test_custom_gift_checkout_creates_confirmed_cod_record(self, send_mail_mock):
+        product = make_product(stock_quantity=2)
+        response = self.client.post(
+            "/api/orders/custom-gifts/",
+            {
+                "gift_type": "self",
+                "box_id": "small",
+                "box_name": "0.5 KG Gift Box",
+                "box_price": "249.00",
+                "box_capacity": "500g",
+                "items": [{"id": product.id, "name": "Buckwheat Pack", "size": "250g", "price": "20.00", "quantity": 1}],
+                "message": "",
+                "occasion": "Birthday",
+                "full_name": "Buyer",
+                "phone": "1234567890",
+                "email": "buyer@example.com",
+                "city": "Mumbai",
+                "postal_code": "400001",
+                "address": "Test address",
+                "subtotal": "20.00",
+                "delivery_charge": "0.00",
+                "tax_amount": "0.00",
+                "total_amount": "20.00",
+                "payment_method": "cod",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        custom_gift = CustomGiftOrder.objects.get(custom_gift_id=response.data["custom_gift_id"])
+        self.assertEqual(custom_gift.payment_status, "confirmed")
+        self.assertEqual(custom_gift.status, "confirmed")
+        product.refresh_from_db()
+        self.assertEqual(product.stock_quantity, 1)
+        list_response = self.client.get("/api/orders/custom-gifts/")
+        self.assertEqual(list_response.status_code, 200)
+        self.assertEqual(list_response.data[0]["custom_gift_id"], custom_gift.custom_gift_id)
+        notification = Notification.objects.get(title="Custom gift order placed")
+        self.assertTrue(UserNotificationReceipt.objects.filter(user=self.user, notification=notification).exists())
+        send_mail_mock.assert_called_once()
+        self.assertIn(custom_gift.custom_gift_id, send_mail_mock.call_args.kwargs["message"])
+
+    def test_custom_gift_bank_transfer_creates_pending_record(self):
+        product = make_product(stock_quantity=2)
+        response = self.client.post(
+            "/api/orders/custom-gifts/",
+            {
+                "gift_type": "self",
+                "box_id": "small",
+                "box_name": "0.5 KG Gift Box",
+                "box_price": "249.00",
+                "box_capacity": "500g",
+                "items": [{"id": product.id, "name": "Buckwheat Pack", "size": "250g", "price": "20.00", "quantity": 1}],
+                "message": "",
+                "occasion": "Birthday",
+                "full_name": "Buyer",
+                "phone": "1234567890",
+                "email": "buyer@example.com",
+                "city": "Mumbai",
+                "postal_code": "400001",
+                "address": "Test address",
+                "subtotal": "20.00",
+                "delivery_charge": "0.00",
+                "tax_amount": "0.00",
+                "total_amount": "20.00",
+                "payment_method": "bank_transfer",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 201)
+        custom_gift = CustomGiftOrder.objects.get(custom_gift_id=response.data["custom_gift_id"])
+        self.assertEqual(custom_gift.payment_status, "pending")
+        self.assertEqual(custom_gift.status, "pending")
+        product.refresh_from_db()
+        self.assertEqual(product.stock_quantity, 1)
+
+    def test_custom_gift_checkout_rejects_out_of_stock_product(self):
+        product = make_product(stock_quantity=0, stock_status=StockStatus.OUT_OF_STOCK)
+        response = self.client.post(
+            "/api/orders/custom-gifts/",
+            {
+                "gift_type": "self",
+                "box_id": "small",
+                "box_name": "0.5 KG Gift Box",
+                "box_price": "249.00",
+                "box_capacity": "500g",
+                "items": [{"id": product.id, "name": "Buckwheat Pack", "size": "250g", "price": "20.00", "quantity": 1}],
+                "message": "",
+                "occasion": "Birthday",
+                "full_name": "Buyer",
+                "phone": "1234567890",
+                "email": "buyer@example.com",
+                "city": "Mumbai",
+                "postal_code": "400001",
+                "address": "Test address",
+                "subtotal": "20.00",
+                "delivery_charge": "0.00",
+                "tax_amount": "0.00",
+                "total_amount": "20.00",
+                "payment_method": "cod",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["detail"], "Buckwheat 500g is out of stock.")
+        self.assertFalse(CustomGiftOrder.objects.exists())
+
+    def test_custom_gift_checkout_rejects_items_over_box_capacity(self):
+        product = make_product(stock_quantity=3)
+        response = self.client.post(
+            "/api/orders/custom-gifts/",
+            {
+                "gift_type": "self",
+                "box_id": "small",
+                "box_name": "0.5 KG Gift Box",
+                "box_price": "249.00",
+                "box_capacity": "500g",
+                "items": [{"id": product.id, "name": "Buckwheat Pack", "size": "250g", "price": "20.00", "quantity": 3}],
+                "message": "",
+                "occasion": "Birthday",
+                "full_name": "Buyer",
+                "phone": "1234567890",
+                "email": "buyer@example.com",
+                "city": "Mumbai",
+                "postal_code": "400001",
+                "address": "Test address",
+                "subtotal": "60.00",
+                "delivery_charge": "0.00",
+                "tax_amount": "0.00",
+                "total_amount": "60.00",
+                "payment_method": "cod",
+            },
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data["items"][0], "Selected products exceed the gift box capacity.")
+        self.assertFalse(CustomGiftOrder.objects.exists())
+        product.refresh_from_db()
+        self.assertEqual(product.stock_quantity, 3)
+
+    def test_admin_can_list_custom_gift_orders(self):
+        custom_gift = CustomGiftOrder.objects.create(
+            user=self.user,
+            gift_type="recipient",
+            box_id="small",
+            box_name="0.5 KG Gift Box",
+            box_price="249.00",
+            box_capacity="500g",
+            items=[{"id": 1, "name": "Buckwheat Pack", "size": "250g", "price": "20.00", "quantity": 2}],
+            full_name="Gift Recipient",
+            phone="1234567890",
+            email="recipient@example.com",
+            city="Mumbai",
+            postal_code="400001",
+            address="Test address",
+            subtotal="40.00",
+            total_amount="40.00",
+            payment_method="cod",
+            payment_status="confirmed",
+        )
+        admin = User.objects.create_user(
+            email="gift-admin@example.com",
+            password="Pass@1234",
+            user_name="gift-admin",
+            full_name="Gift Admin",
+            phone="1234567891",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+
+        response = self.client.get("/api/orders/admin/custom-gifts/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["full_name"], "Gift Recipient")
+
+        detail_response = self.client.get(f"/api/orders/admin/custom-gifts/{custom_gift.custom_gift_id}/")
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertEqual(detail_response.data["custom_gift_id"], custom_gift.custom_gift_id)
+
+        patch_response = self.client.patch(
+            f"/api/orders/admin/custom-gifts/{custom_gift.custom_gift_id}/",
+            {"status": "shipped"},
+            format="json",
+        )
+        self.assertEqual(patch_response.status_code, 200)
+        custom_gift.refresh_from_db()
+        self.assertEqual(custom_gift.status, "shipped")
+
+        delete_response = self.client.delete(f"/api/orders/admin/custom-gifts/{custom_gift.custom_gift_id}/")
+        self.assertEqual(delete_response.status_code, 204)
+        self.assertFalse(CustomGiftOrder.objects.filter(pk=custom_gift.pk).exists())
 
 
 class ProductRatingTests(APITestCase):

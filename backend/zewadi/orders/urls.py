@@ -11,6 +11,8 @@ urlpatterns = [
     path("custom-gifts/<str:custom_gift_id>/", views.CustomGiftOrderDetailView.as_view()),
     path("", views.OrderListView.as_view()),
     path("admin/", views.AdminOrderListView.as_view()),
+    path("admin/custom-gifts/", views.AdminCustomGiftOrderListView.as_view()),
+    path("admin/custom-gifts/<str:custom_gift_id>/", views.AdminCustomGiftOrderDetailView.as_view()),
     path("admin/cart/", views.AdminCartListView.as_view()),
     path("admin/<str:order_id>/status/", views.AdminOrderStatusUpdateView.as_view()),
     path("<str:order_id>/", views.OrderDetailView.as_view()),

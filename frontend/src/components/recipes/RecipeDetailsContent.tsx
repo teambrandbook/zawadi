@@ -348,7 +348,7 @@ export default function RecipeDetailsContent({
                   <Link
                     key={item.id}
                     href={`/recipes/${item.id}`}
-                    className="group relative block overflow-hidden rounded-[7px] bg-white"
+                    className="group relative block overflow-hidden rounded-[7px] bg-white shadow-[0_3px_8px_rgba(0,0,0,0.32)]"
                   >
                     <div className="relative aspect-[1.18/1] overflow-hidden">
                       <Image
@@ -360,8 +360,8 @@ export default function RecipeDetailsContent({
                       />
                     </div>
 
-                    <div className="absolute inset-x-4 bottom-3 flex min-h-[68px] items-center justify-center rounded-[6px] bg-white px-4 py-2.5 text-center shadow-sm sm:inset-x-5">
-                      <h4 className="font-['Playfair_Display'] text-[17px] font-semibold uppercase leading-tight text-black sm:text-[18px]">
+                    <div className="absolute inset-x-5 bottom-3 flex min-h-[72px] items-center justify-center rounded-[24px] bg-white px-4 py-2.5 text-center sm:inset-x-6">
+                      <h4 className="font-['Playfair_Display'] text-[21px] font-semibold uppercase leading-tight text-black sm:text-[23px]">
                         {item.title}
                       </h4>
                     </div>
