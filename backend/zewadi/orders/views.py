@@ -12,6 +12,7 @@ from .models import CartItem, CustomGiftOrder, Order, OrderReview
 from .serializers import (
     CartItemSerializer,
     CustomGiftOrderCreateSerializer,
+    CustomGiftOrderStatusUpdateSerializer,
     OrderCreateSerializer,
     OrderListSerializer,
     OrderDetailSerializer,
@@ -79,6 +80,35 @@ def _validate_and_decrement_stock(product, variant, quantity):
     _update_product_stock_status(product)
 
     send_low_stock_notification(product)
+
+
+def _validate_and_decrement_custom_gift_stock(product, quantity):
+    available_quantity = _max_available_quantity(product)
+    if product.stock_status == StockStatus.OUT_OF_STOCK or available_quantity <= 0:
+        raise ValueError(f"{product.product_name} is out of stock.")
+    if quantity > available_quantity:
+        raise ValueError(
+            f"Only {available_quantity} units of {product.product_name} are available."
+        )
+
+    product.stock_quantity -= quantity
+    _update_product_stock_status(product)
+
+    send_low_stock_notification(product)
+
+
+def _custom_gift_item_quantities(items):
+    quantities = {}
+    for item in items:
+        try:
+            product_id = int(item.get("id"))
+            quantity = int(item.get("quantity") or 1)
+        except (TypeError, ValueError):
+            raise ValueError("Custom gift contains an invalid product.")
+        if quantity <= 0:
+            raise ValueError("Custom gift product quantity must be at least 1.")
+        quantities[product_id] = quantities.get(product_id, 0) + quantity
+    return quantities
 
 
 def _cart_summary(items, country=None):
@@ -183,7 +213,36 @@ class CustomGiftOrderCreateView(APIView):
     def post(self, request):
         serializer = CustomGiftOrderCreateSerializer(data=request.data)
         if serializer.is_valid():
-            custom_gift = serializer.save(user=request.user)
+            try:
+                with transaction.atomic():
+                    item_quantities = _custom_gift_item_quantities(
+                        serializer.validated_data.get("items", [])
+                    )
+                    locked_products = {
+                        product.id: product
+                        for product in Product.objects.select_for_update().filter(
+                            id__in=item_quantities.keys(),
+                            product_status=ProductStatus.ACTIVE,
+                        )
+                    }
+                    missing_product_ids = set(item_quantities.keys()) - set(locked_products.keys())
+                    if missing_product_ids:
+                        raise Product.DoesNotExist
+
+                    for product_id, quantity in item_quantities.items():
+                        _validate_and_decrement_custom_gift_stock(
+                            locked_products[product_id],
+                            quantity,
+                        )
+
+                    custom_gift = serializer.save(user=request.user)
+            except Product.DoesNotExist:
+                return Response(
+                    {"detail": "Product not found."},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            except ValueError as exc:
+                return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
             return Response(
                 {
                     "id": custom_gift.id,
@@ -533,6 +592,53 @@ class AdminOrderListView(APIView):
             serializer = OrderListSerializer(page, many=True, context={"request": request})
             return paginator.get_paginated_response(serializer.data)
         return Response(OrderListSerializer(queryset, many=True, context={"request": request}).data)
+
+
+class AdminCustomGiftOrderListView(APIView):
+    """GET /api/orders/admin/custom-gifts/ — list all custom gift orders."""
+
+    permission_classes = [IsAdminUser]
+
+    def get(self, request):
+        queryset = CustomGiftOrder.objects.select_related("user").all()
+        return Response(
+            CustomGiftOrderCreateSerializer(queryset, many=True, context={"request": request}).data
+        )
+
+
+class AdminCustomGiftOrderDetailView(APIView):
+    """GET or DELETE a custom gift order by its public ID."""
+
+    permission_classes = [IsAdminUser]
+
+    def get_gift_order(self, custom_gift_id):
+        try:
+            return CustomGiftOrder.objects.select_related("user").get(custom_gift_id=custom_gift_id)
+        except CustomGiftOrder.DoesNotExist:
+            return None
+
+    def get(self, request, custom_gift_id):
+        gift_order = self.get_gift_order(custom_gift_id)
+        if not gift_order:
+            return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response(CustomGiftOrderCreateSerializer(gift_order, context={"request": request}).data)
+
+    def patch(self, request, custom_gift_id):
+        gift_order = self.get_gift_order(custom_gift_id)
+        if not gift_order:
+            return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = CustomGiftOrderStatusUpdateSerializer(gift_order, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, custom_gift_id):
+        gift_order = self.get_gift_order(custom_gift_id)
+        if not gift_order:
+            return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
+        gift_order.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class AdminCartListView(APIView):

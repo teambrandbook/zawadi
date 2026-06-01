@@ -137,6 +137,16 @@ class CustomGiftOrder(models.Model):
         ("confirmed", "Confirmed"),
     ]
 
+    STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("confirmed", "Confirmed"),
+        ("processing", "Processing"),
+        ("shipped", "Shipped"),
+        ("out_for_delivery", "Out for Delivery"),
+        ("delivered", "Delivered"),
+        ("cancelled", "Cancelled"),
+    ]
+
     custom_gift_id = models.CharField(max_length=24, unique=True, blank=True)
     user = models.ForeignKey(
         "accounts.User", on_delete=models.CASCADE, related_name="custom_gift_orders"
@@ -167,6 +177,7 @@ class CustomGiftOrder(models.Model):
     payment_status = models.CharField(
         max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending"
     )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="confirmed")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

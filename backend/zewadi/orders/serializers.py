@@ -1,9 +1,18 @@
 from decimal import Decimal
+import re
 
 from rest_framework import serializers
 
 from .models import CartItem, CustomGiftOrder, Order, OrderReview
 from product.models import Product, ProductVariant
+
+
+def _parse_weight_grams(value):
+    match = re.search(r"(\d+(?:\.\d+)?)\s*(kg|g)", str(value or ""), re.IGNORECASE)
+    if not match:
+        return None
+    amount = Decimal(match.group(1))
+    return amount * Decimal("1000") if match.group(2).lower() == "kg" else amount
 
 
 class OrderCreateSerializer(serializers.ModelSerializer):
@@ -123,6 +132,8 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
 
 class CustomGiftOrderCreateSerializer(serializers.ModelSerializer):
+    user_image = serializers.SerializerMethodField()
+
     class Meta:
         model = CustomGiftOrder
         fields = [
@@ -145,10 +156,11 @@ class CustomGiftOrderCreateSerializer(serializers.ModelSerializer):
             "subtotal",
             "delivery_charge",
             "tax_amount",
-            "charged_currency",
             "total_amount",
             "payment_method",
             "payment_status",
+            "status",
+            "user_image",
             "created_at",
             "updated_at",
         ]
@@ -156,13 +168,24 @@ class CustomGiftOrderCreateSerializer(serializers.ModelSerializer):
             "id",
             "custom_gift_id",
             "payment_status",
+            "status",
+            "user_image",
             "created_at",
             "updated_at",
         ]
 
+    def get_user_image(self, obj):
+        if not obj.user or not obj.user.photo:
+            return None
+        return obj.user.photo
+
     def validate_items(self, value):
         if not isinstance(value, list) or len(value) == 0:
             raise serializers.ValidationError("Add at least one product to the gift box.")
+        for item in value:
+            size = str(item.get("size", "")).strip() if isinstance(item, dict) else ""
+            if not size or _parse_weight_grams(size) is None:
+                raise serializers.ValidationError("Each custom gift product must include a valid size.")
         return value
 
     def validate(self, attrs):
@@ -185,11 +208,35 @@ class CustomGiftOrderCreateSerializer(serializers.ModelSerializer):
                 {"detail": "Please complete all required custom gift fields.", "missing": missing}
             )
 
+        box_capacity_grams = _parse_weight_grams(attrs.get("box_capacity"))
+        if box_capacity_grams is None:
+            raise serializers.ValidationError({"box_capacity": "Choose a valid gift box size."})
+
+        total_item_grams = Decimal("0")
+        for item in attrs.get("items", []):
+            try:
+                quantity = int(item.get("quantity") or 1)
+            except (TypeError, ValueError):
+                raise serializers.ValidationError({"items": "Custom gift product quantity must be valid."})
+            if quantity <= 0:
+                raise serializers.ValidationError({"items": "Custom gift product quantity must be at least 1."})
+            item_grams = _parse_weight_grams(item.get("size"))
+            if item_grams is None:
+                raise serializers.ValidationError({"items": "Each custom gift product must include a valid size."})
+            total_item_grams += item_grams * quantity
+
+        if total_item_grams > box_capacity_grams:
+            raise serializers.ValidationError(
+                {"items": "Selected products exceed the gift box capacity."}
+            )
+
         payment_method = attrs.get("payment_method")
         if payment_method == "cod":
             attrs["payment_status"] = "confirmed"
+            attrs["status"] = "confirmed"
         elif payment_method == "bank_transfer":
             attrs["payment_status"] = "pending"
+            attrs["status"] = "pending"
         else:
             raise serializers.ValidationError({"payment_method": "Choose cash on delivery or bank transfer."})
 
@@ -316,6 +363,14 @@ class OrderStatusUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
+        fields = ["status"]
+
+
+class CustomGiftOrderStatusUpdateSerializer(serializers.ModelSerializer):
+    """Admin-only serializer to update a custom gift fulfillment status."""
+
+    class Meta:
+        model = CustomGiftOrder
         fields = ["status"]
 
 

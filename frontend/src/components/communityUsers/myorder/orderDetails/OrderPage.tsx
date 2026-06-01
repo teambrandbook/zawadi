@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { ShoppingCart } from "lucide-react"; // Added for the icon
 import ProductDetails, { ProductDetailsCard } from "./ProductDetails";
 import QuantitySelector from "./QuantitySelector";
-import DeliveryInformation from "./DeliveryInformation";
 import OrderSummary from "./OrderSummary";
 import NeedHelpCard from "./NeedHelpCard";
 import { DeliveryForm, PackOption } from "./types";
@@ -295,10 +294,6 @@ export default function OrderPage() {
     void refreshCartTax();
   }, [deliveryForm.country, isCartCheckout]);
 
-  function onDeliveryChange<K extends keyof DeliveryForm>(field: K, value: DeliveryForm[K]) {
-    setDeliveryForm((prev) => ({ ...prev, [field]: value }));
-  }
-
   function showStatus(message: string) {
     setStatusMessage(message);
     toast.error(message);
@@ -335,20 +330,6 @@ export default function OrderPage() {
   }
 
   async function placeOrder() {
-    const requiredFields: Array<keyof DeliveryForm> = [
-      "fullName",
-      "phone",
-      "email",
-      "city",
-      "postalCode",
-      "address",
-    ];
-    const missing = requiredFields.find((field) => !deliveryForm[field].trim());
-    if (missing) {
-      showStatus("Please complete all required delivery fields.");
-      return;
-    }
-
     if (isCartCheckout) {
       if (!cartItems.length) {
         showStatus("Your cart is empty.");
@@ -434,8 +415,8 @@ export default function OrderPage() {
           </h1>
           <p className="mt-1 text-sm text-[#6B7280]">
             {isCartCheckout
-              ? "Review your cart items and complete delivery details."
-              : "Select your product, choose pack, and complete delivery details."}
+              ? "Review your cart items before payment."
+              : "Select your product and choose pack before payment."}
           </p>
         </div>
 
@@ -456,7 +437,6 @@ export default function OrderPage() {
                     productName={selectedProduct.product_name}
                     productDescription={selectedProduct.short_description}
                     productImage={toImageUrl(selectedProduct.image)}
-                    alternativeImages={(selectedProduct.alternative_images ?? []).map(toImageUrl)}
                   />
                 ) : (
                   <ProductDetails />
@@ -466,8 +446,6 @@ export default function OrderPage() {
             )}
 
             <div className="space-y-4">
-              <DeliveryInformation form={deliveryForm} onChange={onDeliveryChange} />
-
               {/* BUTTON ALIGNED TO THE RIGHT */}
               {/* BUTTON ALIGNED TO THE RIGHT WITH INCREASED WIDTH */}
               {!isCartCheckout && selectedProduct && (

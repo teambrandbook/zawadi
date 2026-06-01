@@ -43,6 +43,7 @@ type ApiOrderDetail = {
   payment_status: string;
   status: string;
   created_at: string;
+  updated_at?: string;
   gift_items?: GiftDisplayItem[];
 };
 
@@ -83,7 +84,9 @@ type ApiCustomGiftDetail = {
   occasion?: string;
   payment_method: string;
   payment_status: string;
+  status: string;
   created_at: string;
+  updated_at?: string;
 };
 
 type PaginatedResponse<T> = {
@@ -98,7 +101,7 @@ type ProgressStep = {
 
 const fallbackImage = "/product/p-1.webp";
 const cardClass = "rounded-2xl border border-[#DFDFDF] bg-white p-6 shadow-[0_1px_1px_rgba(0,0,0,0.05)]";
-const statusOrder = ["pending", "confirmed", "processing", "shipped", "delivered"];
+const statusOrder = ["confirmed", "processing", "shipped", "out_for_delivery", "delivered"];
 
 function toProductImageUrl(imagePath?: string | null): string {
   if (!imagePath) return fallbackImage;
@@ -159,9 +162,12 @@ function toTitleCase(value: string): string {
     .join(" ");
 }
 
+function normalizeStatus(value?: string): string {
+  return String(value || "").toLowerCase().replace(/[_\s-]+/g, "_");
+}
+
 function getDisplayStatus(order?: ApiOrderDetail | null): string {
   if (!order) return "Confirmed";
-  if (order.status === "pending") return "Confirmed";
   return toTitleCase(order.status);
 }
 
@@ -172,9 +178,10 @@ function getPaymentStatus(order?: ApiOrderDetail | null): string {
 }
 
 function getCompletedStepCount(status?: string): number {
-  if (!status || status === "cancelled") return 2;
-  const index = statusOrder.indexOf(status);
-  return Math.max(2, index + 1);
+  const normalized = normalizeStatus(status);
+  if (!normalized || normalized === "pending" || normalized === "cancelled") return 0;
+  const index = statusOrder.indexOf(normalized === "conformed" ? "confirmed" : normalized);
+  return Math.max(0, index + 1);
 }
 
 function buildProgress(status?: string): ProgressStep[] {
@@ -182,8 +189,8 @@ function buildProgress(status?: string): ProgressStep[] {
   return [
     { label: "Confirmed", Icon: Check, status: completed >= 1 ? "done" : "upcoming" },
     { label: "Processing", Icon: ClipboardList, status: completed >= 2 ? "done" : "upcoming" },
-    { label: "Packed", Icon: PackageCheck, status: completed >= 3 ? "done" : "upcoming" },
-    { label: "Shipped", Icon: Truck, status: completed >= 4 ? "done" : "upcoming" },
+    { label: "Shipped", Icon: PackageCheck, status: completed >= 3 ? "done" : "upcoming" },
+    { label: "Out for Delivery", Icon: Truck, status: completed >= 4 ? "done" : "upcoming" },
     { label: "Delivered", Icon: MapPin, status: completed >= 5 ? "done" : "upcoming" },
   ];
 }
@@ -216,8 +223,9 @@ function mapCustomGiftOrder(order: ApiCustomGiftDetail): ApiOrderDetail {
       .join(". "),
     payment_method: order.payment_method,
     payment_status: order.payment_status,
-    status: order.payment_status === "confirmed" ? "confirmed" : "pending",
+    status: order.status,
     created_at: order.created_at,
+    updated_at: order.updated_at,
     gift_items: order.items.map((item) => ({
       name: item.name || "Gift Box Product",
       image: item.image ?? null,

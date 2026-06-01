@@ -43,9 +43,10 @@ class CustomGiftOrderAdmin(admin.ModelAdmin):
         "total_amount",
         "payment_method",
         "payment_status",
+        "status",
         "created_at",
     ]
-    list_filter = ["gift_type", "payment_method", "payment_status", "created_at"]
+    list_filter = ["gift_type", "payment_method", "payment_status", "status", "created_at"]
     search_fields = ["custom_gift_id", "user__email", "full_name", "phone", "box_name"]
     readonly_fields = ["custom_gift_id", "created_at", "updated_at"]
     ordering = ["-created_at"]

@@ -51,11 +51,12 @@ type ApiCustomGiftListItem = {
   }>;
   total_amount: string | number;
   payment_status: string;
+  status: string;
   created_at: string;
   updated_at?: string;
 };
 
-type OrderLifecycleStatus = "Processing" | "Shipped" | "Out for Delivery" | "Delivered" | "Cancelled";
+type OrderLifecycleStatus = "Pending" | "Confirmed" | "Conformed" | "Processing" | "Shipped" | "Out for Delivery" | "Delivered" | "Cancelled";
 type TabFilter = "All Orders" | "Processing" | "Shipped" | "Delivered" | "Cancelled";
 type SortMode = "latest" | "oldest" | "amount";
 
@@ -96,11 +97,14 @@ function toList<T>(data: T[] | { results?: T[] }): T[] {
 
 function toLifecycleStatus(status: string): OrderLifecycleStatus {
   const normalized = status.toLowerCase().replace(/[_\s-]+/g, "_");
+  if (normalized === "pending") return "Pending";
+  if (normalized === "confirmed") return "Confirmed";
+  if (normalized === "conformed") return "Conformed";
   if (normalized === "delivered") return "Delivered";
   if (normalized === "cancelled") return "Cancelled";
   if (normalized === "shipped") return "Shipped";
   if (normalized === "out_for_delivery") return "Out for Delivery";
-  return "Processing"; // Covers 'confirmed' and 'processing'
+  return "Processing";
 }
 
 function toOrderTitle(productName: string): string {
@@ -137,6 +141,8 @@ function addDaysLabel(value: string, days: number): string {
 
 function getStatusPercent(status: OrderLifecycleStatus) {
   if (status === "Cancelled") return "Cancelled";
+  if (status === "Pending") return "Pending";
+  if (status === "Confirmed" || status === "Conformed") return "0% Complete";
   if (status === "Processing") return "25% Complete";
   if (status === "Shipped") return "50% Complete";
   if (status === "Out for Delivery") return "75% Complete";
@@ -144,14 +150,25 @@ function getStatusPercent(status: OrderLifecycleStatus) {
 }
 
 function getCompletedStageIndex(status: OrderLifecycleStatus) {
+  if (status === "Pending") return -1;
+  if (status === "Confirmed" || status === "Conformed") return 0;
   if (status === "Processing") return 1;
   if (status === "Shipped") return 2;
   if (status === "Out for Delivery") return 3;
   if (status === "Delivered") return 4;
-  return 0; // Confirmed
+  return 0;
 }
 
 function getBadgeData(status: OrderLifecycleStatus) {
+  if (status === "Pending") {
+    return { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", Icon: Clock3, label: "Pending" };
+  }
+  if (status === "Confirmed") {
+    return { bg: "bg-[#E0F2FE]", text: "text-[#0369A1]", Icon: CheckCircle2, label: "Confirmed" };
+  }
+  if (status === "Conformed") {
+    return { bg: "bg-[#E0F2FE]", text: "text-[#0369A1]", Icon: CheckCircle2, label: "Conformed" };
+  }
   if (status === "Out for Delivery") {
     return { bg: "bg-[#DCFCE7]", text: "text-[#047857]", Icon: Truck, label: "Out for Delivery" };
   }
@@ -209,7 +226,7 @@ function mapRegularOrder(item: ApiOrderListItem, index: number): OrderItem {
 }
 
 function mapCustomGiftOrder(item: ApiCustomGiftListItem): OrderItem {
-  const lifecycleStatus = toLifecycleStatus(item.payment_status);
+  const lifecycleStatus = toLifecycleStatus(item.status);
   const createdAt = new Date(item.created_at).getTime();
   const quantity = item.items?.reduce((sum, product) => sum + Number(product.quantity ?? 0), 0) || 1;
   return {
@@ -276,7 +293,7 @@ export default function MyOrder() {
     const deliveredCount = orders.filter((item) => item.lifecycleStatus === "Delivered").length;
     const cancelledCount = orders.filter((item) => item.lifecycleStatus === "Cancelled").length;
     const activeCount = orders.filter((item) =>
-      ["Processing", "Shipped", "Out for Delivery"].includes(item.lifecycleStatus)
+      ["Pending", "Confirmed", "Conformed", "Processing", "Shipped", "Out for Delivery"].includes(item.lifecycleStatus)
     ).length;
 
     return [
@@ -343,7 +360,7 @@ export default function MyOrder() {
         { label: "Invoice", variant: "secondary" as const, Icon: Download },
       ];
     }
-    if (status === "Processing") {
+    if (status === "Pending" || status === "Confirmed" || status === "Conformed" || status === "Processing") {
       return [
         { label: "View Details", variant: "secondary" as const, Icon: Eye },
         { label: "Reorder", variant: "secondary" as const, Icon: RefreshCw },
