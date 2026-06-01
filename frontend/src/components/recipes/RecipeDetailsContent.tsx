@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, Play, Utensils } from "lucide-react";
+import { ArrowRight, Heart, Play, Utensils } from "lucide-react";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { fadeIn, imageAnimationtopdown } from "@/utils/animations";
@@ -11,6 +12,7 @@ import { type Recipe } from "@/components/recipes/recipeTypes";
 import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 import type { RootState } from "@/redux/store";
 
 type FavoriteRecipeItem = {
@@ -27,6 +29,22 @@ type FavoriteRecipesResponse =
       results?: FavoriteRecipeItem[];
     };
 
+type PublishedRecipeItem = {
+  id: number | string;
+  title: string;
+  cover_image?: string | null;
+  image?: string | null;
+  image_url?: string | null;
+  thumbnail?: string | null;
+};
+
+type PublishedRecipesResponse =
+  | PublishedRecipeItem[]
+  | {
+      data?: PublishedRecipeItem[];
+      results?: PublishedRecipeItem[];
+    };
+
 function favoriteListFromResponse(data: FavoriteRecipesResponse): FavoriteRecipeItem[] {
   return Array.isArray(data)
     ? data
@@ -35,6 +53,21 @@ function favoriteListFromResponse(data: FavoriteRecipesResponse): FavoriteRecipe
     : Array.isArray(data?.results)
     ? data.results
     : [];
+}
+
+function publishedListFromResponse(data: PublishedRecipesResponse): PublishedRecipeItem[] {
+  return Array.isArray(data)
+    ? data
+    : Array.isArray(data?.data)
+    ? data.data
+    : Array.isArray(data?.results)
+    ? data.results
+    : [];
+}
+
+function publishedRecipeImage(recipe: PublishedRecipeItem) {
+  const image = recipe.cover_image ?? recipe.image ?? recipe.image_url ?? recipe.thumbnail;
+  return image ? getImageUrl(image) : "/recipe/recipe-1.webp";
 }
 
 export default function RecipeDetailsContent({
@@ -50,6 +83,7 @@ export default function RecipeDetailsContent({
   const isRehydrating = useSelector((state: RootState) => state.user.isRehydrating);
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoritePending, setFavoritePending] = useState(false);
+  const [moreRecipes, setMoreRecipes] = useState<PublishedRecipeItem[]>([]);
   const ingredients = recipe.ingredients ?? [];
   const optionalIngredients = recipe.optional ?? [];
   const steps = recipe.steps ?? [];
@@ -98,6 +132,29 @@ export default function RecipeDetailsContent({
       mounted = false;
     };
   }, [isRehydrating, isAuthenticated, recipe.id]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    api
+      .get<PublishedRecipesResponse>("/recipes/published/")
+      .then(({ data }) => {
+        if (!mounted) return;
+
+        const shuffledRecipes = publishedListFromResponse(data)
+          .filter((item) => String(item.id) !== recipe.id)
+          .sort(() => Math.random() - 0.5)
+          .slice(0, 3);
+        setMoreRecipes(shuffledRecipes);
+      })
+      .catch(() => {
+        if (mounted) setMoreRecipes([]);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, [recipe.id]);
 
   const handleToggleFavorite = async () => {
     if (!isAuthenticated) {
@@ -268,6 +325,50 @@ export default function RecipeDetailsContent({
                 ))}
               </div>
             </div>
+          ) : null}
+
+          {moreRecipes.length > 0 ? (
+            <section className="mt-10 md:mt-14 lg:mt-16">
+              <div className="mb-6 flex items-center justify-between gap-4 sm:mb-7">
+                <h3 className="font-['Playfair_Display'] text-[26px] font-medium text-[#102508] sm:text-[31px] md:text-[34px]">
+                  More Recipes
+                </h3>
+
+                <Link
+                  href="/recipes"
+                  className="inline-flex shrink-0 items-center gap-2.5 rounded-full bg-[#1f4d3a] px-4 py-3.5 font-['DM_Sans'] text-[10px] font-semibold text-white transition hover:bg-[#163a2b] sm:px-5"
+                >
+                  <span>View More</span>
+                  <ArrowRight className="h-3.5 w-3.5 rtl:rotate-180" />
+                </Link>
+              </div>
+
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {moreRecipes.map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/recipes/${item.id}`}
+                    className="group relative block overflow-hidden rounded-[7px] bg-white"
+                  >
+                    <div className="relative aspect-[1.18/1] overflow-hidden">
+                      <Image
+                        src={publishedRecipeImage(item)}
+                        alt={item.title}
+                        fill
+                        unoptimized
+                        className="object-cover transition duration-300 group-hover:scale-105"
+                      />
+                    </div>
+
+                    <div className="absolute inset-x-4 bottom-3 flex min-h-[68px] items-center justify-center rounded-[6px] bg-white px-4 py-2.5 text-center shadow-sm sm:inset-x-5">
+                      <h4 className="font-['Playfair_Display'] text-[17px] font-semibold uppercase leading-tight text-black sm:text-[18px]">
+                        {item.title}
+                      </h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </section>
           ) : null}
         </div>
       </section>

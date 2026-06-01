@@ -272,21 +272,31 @@ if not DEBUG and _frontend_url_unset and _running_cmd not in _MANAGEMENT_CMDS:
     )
 
 # ─── Cache (Redis) ────────────────────────────────────────────────────────────
-# django-redis with IGNORE_EXCEPTIONS so cache misses degrade gracefully
-CACHES = {
-    "default": {
-        "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        "TIMEOUT": 300,
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "IGNORE_EXCEPTIONS": True,
-            "SOCKET_CONNECT_TIMEOUT": 2,
-            "SOCKET_TIMEOUT": 2,
-        },
-        "KEY_PREFIX": "zawadi",
+# Docker and production explicitly provide REDIS_URL. Local runs without Redis
+# use memory caching so a cache miss does not delay every request.
+_redis_url = os.getenv("REDIS_URL")
+if _redis_url:
+    CACHES = {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": _redis_url,
+            "TIMEOUT": 300,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+                "IGNORE_EXCEPTIONS": True,
+                "SOCKET_CONNECT_TIMEOUT": 2,
+                "SOCKET_TIMEOUT": 2,
+            },
+            "KEY_PREFIX": "zawadi",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "KEY_PREFIX": "zawadi",
+        }
+    }
 
 # ─── GCC Tax & Currency ────────────────────────────────────────────────────────
 DEFAULT_TAX_COUNTRY = "SA"

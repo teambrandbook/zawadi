@@ -2,7 +2,8 @@ from decimal import Decimal
 
 from django.db.models import Avg, Count
 from rest_framework import serializers
-from .models import Product, ProductCategory, ProductImage, ProductVariant
+from .models import Product, ProductCategory, ProductCountryPrice, ProductImage, ProductVariant
+from tax.models import Currency
 
 MAX_ALTERNATIVE_IMAGES = 4
 
@@ -66,6 +67,7 @@ class ProductSerializer(serializers.ModelSerializer):
     discount_percent = serializers.SerializerMethodField()
     tax_category_code = serializers.SerializerMethodField()
     display_price = serializers.SerializerMethodField()
+    currency = serializers.SerializerMethodField()
     currency_code = serializers.SerializerMethodField()
     currency_decimal_places = serializers.SerializerMethodField()
     category_name = serializers.SerializerMethodField()
@@ -141,6 +143,9 @@ class ProductSerializer(serializers.ModelSerializer):
         _, currency = self._get_country_price(obj)
         return currency.code
 
+    def get_currency(self, obj):
+        return self.get_currency_code(obj)
+
     def get_currency_decimal_places(self, obj):
         _, currency = self._get_country_price(obj)
         return currency.decimal_places
@@ -171,6 +176,7 @@ class ProductSerializer(serializers.ModelSerializer):
             "mrp_price",
             "selling_price",
             "display_price",
+            "currency",
             "currency_code",
             "currency_decimal_places",
             "average_rating",
@@ -209,6 +215,12 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         write_only=True,
         required=False,
         allow_empty=True,
+    )
+    currency = serializers.SlugRelatedField(
+        slug_field="code",
+        queryset=Currency.objects.filter(is_active=True),
+        write_only=True,
+        required=False,
     )
 
     class Meta:
@@ -273,9 +285,11 @@ class ProductCreateSerializer(serializers.ModelSerializer):
         # treats each sellable pack as a separate product/SKU.
         validated_data.pop("variants", [])
         alternative_images = validated_data.pop("alternative_images", [])
+        currency = validated_data.pop("currency", None)
 
         # Create Product
         product = Product.objects.create(**validated_data)
+        self._update_default_country_price(product, currency)
         self._replace_alternative_images(product, alternative_images)
 
         return product
@@ -284,16 +298,34 @@ class ProductCreateSerializer(serializers.ModelSerializer):
 
         validated_data.pop("variants", None)
         alternative_images = validated_data.pop("alternative_images", None)
+        currency = validated_data.pop("currency", None)
 
         # Update Product
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
 
         instance.save()
+        self._update_default_country_price(instance, currency)
         if alternative_images is not None:
             self._replace_alternative_images(instance, alternative_images)
 
         return instance
+
+    def _update_default_country_price(self, product, currency):
+        country_price = product.country_prices.filter(country="SA").select_related("currency").first()
+        selected_currency = currency or (country_price.currency if country_price else None)
+        if not selected_currency:
+            selected_currency = Currency.objects.get(code="SAR")
+
+        ProductCountryPrice.objects.update_or_create(
+            product=product,
+            country="SA",
+            defaults={
+                "currency": selected_currency,
+                "selling_price": product.selling_price,
+                "is_active": True,
+            },
+        )
 
     def _replace_alternative_images(self, product, images):
         if images is None:

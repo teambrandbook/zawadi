@@ -35,6 +35,8 @@ type ApiProduct = {
   cost_price?: string | number;
   mrp_price?: string | number;
   selling_price?: string | number;
+  currency?: string;
+  currency_code?: string;
   product_unit?: string;
   unit_quantity?: string | number;
   stock_quantity: number;
@@ -112,7 +114,7 @@ function toPacks(product: ApiProduct | null): PackOption[] {
       price: toNumber(product.selling_price ?? product.sale_price ?? product.base_price),
       unitNote:
         product.mrp_price && toNumber(product.mrp_price) > toNumber(product.selling_price ?? product.sale_price ?? product.base_price)
-          ? `MRP ${toCurrency(product.mrp_price)}`
+          ? `MRP ${toCurrency(product.mrp_price, product.currency_code || product.currency || "SAR")}`
           : "Single SKU",
     },
   ];
@@ -120,7 +122,7 @@ function toPacks(product: ApiProduct | null): PackOption[] {
   return packs;
 }
 
-function toCurrency(value: string | number, currency = "USD"): string {
+function toCurrency(value: string | number, currency = "SAR"): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency,
@@ -396,6 +398,7 @@ export default function OrderPage() {
         subtotal: singleSubtotal.toFixed(2),
         deliveryCharge: deliveryCharge.toFixed(2),
         totalAmount: totalAmount.toFixed(2),
+        currency: selectedProduct.currency_code || selectedProduct.currency || "SAR",
       },
       order: {
         product_id: selectedProduct.id,
@@ -445,7 +448,7 @@ export default function OrderPage() {
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-5">
             {isCartCheckout ? (
-              <CartCheckoutItems items={cartItems} currency={cartItems[0]?.currency ?? "USD"} />
+              <CartCheckoutItems items={cartItems} currency={cartItems[0]?.currency ?? "SAR"} />
             ) : (
               <>
                 {selectedProduct ? (
@@ -489,7 +492,7 @@ export default function OrderPage() {
               <CartCheckoutSummary
                 items={cartItems}
                 summary={cartSummary}
-                currency={cartItems[0]?.currency ?? "USD"}
+                currency={cartItems[0]?.currency ?? "SAR"}
                 isSubmitting={isSubmitting}
                 hasOutOfStockItem={hasOutOfStockCartItem}
                 onPlaceOrder={placeOrder}
@@ -501,6 +504,7 @@ export default function OrderPage() {
                 selectedPack={selectedPack}
                 quantity={quantity}
                 deliveryCharge={deliveryCharge}
+                currency={selectedProduct?.currency_code || selectedProduct?.currency || "SAR"}
                 isSubmitting={isSubmitting}
                 isDisabled={maxQuantity < 1}
                 actionLabel="Continue to Payment"

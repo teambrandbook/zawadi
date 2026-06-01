@@ -13,6 +13,7 @@ import {
   Stethoscope, 
   UserRound, 
   Calendar, 
+  Gift,
   Bell, 
   BarChart3, 
   Settings, 
@@ -56,6 +57,7 @@ const navigation: { section: string; items: NavItem[] }[] = [
       { name: "Consultation", icon: Stethoscope, href: "/admindashboard/consultation" },
       { name: "Nutritionist", icon: UserRound, href: "/admindashboard/nutritionist" },
       { name: "Events", icon: Calendar, href: "/admindashboard/events" },
+      { name: "Gifts", icon: Gift, href: "/admindashboard/gifts" },
     ],
   },
   {

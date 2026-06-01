@@ -8,6 +8,7 @@ import { type Recipe } from "@/components/recipes/recipeTypes";
 import { translations } from "@/locales/translations";
 
 type RecipeCardLabels = typeof translations.en.recipesPage.list;
+type RecipeNutritionLabels = typeof translations.en.recipesPage.detail;
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -15,6 +16,7 @@ interface RecipeCardProps {
   toggleFavorite: () => void;
   reverse?: boolean;
   labels: RecipeCardLabels;
+  nutritionLabels: RecipeNutritionLabels;
 }
 
 export default function RecipeCard({
@@ -23,6 +25,7 @@ export default function RecipeCard({
   toggleFavorite,
   reverse = false,
   labels,
+  nutritionLabels,
 }: RecipeCardProps) {
   const benefits = recipe.benefits ?? [];
   const [imageSrc, setImageSrc] = useState(recipe.image || "/recipe/recipe-1.webp");
@@ -93,6 +96,20 @@ export default function RecipeCard({
               ))}
             </ul>
           </>
+        )}
+
+        {recipe.nutrition && (
+          <div className="mt-7">
+            <h3 className="font-['Playfair_Display'] text-[18px] font-semibold text-[#1F4D3A] md:text-[20px]">
+              {nutritionLabels.nutritionFacts}
+            </h3>
+            <p className="mt-1 text-[13px] font-[800] leading-[1.2] text-black md:text-[15px] [font-family:'Inter']">
+              {recipe.nutrition.calories} {nutritionLabels.calories},{" "}
+              {recipe.nutrition.fat} {nutritionLabels.fat},{" "}
+              {recipe.nutrition.carbs} {nutritionLabels.carbs},{" "}
+              {recipe.nutrition.protein} {nutritionLabels.protein}
+            </p>
+          </div>
         )}
 
         {/* Action Row: Learn More & Favorite */}

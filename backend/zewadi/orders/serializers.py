@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
-from .models import CartItem, Order, OrderReview
+from .models import CartItem, CustomGiftOrder, Order, OrderReview
 from product.models import Product, ProductVariant
 
 
@@ -108,6 +108,11 @@ class OrderCreateSerializer(serializers.ModelSerializer):
             + Decimal(attrs.get("delivery_charge") or 0)
             + Decimal(attrs["tax_amount"])
         )
+        from product.services import get_product_price
+
+        _, currency = get_product_price(product, attrs.get("tax_country_snapshot") or "SA")
+        attrs["charged_currency"] = currency.code
+        attrs["charged_amount"] = attrs["total_amount"]
 
         return attrs
 
@@ -115,6 +120,83 @@ class OrderCreateSerializer(serializers.ModelSerializer):
         validated_data.pop("product_id", None)
         validated_data.pop("variant_id", None)
         return Order.objects.create(**validated_data)
+
+
+class CustomGiftOrderCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomGiftOrder
+        fields = [
+            "id",
+            "custom_gift_id",
+            "gift_type",
+            "box_id",
+            "box_name",
+            "box_price",
+            "box_capacity",
+            "items",
+            "message",
+            "occasion",
+            "full_name",
+            "phone",
+            "email",
+            "city",
+            "postal_code",
+            "address",
+            "subtotal",
+            "delivery_charge",
+            "tax_amount",
+            "charged_currency",
+            "total_amount",
+            "payment_method",
+            "payment_status",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "custom_gift_id",
+            "payment_status",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_items(self, value):
+        if not isinstance(value, list) or len(value) == 0:
+            raise serializers.ValidationError("Add at least one product to the gift box.")
+        return value
+
+    def validate(self, attrs):
+        required_fields = [
+            "gift_type",
+            "box_id",
+            "box_name",
+            "box_price",
+            "box_capacity",
+            "full_name",
+            "phone",
+            "address",
+            "subtotal",
+            "total_amount",
+            "payment_method",
+        ]
+        missing = [field for field in required_fields if not str(attrs.get(field, "")).strip()]
+        if missing:
+            raise serializers.ValidationError(
+                {"detail": "Please complete all required custom gift fields.", "missing": missing}
+            )
+
+        payment_method = attrs.get("payment_method")
+        if payment_method == "cod":
+            attrs["payment_status"] = "confirmed"
+        elif payment_method == "bank_transfer":
+            attrs["payment_status"] = "pending"
+        else:
+            raise serializers.ValidationError({"payment_method": "Choose cash on delivery or bank transfer."})
+
+        return attrs
+
+    def create(self, validated_data):
+        return CustomGiftOrder.objects.create(**validated_data)
 
 
 class OrderListSerializer(serializers.ModelSerializer):
@@ -141,6 +223,7 @@ class OrderListSerializer(serializers.ModelSerializer):
             "subtotal",
             "delivery_charge",
             "tax_amount",
+            "charged_currency",
             "total_amount",
             "full_name",
             "phone",
@@ -289,7 +372,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     short_description = serializers.CharField(source="product.short_description", read_only=True)
     health_benefits = serializers.CharField(source="product.health_benefits", read_only=True)
     image = serializers.SerializerMethodField()
-    currency = serializers.CharField(source="product.currency", read_only=True)
+    currency = serializers.SerializerMethodField()
     stock_quantity = serializers.IntegerField(source="product.stock_quantity", read_only=True)
     stock_status = serializers.CharField(source="product.stock_status", read_only=True)
     variant_id = serializers.IntegerField(source="variant.id", read_only=True, allow_null=True)
@@ -336,6 +419,14 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def get_unit_price(self, obj):
         return f"{Decimal(obj.unit_price):.2f}"
+
+    def get_currency(self, obj):
+        from django.conf import settings
+        from product.services import get_product_price
+
+        country = getattr(settings, "DEFAULT_TAX_COUNTRY", "SA")
+        _, currency = get_product_price(obj.product, country)
+        return currency.code
 
     def get_line_total(self, obj):
         return f"{Decimal(obj.line_total):.2f}"

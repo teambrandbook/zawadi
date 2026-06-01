@@ -44,7 +44,8 @@ type Product = {
   discount_percent?: string | number;
   average_rating?: string | number | null;
   review_count?: number;
-  currency: string;
+  currency?: string;
+  currency_code?: string;
   stock_quantity: number;
   stock_status: string;
   variants: ProductVariant[];
@@ -84,7 +85,7 @@ function toNumber(value: string | number | null | undefined): number {
   return Number.isNaN(amount) ? 0 : amount;
 }
 
-function toCurrency(value: string | number | null | undefined, currency = "USD"): string {
+function toCurrency(value: string | number | null | undefined, currency = "SAR"): string {
   try {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -408,7 +409,7 @@ export default function CommunityProductsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex h-[260px] flex-col p-2.5 sm:h-[254px] sm:p-3 xl:h-[248px] xl:p-4">
+                  <div className="flex min-h-[300px] flex-col p-2.5 sm:min-h-[292px] sm:p-3 xl:min-h-[304px] xl:p-4">
                     <span className="w-fit rounded-full bg-[#9F8151]/10 px-1.5 py-0.5 text-[9px] font-medium text-[#9F8151] sm:px-2 sm:py-1 sm:text-[10px] xl:text-xs">
                       {toCategoryLabel(product.category)}
                     </span>
@@ -425,15 +426,15 @@ export default function CommunityProductsPage() {
                       </p>
                     )}
 
-                    <div className="mt-auto flex items-center justify-between">
+                    <div className="mt-auto flex min-h-[46px] items-end justify-between gap-2 pt-3">
                       <div>
                         <strong className="text-[13px] font-bold text-[#0A4833] sm:text-sm xl:text-lg">
-                          {toCurrency(price, product.currency)}
+                          {toCurrency(price, product.currency_code || product.currency || "SAR")}
                         </strong>
                         {discounted ? (
                           <div className="mt-0.5 flex items-center gap-2">
                             <span className="text-xs text-[#9CA3AF] line-through">
-                              {toCurrency(product.mrp_price, product.currency)}
+                              {toCurrency(product.mrp_price, product.currency_code || product.currency || "SAR")}
                             </span>
                             <span className="text-xs font-medium text-[#16A34A]">
                               {toNumber(product.discount_percent).toFixed(0)}% off
@@ -441,7 +442,7 @@ export default function CommunityProductsPage() {
                           </div>
                         ) : null}
                       </div>
-                      <span className="text-[10px] text-[#6B7280] xl:text-xs">{product.unit_quantity} {product.product_unit}</span>
+                      <span className="shrink-0 text-[10px] text-[#6B7280] xl:text-xs">{product.unit_quantity} {product.product_unit}</span>
                     </div>
 
                     <div className="mt-3 flex gap-1.5 xl:gap-2">

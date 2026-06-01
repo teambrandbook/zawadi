@@ -6,6 +6,7 @@ type Props = {
   productName?: string;
   subtitle?: string;
   price?: string;
+  currency?: string;
   stock?: string;
   status?: string;
   imageUrl?: string | null;
@@ -15,6 +16,7 @@ export default function ProductPreviewCard({
   productName = "",
   subtitle = "Product subtitle will appear here",
   price = "0.00",
+  currency = "SAR",
   stock = "0",
   status = "Draft",
   imageUrl = null,
@@ -38,7 +40,7 @@ export default function ProductPreviewCard({
         </div>
         <div className="flex items-center justify-between">
           <span className="font-medium text-[#0A4833]">Price:</span>
-          <span className="font-semibold text-[#A1844F]">${price || "0.00"}</span>
+          <span className="font-semibold text-[#A1844F]">{currency} {price || "0.00"}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="font-medium text-[#0A4833]">Stock:</span>
