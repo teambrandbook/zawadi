@@ -18,6 +18,7 @@ export type ProductRow = {
   category: string;
   variants: ProductVariant[]; // Changed from variant: string
   price: number;
+  currency: string;
   stockUnits: number;
   stockStatus?: string;
   lowStockAlert?: number;
@@ -52,16 +53,19 @@ export default function ProductsTable({
   onEditRow,
   onDeleteRow,
 }: Props) {
+  const shortSubtitle = (value: string) =>
+    value.length > 20 ? `${value.slice(0, 20)}...` : value;
+
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1100px] border-collapse text-left text-sm">
           <thead className="bg-[#E9E0D0] text-[#0A4833]">
             <tr>
-              <th className="px-3 py-3">
+              <th className="w-11 px-3 py-3">
                 <input type="checkbox" onChange={onToggleSelectAllPage} />
               </th>
-              <th className="px-3 py-3">Product</th>
+              <th className="w-[360px] px-3 py-3">Product</th>
               <th className="px-3 py-3">Product Code</th>
               <th className="px-3 py-3">Category</th>
               <th className="px-3 py-3">Pack Policy</th>
@@ -75,14 +79,14 @@ export default function ProductsTable({
           <tbody>
             {rows.map((row) => (
               <tr key={row.id} className="border-t border-[#DFDFDF]">
-                <td className="px-3 py-4">
+                <td className="w-11 px-3 py-4">
                   <input
                     type="checkbox"
                     checked={selectedIds.includes(row.id)}
                     onChange={() => onToggleSelect(row.id)}
                   />
                 </td>
-                <td className="px-3 py-4">
+                <td className="w-[360px] px-3 py-4">
                   <div className="flex items-center gap-2">
                     <img
                       src={row.image}
@@ -91,7 +95,7 @@ export default function ProductsTable({
                     />
                     <div>
                       <p className="font-medium text-[#0A4833]">{row.name}</p>
-                      <p className="text-xs text-[#6B7280]">{row.subtitle}</p>
+                      <p className="text-xs text-[#6B7280]">{shortSubtitle(row.subtitle)}</p>
                     </div>
                   </div>
                 </td>
@@ -100,8 +104,8 @@ export default function ProductsTable({
                 <td className="px-3 py-4 text-[#4B5563]">
                   Separate SKU
                 </td>
-                <td className="px-3 py-4 font-semibold text-[#0A4833]">
-                  ${row.price.toFixed(2)}
+                <td className="whitespace-nowrap px-3 py-4 font-semibold text-[#0A4833]">
+                  {row.currency} {row.price.toFixed(2)}
                 </td>
                 <td className="px-3 py-4 text-xs font-medium text-[#9F8151]">
                   {row.stockUnits} units

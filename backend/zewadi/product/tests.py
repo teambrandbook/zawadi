@@ -4,7 +4,7 @@ from django.test import TestCase, override_settings
 from django.core.cache import cache
 from rest_framework.test import APIClient
 from .serializers import ProductCreateSerializer
-from .models import Product, ProductStatus
+from .models import Product, ProductCategory, ProductCountryPrice, ProductStatus
 from tax.models import Currency, CountryConfig, TaxCategory, TaxRate
 
 CACHE_SETTINGS = {
@@ -63,12 +63,47 @@ class ProductPricingValidationTest(TestCase):
                 "base_price": "50.00",
                 "sale_price": "120.00",
                 "stock_quantity": 5,
-                "tax_category": self.standard.id,
+                "tax_category": self.standard.code,
             }
         )
 
         self.assertFalse(serializer.is_valid())
         self.assertIn("selling_price", serializer.errors)
+
+    def test_currency_is_saved_and_updated_for_default_catalog_price(self):
+        ProductCategory.objects.get_or_create(name="Food", slug="food")
+        aed = Currency.objects.get(code="AED")
+        serializer = ProductCreateSerializer(
+            data={
+                "product_name": "Currency Product",
+                "product_code": "CUR-001",
+                "category": "food",
+                "product_status": "active",
+                "short_description": "Currency persistence",
+                "cost_price": "50.00",
+                "mrp_price": "100.00",
+                "selling_price": "90.00",
+                "currency": "AED",
+                "tax_category": "STANDARD",
+            }
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        product = serializer.save()
+        country_price = ProductCountryPrice.objects.get(product=product, country="SA")
+        self.assertEqual(country_price.currency, aed)
+        self.assertEqual(country_price.selling_price, Decimal("90.00"))
+
+        update = ProductCreateSerializer(
+            product,
+            data={"selling_price": "80.00", "sale_price": "80.00", "currency": "SAR"},
+            partial=True,
+        )
+        self.assertTrue(update.is_valid(), update.errors)
+        update.save()
+        country_price.refresh_from_db()
+        self.assertEqual(country_price.currency.code, "SAR")
+        self.assertEqual(country_price.selling_price, Decimal("80.00"))
 
 
 @override_settings(CACHES=CACHE_SETTINGS)
@@ -135,7 +170,6 @@ class ProductDetailCacheTest(TestCase):
 # ============ GetProductPrice Service Tests ============
 
 from decimal import Decimal
-from product.models import ProductCountryPrice
 from product.services import get_product_price
 from tax.models import Currency, TaxCategory
 

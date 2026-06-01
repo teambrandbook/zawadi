@@ -235,7 +235,7 @@ export default function ProductCards() {
         productSubtitle: product.product_subtitle,
         image: product.image,
         unitPrice,
-        currency: "INR",
+        currency: product.currency_code || "SAR",
       });
       dispatch(setCartCount(getGuestCartCount()));
       toast.success(strings.addSuccess);

@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Check, Crown, Package, Search, Loader2 } from "lucide-react";
+import { Check, Loader2, Package, Search } from "lucide-react";
 import api from "@/services/api";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ApiProduct = {
   id: number;
@@ -15,7 +13,6 @@ type ApiProduct = {
   description?: string;
   short_description?: string;
   image: string | null;
-  // backend may return variants with price/weight; fall back gracefully
   variants?: Array<{
     id: number;
     variant_name?: string;
@@ -47,13 +44,22 @@ type BoxSize = {
   capacityGrams: number;
 };
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+type CommunityProfile = {
+  full_name?: string;
+  email?: string;
+  phone?: string;
+  address?: {
+    address_line?: string;
+    city?: string;
+    postal_code?: string;
+  } | null;
+};
 
 const giftBoxSizes: BoxSize[] = [
   {
     id: "small",
     name: "0.5 KG Gift Box",
-    description: "Perfect for sharing the wellness starter gift",
+    description: "Perfect for a thoughtful wellness starter gift",
     capacity: "500g",
     capacityGrams: 500,
   },
@@ -70,8 +76,6 @@ const BOX_PRICES: Record<"small" | "large", number> = {
   small: 249,
   large: 449,
 };
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseGrams(size: string): number {
   const match = size.match(/(\d+(?:\.\d+)?)\s*(kg|g)/i);
@@ -90,6 +94,7 @@ function mapApiProduct(p: ApiProduct): CartProduct {
   const productName = p.name ?? p.product_name ?? "ZEWADI Product";
   const size = firstVariant?.weight ?? firstVariant?.variant_name ?? p.weight ?? "250g";
   const price = formatPrice(p.selling_price ?? p.sale_price ?? p.price ?? p.base_price);
+
   return {
     id: p.id,
     name: productName,
@@ -101,26 +106,16 @@ function mapApiProduct(p: ApiProduct): CartProduct {
   };
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export default function CustomGiftsPage() {
   const router = useRouter();
 
-  // Box size selection
   const [selectedBox, setSelectedBox] = useState<BoxSize>(giftBoxSizes[0]);
-
-  // Products from API
   const [products, setProducts] = useState<CartProduct[]>([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState<string | null>(null);
-
-  // Search
   const [search, setSearch] = useState("");
-
-  // Personal message
   const [message, setMessage] = useState("");
-
-  // Recipient info
+  const [giftType, setGiftType] = useState<"self" | "recipient">("recipient");
   const [recipient, setRecipient] = useState({
     fullName: "",
     phone: "",
@@ -130,23 +125,20 @@ export default function CustomGiftsPage() {
     address: "",
     occasion: "Birthday",
   });
-
-  // Submission state
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const isSelfGifting = giftType === "self";
 
-  // ── Load products from API ──────────────────────────────────────────────────
   useEffect(() => {
     let cancelled = false;
     setProductsLoading(true);
+
     api
       .get("/products/")
       .then((res) => {
         if (cancelled) return;
-        const raw: ApiProduct[] = Array.isArray(res.data)
-          ? res.data
-          : res.data?.results ?? [];
+        const raw: ApiProduct[] = Array.isArray(res.data) ? res.data : res.data?.results ?? [];
         setProducts(raw.map(mapApiProduct));
       })
       .catch(() => {
@@ -155,534 +147,427 @@ export default function CustomGiftsPage() {
       .finally(() => {
         if (!cancelled) setProductsLoading(false);
       });
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // ── Derived state ──────────────────────────────────────────────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    api
+      .get<CommunityProfile>("/community/profile/")
+      .then((res) => {
+        if (cancelled) return;
+        const profile = res.data;
+        setRecipient((prev) => ({
+          ...prev,
+          fullName: prev.fullName || profile.full_name || "",
+          phone: prev.phone || profile.phone || "",
+          email: prev.email || profile.email || "",
+          city: prev.city || profile.address?.city || "",
+          postalCode: prev.postalCode || profile.address?.postal_code || "",
+          address: prev.address || profile.address?.address_line || "",
+        }));
+      })
+      .catch(() => {
+        // Profile data is only used to prefill self-gifting checkout details.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const addedProducts = products.filter((p) => p.quantity > 0);
-
-  const usedGrams = addedProducts.reduce(
-    (acc, p) => acc + parseGrams(p.size) * p.quantity,
-    0
-  );
+  const usedGrams = addedProducts.reduce((acc, p) => acc + parseGrams(p.size) * p.quantity, 0);
   const remainingGrams = Math.max(0, selectedBox.capacityGrams - usedGrams);
-  const capacityPercent = Math.min(
-    100,
-    Math.round((usedGrams / selectedBox.capacityGrams) * 100)
-  );
-
+  const capacityPercent = Math.min(100, Math.round((usedGrams / selectedBox.capacityGrams) * 100));
   const packPrice = BOX_PRICES[selectedBox.id];
-  const productsTotal = addedProducts.reduce(
-    (acc, p) => acc + p.price * p.quantity,
-    0
-  );
-  const totalPrice = packPrice + productsTotal;
-
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  // ── Product actions ────────────────────────────────────────────────────────
+  const productsTotal = addedProducts.reduce((acc, p) => acc + p.price * p.quantity, 0);
+  const totalPrice = productsTotal;
+  const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   const changeQuantity = useCallback((id: number, delta: number) => {
     setProducts((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p
-      )
+      prev.map((p) => (p.id === id ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p))
     );
   }, []);
 
-  // ── Recipient field helper ─────────────────────────────────────────────────
-
-  const onRecipientChange = (
-    field: keyof typeof recipient,
-    value: string
-  ) => {
+  const onRecipientChange = (field: keyof typeof recipient, value: string) => {
     setRecipient((prev) => ({ ...prev, [field]: value }));
   };
-
-  // ── Submit order ───────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
     setSubmitError(null);
 
-    if (!recipient.fullName.trim()) {
-      setSubmitError("Please enter the recipient's name.");
-      return;
-    }
-    if (!recipient.phone.trim()) {
-      setSubmitError("Please enter a phone number.");
-      return;
-    }
-    if (!recipient.email.trim()) {
-      setSubmitError("Please enter an email address.");
-      return;
-    }
-    if (!recipient.address.trim()) {
-      setSubmitError("Please enter a delivery address.");
-      return;
-    }
     if (addedProducts.length === 0) {
       setSubmitError("Please add at least one product to your gift box.");
       return;
     }
 
-    const productSummary = addedProducts
-      .map((p) => `${p.name} x${p.quantity}`)
-      .join(", ");
+    let delivery = {
+      full_name: recipient.fullName.trim(),
+      phone: recipient.phone.trim(),
+      email: recipient.email.trim(),
+      city: recipient.city.trim(),
+      postal_code: recipient.postalCode.trim(),
+      address: recipient.address.trim(),
+    };
 
-    const payload = {
-      product_name: `Custom Gift Box — ${productSummary}`,
-      pack_name: selectedBox.name,
-      pack_price: packPrice.toFixed(2),
-      quantity: 1,
-      subtotal: totalPrice.toFixed(2),
-      delivery_charge: "0.00",
-      total_amount: totalPrice.toFixed(2),
-      full_name: recipient.fullName,
-      phone: recipient.phone,
-      email: recipient.email,
-      city: recipient.city,
-      postal_code: recipient.postalCode,
-      address: recipient.address,
-      instructions: message
-        ? `Occasion: ${recipient.occasion}. Message: ${message}`
-        : `Occasion: ${recipient.occasion}`,
-      payment_method: "cod",
+    if (isSelfGifting) {
+      delivery.full_name = delivery.full_name || "Self";
+    } else {
+      if (!delivery.full_name) {
+        setSubmitError("Please enter the recipient's name.");
+        return;
+      }
+      if (!delivery.phone) {
+        setSubmitError("Please enter a phone number.");
+        return;
+      }
+      if (!delivery.address) {
+        setSubmitError("Please enter a delivery address.");
+        return;
+      }
+    }
+
+    const checkout = {
+      mode: "customGift" as const,
+      gift: {
+        giftType: isSelfGifting ? "self" : "recipient",
+        box: {
+          id: selectedBox.id,
+          name: selectedBox.name,
+          price: packPrice.toFixed(2),
+          capacity: selectedBox.capacity,
+        },
+        items: addedProducts.map((product) => ({
+          id: product.id,
+          name: product.name,
+          image: product.image,
+          size: product.size,
+          price: product.price.toFixed(2),
+          quantity: product.quantity,
+        })),
+        message: message.trim(),
+        occasion: recipient.occasion,
+        delivery,
+        subtotal: totalPrice.toFixed(2),
+        deliveryCharge: "0.00",
+        taxAmount: "0.00",
+        totalAmount: totalPrice.toFixed(2),
+      },
     };
 
     setSubmitting(true);
     try {
-      await api.post("/orders/create/", payload);
-      setSubmitSuccess(true);
-      setTimeout(() => {
-        router.push("/communityDashBoard/myorders");
-      }, 2000);
-    } catch (err: unknown) {
-      const error = err as {
-        response?: { data?: Record<string, string[]> | string };
-      };
-      const data = error.response?.data;
-      if (data && typeof data === "object") {
-        const messages = Object.entries(data)
-          .map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-          .join(" | ");
-        setSubmitError(messages);
-      } else {
-        setSubmitError("Failed to place order. Please try again.");
-      }
+      sessionStorage.setItem("zewadi_checkout", JSON.stringify(checkout));
+      router.push("/communityDashBoard/payment-method");
+    } catch {
+      setSubmitError("Failed to start checkout. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
-    <main className="min-h-screen flex-1 bg-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <header className="rounded-lg border border-[#E8E8E8] bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-[#06402B]">
-                Customize Your Gift Box
-              </h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Create a personalized wellness gift box by choosing the box size
-                and filling it with your preferred ZEWADI products.
-              </p>
-            </div>
-            <span className="inline-flex h-8 items-center gap-2 rounded-md bg-[#A88751] px-4 text-xs font-semibold text-white shadow-sm">
-              <Crown className="h-4 w-4" />
-              Member Exclusive
-            </span>
-          </div>
-        </header>
+    <main className="min-h-screen flex-1 bg-white px-3 py-4 sm:px-5 lg:px-6">
+      <div className="mx-auto max-w-[980px] space-y-4">
+        <h1 className="text-xl font-bold text-[#06402B]">Customize Your Gift Box</h1>
 
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* ── Left Column ── */}
-          <div className="flex-1 space-y-6">
-            {/* Box Size */}
-            <section className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-sm sm:p-6">
-              <h2 className="text-lg font-bold text-[#06402B] mb-4">
-                Choose Your Gift Box Size
-              </h2>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-2 lg:gap-4">
-                {giftBoxSizes.map((box) => {
-                  const isSelected = selectedBox.id === box.id;
-                  return (
-                    <article
-                      key={box.id}
-                      onClick={() => setSelectedBox(box)}
-                      className={`cursor-pointer rounded-lg border-2 p-3 transition-all sm:p-5 ${
-                        isSelected
-                          ? "border-[#A88751] bg-[#FBF8F1]"
-                          : "border-[#DADDE1] bg-white hover:border-gray-300"
+        <section className="rounded-lg border border-[#DFDFDF] bg-white p-3 shadow-sm sm:p-4">
+          <h2 className="mb-3 text-base font-bold text-[#06402B]">Choose Your Gift Box Size</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {giftBoxSizes.map((box) => {
+              const isSelected = selectedBox.id === box.id;
+
+              return (
+                <article
+                  key={box.id}
+                  onClick={() => setSelectedBox(box)}
+                  className={`cursor-pointer rounded-md border-2 p-3 transition-all ${
+                    isSelected ? "border-[#A88751] bg-[#FBF8F1]" : "border-[#DADDE1] bg-white hover:border-gray-300"
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span
+                      className={`inline-flex h-8 w-8 items-center justify-center rounded-md ${
+                        isSelected ? "bg-[#A88751] text-white" : "bg-gray-100 text-gray-500"
                       }`}
                     >
-                      <div className="flex items-start justify-between">
-                        <span
-                          className={`inline-flex h-8 w-8 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${
-                            isSelected
-                              ? "bg-[#A88751] text-white"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          <Package className="h-4 w-4 sm:h-6 sm:w-6" />
-                        </span>
-                        <span
-                          className={`inline-flex h-5 w-5 items-center justify-center rounded-full border-2 ${
-                            isSelected
-                              ? "border-[#A88751] bg-[#A88751] text-white"
-                              : "border-gray-300 text-transparent"
-                          }`}
-                        >
-                          <Check className="h-3 w-3" />
-                        </span>
-                      </div>
-                      <h3 className="mt-3 text-sm font-bold text-gray-900 sm:mt-5 sm:text-base">
-                        {box.name}
-                      </h3>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500 sm:text-sm sm:leading-relaxed">
-                        {box.description}
-                      </p>
-                      <p className="mt-3 text-xs font-semibold text-[#A88751] sm:mt-5">
-                        Capacity: {box.capacity}
-                      </p>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* Product Selection */}
-            <section className="rounded-lg border border-[#DFDFDF] bg-white p-4 shadow-sm sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <h2 className="text-lg font-bold text-[#06402B]">
-                  Select Products
-                </h2>
-                <div className="relative w-full sm:w-64">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search product..."
-                    className="h-10 w-full rounded-full border border-gray-200 bg-gray-50 pl-10 pr-4 text-sm outline-none focus:border-[#06402B] focus:ring-1 focus:ring-[#06402B] transition-all"
-                  />
-                </div>
-              </div>
-
-              {productsLoading ? (
-                <div className="flex items-center justify-center py-16 text-gray-400">
-                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                  <span className="text-sm">Loading products…</span>
-                </div>
-              ) : productsError ? (
-                <p className="text-sm text-red-600 py-8 text-center">
-                  {productsError}
-                </p>
-              ) : filteredProducts.length === 0 ? (
-                <p className="text-sm text-gray-400 py-8 text-center">
-                  No products found.
-                </p>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:gap-6">
-                  {filteredProducts.map((product) => (
-                    <article
-                      key={product.id}
-                      className={`rounded-xl border bg-white p-3 transition-all hover:shadow-md sm:p-4 ${
-                        product.quantity > 0
-                          ? "border-[#A88751] ring-1 ring-[#A88751]"
-                          : "border-gray-200"
+                      <Package className="h-4 w-4" />
+                    </span>
+                    <span
+                      className={`inline-flex h-5 w-5 items-center justify-center rounded-full border-2 ${
+                        isSelected ? "border-[#A88751] bg-[#A88751] text-white" : "border-gray-300 text-transparent"
                       }`}
                     >
-                      <div className="relative mb-3 h-24 overflow-hidden rounded-lg bg-gray-50 sm:mb-4 sm:h-40">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 300px"
-                          className="object-cover"
-                        />
-                      </div>
-                      <h3 className="line-clamp-1 text-xs font-bold text-gray-900 sm:text-sm">
-                        {product.name}
-                      </h3>
-                      <p className="mt-1 text-xs text-gray-500 line-clamp-2">
-                        {product.description}
-                      </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-1.5 sm:mt-4 sm:gap-2">
-                        <span className="rounded-md bg-gray-100 px-2 py-1 text-[10px] font-medium text-gray-600">
-                          {product.size}
-                        </span>
-                        {product.price > 0 && (
-                          <span className="rounded-md bg-green-50 px-2 py-1 text-[10px] font-bold text-[#06402B]">
-                            ₹{product.price}
-                          </span>
-                        )}
-                      </div>
-                      {product.quantity > 0 ? (
-                        <div className="mt-3 flex h-9 items-center justify-between rounded-lg border border-[#A88751] bg-[#FBF8F1] px-2 sm:mt-4 sm:px-3">
-                          <button
-                            onClick={() => changeQuantity(product.id, -1)}
-                            className="text-[#A88751] hover:bg-[#A88751] hover:text-white rounded w-6 h-6 flex items-center justify-center transition-colors font-bold"
-                          >
-                            -
-                          </button>
-                          <span className="text-xs font-bold text-[#06402B] sm:text-sm">
-                            Added ({product.quantity})
-                          </span>
-                          <button
-                            onClick={() => changeQuantity(product.id, 1)}
-                            className="text-[#A88751] hover:bg-[#A88751] hover:text-white rounded w-6 h-6 flex items-center justify-center transition-colors font-bold"
-                          >
-                            +
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => changeQuantity(product.id, 1)}
-                          className="mt-3 h-8 w-full rounded-lg bg-[#06402B] text-xs font-semibold text-white shadow-sm transition-colors hover:bg-[#053020] sm:mt-4 sm:h-9 sm:text-sm"
-                        >
-                          Add to Box
-                        </button>
-                      )}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-
-          {/* ── Right Column ── */}
-          <div className="lg:w-96 space-y-6">
-            <section className="rounded-lg border border-[#DFDFDF] bg-white p-6 shadow-sm sticky top-6">
-              <div className="space-y-6">
-                {/* Capacity bar */}
-                <div>
-                  <h2 className="text-base font-bold text-[#06402B] mb-4">
-                    Box Capacity
-                  </h2>
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-500 mb-2">
-                    <span>Used: {usedGrams}g</span>
-                    <span>Remaining: {remainingGrams}g</span>
+                      <Check className="h-3 w-3" />
+                    </span>
                   </div>
-                  <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-[#A88751] transition-all duration-300"
-                      style={{ width: `${capacityPercent}%` }}
+                  <h3 className="mt-3 text-xs font-bold text-gray-900">{box.name}</h3>
+                  <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-gray-500">{box.description}</p>
+                  <p className="mt-3 rounded bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-600">
+                    Capacity: {box.capacity}
+                  </p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="rounded-lg border border-[#DFDFDF] bg-white p-3 shadow-sm sm:p-4">
+          <h2 className="mb-4 text-base font-bold text-[#06402B]">Box Capacity</h2>
+          <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-gray-500">
+            <span>Used: {usedGrams}g</span>
+            <span>Remaining: {remainingGrams}g</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+            <div
+              className="h-full rounded-full bg-[#A88751] transition-all duration-300"
+              style={{ width: `${capacityPercent}%` }}
+            />
+          </div>
+          <p className="mt-2 text-[10px] text-gray-400">
+            {remainingGrams > 0 ? `You can still add ${remainingGrams}g to your gift box` : "Your gift box is full!"}
+          </p>
+        </section>
+
+        <section className="rounded-lg border border-[#DFDFDF] bg-white p-3 shadow-sm sm:p-4">
+          <div className="mb-3 space-y-2">
+            <h2 className="text-base font-bold text-[#06402B]">Select Products</h2>
+            <div className="relative w-full">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search product"
+                className="h-8 w-full rounded-full border border-gray-200 bg-gray-50 pl-9 pr-4 text-xs outline-none transition-all focus:border-[#06402B] focus:ring-1 focus:ring-[#06402B]"
+              />
+            </div>
+          </div>
+
+          {productsLoading ? (
+            <div className="flex items-center justify-center py-12 text-gray-400">
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading products...</span>
+            </div>
+          ) : productsError ? (
+            <p className="py-8 text-center text-sm text-red-600">{productsError}</p>
+          ) : filteredProducts.length === 0 ? (
+            <p className="py-8 text-center text-sm text-gray-400">No products found.</p>
+          ) : (
+            <div className="grid grid-cols-3 gap-3">
+              {filteredProducts.map((product) => (
+                <article
+                  key={product.id}
+                  className={`rounded-md border bg-white p-2 transition-all hover:shadow-md ${
+                    product.quantity > 0 ? "border-[#A88751] ring-1 ring-[#A88751]" : "border-gray-200"
+                  }`}
+                >
+                  <div className="relative mb-2 h-28 overflow-hidden rounded bg-gray-50 sm:h-32">
+                    <Image
+                      src={product.image}
+                      alt={product.name}
+                      fill
+                      sizes="160px"
+                      className="object-cover"
                     />
                   </div>
-                  <p className="mt-2 text-xs text-gray-400 italic">
-                    {remainingGrams > 0
-                      ? `You can still add ${remainingGrams}g to your gift box`
-                      : "Your gift box is full!"}
+                  <h3 className="line-clamp-2 min-h-[28px] text-[10px] font-bold leading-[14px] text-gray-900">
+                    {product.name}
+                  </h3>
+                  <p className="mt-1 line-clamp-2 min-h-[24px] text-[9px] leading-3 text-gray-500">
+                    {product.description}
                   </p>
-                </div>
-
-                {/* Personal message */}
-                <div className="border-t pt-6">
-                  <h2 className="text-base font-bold text-[#06402B] mb-4">
-                    Personal Message
-                  </h2>
-                  <textarea
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Write a heartfelt message..."
-                    className="h-28 w-full resize-none rounded-lg border border-gray-200 p-4 text-sm outline-none focus:border-[#06402B] focus:ring-1 focus:ring-[#06402B] transition-all bg-gray-50"
-                  />
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {["Wellness wishes", "Happy Birthday", "Thank you"].map(
-                      (tag) => (
-                        <button
-                          key={tag}
-                          onClick={() =>
-                            setMessage((prev) =>
-                              prev ? `${prev} ${tag}` : tag
-                            )
-                          }
-                          className="rounded-full bg-[#FBF8F1] border border-[#E9DFCC] px-3 py-1 text-[10px] font-bold text-[#A88751] hover:bg-[#E9DFCC] transition-colors"
-                        >
-                          {tag}
-                        </button>
-                      )
+                  <div className="mt-2 flex flex-wrap items-center gap-1">
+                    <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[8px] font-medium text-gray-600">
+                      {product.size}
+                    </span>
+                    {product.price > 0 && (
+                      <span className="rounded bg-green-50 px-1.5 py-0.5 text-[8px] font-bold text-[#06402B]">
+                        Rs.{product.price}
+                      </span>
                     )}
                   </div>
-                </div>
-
-                {/* Recipient details */}
-                <div className="border-t pt-6">
-                  <h2 className="text-base font-bold text-[#06402B] mb-4">
-                    Recipient Details
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Recipient Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient.fullName}
-                        onChange={(e) =>
-                          onRecipientChange("fullName", e.target.value)
-                        }
-                        placeholder="Name"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Phone Number <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="tel"
-                        value={recipient.phone}
-                        onChange={(e) =>
-                          onRecipientChange("phone", e.target.value)
-                        }
-                        placeholder="Phone"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Email <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        value={recipient.email}
-                        onChange={(e) =>
-                          onRecipientChange("email", e.target.value)
-                        }
-                        placeholder="Email"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        City
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient.city}
-                        onChange={(e) =>
-                          onRecipientChange("city", e.target.value)
-                        }
-                        placeholder="City"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Postal Code
-                      </label>
-                      <input
-                        type="text"
-                        value={recipient.postalCode}
-                        onChange={(e) =>
-                          onRecipientChange("postalCode", e.target.value)
-                        }
-                        placeholder="Postal Code"
-                        className="h-10 w-full rounded-lg border border-gray-200 px-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Delivery Address <span className="text-red-500">*</span>
-                      </label>
-                      <textarea
-                        value={recipient.address}
-                        onChange={(e) =>
-                          onRecipientChange("address", e.target.value)
-                        }
-                        placeholder="Address"
-                        className="h-20 w-full resize-none rounded-lg border border-gray-200 p-4 text-sm outline-none focus:border-[#06402B] bg-gray-50"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-gray-700 block mb-1.5">
-                        Occasion
-                      </label>
-                      <select
-                        value={recipient.occasion}
-                        onChange={(e) =>
-                          onRecipientChange("occasion", e.target.value)
-                        }
-                        className="h-10 w-full rounded-lg border border-gray-200 bg-gray-50 px-4 text-sm outline-none focus:border-[#06402B]"
+                  {product.quantity > 0 ? (
+                    <div className="mt-2 flex h-8 items-center justify-between rounded-md border border-[#A88751] bg-[#FBF8F1] px-1.5">
+                      <button
+                        onClick={() => changeQuantity(product.id, -1)}
+                        className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-[#A88751] transition-colors hover:bg-[#A88751] hover:text-white"
                       >
-                        <option>Birthday</option>
-                        <option>Thank You</option>
-                        <option>Wellness Gift</option>
-                      </select>
+                        -
+                      </button>
+                      <span className="text-[9px] font-bold text-[#06402B]">Added ({product.quantity})</span>
+                      <button
+                        onClick={() => changeQuantity(product.id, 1)}
+                        className="flex h-5 w-5 items-center justify-center rounded text-xs font-bold text-[#A88751] transition-colors hover:bg-[#A88751] hover:text-white"
+                      >
+                        +
+                      </button>
                     </div>
-                  </div>
-                </div>
+                  ) : (
+                    <button
+                      onClick={() => changeQuantity(product.id, 1)}
+                      className="mt-2 h-8 w-full rounded-md bg-[#06402B] text-[9px] font-semibold text-white shadow-sm transition-colors hover:bg-[#053020]"
+                    >
+                      Add to Box
+                    </button>
+                  )}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
 
-                {/* Price summary */}
-                {addedProducts.length > 0 && (
-                  <div className="border-t pt-4 space-y-1 text-sm text-gray-700">
-                    <div className="flex justify-between">
-                      <span>Box ({selectedBox.name})</span>
-                      <span>₹{packPrice}</span>
-                    </div>
-                    {addedProducts.map((p) => (
-                      <div key={p.id} className="flex justify-between text-xs text-gray-500">
-                        <span>
-                          {p.name} x{p.quantity}
-                        </span>
-                        <span>₹{(p.price * p.quantity).toFixed(2)}</span>
-                      </div>
-                    ))}
-                    <div className="flex justify-between font-bold text-[#06402B] border-t pt-1 mt-1">
-                      <span>Total</span>
-                      <span>₹{totalPrice.toFixed(2)}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Feedback messages */}
-                {submitError && (
-                  <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                    {submitError}
-                  </div>
-                )}
-                {submitSuccess && (
-                  <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
-                    Order placed successfully! Redirecting to your orders…
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="space-y-3 pt-2 font-semibold">
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || submitSuccess}
-                    className="h-12 w-full rounded-lg bg-[#06402B] text-sm text-white hover:bg-[#053020] transition-all shadow-md active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Placing Order…
-                      </>
-                    ) : (
-                      "Continue to Checkout"
-                    )}
-                  </button>
-                  <button
-                    onClick={() => router.push("/communityDashBoard")}
-                    className="h-12 w-full rounded-lg border border-[#A88751] text-sm text-[#A88751] hover:bg-[#FBF8F1] transition-all font-bold"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </section>
+        <section className="rounded-lg border border-[#DFDFDF] bg-white p-3 shadow-sm sm:p-4">
+          <h2 className="mb-3 text-base font-bold text-[#06402B]">Personal Message</h2>
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="Write a heartfelt message for your gift recipient..."
+            className="h-16 w-full resize-none rounded-md border border-gray-200 bg-white p-3 text-xs text-[#111827] outline-none transition-all placeholder:text-[#9CA3AF] focus:border-[#06402B] focus:ring-1 focus:ring-[#06402B]"
+          />
+          <div className="mt-3 flex flex-wrap gap-2">
+            {["Wellness wishes", "Happy Birthday", "Thank you"].map((tag) => (
+              <button
+                key={tag}
+                onClick={() => setMessage((prev) => (prev ? `${prev} ${tag}` : tag))}
+                className="rounded-full border border-[#E9DFCC] bg-[#FBF8F1] px-2 py-0.5 text-[9px] font-bold text-[#A88751] transition-colors hover:bg-[#E9DFCC]"
+              >
+                {tag}
+              </button>
+            ))}
           </div>
+        </section>
+
+        <section className="rounded-lg border border-[#DFDFDF] bg-white p-3 shadow-sm sm:p-4">
+          <h2 className="mb-3 text-base font-bold text-[#06402B]">Gift Type</h2>
+          <label className="flex cursor-pointer items-center justify-between rounded-md border border-[#A88751] bg-[#FBF8F1] px-3 py-2">
+            <span>
+              <span className="block text-xs font-bold text-[#06402B]">Self Gifting</span>
+              <span className="block text-[9px] text-gray-500">Gift to someone special</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={isSelfGifting}
+              onChange={(e) => setGiftType(e.target.checked ? "self" : "recipient")}
+              className="h-6 w-6 appearance-none rounded-full border border-[#8A8A8A] bg-white checked:border-[#0D8BFF] checked:bg-[#0D8BFF] checked:shadow-[inset_0_0_0_3px_#FFFFFF] checked:outline checked:outline-1 checked:outline-[#0D8BFF]"
+            />
+          </label>
+        </section>
+
+        {!isSelfGifting && (
+        <section className="rounded-[12px] border border-[#DFDFDF] bg-white px-5 py-5 shadow-sm">
+          <h2 className="mb-5 text-base font-bold text-[#06402B]">Recipient Details</h2>
+          <div className="grid grid-cols-1 gap-x-5 gap-y-4 sm:grid-cols-2">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#06402B]">
+                Recipient Name
+              </label>
+              <input
+                type="text"
+                value={recipient.fullName}
+                onChange={(e) => onRecipientChange("fullName", e.target.value)}
+                placeholder="Enter recipient name"
+                className="h-12 w-full rounded-[9px] border border-[#DFDFDF] bg-white px-3.5 text-base text-black outline-none focus:border-[#06402B]"
+              />
+            </div>
+            <div>
+              <label className="mb-2 block text-sm font-medium text-[#06402B]">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={recipient.phone}
+                onChange={(e) => onRecipientChange("phone", e.target.value)}
+                placeholder="Enter phone number"
+                className="h-12 w-full rounded-[9px] border border-[#DFDFDF] bg-white px-3.5 text-base text-black outline-none focus:border-[#06402B]"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-[#06402B]">
+                Delivery Address
+              </label>
+              <textarea
+                value={recipient.address}
+                onChange={(e) => onRecipientChange("address", e.target.value)}
+                placeholder="Enter complete delivery address"
+                className="h-20 w-full resize-none rounded-[9px] border border-[#DFDFDF] bg-white px-3.5 py-3 text-base text-black outline-none focus:border-[#06402B]"
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-[#06402B]">Occasion</label>
+              <select
+                value={recipient.occasion}
+                onChange={(e) => onRecipientChange("occasion", e.target.value)}
+                className="h-12 w-full rounded-[9px] border border-[#DFDFDF] bg-[#F1F1F1] px-3.5 text-base text-black outline-none focus:border-[#06402B] sm:w-1/2"
+              >
+                <option>Birthday</option>
+                <option>Thank You</option>
+                <option>Wellness Gift</option>
+              </select>
+            </div>
+          </div>
+        </section>
+        )}
+
+        {addedProducts.length > 0 && (
+          <section className="space-y-1 rounded-lg border border-[#DFDFDF] bg-white p-3 text-xs text-gray-700 shadow-sm sm:p-4">
+            <div className="flex justify-between">
+              <span>Box ({selectedBox.name})</span>
+              <span>Included</span>
+            </div>
+            {addedProducts.map((p) => (
+              <div key={p.id} className="flex justify-between text-[10px] text-gray-500">
+                <span>
+                  {p.name} x{p.quantity}
+                </span>
+                <span>Rs.{(p.price * p.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+            <div className="mt-1 flex justify-between border-t pt-1 font-bold text-[#06402B]">
+              <span>Total</span>
+              <span>Rs.{totalPrice.toFixed(2)}</span>
+            </div>
+          </section>
+        )}
+
+        {submitError && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
+        {submitSuccess && (
+          <div className="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+            Order placed successfully! Redirecting to your orders...
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-10 pt-1 font-semibold">
+          <button
+            onClick={handleSubmit}
+            disabled={submitting || submitSuccess}
+            className="flex h-8 w-full items-center justify-center gap-2 rounded-sm bg-[#06402B] text-[10px] text-white shadow-md transition-all hover:bg-[#053020] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {submitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Placing Order...
+              </>
+            ) : (
+              "Continue to Checkout"
+            )}
+          </button>
+          <button
+            onClick={() => router.push("/communityDashBoard")}
+            className="h-8 w-full rounded-sm bg-[#A88751] text-[10px] font-bold text-white transition-all hover:bg-[#927243]"
+          >
+            Save Gift Box
+          </button>
         </div>
       </div>
     </main>

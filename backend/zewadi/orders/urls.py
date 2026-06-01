@@ -7,6 +7,8 @@ urlpatterns = [
     path("cart/items/", views.CartItemCreateView.as_view()),
     path("cart/items/<int:pk>/", views.CartItemDetailView.as_view()),
     path("cart/checkout/", views.CartCheckoutView.as_view()),
+    path("custom-gifts/", views.CustomGiftOrderCreateView.as_view()),
+    path("custom-gifts/<str:custom_gift_id>/", views.CustomGiftOrderDetailView.as_view()),
     path("", views.OrderListView.as_view()),
     path("admin/", views.AdminOrderListView.as_view()),
     path("admin/cart/", views.AdminCartListView.as_view()),

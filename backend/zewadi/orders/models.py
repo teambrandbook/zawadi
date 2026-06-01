@@ -121,6 +121,88 @@ class Order(models.Model):
         return f"{self.order_id} — {self.user}"
 
 
+class CustomGiftOrder(models.Model):
+    GIFT_TYPE_CHOICES = [
+        ("self", "Self Gifting"),
+        ("recipient", "Recipient Gift"),
+    ]
+
+    PAYMENT_METHOD_CHOICES = [
+        ("cod", "Cash on Delivery"),
+        ("bank_transfer", "Bank Transfer"),
+    ]
+
+    PAYMENT_STATUS_CHOICES = [
+        ("pending", "Pending"),
+        ("confirmed", "Confirmed"),
+    ]
+
+    custom_gift_id = models.CharField(max_length=24, unique=True, blank=True)
+    user = models.ForeignKey(
+        "accounts.User", on_delete=models.CASCADE, related_name="custom_gift_orders"
+    )
+    gift_type = models.CharField(
+        max_length=20, choices=GIFT_TYPE_CHOICES, default="recipient"
+    )
+    box_id = models.CharField(max_length=50)
+    box_name = models.CharField(max_length=255)
+    box_price = models.DecimalField(max_digits=10, decimal_places=2)
+    box_capacity = models.CharField(max_length=50)
+    items = models.JSONField(default=list)
+    message = models.TextField(blank=True)
+    occasion = models.CharField(max_length=100, blank=True)
+    full_name = models.CharField(max_length=255)
+    phone = models.CharField(max_length=20)
+    email = models.EmailField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    postal_code = models.CharField(max_length=20, blank=True)
+    address = models.TextField()
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2)
+    delivery_charge = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(
+        max_length=20, choices=PAYMENT_METHOD_CHOICES, default="cod"
+    )
+    payment_status = models.CharField(
+        max_length=20, choices=PAYMENT_STATUS_CHOICES, default="pending"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def save(self, *args, **kwargs):
+        if not self.custom_gift_id:
+            with transaction.atomic():
+                year = timezone.now().year
+                prefix = f"CG-{year}-"
+                last = (
+                    CustomGiftOrder.objects.select_for_update()
+                    .filter(custom_gift_id__startswith=prefix)
+                    .order_by("-custom_gift_id")
+                    .first()
+                )
+                if last:
+                    try:
+                        last_num = int(last.custom_gift_id.split("-")[-1])
+                        num = last_num + 1
+                    except (ValueError, IndexError):
+                        raise ValueError(
+                            f"Cannot parse custom_gift_id '{last.custom_gift_id}' â€” suffix must be numeric."
+                        )
+                else:
+                    num = 1
+                self.custom_gift_id = f"{prefix}{str(num).zfill(3)}"
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.custom_gift_id} â€” {self.user}"
+
+
 class OrderReview(models.Model):
     order = models.OneToOneField(
         Order, on_delete=models.CASCADE, related_name="review"

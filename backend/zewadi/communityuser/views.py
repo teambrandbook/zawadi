@@ -287,6 +287,21 @@ class AddressListCreateView(APIView):
 class AddressDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
+    def patch(self, request, pk):
+        try:
+            community_user = request.user.communityuser
+            address = community_user.addresses.get(pk=pk)
+        except (CommunityUser.DoesNotExist, CommunityUserAddress.DoesNotExist):
+            return Response(
+                {"error": "Address not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = DeliveryAddressSerializer(address, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, pk):
         try:
             community_user = request.user.communityuser

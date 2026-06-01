@@ -8,9 +8,10 @@ from decimal import Decimal, ROUND_HALF_UP
 
 from django.db import transaction
 
-from .models import CartItem, Order, OrderReview
+from .models import CartItem, CustomGiftOrder, Order, OrderReview
 from .serializers import (
     CartItemSerializer,
+    CustomGiftOrderCreateSerializer,
     OrderCreateSerializer,
     OrderListSerializer,
     OrderDetailSerializer,
@@ -18,6 +19,7 @@ from .serializers import (
     OrderReviewSerializer,
 )
 from product.models import Product, ProductStatus, ProductVariant, StockStatus
+from product.services import get_product_price
 from zewadi.pagination import StandardPagination
 from django.conf import settings
 from tax.services import get_tax_rate
@@ -99,6 +101,7 @@ def _cart_summary(items, country=None):
     shipping = Decimal("0.00") if subtotal == 0 or subtotal >= FREE_SHIPPING_THRESHOLD else STANDARD_SHIPPING_CHARGE
     total = _money(subtotal + shipping + tax_total)
     standard_rate = get_tax_rate(country, "STANDARD")
+    currency = get_product_price(items[0].product, country)[1] if items else None
 
     return {
         "item_count": item_count,
@@ -107,9 +110,9 @@ def _cart_summary(items, country=None):
         "tax": f"{tax_total:.2f}",
         "tax_rate": f"{standard_rate:.4f}",
         "tax_country": country,
-        "currency_code": "SAR",
-        "currency_symbol": "SAR",
-        "currency_decimal_places": 2,
+        "currency_code": currency.code if currency else "SAR",
+        "currency_symbol": currency.symbol if currency else "SAR",
+        "currency_decimal_places": currency.decimal_places if currency else 2,
         "total": f"{total:.2f}",
         "free_shipping_unlocked": subtotal >= FREE_SHIPPING_THRESHOLD,
     }
@@ -165,6 +168,49 @@ class OrderCreateView(APIView):
                 return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomGiftOrderCreateView(APIView):
+    """POST /api/orders/custom-gifts/ — create a custom gift checkout record."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        custom_gifts = request.user.custom_gift_orders.all()
+        serializer = CustomGiftOrderCreateSerializer(custom_gifts, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = CustomGiftOrderCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            custom_gift = serializer.save(user=request.user)
+            return Response(
+                {
+                    "id": custom_gift.id,
+                    "custom_gift_id": custom_gift.custom_gift_id,
+                    "payment_method": custom_gift.payment_method,
+                    "payment_status": custom_gift.payment_status,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomGiftOrderDetailView(APIView):
+    """GET /api/orders/custom-gifts/<custom_gift_id>/ — retrieve a custom gift record."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, custom_gift_id):
+        try:
+            custom_gift = request.user.custom_gift_orders.get(custom_gift_id=custom_gift_id)
+        except CustomGiftOrder.DoesNotExist:
+            return Response(
+                {"detail": "Custom gift order not found."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        serializer = CustomGiftOrderCreateSerializer(custom_gift)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class OrderListView(APIView):

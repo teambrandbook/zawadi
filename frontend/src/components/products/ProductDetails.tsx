@@ -49,7 +49,8 @@ type Product = {
   discount_percent?: string | number;
   average_rating?: string | number | null;
   review_count?: number;
-  currency: string;
+  currency?: string;
+  currency_code?: string;
   image: string | null;
   product_unit?: string;
   unit_quantity?: string;
@@ -100,7 +101,7 @@ function toNumber(value: string | number | null | undefined): number {
   return Number.isNaN(amount) ? 0 : amount;
 }
 
-function toCurrency(value: string | number | null | undefined, currency = "INR"): string {
+function toCurrency(value: string | number | null | undefined, currency = "SAR"): string {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency,
@@ -195,7 +196,7 @@ const ProductDetails = () => {
         productSubtitle: product.product_subtitle,
         image: product.image,
         unitPrice,
-        currency: product.currency || "INR",
+        currency: product.currency_code || product.currency || "SAR",
       });
       dispatch(setCartCount(getGuestCartCount()));
       toast.success("Added to cart!");
@@ -295,12 +296,12 @@ const ProductDetails = () => {
               <RatingSummary averageRating={product.average_rating} reviewCount={product.review_count ?? 0} />
               <div className="mt-2 flex flex-wrap items-center gap-3">
                 <p className="text-2xl font-bold text-gray-900 md:text-3xl">
-                  {toCurrency(displayPrice, product.currency || "INR")}
+                  {toCurrency(displayPrice, product.currency_code || product.currency || "SAR")}
                 </p>
                 {isDiscounted ? (
                   <>
                     <span className="text-base text-gray-400 line-through md:text-lg">
-                      {toCurrency(product.mrp_price, product.currency || "INR")}
+                      {toCurrency(product.mrp_price, product.currency_code || product.currency || "SAR")}
                     </span>
                     <span className="rounded-full bg-[#EAFBF0] px-2.5 py-1 text-xs font-semibold text-[#15803D] md:text-sm">
                       {toNumber(product.discount_percent).toFixed(0)}% off

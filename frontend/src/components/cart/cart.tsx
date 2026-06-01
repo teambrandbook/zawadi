@@ -58,16 +58,12 @@ type SuggestedProduct = {
   base_price: string;
   sale_price: string | null;
   selling_price?: string | null;
-  currency: string;
+  currency?: string;
+  currency_code?: string;
+  currency_decimal_places?: number;
 };
 
 type ProductListResponse = SuggestedProduct[] | { results?: SuggestedProduct[] };
-
-const money = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  minimumFractionDigits: 2,
-});
 
 const apiOrigin = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api").replace(
   /\/api\/?$/,
@@ -152,7 +148,7 @@ function CartRow({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between lg:block">
           <h2 className="text-base font-bold leading-7 text-[#1f4d3a]">{item.product_name}</h2>
           <p className="text-lg font-bold leading-7 text-[#1f4d3a] lg:hidden">
-            {money.format(parseFloat(item.unit_price))}
+            {formatPrice(item.unit_price, item.currency || "SAR")}
           </p>
         </div>
         <p className="max-w-[650px] text-xs leading-5 text-[#6b7280] sm:text-sm">
@@ -173,7 +169,7 @@ function CartRow({
       </div>
 
       <p className="hidden self-start justify-self-end pt-3 text-xl font-bold leading-7 text-[#1f4d3a] lg:block">
-        {money.format(parseFloat(item.unit_price))}
+        {formatPrice(item.unit_price, item.currency || "SAR")}
       </p>
     </article>
   );
@@ -302,7 +298,9 @@ function SuggestedCard({
         {product.product_subtitle || product.category}
       </p>
       <div className="mt-4 flex items-center justify-between">
-        <p className="text-lg font-bold leading-7 text-[#1f4d3a]">{money.format(displayPrice)}</p>
+        <p className="text-lg font-bold leading-7 text-[#1f4d3a]">
+          {formatPrice(displayPrice, product.currency_code || product.currency || "SAR", product.currency_decimal_places ?? 2)}
+        </p>
         <button
           type="button"
           onClick={onAddToCart}
@@ -515,7 +513,7 @@ export default function Cart() {
                 total={String(guestSubtotal)}
                 onProceed={() => setCheckoutModalOpen(true)}
                 labels={cartText}
-                currencyCode="SAR"
+                currencyCode={guestItems[0]?.currency || "SAR"}
                 decimalPlaces={2}
               />
               <Link

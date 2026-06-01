@@ -35,6 +35,7 @@ type ApiProduct = {
   mrp_price?: string | number;
   selling_price?: string | number;
   currency?: string;
+  currency_code?: string;
   tax_category?: string | null;
   tax_category_code?: string | null;
   stock_quantity?: number;
@@ -73,7 +74,7 @@ const initialFormData: ProductFormData = {
   cost_price: "",
   mrp_price: "",
   selling_price: "",
-  currency: "USD",
+  currency: "SAR",
   tax_category: "STANDARD",
   stock_quantity: "",
   low_stock_alert: "5",
@@ -144,7 +145,7 @@ export default function AddProductPage() {
           cost_price: String(data.cost_price ?? data.base_price ?? ""),
           mrp_price: String(data.mrp_price ?? data.sale_price ?? data.base_price ?? ""),
           selling_price: String(data.selling_price ?? data.sale_price ?? data.base_price ?? ""),
-          currency: String(data.currency ?? "USD"),
+          currency: String(data.currency_code ?? data.currency ?? "SAR"),
           tax_category: String(data.tax_category_code ?? data.tax_category ?? "STANDARD"),
           stock_quantity: String(data.stock_quantity ?? ""),
           low_stock_alert: String(data.low_stock_alert ?? "5"),
@@ -317,6 +318,7 @@ export default function AddProductPage() {
             productName={formData.product_name}
             subtitle={formData.product_subtitle || formData.short_description}
             price={formData.selling_price}
+            currency={formData.currency}
             stock={formData.stock_quantity}
             status={formData.product_status}
             imageUrl={previewImageUrl}
