@@ -525,38 +525,34 @@ export default function About() {
                         </div>
 
                         <div className="approach-steps-container max-w-[440px] space-y-4 lg:ml-auto lg:w-full lg:justify-self-end">
-                            {approachSteps.map((step) => (
-                                <div
-                                    key={step.number}
-                                    className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-6 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-7 sm:py-4"
-                                >
-                                    <div className="flex items-center gap-4 rtl:flex-row-reverse">
-                                        <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
-                                            <ApproachIcon size={24} />
+                            {approachSteps.map((step) => {
+                                return (
+                                    <div
+                                        key={step.number}
+                                        className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-5 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-6 sm:py-4"
+                                    >
+                                        <div className="flex min-w-0 items-center gap-4 rtl:flex-row-reverse">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center text-[#121414] transition-colors group-hover:text-white">
+                                                <ApproachIcon size={24} />
+                                            </div>
+                                            <p className="min-w-0 font-serif text-base leading-tight sm:text-[1.1rem]">
+                                                {step.label}
+                                            </p>
                                         </div>
-                                        <p className="font-serif text-lg leading-tight sm:text-[1.25rem]">
-                                            {step.label}
-                                        </p>
+                                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
+                                            <div
+                                                className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
+                                                style={{
+                                                    backgroundImage: "url('/Patterns-03.webp')",
+                                                    backgroundSize: "cover",
+                                                    backgroundPosition: "center",
+                                                }}
+                                            />
+                                            <span className="relative z-10">{step.number}</span>
+                                        </div>
                                     </div>
-                                    <div className="relative flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
-                                        <div
-                                            className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
-                                            style={{
-                                                backgroundImage: "url('/Patterns-03.webp')",
-                                                backgroundSize: "cover",
-                                                backgroundPosition: "center",
-                                            }}
-                                        />
-                                        <span className="relative z-10">{step.number}</span>
-                                    </div>
-                                    <p dir="rtl" className="min-w-0 font-serif text-lg leading-tight text-right sm:text-[1.25rem] lg:text-center">
-                                        {step.label}
-                                    </p>
-                                    <div className="flex h-9 w-9 items-center justify-center text-[#1f4d3a] transition-colors group-hover:text-white">
-                                        <ApproachIcon size={24} />
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
 
                             <Link
                                 href="/community"
