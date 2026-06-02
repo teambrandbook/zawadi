@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/services/api";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import EventsOverview from "./components/EventsOverview";
 import EventsFiltersAndActions, { type EventFilters } from "./components/EventsFiltersAndActions";
 import EventsTable from "./components/EventsTable";
@@ -170,6 +173,8 @@ function DeleteConfirmDialog({
 
 export default function EventsManagementPage() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [events, setEvents] = useState<EventRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -180,6 +185,12 @@ export default function EventsManagementPage() {
   const [isDetailsLoading, setIsDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState<string | null>(null);
   const [filters, setFilters] = useState<EventFilters>(defaultFilters);
+  const eventPermission = permissions.find(({ module }) => module === "events");
+  const canCreateEvents = role !== "internal_staff" || Boolean(eventPermission?.full_access || eventPermission?.can_create);
+  const canEditEvents = role !== "internal_staff" || Boolean(eventPermission?.full_access || eventPermission?.can_edit);
+  const canDeleteEvents = role !== "internal_staff" || Boolean(eventPermission?.full_access || eventPermission?.can_delete);
+  const canApproveEvents = role !== "internal_staff" || Boolean(eventPermission?.full_access || eventPermission?.can_approve);
+  const canExportEvents = role !== "internal_staff" || Boolean(eventPermission?.full_access || eventPermission?.can_export);
 
   const fetchEvents = async () => {
     setIsLoading(true);
@@ -358,7 +369,7 @@ export default function EventsManagementPage() {
       )}
 
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <EventsOverview stats={eventStats} />
+        <EventsOverview stats={eventStats} canCreateEvents={canCreateEvents} />
         <EventsFiltersAndActions
           filters={filters}
           categories={categories}
@@ -371,6 +382,10 @@ export default function EventsManagementPage() {
           onDeleteSelected={deleteSelected}
           onSendReminders={sendReminders}
           onExportSelected={exportSelected}
+          canEditEvents={canEditEvents}
+          canDeleteEvents={canDeleteEvents}
+          canApproveEvents={canApproveEvents}
+          canExportEvents={canExportEvents}
         />
 
         {isLoading && <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">Loading events...</div>}
@@ -393,8 +408,8 @@ export default function EventsManagementPage() {
             onToggleSelect={toggleSelect}
             onToggleSelectAll={toggleSelectAllFiltered}
             onView={viewEvent}
-            onEdit={(id) => router.push(`/admindashboard/events/create?eventId=${id}`)}
-            onDelete={(id) => setPendingDeleteEvent(events.find((event) => event.id === id) ?? null)}
+            onEdit={canEditEvents ? (id) => router.push(`/admindashboard/events/create?eventId=${id}`) : undefined}
+            onDelete={canDeleteEvents ? (id) => setPendingDeleteEvent(events.find((event) => event.id === id) ?? null) : undefined}
           />
         )}
       </div>

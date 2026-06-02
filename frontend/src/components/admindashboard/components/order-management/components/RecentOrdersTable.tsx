@@ -25,6 +25,8 @@ type Props = {
   onViewDetails: (orderId: string) => void;
   onOpenStatus: (orderId: string) => void;
   onDelete: (orderId: string) => void;
+  canEditOrders: boolean;
+  canDeleteOrders: boolean;
 };
 
 function statusColor(status: string) {
@@ -71,6 +73,8 @@ export default function RecentOrdersTable({
   onViewDetails,
   onOpenStatus,
   onDelete,
+  canEditOrders,
+  canDeleteOrders,
 }: Props) {
   const totalPages = Math.max(
     1,
@@ -214,15 +218,19 @@ export default function RecentOrdersTable({
                     row.status
                   )}`}
                 >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onOpenStatus(row.id)
-                    }
-                    className="cursor-pointer hover:underline"
-                  >
-                    {statusLabel(row.status)}
-                  </button>
+                  {canEditOrders ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onOpenStatus(row.id)
+                      }
+                      className="cursor-pointer hover:underline"
+                    >
+                      {statusLabel(row.status)}
+                    </button>
+                  ) : (
+                    statusLabel(row.status)
+                  )}
                 </td>
 
                 <td className="px-2 py-4 align-middle">
@@ -238,7 +246,7 @@ export default function RecentOrdersTable({
                       <Eye className="h-4 w-4" />
                     </button>
 
-                    <button
+                    {canEditOrders && <button
                       type="button"
                       onClick={() =>
                         onOpenStatus(row.id)
@@ -247,9 +255,9 @@ export default function RecentOrdersTable({
                       aria-label="Edit status"
                     >
                       <Pencil className="h-4 w-4" />
-                    </button>
+                    </button>}
 
-                    <button
+                    {canDeleteOrders && <button
                       type="button"
                       onClick={() =>
                         onDelete(row.id)
@@ -258,7 +266,7 @@ export default function RecentOrdersTable({
                       aria-label="Delete order"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </button>}
                   </div>
                 </td>
               </tr>

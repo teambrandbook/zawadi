@@ -15,6 +15,9 @@ import type { NutritionistRow } from "../nutritionistTypes";
 
 type NutritionistsDataTableProps = {
   rows: NutritionistRow[];
+  canEditNutritionists: boolean;
+  canDeleteNutritionists: boolean;
+  canExportNutritionists: boolean;
   onViewRow: (row: NutritionistRow) => void;
   onEditRow: (row: NutritionistRow) => void;
   onDeleteRow: (row: NutritionistRow) => void;
@@ -30,7 +33,15 @@ function availabilityTone(availability: string) {
   return availability === "Available" ? "text-[#0A7A44]" : "text-[#9F8151]";
 }
 
-export default function NutritionistsDataTable({ rows, onViewRow, onEditRow, onDeleteRow }: NutritionistsDataTableProps) {
+export default function NutritionistsDataTable({
+  rows,
+  canEditNutritionists,
+  canDeleteNutritionists,
+  canExportNutritionists,
+  onViewRow,
+  onEditRow,
+  onDeleteRow,
+}: NutritionistsDataTableProps) {
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white">
       <div className="flex flex-col gap-2 border-b border-[#E8E8E8] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
@@ -40,18 +51,24 @@ export default function NutritionistsDataTable({ rows, onViewRow, onEditRow, onD
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
-            <Check size={12} />
-            Activate
-          </button>
-          <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
-            <Pause size={12} />
-            Deactivate
-          </button>
-          <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
-            <Download size={12} />
-            Export
-          </button>
+          {canEditNutritionists && (
+            <>
+              <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
+                <Check size={12} />
+                Activate
+              </button>
+              <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
+                <Pause size={12} />
+                Deactivate
+              </button>
+            </>
+          )}
+          {canExportNutritionists && (
+            <button className="inline-flex h-8 items-center gap-1 rounded-md border border-[#D9D9D9] bg-white px-2.5 text-xs font-medium text-[#0A4833]">
+              <Download size={12} />
+              Export
+            </button>
+          )}
         </div>
       </div>
 
@@ -120,22 +137,26 @@ export default function NutritionistsDataTable({ rows, onViewRow, onEditRow, onD
                     >
                       <Eye size={14} />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onEditRow(row)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#DFDFDF] text-[#0A4833]"
-                      aria-label={`Edit ${row.name}`}
-                    >
-                      <SquarePen size={14} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteRow(row)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
-                      aria-label={`Delete ${row.name}`}
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                    {canEditNutritionists && (
+                      <button
+                        type="button"
+                        onClick={() => onEditRow(row)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[#DFDFDF] text-[#0A4833]"
+                        aria-label={`Edit ${row.name}`}
+                      >
+                        <SquarePen size={14} />
+                      </button>
+                    )}
+                    {canDeleteNutritionists && (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteRow(row)}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-600 hover:bg-red-100"
+                        aria-label={`Delete ${row.name}`}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

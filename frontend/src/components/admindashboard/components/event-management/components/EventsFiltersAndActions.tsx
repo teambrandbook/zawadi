@@ -20,6 +20,10 @@ type EventsFiltersAndActionsProps = {
   onDeleteSelected: () => void;
   onSendReminders: () => void;
   onExportSelected: () => void;
+  canEditEvents: boolean;
+  canDeleteEvents: boolean;
+  canApproveEvents: boolean;
+  canExportEvents: boolean;
 };
 
 const statusOptions = ["All Status", "Published", "Draft", "Cancelled"];
@@ -38,6 +42,10 @@ export default function EventsFiltersAndActions({
   onDeleteSelected,
   onSendReminders,
   onExportSelected,
+  canEditEvents,
+  canDeleteEvents,
+  canApproveEvents,
+  canExportEvents,
 }: EventsFiltersAndActionsProps) {
   function updateFilter(key: keyof EventFilters, value: string | boolean) {
     onFiltersChange({ ...filters, [key]: value });
@@ -82,30 +90,40 @@ export default function EventsFiltersAndActions({
         `}</style>
         <div className="flex min-w-max items-center gap-2">
           <span className="mr-2 shrink-0 text-xs font-medium text-[#0A4833]">Bulk Actions:</span>
-          <button type="button" onClick={onPublishSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
-            <Upload size={12} />
-            Publish Selected
-          </button>
-          <button type="button" onClick={onDraftSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#F3F4F6] px-3 py-1.5 text-xs text-[#475467]">
-            <FileText size={12} />
-            Draft Selected
-          </button>
-          <button type="button" onClick={onCancelSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
-            <XCircle size={12} />
-            Cancel Selected
-          </button>
-          <button type="button" onClick={onSendReminders} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF3FF] px-3 py-1.5 text-xs text-[#2563EB]">
-            <Bell size={12} />
-            Send Reminders
-          </button>
-          <button type="button" onClick={onExportSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
-            <Download size={12} />
-            Export Selected
-          </button>
-          <button type="button" onClick={onDeleteSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
-            <Trash2 size={12} />
-            Delete Selected
-          </button>
+          {canApproveEvents && (
+            <button type="button" onClick={onPublishSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
+              <Upload size={12} />
+              Publish Selected
+            </button>
+          )}
+          {canEditEvents && (
+            <>
+              <button type="button" onClick={onDraftSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#F3F4F6] px-3 py-1.5 text-xs text-[#475467]">
+                <FileText size={12} />
+                Draft Selected
+              </button>
+              <button type="button" onClick={onCancelSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
+                <XCircle size={12} />
+                Cancel Selected
+              </button>
+              <button type="button" onClick={onSendReminders} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF3FF] px-3 py-1.5 text-xs text-[#2563EB]">
+                <Bell size={12} />
+                Send Reminders
+              </button>
+            </>
+          )}
+          {canExportEvents && (
+            <button type="button" onClick={onExportSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#EEF2F0] px-3 py-1.5 text-xs text-[#0A4833]">
+              <Download size={12} />
+              Export Selected
+            </button>
+          )}
+          {canDeleteEvents && (
+            <button type="button" onClick={onDeleteSelected} className="inline-flex shrink-0 items-center gap-1 rounded-md bg-[#FFF1F1] px-3 py-1.5 text-xs text-[#DC2626]">
+              <Trash2 size={12} />
+              Delete Selected
+            </button>
+          )}
           <span className="shrink-0 text-xs font-medium text-[#6B7280]">{selectedCount} selected</span>
         </div>
       </div>

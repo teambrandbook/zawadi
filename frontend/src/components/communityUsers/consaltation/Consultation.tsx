@@ -42,6 +42,17 @@ type Session = {
   image: string;
 };
 
+type ApiDietPlan = {
+  id: number;
+  title: string;
+  goal: string;
+  description?: string | null;
+  daily_calories: number;
+  start_date: string;
+  end_date?: string | null;
+  duration_days: number;
+};
+
 type SummaryCard = {
   label: string;
   value: number;
@@ -108,6 +119,28 @@ function mapBookingToSession(booking: ApiBooking): Session {
 
 function avatarFor(session: Pick<Session, "image">, index: number) {
   return session.image || `/recipe/recipe-${(index % 4) + 1}.webp`;
+}
+
+function formatDietPlanGoal(goal: string) {
+  return goal
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function calculateDietPlanProgress(plan: ApiDietPlan) {
+  const startDate = new Date(`${plan.start_date}T00:00:00`);
+  const endDate = plan.end_date
+    ? new Date(`${plan.end_date}T00:00:00`)
+    : new Date(startDate.getTime() + plan.duration_days * 24 * 60 * 60 * 1000);
+
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) return 0;
+
+  const duration = endDate.getTime() - startDate.getTime();
+  if (duration <= 0) return 100;
+
+  const elapsed = Date.now() - startDate.getTime();
+  return Math.min(100, Math.max(0, Math.round((elapsed / duration) * 100)));
 }
 
 function SummaryCard({ card }: { card: SummaryCard }) {
@@ -185,44 +218,89 @@ function SessionJoinCard({ session, onJoin }: { session?: Session; onJoin: (id: 
   );
 }
 
-function ActiveDietPlanCard({ progress, onViewPlan }: { progress: number; onViewPlan: () => void }) {
+function ActiveDietPlanCard({
+  plan,
+  loading,
+  onBookConsultation,
+  onViewPlan,
+}: {
+  plan?: ApiDietPlan;
+  loading: boolean;
+  onBookConsultation: () => void;
+  onViewPlan: () => void;
+}) {
+  if (loading) {
+    return (
+      <aside className="rounded-[12px] border border-[#E1E4E8] bg-white px-6 py-8 text-[14px] text-[#6B7280]">
+        Loading diet plan...
+      </aside>
+    );
+  }
+
+  if (!plan) {
+    return (
+      <aside className="overflow-hidden rounded-[12px] border border-[#E1E4E8] bg-white">
+        <div className="border-b border-[#E8EAEE] px-6 py-8">
+          <h3 className="text-[22px] font-bold text-[#0A4833]">Active Diet Plan</h3>
+        </div>
+        <div className="px-6 py-8">
+          <h4 className="text-[18px] font-bold text-[#111827]">No active diet plan yet</h4>
+          <p className="mt-4 text-[16px] leading-6 text-[#4B5563]">
+            Book a consultation so your nutritionist can create a personalised diet plan for you.
+          </p>
+          <button
+            type="button"
+            onClick={onBookConsultation}
+            className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-[7px] bg-[#07533D] text-[16px] font-semibold text-white hover:bg-[#063F2F]"
+          >
+            Book Consultation
+          </button>
+        </div>
+      </aside>
+    );
+  }
+
+  const progress = calculateDietPlanProgress(plan);
+
   return (
-    <aside className="overflow-hidden rounded-[10px] border border-[#E1E4E8] bg-white">
-      <div className="border-b border-[#E8EAEE] px-5 py-6">
-        <h3 className="text-[18px] font-bold text-[#0A4833]">Active Diet Plan</h3>
+    <aside className="overflow-hidden rounded-[12px] border border-[#E1E4E8] bg-white">
+      <div className="border-b border-[#E8EAEE] px-6 py-8">
+        <h3 className="text-[22px] font-bold text-[#0A4833]">Active Diet Plan</h3>
       </div>
 
-      <div className="px-5 py-6">
-        <h4 className="text-[14px] font-bold text-[#111827]">Buckwheat Wellness Plan</h4>
-        <p className="mt-3 text-[13px] leading-5 text-[#4B5563]">
-          A 30-day nutrition program focused on buckwheat integration for optimal health.
+      <div className="px-6 py-8">
+        <h4 className="text-[18px] font-bold text-[#111827]">{plan.title}</h4>
+        <p className="mt-4 text-[16px] leading-6 text-[#4B5563]">
+          {plan.description || "Your nutritionist has assigned this personalised diet plan."}
         </p>
 
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between text-[13px]">
+        <div className="mt-5">
+          <div className="mb-3 flex items-center justify-between text-[16px]">
             <span className="text-[#6B7280]">Progress</span>
             <span className="text-[#A88751]">{progress}%</span>
           </div>
-          <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5E7EB]">
+          <div className="h-[10px] w-full overflow-hidden rounded-full bg-[#E5E7EB]">
             <div className="h-full rounded-full bg-[#A88751]" style={{ width: `${progress}%` }} />
           </div>
         </div>
 
-        <div className="mt-4 space-y-3 text-[13px]">
+        <div className="mt-5 space-y-4 text-[16px]">
           <div className="flex items-center justify-between">
-            <span className="text-[#6B7280]">Target Weight</span>
-            <span className="font-medium text-[#111827]">65 kg</span>
+            <span className="text-[#6B7280]">Goal</span>
+            <span className="font-medium text-[#111827]">{formatDietPlanGoal(plan.goal)}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[#6B7280]">Daily Calories</span>
-            <span className="font-medium text-[#111827]">1,800 kcal</span>
+            <span className="font-medium text-[#111827]">
+              {plan.daily_calories ? `${plan.daily_calories.toLocaleString()} kcal` : "Not added"}
+            </span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={onViewPlan}
-          className="mt-5 inline-flex h-10 w-full items-center justify-center rounded-[6px] bg-[#A88751] text-[13px] font-medium text-white hover:bg-[#8E7346]"
+          className="mt-7 inline-flex h-[50px] w-full items-center justify-center rounded-[7px] bg-[#A88751] text-[16px] font-semibold text-white hover:bg-[#8E7346]"
         >
           View Full Plan
         </button>
@@ -236,6 +314,8 @@ export default function Consultation() {
   const [message, setMessage] = useState("");
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
+  const [dietPlans, setDietPlans] = useState<ApiDietPlan[]>([]);
+  const [loadingDietPlans, setLoadingDietPlans] = useState(true);
   const hasLoadedSessionsRef = useRef(false);
   const knownMeetingLinksRef = useRef<Record<string, string>>({});
 
@@ -298,12 +378,21 @@ export default function Consultation() {
     };
   }, [fetchSessions]);
 
+  useEffect(() => {
+    api
+      .get<ApiDietPlan[] | { results: ApiDietPlan[] }>("/consultant/diet-plans/")
+      .then(({ data }) => setDietPlans(Array.isArray(data) ? data : data.results ?? []))
+      .catch(() => setDietPlans([]))
+      .finally(() => setLoadingDietPlans(false));
+  }, []);
+
   const upcomingSessions = useMemo(
     () => sessions.filter((session) => session.status !== "completed" && session.status !== "cancelled"),
     [sessions]
   );
   const completedSessions = useMemo(() => sessions.filter((session) => session.status === "completed"), [sessions]);
   const nextSession = upcomingSessions[0];
+  const activeDietPlan = dietPlans[0];
   const summaryCards: SummaryCard[] = [
     {
       Icon: CalendarClock,
@@ -323,9 +412,9 @@ export default function Consultation() {
     },
     {
       Icon: HeartPulse,
-      value: 1,
+      value: dietPlans.length,
       label: "Active Diet Plans",
-      helper: "Buckwheat wellness plan",
+      helper: activeDietPlan?.title || "No active diet plan",
       iconBg: "bg-[#E7F0EC]",
       iconColor: "text-[#0A4833]",
     },
@@ -397,7 +486,9 @@ export default function Consultation() {
           <div className="space-y-5">
             <SessionJoinCard session={nextSession} onJoin={joinSession} />
             <ActiveDietPlanCard
-              progress={65}
+              plan={activeDietPlan}
+              loading={loadingDietPlans}
+              onBookConsultation={() => router.push("/communityDashBoard/addconsaltation")}
               onViewPlan={() => router.push("/communityDashBoard/consultation/diet-plan")}
             />
           </div>

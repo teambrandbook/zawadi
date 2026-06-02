@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Leaf, MessageSquareText, ShieldCheck, Star } from "lucide-react";
 import api from "@/services/api";
+import { getImageUrl } from "@/lib/utils";
 
 type Props = {
   orderDataId: string;
@@ -23,6 +24,7 @@ type DraftPayload = {
 type ApiOrderDetail = {
   order_id: string;
   product_name: string;
+  product_image?: string | null;
   status: string;
   created_at: string;
 };
@@ -56,6 +58,13 @@ const recentReviews = [
   '"Perfect for my morning porridge routine. Great quality and taste!"',
   '"Excellent for gluten-free baking. My energy levels improved significantly."',
 ];
+
+const fallbackImage = "/product/p-1.webp";
+
+function toProductImageUrl(imagePath?: string | null): string {
+  if (!imagePath) return fallbackImage;
+  return getImageUrl(imagePath);
+}
 
 function readDraftPayload(draftKey: string): DraftPayload | null {
   if (typeof window === "undefined") return null;
@@ -215,6 +224,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
   }
 
   const visibleRating = hoveredStar || rating;
+  const productImage = toProductImageUrl(order.product_image);
 
   return (
     <section className="mx-auto max-w-[1120px] px-4 py-8 lg:px-6">
@@ -239,7 +249,7 @@ export default function MyOrderReview({ orderDataId }: Props) {
             <div className="mt-6 flex flex-col gap-4 rounded-xl border border-[#EEE8DB] bg-[#FFFEFC] p-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-4">
                 <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-[#EBE1CF]">
-                  <Image src="/product/product-1.webp" alt={order.product_name} fill className="object-cover" />
+                  <Image src={productImage} alt={order.product_name} fill className="object-cover" />
                 </div>
                 <div>
                   <h2 className="text-base font-semibold text-[#0A4833]">{order.product_name}</h2>

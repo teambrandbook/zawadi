@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 
 type EventsOverviewProps = {
   stats: EventStat[];
+  canCreateEvents: boolean;
 };
 
 function statIcon(icon: EventStat["icon"]) {
@@ -33,7 +34,7 @@ function statBadgeTone(id: EventStat["id"]) {
   return "text-[#9F8151]";
 }
 
-export default function EventsOverview({ stats }: EventsOverviewProps) {
+export default function EventsOverview({ stats, canCreateEvents }: EventsOverviewProps) {
   const router = useRouter();
 
   return (
@@ -50,15 +51,17 @@ export default function EventsOverview({ stats }: EventsOverviewProps) {
               className="h-[38px] w-full rounded-md border border-[#DFDFDF] bg-[#F3F0EA] pl-9 pr-3 text-sm text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             />
           </div>
-          <div className="flex w-full justify-end md:w-auto">
-            <button
-              type="button"
-              onClick={() => router.push("/admindashboard/events/create")}
-              className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white"
-            >
-              + Create Event
-            </button>
-          </div>
+          {canCreateEvents && (
+            <div className="flex w-full justify-end md:w-auto">
+              <button
+                type="button"
+                onClick={() => router.push("/admindashboard/events/create")}
+                className="h-10 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white"
+              >
+                + Create Event
+              </button>
+            </div>
+          )}
         </div>
       </header>
 

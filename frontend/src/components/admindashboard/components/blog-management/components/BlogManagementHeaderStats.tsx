@@ -17,9 +17,11 @@ type BlogRow = {
 
 type Props = {
   rows?: BlogRow[];
+  canCreateBlogs: boolean;
+  canExportBlogs: boolean;
 };
 
-export default function BlogManagementHeaderStats({ rows = [] }: Props) {
+export default function BlogManagementHeaderStats({ rows = [], canCreateBlogs, canExportBlogs }: Props) {
   const total = rows.length;
   const published = rows.filter((r) => r.status === "published" || r.status === "Approved").length;
   const pending = rows.filter((r) => r.status === "pending" || r.status === "Pending").length;
@@ -79,14 +81,18 @@ export default function BlogManagementHeaderStats({ rows = [] }: Props) {
         </div>
 
         <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-          <button type="button" onClick={exportBlogs} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#D9DEE3] bg-white px-3 text-[13px] text-[#0A4833]">
-            <Download className="h-4 w-4" />
-            Export
-          </button>
-          <Link href="/admindashboard/blog/add" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#0A4833] px-3 text-[13px] text-white">
-            <Plus className="h-4 w-4" />
-            Add Blog
-          </Link>
+          {canExportBlogs && (
+            <button type="button" onClick={exportBlogs} className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#D9DEE3] bg-white px-3 text-[13px] text-[#0A4833]">
+              <Download className="h-4 w-4" />
+              Export
+            </button>
+          )}
+          {canCreateBlogs && (
+            <Link href="/admindashboard/blog/add" className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#0A4833] px-3 text-[13px] text-white">
+              <Plus className="h-4 w-4" />
+              Add Blog
+            </Link>
+          )}
         </div>
       </div>
 

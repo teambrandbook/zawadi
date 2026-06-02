@@ -35,6 +35,19 @@ class IsAdminUser(BasePermission):
         return has_permission(request.user, "recipes", "create")
 
 
+class CanApproveRecipes(BasePermission):
+    def has_permission(self, request, view):
+        return has_permission(request.user, "recipes", "approve")
+
+
+class CanViewOrApproveRecipes(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            has_permission(request.user, "recipes", "view")
+            or has_permission(request.user, "recipes", "approve")
+        )
+
+
 # ---------------------------------------------------------------------------
 # Public / authenticated endpoints
 # ---------------------------------------------------------------------------
@@ -360,7 +373,7 @@ class AdminRecipeListView(generics.ListAPIView):
     Returns all recipes. Optional ?status=<value> filter.
     """
     serializer_class = RecipeListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanViewOrApproveRecipes]
 
     def get_queryset(self):
         qs = Recipe.objects.all()
@@ -376,7 +389,7 @@ class AdminRecipeStatusUpdateView(APIView):
     Updates the status field of a recipe.
     Expected body: { "status": "published" | "draft" }
     """
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanApproveRecipes]
 
     def patch(self, request, pk):
         try:

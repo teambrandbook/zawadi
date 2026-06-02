@@ -24,6 +24,7 @@ from product.services import get_product_price
 from zewadi.pagination import StandardPagination
 from django.conf import settings
 from tax.services import get_tax_rate
+from supperadmin.utils.permissions import has_permission
 
 
 FREE_SHIPPING_THRESHOLD = Decimal("50.00")
@@ -161,6 +162,11 @@ class IsAdminUser(BasePermission):
 
     def has_permission(self, request, view):
         return request.user.is_authenticated and request.user.role == "ADMIN"
+
+
+class CanViewOrders(BasePermission):
+    def has_permission(self, request, view):
+        return has_permission(request.user, "orders", "view")
 
 
 # ---------------------------------------------------------------------------
@@ -579,7 +585,7 @@ class CartCheckoutView(APIView):
 class AdminOrderListView(APIView):
     """GET /api/orders/admin/ — list all orders; supports ?status= filter."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanViewOrders]
 
     def get(self, request):
         queryset = Order.objects.all()
@@ -597,9 +603,12 @@ class AdminOrderListView(APIView):
 class AdminCustomGiftOrderListView(APIView):
     """GET /api/orders/admin/custom-gifts/ — list all custom gift orders."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not has_permission(request.user, "gifts", "view"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         queryset = CustomGiftOrder.objects.select_related("user").all()
         return Response(
             CustomGiftOrderCreateSerializer(queryset, many=True, context={"request": request}).data
@@ -609,7 +618,7 @@ class AdminCustomGiftOrderListView(APIView):
 class AdminCustomGiftOrderDetailView(APIView):
     """GET or DELETE a custom gift order by its public ID."""
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_gift_order(self, custom_gift_id):
         try:
@@ -618,12 +627,18 @@ class AdminCustomGiftOrderDetailView(APIView):
             return None
 
     def get(self, request, custom_gift_id):
+        if not has_permission(request.user, "gifts", "view"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         gift_order = self.get_gift_order(custom_gift_id)
         if not gift_order:
             return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(CustomGiftOrderCreateSerializer(gift_order, context={"request": request}).data)
 
     def patch(self, request, custom_gift_id):
+        if not has_permission(request.user, "gifts", "edit"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         gift_order = self.get_gift_order(custom_gift_id)
         if not gift_order:
             return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -634,6 +649,9 @@ class AdminCustomGiftOrderDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, custom_gift_id):
+        if not has_permission(request.user, "gifts", "delete"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         gift_order = self.get_gift_order(custom_gift_id)
         if not gift_order:
             return Response({"detail": "Custom gift order not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -665,7 +683,7 @@ class AdminOrderStatusUpdateView(APIView):
     DELETE  /api/orders/admin/<order_id>/status/ — delete order
     """
 
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_order(self, order_id):
         try:
@@ -674,6 +692,9 @@ class AdminOrderStatusUpdateView(APIView):
             return None
 
     def patch(self, request, order_id):
+        if not has_permission(request.user, "orders", "edit"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         order = self.get_order(order_id)
 
         if not order:
@@ -698,6 +719,9 @@ class AdminOrderStatusUpdateView(APIView):
         )
 
     def delete(self, request, order_id):
+        if not has_permission(request.user, "orders", "delete"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         order = self.get_order(order_id)
 
         if not order:

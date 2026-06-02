@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/services/api";
 import OrderFilters from "./components/OrderFilters";
@@ -10,6 +11,8 @@ import OrdersHeader from "./components/OrdersHeader";
 import OrderStats from "./components/OrderStats";
 import OrderStatusModal from "./components/OrderStatusModal";
 import RecentOrdersTable from "./components/RecentOrdersTable";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 
 type Order = {
   id: string;
@@ -134,6 +137,8 @@ function toCsv(rows: Order[]) {
 
 export default function OrdersDashboard() {
   const searchParams = useSearchParams();
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -158,6 +163,18 @@ export default function OrdersDashboard() {
 
   const [deleteOrderId, setDeleteOrderId] =
     useState("");
+  const ordersPermission = internalStaffPermissions.find(
+    (permission) => permission.module === "orders"
+  );
+  const canEditOrders =
+    role !== "internal_staff" ||
+    Boolean(ordersPermission && (ordersPermission.can_edit || ordersPermission.full_access));
+  const canDeleteOrders =
+    role !== "internal_staff" ||
+    Boolean(ordersPermission && (ordersPermission.can_delete || ordersPermission.full_access));
+  const canExportOrders =
+    role !== "internal_staff" ||
+    Boolean(ordersPermission && (ordersPermission.can_export || ordersPermission.full_access));
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -394,6 +411,7 @@ export default function OrdersDashboard() {
             )
           }
           onExport={handleExport}
+          canExportOrders={canExportOrders}
         />
 
         <div className="w-full overflow-hidden">
@@ -470,6 +488,8 @@ export default function OrdersDashboard() {
           }
           onViewDetails={openDetailsModal}
           onDelete={openDeleteModal}
+          canEditOrders={canEditOrders}
+          canDeleteOrders={canDeleteOrders}
         />
       </div>
 

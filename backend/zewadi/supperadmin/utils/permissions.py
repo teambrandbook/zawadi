@@ -43,3 +43,12 @@ class IsAdminRole(BasePermission):
             return False
 
         return bool(getattr(user, "is_superuser", False) or _get_role(user) == "ADMIN")
+
+
+class IsInternalStaffRole(BasePermission):
+    def has_permission(self, request, view):
+        user = getattr(request, "user", None)
+        if not user or not getattr(user, "is_authenticated", False):
+            return False
+
+        return _get_role(user) == "INTERNAL_STAFF"

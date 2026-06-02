@@ -9,6 +9,7 @@ type Props = {
   onClearFilters: () => void;
   onBulkEmail: () => void;
   onExportSelected: () => void;
+  canExportUsers: boolean;
 };
 
 export default function UserFiltersBar({
@@ -19,6 +20,7 @@ export default function UserFiltersBar({
   onClearFilters,
   onBulkEmail,
   onExportSelected,
+  canExportUsers,
 }: Props) {
   return (
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4">
@@ -54,10 +56,10 @@ export default function UserFiltersBar({
             Bulk Email
           </button>
 
-          <button type="button" onClick={onExportSelected} className="inline-flex items-center gap-2 rounded-lg bg-[#0A4833] px-4 py-2 text-sm text-white hover:bg-[#083927]">
+          {canExportUsers && <button type="button" onClick={onExportSelected} className="inline-flex items-center gap-2 rounded-lg bg-[#0A4833] px-4 py-2 text-sm text-white hover:bg-[#083927]">
             <Download className="h-4 w-4" />
             Export Selected
-          </button>
+          </button>}
         </div>
       </div>
     </section>

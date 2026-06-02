@@ -41,6 +41,7 @@ export default function LoginComponent() {
     try {
       const res = await api.post("/account/login/", { email, password });
       const data = res.data.data;
+      console.log(data);
       const role = normalizeRole(data.role);
 
       // Fetch user_type and photo — non-blocking; if it fails, route by role alone

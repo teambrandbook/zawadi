@@ -9,6 +9,8 @@ type Props = {
   onQuickFilter: () => void;
   onExportAll: () => void;
   onAddUser: () => void;
+  canAddUser: boolean;
+  canExportUsers: boolean;
 };
 
 export default function UserManagementHeader({
@@ -19,6 +21,8 @@ export default function UserManagementHeader({
   onQuickFilter,
   onExportAll,
   onAddUser,
+  canAddUser,
+  canExportUsers,
 }: Props) {
   return (
     <div className="rounded-xl border border-[#DFDFDF] bg-white p-4">
@@ -54,15 +58,15 @@ export default function UserManagementHeader({
               Filter
             </button>
 
-            <button type="button" onClick={onExportAll} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#A88751] px-4 py-2 text-sm text-white hover:bg-[#957548]">
+            {canExportUsers && <button type="button" onClick={onExportAll} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#A88751] px-4 py-2 text-sm text-white hover:bg-[#957548]">
               <Download className="h-4 w-4" />
               Export
-            </button>
+            </button>}
 
-            <button type="button" onClick={onAddUser} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#0A4833] px-4 py-2 text-sm text-white hover:bg-[#083927]">
+            {canAddUser && <button type="button" onClick={onAddUser} className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-[#0A4833] px-4 py-2 text-sm text-white hover:bg-[#083927]">
               <Plus className="h-4 w-4" />
               Add User
-            </button>
+            </button>}
 
             <label className="relative inline-flex shrink-0 items-center">
               <select

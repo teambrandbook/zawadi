@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from "next/link";
-import { Search, Bell, Menu } from 'lucide-react';
+import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
 import api from '@/services/api';
 import { getImageUrl } from '@/lib/utils';
 
@@ -12,6 +12,7 @@ interface NavbarProps {
 type ConsultantProfile = {
   full_name?: string | null;
   user_name?: string | null;
+  email?: string | null;
   location?: string | null;
   photo?: string | null;
   role?: string | null;
@@ -38,6 +39,7 @@ function getInitials(name: string) {
 const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const [profile, setProfile] = useState<ConsultantProfile | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -111,6 +113,15 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
   const photoSrc = normalizePhotoUrl(profile?.photo);
   const [hasPhotoError, setHasPhotoError] = useState(false);
   const initials = useMemo(() => getInitials(displayName), [displayName]);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/account/logout/");
+    } catch {
+      // Proceed to login even if the server session has already expired.
+    }
+    window.location.href = "/login";
+  };
 
   useEffect(() => {
     setHasPhotoError(false);
@@ -186,30 +197,91 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
         </Link>
 
         {/* Profile Info */}
-        <Link
-          href="/consultant/profile"
-          className="flex cursor-pointer items-center lg:pl-6 lg:border-l lg:border-gray-200"
-          aria-label="Open consultant profile"
-        >
-          <div className="text-right mr-3 hidden max-w-[170px] lg:block">
-            <p className="truncate text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
-            <p className="mt-1 truncate text-xs text-gray-400">{location || "Consultant"}</p>
-          </div>
-          <div className="relative w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
-            {photoSrc && !hasPhotoError ? (
-              <img
-                src={photoSrc}
-                alt={`${displayName} profile`}
-                className="h-full w-full object-cover"
-                onError={() => setHasPhotoError(true)}
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                <span className="text-xs font-medium text-gray-600">{initials}</span>
+        <div className="relative flex items-center lg:pl-6 lg:border-l lg:border-gray-200">
+          <button
+            type="button"
+            onClick={() => setIsProfileOpen((current) => !current)}
+            className="flex cursor-pointer items-center transition-opacity hover:opacity-80 focus:outline-none"
+            aria-label="Open consultant profile menu"
+          >
+            <div className="text-right mr-3 hidden max-w-[170px] lg:block">
+              <p className="truncate text-sm font-bold text-gray-900 leading-none whitespace-nowrap">{displayName}</p>
+              <p className="mt-1 truncate text-xs text-gray-400">{location || "Consultant"}</p>
+            </div>
+            <div className="relative w-8 h-8 lg:w-10 lg:h-10 bg-gray-300 rounded-full overflow-hidden border border-gray-200 flex-shrink-0">
+              {photoSrc && !hasPhotoError ? (
+                <Image
+                  src={photoSrc}
+                  alt={`${displayName} profile`}
+                  fill
+                  unoptimized
+                  className="h-full w-full object-cover"
+                  onError={() => setHasPhotoError(true)}
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                  <span className="text-xs font-medium text-gray-600">{initials}</span>
+                </div>
+              )}
+            </div>
+          </button>
+
+          {isProfileOpen && (
+            <div
+              className="fixed inset-0 z-40 cursor-pointer"
+              onClick={() => setIsProfileOpen(false)}
+            />
+          )}
+
+          {isProfileOpen && (
+            <div className="absolute right-0 top-14 z-50 w-64 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
+              <div className="flex items-center gap-3 px-4 py-4">
+                <div className="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-gray-300">
+                  {photoSrc && !hasPhotoError ? (
+                    <Image
+                      src={photoSrc}
+                      alt={`${displayName} profile`}
+                      fill
+                      unoptimized
+                      className="h-full w-full object-cover"
+                      onError={() => setHasPhotoError(true)}
+                    />
+                  ) : (
+                    <span className="text-sm font-bold text-gray-600">{initials}</span>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-gray-900">{displayName}</p>
+                  <p className="mt-0.5 truncate text-xs text-gray-400">{profile?.email || location || "Consultant"}</p>
+                  <span className="mt-1.5 inline-block rounded-full bg-[#EBE3D1] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-[#06402B]">
+                    Consultant
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
-        </Link>
+
+              <div className="mx-1 border-t border-gray-100" />
+
+              <div className="py-1.5">
+                <Link
+                  href="/consultant/settings"
+                  onClick={() => setIsProfileOpen(false)}
+                  className="mx-1 flex cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                >
+                  <Settings className="h-4 w-4 flex-shrink-0 text-gray-500" />
+                  Profile Settings
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mx-1 flex w-full cursor-pointer items-center gap-3 rounded-lg px-4 py-2.5 text-sm text-red-600 transition-colors hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4 flex-shrink-0" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

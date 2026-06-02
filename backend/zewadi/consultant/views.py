@@ -25,6 +25,11 @@ class IsAdminUser(BasePermission):
         return request.user.is_authenticated and request.user.role == "ADMIN"
 
 
+class CanViewConsultations(BasePermission):
+    def has_permission(self, request, view):
+        return has_permission(request.user, "consultations", "view")
+
+
 class IsConsultantUser(BasePermission):
     def has_permission(self, request, view):
         return (
@@ -293,7 +298,7 @@ class ConsultantClientListView(APIView):
 
 
 class AdminConsultationListView(APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanViewConsultations]
 
     def get(self, request):
         bookings = ConsultationBooking.objects.select_related(
@@ -363,6 +368,7 @@ class DietPlanListView(APIView):
         elif getattr(request.user, "role", None) == "COMMUNITY_USER":
             diet_plans = (
                 request.user.diet_plans
+                .filter(status=DietPlan.PlanStatus.ACTIVE, is_template=False)
                 .select_related("consultant__user", "client")
                 .prefetch_related("meals__items")
                 .order_by("-updated_at")

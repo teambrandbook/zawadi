@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   CheckCircle2,
   Eye,
@@ -17,6 +18,8 @@ import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
 import { toast } from "sonner";
 import OrderStatusModal from "@/components/admindashboard/components/order-management/components/OrderStatusModal";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 
 type GiftProduct = {
   id?: number | string;
@@ -184,6 +187,8 @@ function StatCard({
 }
 
 export default function GiftsManagementPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [orders, setOrders] = useState<GiftOrder[]>([]);
   const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
@@ -196,6 +201,9 @@ export default function GiftsManagementPage() {
   const [giftToDelete, setGiftToDelete] = useState<GiftOrder | null>(null);
   const [giftToUpdate, setGiftToUpdate] = useState<GiftOrder | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const giftPermission = permissions.find(({ module }) => module === "gifts");
+  const canEditGifts = role !== "internal_staff" || Boolean(giftPermission?.full_access || giftPermission?.can_edit);
+  const canDeleteGifts = role !== "internal_staff" || Boolean(giftPermission?.full_access || giftPermission?.can_delete);
 
   useEffect(() => {
     let mounted = true;
@@ -353,7 +361,9 @@ export default function GiftsManagementPage() {
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
             <h2 className="text-lg font-bold text-[#0A4833]">Recent Orders</h2>
             <div className="flex items-center gap-2">
-              <button className="rounded-md bg-[#E5E7EB] px-4 py-2 text-xs text-[#374151]">Bulk Actions</button>
+              {canEditGifts && (
+                <button className="rounded-md bg-[#E5E7EB] px-4 py-2 text-xs text-[#374151]">Bulk Actions</button>
+              )}
               <select
                   value={pageSize}
                   onChange={(event) => {
@@ -411,8 +421,12 @@ export default function GiftsManagementPage() {
                     <td className="px-5 py-5">
                       <div className="flex items-center gap-2">
                         <IconButton label="View" onClick={() => setSelectedGift(order)}><Eye className="h-4 w-4" /></IconButton>
-                        <IconButton label="Edit" tone="gold" onClick={() => setGiftToUpdate(order)}><Pencil className="h-4 w-4" /></IconButton>
-                        <IconButton label="Delete" tone="muted" onClick={() => setGiftToDelete(order)}><Trash2 className="h-4 w-4" /></IconButton>
+                        {canEditGifts && (
+                          <IconButton label="Edit" tone="gold" onClick={() => setGiftToUpdate(order)}><Pencil className="h-4 w-4" /></IconButton>
+                        )}
+                        {canDeleteGifts && (
+                          <IconButton label="Delete" tone="muted" onClick={() => setGiftToDelete(order)}><Trash2 className="h-4 w-4" /></IconButton>
+                        )}
                       </div>
                     </td>
                   </tr>

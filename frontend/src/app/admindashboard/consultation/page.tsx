@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   Apple,
   CalendarDays,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 
 type Booking = {
   id: string;
@@ -144,10 +147,12 @@ function ConsultationTopSection({
   bookings,
   filters,
   onFiltersChange,
+  canExportConsultations,
 }: {
   bookings: Booking[];
   filters: ConsultationFilters;
   onFiltersChange: (filters: ConsultationFilters) => void;
+  canExportConsultations: boolean;
 }) {
   const statuses = Array.from(new Set(bookings.map((booking) => booking.status).filter(Boolean)));
   const sessionTypes = Array.from(
@@ -175,9 +180,11 @@ function ConsultationTopSection({
           >
             Clear Filters
           </button>
-          <button className="rounded-md border border-[#A68966] bg-[#A68966] px-4 py-2 text-sm font-medium text-white">
-            Export
-          </button>
+          {canExportConsultations && (
+            <button className="rounded-md border border-[#A68966] bg-[#A68966] px-4 py-2 text-sm font-medium text-white">
+              Export
+            </button>
+          )}
           {/* <Link
             href="/admindashboard/consultation/assign-nutritionist"
             className="rounded-md border border-[#0A4833] bg-[#0A4833] px-4 py-2 text-sm font-medium text-white"
@@ -429,6 +436,8 @@ function ConsultationDetailsModal({
 }
 
 export default function AdminConsultationPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -439,6 +448,11 @@ export default function AdminConsultationPage() {
     nutritionist: "",
     date: "",
   });
+  const consultationPermission = permissions.find(({ module }) => module === "consultations");
+  const canEditConsultations =
+    role !== "internal_staff" || Boolean(consultationPermission?.full_access || consultationPermission?.can_edit);
+  const canExportConsultations =
+    role !== "internal_staff" || Boolean(consultationPermission?.full_access || consultationPermission?.can_export);
 
   const filteredBookings = useMemo(() => {
     return bookings.filter((booking) => {
@@ -482,15 +496,18 @@ export default function AdminConsultationPage() {
           bookings={bookings}
           filters={filters}
           onFiltersChange={setFilters}
+          canExportConsultations={canExportConsultations}
         />
 
         <div className="grid gap-5 xl:grid-cols-[1fr_330px]">
           <div className="rounded-xl border border-[#E5E7EB] bg-white">
             <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-3">
               <h2 className="text-lg font-semibold text-[#0A4833]">Recent Consultations</h2>
-              <button className="rounded-md border border-[#D1D5DB] bg-[#F9FAFB] px-3 py-1.5 text-xs font-medium text-[#4B5563]">
-                Bulk Assign
-              </button>
+              {canEditConsultations && (
+                <button className="rounded-md border border-[#D1D5DB] bg-[#F9FAFB] px-3 py-1.5 text-xs font-medium text-[#4B5563]">
+                  Bulk Assign
+                </button>
+              )}
             </div>
 
             {isLoading && (

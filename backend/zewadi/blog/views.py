@@ -59,7 +59,7 @@ class BlogListAPIView(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        has_blog_permission = has_permission(user, "blog", "view")
+        has_blog_permission = has_permission(user, "blogs", "view")
 
         if has_blog_permission:
             qs = Blog.objects.all()
@@ -108,7 +108,7 @@ class BlogCreateAPIView(APIView):
         # check permission
         has_blog_permission = has_permission(
             user,
-            "blog",
+            "blogs",
             "create"
         )
 
@@ -217,7 +217,7 @@ class BlogDetailAPIView(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-        has_blog_permission = has_permission(user, "blog", "view")
+        has_blog_permission = has_permission(user, "blogs", "view")
         if not (public_allowed or has_blog_permission or blog.author == user):
             return Response({"message": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
 
@@ -252,7 +252,7 @@ class BlogDetailAPIView(APIView):
 
         has_blog_permission = has_permission(
             user,
-            "blog",
+            "blogs",
             "edit"
         )
 
@@ -331,7 +331,7 @@ class BlogDetailAPIView(APIView):
 
         has_blog_permission = has_permission(
             user,
-            "blog",
+            "blogs",
             "delete"
         )
 
@@ -367,5 +367,31 @@ class BlogDetailAPIView(APIView):
             {
                 "message": "Blog deleted successfully"
             },
+            status=status.HTTP_200_OK
+        )
+
+
+class AdminBlogStatusUpdateAPIView(APIView):
+
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, blog_id):
+        if not has_permission(request.user, "blogs", "approve"):
+            return Response({"message": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+
+        blog = Blog.objects.filter(id=blog_id).first()
+        if not blog:
+            return Response({"message": "Blog not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        requested_status = str(request.data.get("status", "")).strip().lower()
+        if requested_status not in BlogStatus.values:
+            return Response({"message": "Invalid blog status"}, status=status.HTTP_400_BAD_REQUEST)
+
+        blog.status = requested_status
+        blog.published_at = timezone.now() if requested_status == BlogStatus.PUBLISHED else None
+        blog.save(update_fields=["status", "published_at", "updated_at"])
+
+        return Response(
+            BlogSerializer(blog, context={"request": request}).data,
             status=status.HTTP_200_OK
         )

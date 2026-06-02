@@ -5,6 +5,7 @@ type DetailedReportsTableProps = {
   rows: ReportRow[];
   onDownload: (reportId: string) => void;
   downloadingReportId?: string | null;
+  canExportReports: boolean;
 };
 
 function formatCurrency(value: unknown): string {
@@ -22,6 +23,7 @@ export default function DetailedReportsTable({
   rows,
   onDownload,
   downloadingReportId = null,
+  canExportReports,
 }: DetailedReportsTableProps) {
   return (
     <article className="overflow-hidden rounded-lg border border-[#E5E7EB] bg-white">
@@ -61,15 +63,17 @@ export default function DetailedReportsTable({
                 <td className="px-4 py-3 text-[#6B7280]">{row.updatedAt}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-2 text-[#0A4B34]">
-                    <button
-                      type="button"
-                      onClick={() => onDownload(row.id)}
-                      disabled={downloadingReportId === row.id}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#E9F1EC] disabled:cursor-not-allowed disabled:opacity-50"
-                      title={`Download ${row.reportType}`}
-                    >
-                      <Download size={14} />
-                    </button>
+                    {canExportReports && (
+                      <button
+                        type="button"
+                        onClick={() => onDownload(row.id)}
+                        disabled={downloadingReportId === row.id}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#E9F1EC] disabled:cursor-not-allowed disabled:opacity-50"
+                        title={`Download ${row.reportType}`}
+                      >
+                        <Download size={14} />
+                      </button>
+                    )}
                     <Ellipsis size={14} />
                   </div>
                 </td>

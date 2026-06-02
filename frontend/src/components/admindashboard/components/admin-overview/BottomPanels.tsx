@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { CookingPot, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 import api from "@/services/api";
 
 type PendingItem = {
@@ -79,28 +82,43 @@ function statusBg(status: string) {
 }
 
 export default function BottomPanels() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
   const [consultations, setConsultations] = useState<ConsultationItem[]>([]);
   const [loadingApprovals, setLoadingApprovals] = useState(true);
   const [loadingConsultations, setLoadingConsultations] = useState(true);
+  const hasPermission = (module: string, action: "can_view" | "can_approve") =>
+    role !== "internal_staff" ||
+    internalStaffPermissions.some(
+      (permission) =>
+        permission.module === module &&
+        (permission.full_access || permission[action])
+    );
+  const canApproveRecipes = hasPermission("recipes", "can_approve");
+  const canApproveBlogs = hasPermission("blogs", "can_approve");
+  const canViewApprovals = canApproveRecipes || canApproveBlogs;
+  const canViewConsultations = hasPermission("consultations", "can_view");
 
   useEffect(() => {
     const fetchPending = async () => {
       try {
-        const [recipesRes, blogsRes] = await Promise.all([
-          api.get("/recipes/admin/?status=pending"),
-          api.get("/blog/admin/?status=pending"),
+        const [recipesResult, blogsResult] = await Promise.allSettled([
+          canApproveRecipes ? api.get("/recipes/admin/?status=pending") : null,
+          canApproveBlogs ? api.get("/blog/admin/?status=pending") : null,
         ]);
+        const recipesRes = recipesResult.status === "fulfilled" ? recipesResult.value : null;
+        const blogsRes = blogsResult.status === "fulfilled" ? blogsResult.value : null;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const rawRecipes: Record<string, any>[] = Array.isArray(recipesRes.data)
+        const rawRecipes: Record<string, any>[] = Array.isArray(recipesRes?.data)
           ? recipesRes.data
-          : Array.isArray(recipesRes.data?.results)
+          : Array.isArray(recipesRes?.data?.results)
           ? recipesRes.data.results
           : [];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const rawBlogs: Record<string, any>[] = Array.isArray(blogsRes.data)
+        const rawBlogs: Record<string, any>[] = Array.isArray(blogsRes?.data)
           ? blogsRes.data
-          : Array.isArray(blogsRes.data?.results)
+          : Array.isArray(blogsRes?.data?.results)
           ? blogsRes.data.results
           : [];
         const combined = [
@@ -116,6 +134,8 @@ export default function BottomPanels() {
     };
 
     const fetchConsultations = async () => {
+      if (!canViewConsultations) return;
+
       try {
         const res = await api.get("/consultant/admin/bookings/");
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -132,9 +152,9 @@ export default function BottomPanels() {
       }
     };
 
-    fetchPending();
+    if (canViewApprovals) fetchPending();
     fetchConsultations();
-  }, []);
+  }, [canApproveBlogs, canApproveRecipes, canViewApprovals, canViewConsultations]);
 
   async function handleApprove(item: PendingItem) {
     try {
@@ -166,7 +186,7 @@ export default function BottomPanels() {
 
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      {canViewApprovals && <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Pending Approvals</h3>
         {loadingApprovals && (
           <p className="mt-3 text-sm text-[#6B7280]">Loading pending items...</p>
@@ -213,9 +233,9 @@ export default function BottomPanels() {
             </div>
           ))}
         </div>
-      </article>
+      </article>}
 
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      {canViewConsultations && <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Today&apos;s Consultations</h3>
         {loadingConsultations && (
           <p className="mt-3 text-sm text-[#6B7280]">Loading consultations...</p>
@@ -249,7 +269,7 @@ export default function BottomPanels() {
             </div>
           ))}
         </div>
-      </article>
+      </article>}
     </section>
   );
 }

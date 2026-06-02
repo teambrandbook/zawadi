@@ -5,9 +5,12 @@ import Image from "next/image";
 import { Check, ChefHat, CircleAlert, Eye, Globe, Plus, Search, Sparkles, Star, Trash2, Upload, X,Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 
 type StatCardDef = {
   title: string;
@@ -384,6 +387,9 @@ function RecipeRowActions({
   onView,
   onEdit,
   onDelete,
+  canApproveRecipes,
+  canEditRecipes,
+  canDeleteRecipes,
 }: {
   recipeId: string;
   recipeName: string;
@@ -392,6 +398,9 @@ function RecipeRowActions({
   onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (recipe: DeleteTarget) => void;
+  canApproveRecipes: boolean;
+  canEditRecipes: boolean;
+  canDeleteRecipes: boolean;
 }) {
   const isPending = status === "pending" || status === "Pending";
 
@@ -401,22 +410,22 @@ function RecipeRowActions({
         <button type="button" onClick={() => onView(recipeId)} className="grid h-7 w-7 place-items-center rounded-md bg-[#EEF2F6] text-[#475467]">
           <Eye className="h-3.5 w-3.5" />
         </button>
-        <button
+        {canApproveRecipes && <button
           type="button"
           onClick={() => onStatusChange(recipeId, "published")}
           className="grid h-7 w-7 place-items-center rounded-md bg-[#CFF2DD] text-[#15803D]"
           title="Approve"
         >
           <Check className="h-3.5 w-3.5" />
-        </button>
-        <button
+        </button>}
+        {canApproveRecipes && <button
           type="button"
           onClick={() => onStatusChange(recipeId, "rejected")}
           className="grid h-7 w-7 place-items-center rounded-md bg-[#FEE2E2] text-[#DC2626]"
           title="Reject"
         >
           <X className="h-3.5 w-3.5" />
-        </button>
+        </button>}
       </div>
     );
   }
@@ -426,26 +435,28 @@ function RecipeRowActions({
       <button type="button" onClick={() => onView(recipeId)} className="grid h-7 w-7 place-items-center rounded-md bg-[#EEF2F6] text-[#475467]">
         <Eye className="h-3.5 w-3.5" />
       </button>
-      <button
+      {canEditRecipes && <button
         type="button"
         onClick={() => onEdit(recipeId)}
         className="grid h-7 w-7 place-items-center rounded-md bg-[#DFEBFF] text-[#2563EB]"
       >
         <Pencil className="h-3.5 w-3.5" />
-      </button>
-      <button
+      </button>}
+      {canDeleteRecipes && <button
         type="button"
         onClick={() => onDelete({ id: recipeId, name: recipeName })}
         className="grid h-7 w-7 place-items-center rounded-md bg-red-100 text-red-600 hover:bg-red-200"
       >
         <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      </button>}
     </div>
   );
 }
 
 export default function RecipesDashboard() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [rows, setRows] = useState<RecipeRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -461,6 +472,24 @@ export default function RecipesDashboard() {
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [recipeToDelete, setRecipeToDelete] = useState<DeleteTarget | null>(null);
   const [isDeletingRecipe, setIsDeletingRecipe] = useState(false);
+  const recipesPermission = internalStaffPermissions.find(
+    (permission) => permission.module === "recipes"
+  );
+  const canCreateRecipes =
+    role !== "internal_staff" ||
+    Boolean(recipesPermission && (recipesPermission.can_create || recipesPermission.full_access));
+  const canEditRecipes =
+    role !== "internal_staff" ||
+    Boolean(recipesPermission && (recipesPermission.can_edit || recipesPermission.full_access));
+  const canDeleteRecipes =
+    role !== "internal_staff" ||
+    Boolean(recipesPermission && (recipesPermission.can_delete || recipesPermission.full_access));
+  const canApproveRecipes =
+    role !== "internal_staff" ||
+    Boolean(recipesPermission && (recipesPermission.can_approve || recipesPermission.full_access));
+  const canExportRecipes =
+    role !== "internal_staff" ||
+    Boolean(recipesPermission && (recipesPermission.can_export || recipesPermission.full_access));
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -597,10 +626,10 @@ export default function RecipesDashboard() {
                 className="h-10 w-[220px] rounded-lg border border-[#E5E7EB] bg-white pl-9 pr-3 text-sm text-[#111827] outline-none"
               />
             </label>
-            <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#0A4833]">
+            {canExportRecipes && <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-[#E5E7EB] bg-white px-3 text-sm text-[#0A4833]">
               <Upload className="h-4 w-4" />
               Export
-            </button>
+            </button>}
           </div>
         </div>
 
@@ -684,14 +713,14 @@ export default function RecipesDashboard() {
               </div>
             </div>
             <div className="flex justify-end xl:ml-auto">
-              <button
+              {canCreateRecipes && <button
                 type="button"
                 onClick={() => router.push("/admindashboard/recipes/add")}
                 className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#0A4833] px-4 text-sm font-medium text-white"
               >
                 <Plus className="h-4 w-4" />
                 Add Recipe
-              </button>
+              </button>}
             </div>
           </div>
 
@@ -711,26 +740,26 @@ export default function RecipesDashboard() {
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E5E7EB] p-3">
             <h2 className="text-[18px] font-semibold text-[#0A4833]">Recipe Submissions</h2>
             <div className="hide-scrollbar flex max-w-full gap-2 overflow-x-auto">
-              <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-3 py-1.5 text-[12px] text-[#15803D]">
+              {canApproveRecipes && <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-3 py-1.5 text-[12px] text-[#15803D]">
                 <Check className="h-3.5 w-3.5" />
                 Approve Selected
-              </button>
-              <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#FEEAEA] px-3 py-1.5 text-[12px] text-[#DC2626]">
+              </button>}
+              {canApproveRecipes && <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#FEEAEA] px-3 py-1.5 text-[12px] text-[#DC2626]">
                 <X className="h-3.5 w-3.5" />
                 Reject Selected
-              </button>
-              <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#FFF6D8] px-3 py-1.5 text-[12px] text-[#A16207]">
+              </button>}
+              {canEditRecipes && <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#FFF6D8] px-3 py-1.5 text-[12px] text-[#A16207]">
                 <CircleAlert className="h-3.5 w-3.5" />
                 Request Changes
-              </button>
-              <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-3 py-1.5 text-[12px] text-[#15803D]">
+              </button>}
+              {canApproveRecipes && <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-3 py-1.5 text-[12px] text-[#15803D]">
                 <Check className="h-3.5 w-3.5" />
                 Bulk Approve
-              </button>
-              <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#F3F4F6] px-3 py-1.5 text-[12px] text-[#475467]">
+              </button>}
+              {canDeleteRecipes && <button type="button" className="inline-flex items-center gap-1 rounded-md bg-[#F3F4F6] px-3 py-1.5 text-[12px] text-[#475467]">
                 <Upload className="h-3.5 w-3.5" />
                 Bulk Archive
-              </button>
+              </button>}
             </div>
           </div>
 
@@ -813,6 +842,9 @@ export default function RecipesDashboard() {
                           onView={handleViewRecipe}
                           onEdit={handleEditRecipe}
                           onDelete={setRecipeToDelete}
+                          canApproveRecipes={canApproveRecipes}
+                          canEditRecipes={canEditRecipes}
+                          canDeleteRecipes={canDeleteRecipes}
                         />
                       </td>
                     </tr>

@@ -82,6 +82,8 @@ type CustomGiftCheckoutSession = {
       image?: string | null;
       size: string;
       price: string;
+      currency?: string;
+      currencyDecimalPlaces?: number;
       quantity: number;
     }>;
     message: string;
@@ -91,6 +93,8 @@ type CustomGiftCheckoutSession = {
     deliveryCharge: string;
     taxAmount: string;
     totalAmount: string;
+    currency?: string;
+    currencyDecimalPlaces?: number;
   };
 };
 
@@ -348,7 +352,7 @@ export default function CommunityPaymentMethodPage() {
     ? cartItems[0]?.currency ?? "SAR"
     : checkout?.mode === "single"
       ? checkout.item.currency ?? "SAR"
-      : "SAR";
+      : checkout?.gift.currency ?? checkout?.gift.items[0]?.currency ?? "SAR";
 
   function getCheckoutDelivery(session: CheckoutSession | null): DeliveryPayload | null {
     if (!session) return null;

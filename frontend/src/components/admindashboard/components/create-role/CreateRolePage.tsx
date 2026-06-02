@@ -58,6 +58,7 @@ const moduleNames = [
   "Notifications",
   "Reports",
   "Events",
+  "Gifts",
 ];
 
 const createDefaultPermission = (module: string): Permission => ({
