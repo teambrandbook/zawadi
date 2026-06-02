@@ -122,6 +122,15 @@ export default function NotificationsPage() {
     }
   }, []);
 
+  const handleDelete = useCallback(async (receiptId: number) => {
+    try {
+      await api.delete(`/notifications/inbox/${receiptId}/`);
+      setReceipts((prev) => prev.filter((receipt) => receipt.receipt_id !== receiptId));
+    } catch {
+      // Keep the receipt visible if deletion failed.
+    }
+  }, []);
+
   // Derived counts
   const total = receipts.length;
   const unread = receipts.filter((r) => !r.is_read).length;
@@ -207,6 +216,9 @@ export default function NotificationsPage() {
                   if (receipt && !receipt.is_read) {
                     handleMarkRead(receipt.id);
                   }
+                }}
+                onDelete={(id) => {
+                  void handleDelete(Number(id));
                 }}
               />
             )}

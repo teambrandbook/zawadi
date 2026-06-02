@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import api from "@/services/api";
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  isPushEnabledInThisBrowser,
+  subscribePushRegistration,
+} from "@/lib/firebaseMessaging";
 import AccountSettingsPanel from "./AccountSettingsPanel";
 import NotificationsPanel from "./NotificationsPanel";
 import PreferencesPanel from "./PreferencesPanel";
@@ -58,7 +64,7 @@ const initialNotificationCategories: NotificationCategory[] = [
 const initialDeliveryChannels: DeliveryChannel[] = [
   { id: "email", title: "Email", detail: "sarah@example.com", enabled: true },
   { id: "sms", title: "SMS", detail: "+1 (555) 123-4567", enabled: false },
-  { id: "push", title: "Push Notifications", detail: "Mobile device notifications", enabled: true },
+  { id: "push", title: "Push Notifications", detail: "Browser and mobile web notifications", enabled: false },
   { id: "inapp", title: "In-app", detail: "Notifications within ZEWADI", enabled: true },
 ];
 
@@ -213,6 +219,16 @@ export default function CommunitySettingsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const syncPush = (enabled: boolean) => {
+      setDeliveryChannels((current) =>
+        current.map((channel) => channel.id === "push" ? { ...channel, enabled } : channel)
+      );
+    };
+    syncPush(isPushEnabledInThisBrowser());
+    return subscribePushRegistration(syncPush);
+  }, []);
+
   async function saveProfile(payload: CommunityProfileUpdatePayload) {
     setIsProfileSaving(true);
     setStatusMessage("Saving profile...");
@@ -280,7 +296,21 @@ export default function CommunitySettingsPage() {
     setStatusMessage("Notification category updated.");
   }
 
-  function toggleDeliveryChannel(channelId: string) {
+  async function toggleDeliveryChannel(channelId: string) {
+    if (channelId === "push") {
+      try {
+        if (isPushEnabledInThisBrowser()) {
+          await disablePushNotifications();
+          setStatusMessage("Push notifications disabled on this browser.");
+        } else {
+          await enablePushNotifications();
+          setStatusMessage("Push notifications enabled on this browser.");
+        }
+      } catch (error) {
+        setStatusMessage(error instanceof Error ? error.message : "Could not update push notifications.");
+      }
+      return;
+    }
     setDeliveryChannels((prev) =>
       prev.map((channel) => (channel.id === channelId ? { ...channel, enabled: !channel.enabled } : channel))
     );

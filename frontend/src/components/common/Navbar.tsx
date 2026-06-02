@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount, clearCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
+import { unregisterPushBeforeLogout } from "@/lib/firebaseMessaging";
 
 // i18n Imports
 import { useLocale } from "@/context/LocaleContext";
@@ -127,6 +128,7 @@ const Navbar = () => {
 
   async function handleLogout() {
     handleCloseMenu();
+    await unregisterPushBeforeLogout();
     await api.post("/account/logout/").catch(() => {});
     dispatch(clearCredentials());
     router.push("/login");

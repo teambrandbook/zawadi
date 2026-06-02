@@ -37,7 +37,7 @@ def invalidate_product_cache(sender, instance, signal=None, **kwargs):
 def notify_admin_stock_status(product):
     from django.utils import timezone
     from notifications.models import Notification
-    from notifications.utils import create_receipts_for_notification
+    from notifications.utils import deliver_notification
 
     stock = int(product.stock_quantity or 0)
     if stock > 5:
@@ -64,7 +64,9 @@ def notify_admin_stock_status(product):
         body=body,
         notification_type="ALERT",
         target_role="admin",
+        action_url="/admindashboard/products",
         status="SENT",
+        delivery_channels=[Notification.CHANNEL_IN_APP, Notification.CHANNEL_PUSH],
         sent_at=timezone.now(),
     )
-    create_receipts_for_notification(notification)
+    deliver_notification(notification)

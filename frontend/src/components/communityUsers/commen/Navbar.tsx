@@ -12,7 +12,8 @@ import type { AppDispatch, RootState } from "@/redux/store";
 import { fetchCartCount } from "@/redux/userSlice";
 import NotificationDropdown from "@/components/notifications/NotificationDropdown";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
-import { getNotificationSocketUrl } from "@/lib/notificationsSocket";
+import { subscribeLiveNotifications, type LiveNotification } from "@/lib/liveNotifications";
+import { unregisterPushBeforeLogout } from "@/lib/firebaseMessaging";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -107,7 +108,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [liveNotifications, setLiveNotifications] = useState<any[]>([]);
+  const [liveNotifications, setLiveNotifications] = useState<LiveNotification[]>([]);
   const [user, setUser] = useState<UserInfo>(getUserInitialState);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
@@ -132,40 +133,12 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
     return () => clearInterval(interval);
   }, [fetchUnreadCount]);
 
-  // WebSocket for Realtime Notifications
   useEffect(() => {
-    if (!hasNotificationInbox) {
-      return;
-    }
-
-    const socket = new WebSocket(getNotificationSocketUrl());
-
-    socket.onopen = () => {
-      console.log("Notification Socket Connected");
-    };
-
-    socket.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      console.log("Realtime Notification:", data);
-
-      // update unread count
+    if (!hasNotificationInbox) return;
+    return subscribeLiveNotifications((notification) => {
       setUnreadCount((prev) => prev + 1);
-
-      // update dropdown instantly
-      setLiveNotifications((prev) => [data, ...prev]);
-    };
-
-    socket.onerror = (e) => {
-      console.log("WebSocket Error", e);
-    };
-
-    socket.onclose = () => {
-      console.log("Notification Socket Closed");
-    };
-
-    return () => {
-      socket.close();
-    };
+      setLiveNotifications((prev) => [notification, ...prev]);
+    });
   }, [hasNotificationInbox]);
 
   useEffect(() => {
@@ -213,6 +186,7 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick, settingsHref = "/community
   }, [pathname, isCommunityUser, dispatch]);
 
   const handleLogout = async () => {
+    await unregisterPushBeforeLogout();
     try {
       await api.post("/account/logout/");
     } catch {

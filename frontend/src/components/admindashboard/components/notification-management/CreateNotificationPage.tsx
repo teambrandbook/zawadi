@@ -13,6 +13,7 @@ import CreateNotificationLivePreview from "./components/create-notification/Crea
 type NotifFormData = {
   title: string;
   body: string;
+  action_url: string;
   notification_type: string;
   target_role: string;
   delivery_channels: DeliveryChannel[];
@@ -30,6 +31,7 @@ export default function CreateNotificationPage() {
   const [formData, setFormData] = useState<NotifFormData>({
     title: "",
     body: "",
+    action_url: "",
     notification_type: "SYSTEM",
     target_role: "ALL",
     delivery_channels: ["in_app"],
@@ -46,6 +48,10 @@ export default function CreateNotificationPage() {
   async function handleSubmit() {
     if (!formData.title.trim()) { toast.error("Notification title is required."); return; }
     if (!formData.body.trim()) { toast.error("Notification body is required."); return; }
+    if (formData.action_url && (!formData.action_url.startsWith("/") || formData.action_url.startsWith("//"))) {
+      toast.error("Destination path must be an internal path starting with one slash.");
+      return;
+    }
     if (formData.delivery_channels.length === 0) { toast.error("Select at least one delivery channel."); return; }
     if (formData.scheduleMode === "later" && (!formData.scheduleDate || !formData.scheduleTime)) {
       toast.error("Schedule date and time are required.");
@@ -62,6 +68,7 @@ export default function CreateNotificationPage() {
       await api.post("/notifications/", {
         title: formData.title,
         body: formData.body,
+        action_url: formData.action_url,
         notification_type: formData.notification_type,
         target_role: formData.target_role,
         delivery_channels: formData.delivery_channels,
@@ -87,7 +94,7 @@ export default function CreateNotificationPage() {
       <div className="mx-auto max-w-[1180px]">
         <h1 className="text-3xl font-semibold text-[#0A4833]">Create Notification</h1>
         <p className="mt-2 text-sm text-[#6B7280]">
-          Compose and deliver in-app and email notifications to the right audience across the ZEWADI platform.
+          Compose and deliver in-app, email, and browser push notifications to the right audience across the ZEWADI platform.
         </p>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_290px]">
@@ -97,6 +104,8 @@ export default function CreateNotificationPage() {
               onTitleChange={(value) => updateField("title", value)}
               body={formData.body}
               onBodyChange={(value) => updateField("body", value)}
+              actionUrl={formData.action_url}
+              onActionUrlChange={(value) => updateField("action_url", value)}
               notificationType={formData.notification_type}
               onTypeChange={(value) => updateField("notification_type", value)}
               targetRole={formData.target_role}

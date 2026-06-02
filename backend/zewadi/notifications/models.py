@@ -25,6 +25,7 @@ class Notification(models.Model):
 
     CHANNEL_IN_APP = "in_app"
     CHANNEL_EMAIL = "email"
+    CHANNEL_PUSH = "push"
     DEFAULT_CHANNELS = [CHANNEL_IN_APP]
 
     title = models.CharField(max_length=255)
@@ -39,6 +40,14 @@ class Notification(models.Model):
         choices=TARGET_ROLE_CHOICES,
         default="ALL",
     )
+    target_user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='direct_notifications',
+        null=True,
+        blank=True,
+    )
+    action_url = models.CharField(max_length=500, blank=True, default="")
     status = models.CharField(
         max_length=10,
         choices=STATUS_CHOICES,
@@ -84,4 +93,30 @@ class UserNotificationReceipt(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.email} — {self.notification.title} [read={self.is_read}]"
+        return f"{self.user.email} - {self.notification.title} [read={self.is_read}]"
+
+
+class PushDevice(models.Model):
+    PLATFORM_WEB = "web"
+    PLATFORM_CHOICES = [
+        (PLATFORM_WEB, "Web"),
+    ]
+
+    user = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='push_devices',
+    )
+    token = models.TextField(unique=True)
+    platform = models.CharField(max_length=20, choices=PLATFORM_CHOICES, default=PLATFORM_WEB)
+    user_agent = models.CharField(max_length=500, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    last_seen_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-last_seen_at"]
+
+    def __str__(self):
+        return f"{self.user.email} [{self.platform}] active={self.is_active}"

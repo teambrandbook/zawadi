@@ -20,6 +20,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
                 self.channel_name,
             )
 
+        if not self.group_name:
+            await self.close(code=4401)
+            return
+
         await self.accept()
 
 
@@ -43,6 +47,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             "message": event["message"],
             "notification_type": event["notification_type"],
             "target_role": event["target_role"],
+            "action_url": event.get("action_url", ""),
             "created_at": event["created_at"],
 
         }))
@@ -52,7 +57,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         if user and user.is_authenticated:
             return user
 
-        token = self.get_query_token() or self.get_cookie_value("access_token")
+        token = self.get_cookie_value("access_token") or self.get_query_token()
         if not token:
             return user
 

@@ -1,6 +1,7 @@
 import api, { clearAccessToken } from "@/services/api";
 import { getGuestCart, clearGuestCart, getGuestCartCount } from "@/lib/guestCart";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { unregisterPushBeforeLogout } from "@/lib/firebaseMessaging";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -62,6 +63,7 @@ export const loginUser = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk("user/logout", async () => {
+  await unregisterPushBeforeLogout();
   await api.post("/account/logout/");
   clearAccessToken();
 });

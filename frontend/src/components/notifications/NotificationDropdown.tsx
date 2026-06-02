@@ -1,10 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import api from "@/services/api";
+import type { LiveNotification } from "@/lib/liveNotifications";
 
 interface NotificationItem {
   receipt_id: number;
+  id: number;
   notification?: {
     id: number;
     title: string;
@@ -13,6 +17,7 @@ interface NotificationItem {
   title?: string;
   body?: string;
   message?: string;
+  action_url?: string;
   is_read: boolean;
   read_at: string | null;
   created_at: string;
@@ -20,7 +25,7 @@ interface NotificationItem {
 
 interface NotificationDropdownProps {
   onClose: () => void;
-  liveNotifications?: any[];
+  liveNotifications?: LiveNotification[];
 }
 
 function timeAgo(dateStr: string): string {
@@ -34,6 +39,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function NotificationDropdown({ onClose, liveNotifications = [] }: NotificationDropdownProps) {
+  const router = useRouter();
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
@@ -59,6 +65,32 @@ export default function NotificationDropdown({ onClose, liveNotifications = [] }
     return () => document.removeEventListener("mousedown", handler);
   }, [onClose]);
 
+  function openDestination(actionUrl?: string) {
+    if (!actionUrl || !actionUrl.startsWith("/") || actionUrl.startsWith("//")) return;
+    onClose();
+    router.push(actionUrl);
+  }
+
+  async function deleteReceipt(receiptId: number) {
+    try {
+      await api.delete(`/notifications/inbox/${receiptId}/`);
+      setItems((currentItems) => currentItems.filter((item) => item.receipt_id !== receiptId));
+    } catch {
+      // Keep the receipt visible if deletion failed.
+    }
+  }
+
+  const persistedNotificationIds = new Set(items.map((item) => item.id));
+  const seenLiveNotificationIds = new Set<number>();
+  const uniqueLiveNotifications = liveNotifications.filter((item) => {
+    const notificationId = Number(item.notification_id || item.id);
+    if (!notificationId || persistedNotificationIds.has(notificationId) || seenLiveNotificationIds.has(notificationId)) {
+      return false;
+    }
+    seenLiveNotificationIds.add(notificationId);
+    return true;
+  });
+
   return (
     <div
       ref={ref}
@@ -68,12 +100,14 @@ export default function NotificationDropdown({ onClose, liveNotifications = [] }
       <div className="max-h-80 overflow-y-auto">
         
         {/* Realtime Notifications UI Section */}
-        {liveNotifications && liveNotifications.length > 0 && (
+        {uniqueLiveNotifications.length > 0 && (
           <div className="flex flex-col">
-            {liveNotifications.map((item, index) => (
-              <div
-                key={`live-${index}`}
-                className="border-b border-gray-100 bg-[#F9F6F1] p-4"
+            {uniqueLiveNotifications.map((item) => (
+              <button
+                type="button"
+                key={`live-${item.notification_id || item.id}`}
+                onClick={() => openDestination(item.action_url)}
+                className="w-full border-b border-gray-100 bg-[#F9F6F1] p-4 text-left"
               >
                 <h3 className="text-sm font-semibold text-gray-900">
                   {item.title}
@@ -82,7 +116,7 @@ export default function NotificationDropdown({ onClose, liveNotifications = [] }
                   {item.message || item.body}
                 </p>
                 <p className="text-xs text-gray-400 mt-1">just now</p>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -90,7 +124,7 @@ export default function NotificationDropdown({ onClose, liveNotifications = [] }
         {/* Historical Database Notifications Section */}
         {loading ? (
           <p className="text-center text-sm text-gray-500 py-6">Loading...</p>
-        ) : items.length === 0 && liveNotifications.length === 0 ? (
+        ) : items.length === 0 && uniqueLiveNotifications.length === 0 ? (
           <p className="text-center text-sm text-gray-500 py-6">No notifications yet</p>
         ) : (
           items.map((item) => {
@@ -100,11 +134,26 @@ export default function NotificationDropdown({ onClose, liveNotifications = [] }
             return (
               <div
                 key={item.receipt_id}
-                className={`px-4 py-3 border-b last:border-0 ${item.is_read ? "bg-white" : "bg-green-50"}`}
+                className={`flex items-start border-b last:border-0 ${item.is_read ? "bg-white" : "bg-green-50"}`}
               >
-                <p className="text-sm font-medium text-gray-800">{title}</p>
-                {body ? <p className="text-xs text-gray-500 mt-0.5">{body}</p> : null}
-                <p className="text-xs text-gray-400 mt-1">{timeAgo(item.created_at)}</p>
+                <button
+                  type="button"
+                  onClick={() => openDestination(item.action_url)}
+                  className="min-w-0 flex-1 px-4 py-3 text-left"
+                >
+                  <p className="text-sm font-medium text-gray-800">{title}</p>
+                  {body ? <p className="text-xs text-gray-500 mt-0.5">{body}</p> : null}
+                  <p className="text-xs text-gray-400 mt-1">{timeAgo(item.created_at)}</p>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void deleteReceipt(item.receipt_id)}
+                  className="m-2 rounded-md p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  aria-label={`Delete ${title}`}
+                  title="Delete notification"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             );
           })
