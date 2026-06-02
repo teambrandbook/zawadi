@@ -48,9 +48,10 @@ services:
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost:3000}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
-      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-True}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE:-False}
       AUTH_COOKIE_SAMESITE: ${AUTH_COOKIE_SAMESITE:-Lax}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-service-account.json
     depends_on:
       db:
         condition: service_healthy
@@ -61,12 +62,42 @@ services:
     volumes:
       - ./backend/zewadi:/app
       - media_files:/app/media
+      - ${FIREBASE_SECRETS_PATH:-./secrets}:/run/secrets:ro
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/admin/login/')\" 2>/dev/null || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 6
       start_period: 30s
+
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["python", "manage.py", "run_notification_scheduler"]
+    environment:
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: ${DEBUG:-False}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      DB_ENGINE: postgresql
+      DB_NAME: ${DB_NAME:-zawadi}
+      DB_USER: ${DB_USER:-zawadi}
+      DB_PASSWORD: ${DB_PASSWORD:-zawadi}
+      DB_HOST: db
+      DB_PORT: 5432
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-service-account.json
+    depends_on:
+      backend:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend/zewadi:/app
+      - ${FIREBASE_SECRETS_PATH:-./secrets}:/run/secrets:ro
 
   # ── Next.js Frontend ────────────────────────────────────────────────────────
   frontend:
@@ -76,6 +107,14 @@ services:
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000/api}
+      NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000/ws/notifications/}
+      NEXT_PUBLIC_FIREBASE_API_KEY: ${NEXT_PUBLIC_FIREBASE_API_KEY:-}
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:-}
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${NEXT_PUBLIC_FIREBASE_PROJECT_ID:-}
+      NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:-}
+      NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:-}
+      NEXT_PUBLIC_FIREBASE_APP_ID: ${NEXT_PUBLIC_FIREBASE_APP_ID:-}
+      NEXT_PUBLIC_FIREBASE_VAPID_KEY: ${NEXT_PUBLIC_FIREBASE_VAPID_KEY:-}
       CHOKIDAR_USEPOLLING: "true"
       WATCHPACK_POLLING: "true"
     depends_on:

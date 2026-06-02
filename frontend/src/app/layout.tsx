@@ -38,11 +38,16 @@ export const metadata: Metadata = {
   title: "Zewadi | Premium Digital Experience",
   description:
     "Modern, high-performance website built with Next.js and GSAP.",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: "/favicon/favicon-zoom.png",
     shortcut: "/favicon/favicon-zoom.png",
     apple: "/favicon/favicon-zoom.png",
   },
+};
+
+export const viewport = {
+  themeColor: "#0A4833",
 };
 
 export default function RootLayout({

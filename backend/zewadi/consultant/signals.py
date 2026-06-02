@@ -39,6 +39,7 @@ def handle_booking_status_change(sender, instance, created, **kwargs):
             "New consultation request",
             f"{client_name} requested a consultation on {date_str} at {instance.booked_slot}.",
             "ALERT",
+            "/consultant/consultation",
         )
         return
 
@@ -53,7 +54,7 @@ def handle_booking_status_change(sender, instance, created, **kwargs):
     date_str = instance.booked_date.strftime("%d %b %Y") if instance.booked_date else "your scheduled date"
     body = body_template.format(date=date_str)
 
-    send_user_notification(instance.user, title, body, "REMINDER")
+    send_user_notification(instance.user, title, body, "REMINDER", "/communityDashBoard/consultation")
     send_notification_email(
         instance.user.email,
         f"{title} — Zawadi",

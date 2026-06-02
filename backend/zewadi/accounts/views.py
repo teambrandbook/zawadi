@@ -720,7 +720,10 @@ class LogoutAllAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        from notifications.models import PushDevice
         from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+
+        PushDevice.objects.filter(user=request.user, is_active=True).update(is_active=False)
         tokens = OutstandingToken.objects.filter(user=request.user)
         for token in tokens:
             BlacklistedToken.objects.get_or_create(token=token)

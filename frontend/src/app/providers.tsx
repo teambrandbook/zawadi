@@ -8,6 +8,7 @@ import api from "@/services/api";
 import { setCredentials, fetchCartCount, drainGuestCart, setRehydrated } from "@/redux/userSlice";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
+import PushNotificationManager from "@/components/notifications/PushNotificationManager";
 
 // Restores auth state from cookies on every page load.
 // AuthGuard only runs on protected pages — this covers public pages like /products.
@@ -64,6 +65,7 @@ export default function Providers({
   return (
     <Provider store={store}>
       <AuthRehydrator />
+      <PushNotificationManager />
       {children}
       <Toaster position="bottom-right" richColors closeButton />
     </Provider>

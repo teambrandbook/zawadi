@@ -37,6 +37,7 @@ def handle_order_status_change(sender, instance, created, **kwargs):
             "Order placed",
             f"Your order {instance.order_id} has been placed successfully.",
             "ALERT",
+            "/communityDashBoard/myorders",
         )
         send_notification_email(
             instance.user.email,
@@ -54,7 +55,7 @@ def handle_order_status_change(sender, instance, created, **kwargs):
         return
 
     body = body_template.format(order_id=instance.order_id)
-    send_user_notification(instance.user, title, body, "ALERT")
+    send_user_notification(instance.user, title, body, "ALERT", "/communityDashBoard/myorders")
     send_notification_email(
         instance.user.email,
         f"{title} — Zawadi",

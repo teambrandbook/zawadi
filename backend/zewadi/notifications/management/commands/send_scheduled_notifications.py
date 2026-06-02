@@ -9,16 +9,21 @@ class Command(BaseCommand):
     help = "Send due scheduled notifications."
 
     def handle(self, *args, **options):
-        due_notifications = Notification.objects.filter(
+        due_notification_ids = Notification.objects.filter(
             status="SCHEDULED",
             scheduled_at__lte=timezone.now(),
-        )
+        ).values_list("pk", flat=True)
         sent_count = 0
 
-        for notification in due_notifications:
-            notification.status = "SENT"
-            notification.sent_at = timezone.now()
-            notification.save(update_fields=["status", "sent_at"])
+        for notification_id in due_notification_ids:
+            sent_at = timezone.now()
+            updated = Notification.objects.filter(
+                pk=notification_id,
+                status="SCHEDULED",
+            ).update(status="SENT", sent_at=sent_at)
+            if not updated:
+                continue
+            notification = Notification.objects.get(pk=notification_id)
             deliver_notification(notification)
             sent_count += 1
 

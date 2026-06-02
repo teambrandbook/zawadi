@@ -7,7 +7,7 @@ export type NotificationStat = {
 };
 
 export type NotificationStatus = "Sent" | "Scheduled";
-export type NotificationChannel = "In-App" | "Email";
+export type NotificationChannel = "In-App" | "Email" | "Push";
 
 export type NotificationRow = {
   id: string;
@@ -30,4 +30,3 @@ export type NotificationFiltersState = {
   channel: "all" | NotificationChannel;
   sort: "newest" | "oldest";
 };
-

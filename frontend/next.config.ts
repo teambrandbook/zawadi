@@ -62,11 +62,13 @@ const nextConfig: NextConfig = {
   async headers() {
     const csp = [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline'",
+      "script-src 'self' 'unsafe-inline' https://www.gstatic.com",
       "style-src 'self' 'unsafe-inline'",
       `img-src 'self' data: blob: ${apiOrigin} https://lh3.googleusercontent.com https://res.cloudinary.com`,
       "font-src 'self' data:",
-      `connect-src 'self' ${apiOrigin} ${wsConnectOrigin} ws://localhost:8000 ws://127.0.0.1:8000 https://api.cloudinary.com`,
+      `connect-src 'self' ${apiOrigin} ${wsConnectOrigin} ws://localhost:8000 ws://127.0.0.1:8000 https://api.cloudinary.com https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com`,
+      "worker-src 'self' blob:",
+      "manifest-src 'self'",
       "frame-ancestors 'none'",
       "base-uri 'self'",
       "form-action 'self'",

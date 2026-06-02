@@ -13,7 +13,7 @@ const typeOptions: Array<{ value: NotificationRow["typeValue"]; label: string }>
   { value: "PROMOTIONAL", label: "Promotional" },
 ];
 
-const channelOptions: NotificationChannel[] = ["In-App", "Email"];
+const channelOptions: NotificationChannel[] = ["In-App", "Email", "Push"];
 
 export default function NotificationsFilters({ filters, onChange, audienceOptions }: Props) {
   const update = <K extends keyof NotificationFiltersState>(key: K, value: NotificationFiltersState[K]) => {

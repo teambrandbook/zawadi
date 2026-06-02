@@ -7,6 +7,8 @@ from asgiref.sync import async_to_sync
 
 
 def users_for_notification(notification):
+    if notification.target_user_id:
+        return User.objects.filter(pk=notification.target_user_id)
     target_role = str(notification.target_role or "").strip()
     if target_role.upper() == "ALL":
         return User.objects.all()
@@ -77,16 +79,18 @@ def send_emails_for_notification(notification) -> None:
 def deliver_notification(notification) -> None:
     create_receipts_for_notification(notification)
     send_emails_for_notification(notification)
+    from .fcm import send_pushes_for_notification
+    send_pushes_for_notification(notification)
 
 
-def send_user_notification(user, title: str, body: str, notification_type: str = "SYSTEM") -> None:
+def send_user_notification(user, title: str, body: str, notification_type: str = "SYSTEM", action_url: str = "") -> None:
     """
     Create a targeted Notification for a single user and immediately
     attach a UserNotificationReceipt so it appears in their inbox.
     Silently swallows errors to avoid breaking the caller's transaction.
     """
     try:
-        from .models import Notification, UserNotificationReceipt
+        from .models import Notification
 
         role = str(getattr(user, "role", "")).lower() or "community_user"
         notification = Notification.objects.create(
@@ -94,12 +98,13 @@ def send_user_notification(user, title: str, body: str, notification_type: str =
             body=body,
             notification_type=notification_type,
             target_role=role,
+            target_user=user,
+            action_url=action_url,
             status="SENT",
-            delivery_channels=[Notification.CHANNEL_IN_APP],
+            delivery_channels=[Notification.CHANNEL_IN_APP, Notification.CHANNEL_PUSH],
             sent_at=timezone.now(),
         )
-        UserNotificationReceipt.objects.create(user=user, notification=notification)
-        send_realtime_notification(user, notification)
+        deliver_notification(notification)
     except Exception:
         pass
 
@@ -131,8 +136,9 @@ def send_low_stock_notification(product):
         ),
         notification_type="ALERT",
         target_role="admin",
+        action_url="/admindashboard/products",
         status="SENT",
-        delivery_channels=[Notification.CHANNEL_IN_APP],
+        delivery_channels=[Notification.CHANNEL_IN_APP, Notification.CHANNEL_PUSH],
         sent_at=timezone.now(),
     )
 
@@ -158,6 +164,8 @@ def send_low_stock_notification(product):
     )
     for user in users_to_notify:
         send_realtime_notification(user, notification)
+    from .fcm import send_pushes_for_notification
+    send_pushes_for_notification(notification)
 
 
 # WebSocket
@@ -182,6 +190,7 @@ def send_realtime_notification(user, notification):
                 "notification_id": notification.id,
                 "notification_type": notification.notification_type,
                 "target_role": notification.target_role,
+                "action_url": notification.action_url,
                 "created_at": notification.created_at.isoformat() if notification.created_at else None,
             }
         )

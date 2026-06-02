@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 import api from "@/services/api";
+import {
+  disablePushNotifications,
+  enablePushNotifications,
+  isPushEnabledInThisBrowser,
+  subscribePushRegistration,
+} from "@/lib/firebaseMessaging";
 import SettingsContentSwitcher from "./SettingsContentSwitcher";
 import SettingsTabs from "./SettingsTabs";
 import type {
@@ -152,7 +158,7 @@ const notificationChannelsFromBackend: NotificationChannel[] = [
   { id: "in-app", label: "In-app notifications", enabled: true },
   { id: "sms", label: "SMS notifications", enabled: false },
   { id: "email", label: "Email notifications", enabled: true },
-  { id: "push", label: "Push notifications", enabled: true },
+  { id: "push", label: "Push notifications", enabled: false },
 ];
 
 const notificationTimingFromBackend: NotificationTiming = {
@@ -474,6 +480,16 @@ export default function ConsultantSettingsPage() {
     };
   }, []);
 
+  useEffect(() => {
+    const syncPush = (enabled: boolean) => {
+      setNotificationChannels((current) =>
+        current.map((channel) => channel.id === "push" ? { ...channel, enabled } : channel)
+      );
+    };
+    syncPush(isPushEnabledInThisBrowser());
+    return subscribePushRegistration(syncPush);
+  }, []);
+
   function getErrorMessage(error: unknown, fallback: string) {
     const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
     const detail = data?.error || data?.detail;
@@ -634,7 +650,21 @@ export default function ConsultantSettingsPage() {
     );
   }
 
-  function toggleNotificationChannel(channelId: string) {
+  async function toggleNotificationChannel(channelId: string) {
+    if (channelId === "push") {
+      try {
+        if (isPushEnabledInThisBrowser()) {
+          await disablePushNotifications();
+          setStatusMessage("Push notifications disabled on this browser.");
+        } else {
+          await enablePushNotifications();
+          setStatusMessage("Push notifications enabled on this browser.");
+        }
+      } catch (error) {
+        setStatusMessage(error instanceof Error ? error.message : "Could not update push notifications.");
+      }
+      return;
+    }
     setNotificationChannels((current) =>
       current.map((channel) =>
         channel.id === channelId

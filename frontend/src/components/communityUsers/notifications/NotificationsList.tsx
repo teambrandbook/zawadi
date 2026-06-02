@@ -7,6 +7,7 @@ import {
   FileText,
   Megaphone,
   ShoppingBag,
+  Trash2,
   UtensilsCrossed,
 } from "lucide-react";
 import { NotificationItem } from "./types";
@@ -15,6 +16,8 @@ type Props = {
   notifications: NotificationItem[];
   /** Called with the item id when the user clicks "Mark as read" */
   onMarkRead?: (id: string) => void;
+  /** Called with the item id when the user removes it from their inbox */
+  onDelete?: (id: string) => void;
 };
 
 const iconMap = {
@@ -28,7 +31,7 @@ const iconMap = {
   blog: Bell,
 };
 
-export default function NotificationsList({ notifications, onMarkRead }: Props) {
+export default function NotificationsList({ notifications, onMarkRead, onDelete }: Props) {
   return (
     <div className="space-y-4">
       {notifications.map((item) => {
@@ -87,6 +90,16 @@ export default function NotificationsList({ notifications, onMarkRead }: Props) 
                     className="inline-flex h-8 items-center rounded-lg bg-[#F3F4F6] px-4 text-xs font-medium text-[#6B7280] hover:bg-[#E5E7EB] transition-colors"
                   >
                     Mark as read
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(item.id)}
+                    className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[#FECACA] px-3 text-xs font-medium text-[#B91C1C] transition-colors hover:bg-[#FEF2F2]"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Delete
                   </button>
                 )}
               </div>
