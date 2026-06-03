@@ -12,6 +12,7 @@ export interface UserState {
   fullName: string | null;
   photo: string | null;
   userType: "guest" | "member" | null;
+  permissions: "all" | UserPermission[];
   cartCount: number;
   isAuthenticated: boolean;
   /** True from app boot until the /account/me/ rehydration call settles (success or failure). */
@@ -20,6 +21,17 @@ export interface UserState {
   error: string | null;
 }
 
+export type UserPermission = {
+  module: string;
+  can_view: boolean;
+  can_create: boolean;
+  can_edit: boolean;
+  can_delete: boolean;
+  can_approve: boolean;
+  can_export: boolean;
+  full_access: boolean;
+};
+
 const initialState: UserState = {
   userId: null,
   role: null,
@@ -27,6 +39,7 @@ const initialState: UserState = {
   fullName: null,
   photo: null,
   userType: null,
+  permissions: [],
   cartCount: 0,
   isAuthenticated: false,
   isRehydrating: true,
@@ -132,15 +145,17 @@ const userSlice = createSlice({
         fullName?: string;
         photo?: string | null;
         userType?: "guest" | "member" | null;
+        permissions?: "all" | UserPermission[];
       }>
     ) {
-      const { userId, role, email, fullName, photo, userType } = action.payload;
+      const { userId, role, email, fullName, photo, userType, permissions } = action.payload;
       if (userId !== undefined) state.userId = userId;
       if (role !== undefined) state.role = role;
       if (email !== undefined) state.email = email;
       if (fullName !== undefined) state.fullName = fullName;
       if (photo !== undefined) state.photo = photo;
       if (userType !== undefined) state.userType = userType;
+      if (permissions !== undefined) state.permissions = permissions;
       state.isAuthenticated = true;
       state.error = null;
     },
@@ -154,6 +169,7 @@ const userSlice = createSlice({
       state.fullName = null;
       state.photo = null;
       state.userType = null;
+      state.permissions = [];
       state.cartCount = 0;
       state.isAuthenticated = false;
       state.error = null;
@@ -178,6 +194,7 @@ const userSlice = createSlice({
         state.email = d.email ?? null;
         state.fullName =
           [d.first_name, d.last_name].filter(Boolean).join(" ") || null;
+        state.permissions = d.permissions ?? [];
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -192,6 +209,7 @@ const userSlice = createSlice({
       state.email = null;
       state.fullName = null;
       state.userType = null;
+      state.permissions = [];
       state.cartCount = 0;
       state.isAuthenticated = false;
     });

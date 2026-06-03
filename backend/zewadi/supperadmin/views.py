@@ -969,11 +969,11 @@ def _config_to_dict(cfg):
 def site_config(request):
     cfg = SiteSettings.get()
 
-    if request.method == "GET":
-        return Response(_config_to_dict(cfg))
-
     if not (request.user.is_superuser or getattr(request.user, "role", "") == "ADMIN"):
         return Response({"detail": "Admin access required."}, status=status.HTTP_403_FORBIDDEN)
+
+    if request.method == "GET":
+        return Response(_config_to_dict(cfg))
 
     changed = False
     if "platform_name" in request.data:

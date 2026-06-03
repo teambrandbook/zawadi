@@ -13,6 +13,7 @@ from axes.handlers.proxy import AxesProxyHandler
 class MeSerializer(serializers.ModelSerializer):
     role = serializers.SerializerMethodField()
     user_type = serializers.SerializerMethodField()
+    permissions = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -28,6 +29,7 @@ class MeSerializer(serializers.ModelSerializer):
             "location",
             "photo",
             "user_type",
+            "permissions",
         ]
 
     def get_role(self, obj):
@@ -36,6 +38,32 @@ class MeSerializer(serializers.ModelSerializer):
     def get_user_type(self, obj):
         cu = getattr(obj, "communityuser", None)
         return cu.user_type if cu is not None else None
+
+    def get_permissions(self, obj):
+        role = str(getattr(obj, "role", "")).upper()
+        if getattr(obj, "is_superuser", False) or role == "ADMIN":
+            return "all"
+
+        if role != "INTERNAL_STAFF":
+            return []
+
+        role_obj = getattr(obj, "role_obj", None)
+        if role_obj is None:
+            return []
+
+        return [
+            {
+                "module": permission.module,
+                "can_view": permission.can_view,
+                "can_create": permission.can_create,
+                "can_edit": permission.can_edit,
+                "can_delete": permission.can_delete,
+                "can_approve": permission.can_approve,
+                "can_export": permission.can_export,
+                "full_access": permission.full_access,
+            }
+            for permission in role_obj.permissions.all().order_by("module")
+        ]
 
 
 class RegisterSerializer(serializers.Serializer):

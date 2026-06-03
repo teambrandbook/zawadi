@@ -37,6 +37,66 @@ class AccountMeAPITests(APITestCase):
         self.assertEqual(response.data["email"], "community@example.com")
         self.assertEqual(response.data["role"], "community_user")
         self.assertEqual(response.data["full_name"], "Community User")
+        self.assertEqual(response.data["permissions"], [])
+
+    def test_me_returns_all_permissions_for_admin(self):
+        admin = User.objects.create_user(
+            email="admin-me@example.com",
+            password="Pass@1234",
+            user_name="adminme",
+            full_name="Admin Me",
+            phone="+10000000008",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+
+        response = self.client.get("/api/account/me/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["permissions"], "all")
+
+    def test_me_returns_internal_staff_role_permissions(self):
+        role = Role.objects.create(role_name="Content Staff")
+        RolePermission.objects.create(
+            role=role,
+            module="blogs",
+            can_view=True,
+            can_create=True,
+        )
+        staff = User.objects.create_user(
+            email="staff-me@example.com",
+            password="Pass@1234",
+            user_name="staffme",
+            full_name="Staff Me",
+            phone="+10000000009",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        response = self.client.get("/api/account/me/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["permissions"][0]["module"], "blogs")
+        self.assertTrue(response.data["permissions"][0]["can_view"])
+        self.assertTrue(response.data["permissions"][0]["can_create"])
+        self.assertFalse(response.data["permissions"][0]["can_edit"])
+
+    def test_me_returns_empty_permissions_for_staff_without_role_object(self):
+        staff = User.objects.create_user(
+            email="staff-no-role@example.com",
+            password="Pass@1234",
+            user_name="staffnorole",
+            full_name="Staff No Role",
+            phone="+10000000010",
+            role="INTERNAL_STAFF",
+        )
+        self.client.force_authenticate(user=staff)
+
+        response = self.client.get("/api/account/me/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["permissions"], [])
 
     def test_me_accepts_access_token_cookie(self):
         user = User.objects.create_user(
