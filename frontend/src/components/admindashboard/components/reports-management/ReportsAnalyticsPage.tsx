@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import api from "@/services/api";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import AnalyticsCardsGrid from "./components/AnalyticsCardsGrid";
 import DetailedReportsTable from "./components/DetailedReportsTable";
 import ReportsFiltersBar from "./components/ReportsFiltersBar";
@@ -188,6 +191,8 @@ function getFilename(contentDisposition: string | undefined, fallback: string) {
 }
 
 export default function ReportsAnalyticsPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [stats, setStats] = useState<StatsData>({});
   const [reports, setReports] = useState<ReportsData | null>(null);
   const [statsError, setStatsError] = useState(false);
@@ -197,6 +202,8 @@ export default function ReportsAnalyticsPage() {
   const [endDate, setEndDate] = useState("");
   const [exportingReportId, setExportingReportId] = useState<string | null>(null);
   const [exportError, setExportError] = useState("");
+  const reportPermission = permissions.find(({ module }) => module === "reports");
+  const canExportReports = role !== "internal_staff" || Boolean(reportPermission?.full_access || reportPermission?.can_export);
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -274,7 +281,11 @@ export default function ReportsAnalyticsPage() {
   return (
     <section className="w-full bg-white px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <ReportsHeader onExport={() => handleExport("all")} isExporting={exportingReportId === "all"} />
+        <ReportsHeader
+          onExport={() => handleExport("all")}
+          isExporting={exportingReportId === "all"}
+          canExportReports={canExportReports}
+        />
         <ReportsFiltersBar
           filters={filterOptions}
           activePeriod={period}
@@ -321,6 +332,7 @@ export default function ReportsAnalyticsPage() {
           rows={reportRows}
           onDownload={handleExport}
           downloadingReportId={exportingReportId}
+          canExportReports={canExportReports}
         />
       </div>
     </section>

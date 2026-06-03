@@ -3,6 +3,9 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "./InternalStaffPermissionsBootstrap";
 import { 
   Home, 
   Users, 
@@ -29,22 +32,28 @@ type NavItem = {
   name: string;
   icon: React.ComponentType<{ size?: number }>;
   href: string;
-  children?: { name: string; href: string }[];
+  module?: string;
+  children?: { name: string; href: string; requiredPermission?: "can_create" }[];
 };
 
 const navigation: { section: string; items: NavItem[] }[] = [
   {
     section: "Main",
     items: [
-      { name: "Dashboard", icon: Home, href: "/admindashboard" },
-      { name: "Users", icon: Users, href: "/admindashboard/users" }, 
-      { name: "Orders", icon: ShoppingBag, href: "/admindashboard/orders" },
+      { name: "Dashboard", icon: Home, href: "/admindashboard", module: "dashboard" },
+      { name: "Users", icon: Users, href: "/admindashboard/users", module: "users" },
+      { name: "Orders", icon: ShoppingBag, href: "/admindashboard/orders", module: "orders" },
       {
         name: "Products",
         icon: Package,
         href: "/admindashboard/products",
+        module: "products",
         children: [
-          { name: "Create category", href: "/admindashboard/products/categories" },
+          {
+            name: "Create category",
+            href: "/admindashboard/products/categories",
+            requiredPermission: "can_create",
+          },
         ],
       },
     ],
@@ -52,19 +61,19 @@ const navigation: { section: string; items: NavItem[] }[] = [
   {
     section: "Community",
     items: [
-      { name: "Recipes", icon: Utensils, href: "/admindashboard/recipes" },
-      { name: "Blog", icon: MessageSquare, href: "/admindashboard/blog" },
-      { name: "Consultation", icon: Stethoscope, href: "/admindashboard/consultation" },
-      { name: "Nutritionist", icon: UserRound, href: "/admindashboard/nutritionist" },
-      { name: "Events", icon: Calendar, href: "/admindashboard/events" },
-      { name: "Gifts", icon: Gift, href: "/admindashboard/gifts" },
+      { name: "Recipes", icon: Utensils, href: "/admindashboard/recipes", module: "recipes" },
+      { name: "Blog", icon: MessageSquare, href: "/admindashboard/blog", module: "blogs" },
+      { name: "Consultation", icon: Stethoscope, href: "/admindashboard/consultation", module: "consultations" },
+      { name: "Nutritionist", icon: UserRound, href: "/admindashboard/nutritionist", module: "nutritionists" },
+      { name: "Events", icon: Calendar, href: "/admindashboard/events", module: "events" },
+      { name: "Gifts", icon: Gift, href: "/admindashboard/gifts", module: "gifts" },
     ],
   },
   {
     section: "System",
     items: [
-      { name: "Notifications", icon: Bell, href: "/admindashboard/notifications" },
-      { name: "Reports", icon: BarChart3, href: "/admindashboard/reports" },
+      { name: "Notifications", icon: Bell, href: "/admindashboard/notifications", module: "notifications" },
+      { name: "Reports", icon: BarChart3, href: "/admindashboard/reports", module: "reports" },
       { name: "Settings", icon: Settings, href: "/admindashboard/settings" },
       { name: "Admin Role", icon: ShieldCheck, href: "/admindashboard/role" },
     ],
@@ -74,6 +83,34 @@ const navigation: { section: string; items: NavItem[] }[] = [
 /* ✅ ACCEPT PROPS HERE */
 const AdminDashboardSidebar = ({ onClose }: Props) => {
   const pathname = usePathname();
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
+  const visibleNavigation = navigation
+    .map((group) => ({
+      ...group,
+      items: group.items.flatMap((item) => {
+        if (role !== "internal_staff") return [item];
+        if (!item.module) return [];
+
+        const permission = internalStaffPermissions.find(
+          (candidate) => candidate.module === item.module
+        );
+        if (!permission || (!permission.can_view && !permission.full_access)) {
+          return [];
+        }
+
+        return [{
+          ...item,
+          children: item.children?.filter(
+            (child) =>
+              !child.requiredPermission ||
+              permission.full_access ||
+              permission[child.requiredPermission]
+          ),
+        }];
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
 
   function isActive(href: string) {
     if (href === "/admindashboard") {
@@ -87,8 +124,8 @@ const AdminDashboardSidebar = ({ onClose }: Props) => {
 
   return (
     <aside className="sidebar-scrollbar-hidden w-72 h-full overflow-y-auto bg-white p-5 flex flex-col">
-      {navigation.map((group, idx) => (
-        <div key={idx} className={`${idx === navigation.length - 1 ? "" : "mb-5"} ${idx === 0 ? "pt-4" : ""}`}>
+      {visibleNavigation.map((group, idx) => (
+        <div key={group.section} className={`${idx === visibleNavigation.length - 1 ? "" : "mb-5"} ${idx === 0 ? "pt-4" : ""}`}>
           
           <h3 className="text-[#06402B] font-bold text-sm mb-3 px-2">
             {group.section}

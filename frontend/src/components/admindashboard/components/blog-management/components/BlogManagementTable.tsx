@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Check, Eye, Heart, Pencil, Trash2 } from "lucide-react";
+import { Check, Eye, Heart, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import api from "@/services/api";
@@ -26,6 +26,9 @@ type BlogRow = {
 
 type Props = {
   rows: BlogRow[];
+  canEditBlogs: boolean;
+  canDeleteBlogs: boolean;
+  canApproveBlogs: boolean;
   onView: (blog: BlogRow) => void;
   onStatusChange: (id: string, newStatus: string) => void;
   onDelete: (id: string) => void;
@@ -34,6 +37,7 @@ type Props = {
 function StatusBadge({ status }: { status: BlogStatus }) {
   const isPublished = status === "published" || status === "Approved";
   const isDraft = status === "draft" || status === "Draft";
+  const isRejected = status === "rejected" || status === "Rejected";
   if (isPublished) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-[#E7F7EC] px-2.5 py-1 text-[11px] font-medium text-[#15803D]">
@@ -47,6 +51,14 @@ function StatusBadge({ status }: { status: BlogStatus }) {
       <span className="inline-flex items-center gap-1 rounded-full bg-[#F3F4F6] px-2.5 py-1 text-[11px] font-medium text-[#475467]">
         <span className="h-1.5 w-1.5 rounded-full bg-[#6B7280]" />
         Draft
+      </span>
+    );
+  }
+  if (isRejected) {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full bg-[#FEEDEE] px-2.5 py-1 text-[11px] font-medium text-[#DC2626]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#DC2626]" />
+        Rejected
       </span>
     );
   }
@@ -65,6 +77,9 @@ function RowActions({
   onView,
   onStatusChange,
   onDelete,
+  canEditBlogs,
+  canDeleteBlogs,
+  canApproveBlogs,
 }: {
   blogId: string;
   blog: BlogRow;
@@ -72,16 +87,30 @@ function RowActions({
   onView: (blog: BlogRow) => void;
   onStatusChange: (id: string, newStatus: string) => void;
   onDelete: (id: string) => void;
+  canEditBlogs: boolean;
+  canDeleteBlogs: boolean;
+  canApproveBlogs: boolean;
 }) {
   const router = useRouter();
   const isPublished = status === "published" || status === "Approved";
   const isDraft = status === "draft" || status === "Draft";
+  const isRejected = status === "rejected" || status === "Rejected";
 
   async function handleApprove() {
     try {
       await api.patch(`/blog/admin/${blogId}/status/`, { status: "published" });
       onStatusChange(blogId, "published");
       toast.success("Blog approved.");
+    } catch {
+      toast.error("Failed to update blog status. Please try again.");
+    }
+  }
+
+  async function handleReject() {
+    try {
+      await api.patch(`/blog/admin/${blogId}/status/`, { status: "rejected" });
+      onStatusChange(blogId, "rejected");
+      toast.success("Blog rejected.");
     } catch {
       toast.error("Failed to update blog status. Please try again.");
     }
@@ -95,39 +124,63 @@ function RowActions({
     router.push(`/admindashboard/blog/add?blogId=${blogId}`);
   }
 
-  if (isPublished || isDraft) {
+  if (isPublished || isDraft || isRejected) {
     return (
       <div className="flex items-center gap-2">
         <button type="button" onClick={() => onView(blog)} className="grid h-7 w-7 place-items-center rounded-md bg-[#EEF2F6] text-[#475467]">
           <Eye className="h-3.5 w-3.5" />
         </button>
-        <button type="button" onClick={handleEdit} className="grid h-7 w-7 place-items-center rounded-md bg-[#EAF3EF] text-[#0A4833]">
-          <Pencil className="h-3.5 w-3.5" />
-        </button>
-        <button type="button" onClick={handleDelete} className="grid h-7 w-7 place-items-center rounded-md bg-[#FEEDEE] text-[#DC2626]">
-          <Trash2 className="h-3.5 w-3.5" />
-        </button>
+        {canEditBlogs && (
+          <button type="button" onClick={handleEdit} className="grid h-7 w-7 place-items-center rounded-md bg-[#EAF3EF] text-[#0A4833]">
+            <Pencil className="h-3.5 w-3.5" />
+          </button>
+        )}
+        {canDeleteBlogs && (
+          <button type="button" onClick={handleDelete} className="grid h-7 w-7 place-items-center rounded-md bg-[#FEEDEE] text-[#DC2626]">
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        )}
       </div>
     );
   }
   return (
     <div className="flex items-center gap-2">
-      <button
-        type="button"
-        onClick={handleApprove}
-        className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-2.5 py-1 text-[11px] font-medium text-[#15803D]"
-      >
-        <Check className="h-3 w-3" />
-        Approve
+      <button type="button" onClick={() => onView(blog)} className="grid h-7 w-7 place-items-center rounded-md bg-[#EEF2F6] text-[#475467]">
+        <Eye className="h-3.5 w-3.5" />
       </button>
-      <button type="button" onClick={handleDelete} className="grid h-7 w-7 place-items-center rounded-md bg-[#FEEDEE] text-[#DC2626]">
-        <Trash2 className="h-3.5 w-3.5" />
-      </button>
+      {canApproveBlogs && (
+        <button
+          type="button"
+          onClick={handleApprove}
+          className="inline-flex items-center gap-1 rounded-md bg-[#E7F7EC] px-2.5 py-1 text-[11px] font-medium text-[#15803D]"
+        >
+          <Check className="h-3 w-3" />
+          Approve
+        </button>
+      )}
+      {canApproveBlogs && (
+        <button
+          type="button"
+          onClick={handleReject}
+          className="inline-flex items-center gap-1 rounded-md bg-[#FEEDEE] px-2.5 py-1 text-[11px] font-medium text-[#DC2626]"
+        >
+          <X className="h-3 w-3" />
+          Reject
+        </button>
+      )}
     </div>
   );
 }
 
-export default function BlogManagementTable({ rows, onView, onStatusChange, onDelete }: Props) {
+export default function BlogManagementTable({
+  rows,
+  canEditBlogs,
+  canDeleteBlogs,
+  canApproveBlogs,
+  onView,
+  onStatusChange,
+  onDelete,
+}: Props) {
   const [pendingDelete, setPendingDelete] = useState<BlogRow | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -229,6 +282,9 @@ export default function BlogManagementTable({ rows, onView, onStatusChange, onDe
                         blogId={row.id}
                         blog={row}
                         status={row.status}
+                        canEditBlogs={canEditBlogs}
+                        canDeleteBlogs={canDeleteBlogs}
+                        canApproveBlogs={canApproveBlogs}
                         onView={onView}
                         onStatusChange={onStatusChange}
                         onDelete={(id) => setPendingDelete(rows.find((item) => item.id === id) ?? null)}

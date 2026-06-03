@@ -2,7 +2,12 @@ import { Download, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 
-export default function NutritionistsHeader() {
+type NutritionistsHeaderProps = {
+  canCreateNutritionists: boolean;
+  canExportNutritionists: boolean;
+};
+
+export default function NutritionistsHeader({ canCreateNutritionists, canExportNutritionists }: NutritionistsHeaderProps) {
   const router = useRouter();
   return (
     <header className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -20,17 +25,21 @@ export default function NutritionistsHeader() {
       </div>
 
       <div className="flex items-center justify-end gap-2 md:w-auto">
-        <button className="inline-flex h-10 items-center gap-2 rounded-md border border-[#D9D9D9] bg-white px-3 text-sm font-medium text-[#0A4833]">
-          <Download size={14} />
-          Export
-        </button>
+        {canExportNutritionists && (
+          <button className="inline-flex h-10 items-center gap-2 rounded-md border border-[#D9D9D9] bg-white px-3 text-sm font-medium text-[#0A4833]">
+            <Download size={14} />
+            Export
+          </button>
+        )}
 
-        <button 
-        onClick={() => router.push("/admindashboard/nutritionist/addnutritonist")}
-        className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white">
-          <Plus size={16} />
-          Add Nutritionist
-        </button>
+        {canCreateNutritionists && (
+          <button
+          onClick={() => router.push("/admindashboard/nutritionist/addnutritonist")}
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-sm font-medium text-white">
+            <Plus size={16} />
+            Add Nutritionist
+          </button>
+        )}
       </div>
     </header>
   );

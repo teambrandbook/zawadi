@@ -6,6 +6,7 @@ type NotificationsHeaderAndStatsProps = {
   stats: NotificationStat[];
   searchTerm: string;
   onSearchChange: (value: string) => void;
+  canCreateNotifications: boolean;
 };
 
 function statIcon(icon: NotificationStat["icon"]) {
@@ -29,7 +30,7 @@ function statValueTone(tone: NotificationStat["valueTone"]) {
   return "text-[#0A4833]";
 }
 
-export default function NotificationsHeaderAndStats({ stats, searchTerm, onSearchChange }: NotificationsHeaderAndStatsProps) {
+export default function NotificationsHeaderAndStats({ stats, searchTerm, onSearchChange, canCreateNotifications }: NotificationsHeaderAndStatsProps) {
   return (
     <section className="space-y-4">
       <header className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -47,15 +48,17 @@ export default function NotificationsHeaderAndStats({ stats, searchTerm, onSearc
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/admindashboard/notifications/create"
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-sm text-white"
-          >
-            <Plus size={15} />
-            Create Notification
-          </Link>
-        </div>
+        {canCreateNotifications && (
+          <div className="flex flex-wrap items-center gap-2">
+            <Link
+              href="/admindashboard/notifications/create"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-[#0A4833] px-4 text-sm text-white"
+            >
+              <Plus size={15} />
+              Create Notification
+            </Link>
+          </div>
+        )}
       </header>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4">

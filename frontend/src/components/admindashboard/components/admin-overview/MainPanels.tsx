@@ -2,17 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSelector } from "react-redux";
 import { Briefcase, CalendarPlus2, CirclePlus, ClipboardCheck, Megaphone, Stethoscope } from "lucide-react";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 import api from "@/services/api";
 
 const quickActions = [
-  { label: "Add Product", Icon: CirclePlus, href: "/admindashboard/products/add" },
-  { label: "Create Event", Icon: CalendarPlus2, href: "/admindashboard/events/create" },
-  { label: "Add Nutritionist", Icon: Stethoscope, href: "/admindashboard/nutritionist/addnutritonist" },
-  { label: "Review Content", Icon: ClipboardCheck, href: "/admindashboard/blog" },
-  { label: "Manage Orders", Icon: Briefcase, href: "/admindashboard/orders" },
-  { label: "Send Alert", Icon: Megaphone, href: "/admindashboard/notifications/create" },
-];
+  { label: "Add Product", Icon: CirclePlus, href: "/admindashboard/products/add", module: "products", action: "can_create" },
+  { label: "Create Event", Icon: CalendarPlus2, href: "/admindashboard/events/create", module: "events", action: "can_create" },
+  { label: "Add Nutritionist", Icon: Stethoscope, href: "/admindashboard/nutritionist/addnutritonist", module: "nutritionists", action: "can_create" },
+  { label: "Review Content", Icon: ClipboardCheck, href: "/admindashboard/blog", module: "blogs", action: "can_view" },
+  { label: "Manage Orders", Icon: Briefcase, href: "/admindashboard/orders", module: "orders", action: "can_view" },
+  { label: "Send Alert", Icon: Megaphone, href: "/admindashboard/notifications/create", module: "notifications", action: "can_create" },
+] as const;
 
 type RecentOrder = {
   id: string;
@@ -53,10 +56,29 @@ function statusLabel(status: string) {
 }
 
 export default function MainPanels() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [recentOrders, setRecentOrders] = useState<RecentOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const canViewOrders =
+    role !== "internal_staff" ||
+    internalStaffPermissions.some(
+      (permission) =>
+        permission.module === "orders" &&
+        (permission.can_view || permission.full_access)
+    );
+  const visibleQuickActions = quickActions.filter(({ module, action }) => {
+    if (role !== "internal_staff") return true;
+
+    const permission = internalStaffPermissions.find(
+      (candidate) => candidate.module === module
+    );
+    return Boolean(permission && (permission.full_access || permission[action]));
+  });
 
   useEffect(() => {
+    if (!canViewOrders) return;
+
     const fetchOrders = async () => {
       try {
         const res = await api.get("/orders/admin/");
@@ -74,14 +96,14 @@ export default function MainPanels() {
       }
     };
     fetchOrders();
-  }, []);
+  }, [canViewOrders]);
 
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-[260px_minmax(0,1fr)]">
       <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <h3 className="text-xl font-semibold text-[#0A4833]">Quick Actions</h3>
         <div className="mt-3 grid grid-cols-2 gap-2">
-          {quickActions.map(({ label, Icon, href }) => (
+          {visibleQuickActions.map(({ label, Icon, href }) => (
             <Link
               key={label}
               href={href}
@@ -94,7 +116,7 @@ export default function MainPanels() {
         </div>
       </article>
 
-      <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
+      {canViewOrders && <article className="rounded-xl border border-[#DFDFDF] bg-white p-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xl font-semibold text-[#0A4833]">Recent Orders</h3>
           <Link href="/admindashboard/orders" className="text-xs text-[#A88751] hover:underline">
@@ -145,7 +167,7 @@ export default function MainPanels() {
             </table>
           </div>
         )}
-      </article>
+      </article>}
     </section>
   );
 }

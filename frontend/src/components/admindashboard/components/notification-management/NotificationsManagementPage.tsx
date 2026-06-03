@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import api from "@/services/api";
+
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { subscribeLiveNotifications } from "@/lib/liveNotifications";
@@ -54,6 +59,8 @@ function buildStats(rows: NotificationRow[]): NotificationStat[] {
 }
 
 export default function NotificationsManagementPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -66,6 +73,9 @@ export default function NotificationsManagementPage() {
     channel: "all",
     sort: "newest",
   });
+  const notificationPermission = permissions.find(({ module }) => module === "notifications");
+  const canCreateNotifications =
+    role !== "internal_staff" || Boolean(notificationPermission?.full_access || notificationPermission?.can_create);
 
   useEffect(() => {
     const fetchNotifications = async () => {
@@ -153,7 +163,12 @@ export default function NotificationsManagementPage() {
   return (
     <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <NotificationsHeaderAndStats stats={stats} searchTerm={searchTerm} onSearchChange={setSearchTerm} />
+        <NotificationsHeaderAndStats
+          stats={stats}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          canCreateNotifications={canCreateNotifications}
+        />
         <NotificationsFilters filters={filters} onChange={setFilters} audienceOptions={audienceOptions} />
 
         {isLoading && (

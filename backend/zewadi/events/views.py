@@ -117,7 +117,10 @@ class EventDetailAPIView(APIView):
 
     def patch(self, request, pk):
 
-        if not has_permission(request.user, "events", "update"):
+        is_publish_only = set(request.data.keys()) == {"status"} and request.data.get("status") == Event.EventStatus.PUBLISHED
+        action = "approve" if is_publish_only else "edit"
+
+        if not has_permission(request.user, "events", action):
             return Response(
                 {"detail": "You do not have permission to update events."},
                 status=status.HTTP_403_FORBIDDEN,

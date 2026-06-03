@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated, BasePermission
 from .models import Notification, PushDevice, UserNotificationReceipt
 from .serializers import NotificationSerializer, PushDeviceTokenSerializer, UserNotificationReceiptSerializer
 from .utils import deliver_notification
+from supperadmin.utils.permissions import has_permission
 
 
 class IsAdminRole(BasePermission):
@@ -18,14 +19,20 @@ class IsAdminRole(BasePermission):
 
 
 class NotificationListCreateView(APIView):
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not has_permission(request.user, "notifications", "view"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         notifications = Notification.objects.all()
         serializer = NotificationSerializer(notifications, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
+        if not has_permission(request.user, "notifications", "create"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         serializer = NotificationSerializer(data=request.data)
         if serializer.is_valid():
             notification = serializer.save()
@@ -39,7 +46,7 @@ class NotificationListCreateView(APIView):
 
 
 class NotificationDetailView(APIView):
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAuthenticated]
 
     def get_object(self, pk):
         try:
@@ -48,12 +55,18 @@ class NotificationDetailView(APIView):
             return None
 
     def get(self, request, pk):
+        if not has_permission(request.user, "notifications", "view"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         obj = self.get_object(pk)
         if obj is None:
             return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
         return Response(NotificationSerializer(obj).data)
 
     def patch(self, request, pk):
+        if not has_permission(request.user, "notifications", "edit"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         obj = self.get_object(pk)
         if obj is None:
             return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)
@@ -71,6 +84,9 @@ class NotificationDetailView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+        if not has_permission(request.user, "notifications", "delete"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         obj = self.get_object(pk)
         if obj is None:
             return Response({"error": "Not found."}, status=status.HTTP_404_NOT_FOUND)

@@ -39,6 +39,8 @@ type Props = {
   onViewRow: (id: string) => void;
   onEditRow: (id: string) => void;
   onDeleteRow: (id: string) => void;
+  canEditProducts: boolean;
+  canDeleteProducts: boolean;
 };
 
 export default function ProductsTable({
@@ -52,6 +54,8 @@ export default function ProductsTable({
   onViewRow,
   onEditRow,
   onDeleteRow,
+  canEditProducts,
+  canDeleteProducts,
 }: Props) {
   const shortSubtitle = (value: string) =>
     value.length > 20 ? `${value.slice(0, 20)}...` : value;
@@ -133,21 +137,21 @@ export default function ProductsTable({
                     >
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button
+                    {canEditProducts && <button
                       type="button"
                       onClick={() => onEditRow(row.id)}
                       aria-label="Edit"
                     >
                       <Pencil className="h-4 w-4" />
-                    </button>
-                    <button
+                    </button>}
+                    {canDeleteProducts && <button
                       type="button"
                       onClick={() => onDeleteRow(row.id)}
                       className="text-[#DC2626] hover:text-[#991B1B] transition-colors"
                       aria-label="Delete"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </button>}
                   </div>
                 </td>
               </tr>

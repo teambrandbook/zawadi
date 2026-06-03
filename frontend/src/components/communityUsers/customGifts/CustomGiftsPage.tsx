@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Check, Loader2, Package, Search } from "lucide-react";
 import api from "@/services/api";
+import { formatPrice as formatCurrencyPrice } from "@/utils/formatPrice";
 
 type ApiProduct = {
   id: number;
@@ -23,6 +24,10 @@ type ApiProduct = {
   base_price?: number | string;
   sale_price?: number | string;
   selling_price?: number | string;
+  display_price?: number | string;
+  currency?: string;
+  currency_code?: string;
+  currency_decimal_places?: number;
   weight?: string;
   stock_quantity?: number | string;
   stock_status?: string;
@@ -35,6 +40,8 @@ type CartProduct = {
   image: string;
   size: string;
   price: number;
+  currency: string;
+  currencyDecimalPlaces: number;
   quantity: number;
   stockQuantity: number;
   stockStatus: string;
@@ -102,7 +109,7 @@ function mapApiProduct(p: ApiProduct): CartProduct {
   const firstVariant = p.variants?.[0];
   const productName = p.name ?? p.product_name ?? "ZEWADI Product";
   const size = firstVariant?.weight ?? firstVariant?.variant_name ?? p.weight ?? "250g";
-  const price = formatPrice(p.selling_price ?? p.sale_price ?? p.price ?? p.base_price);
+  const price = formatPrice(p.display_price ?? p.selling_price ?? p.sale_price ?? p.price ?? p.base_price);
 
   return {
     id: p.id,
@@ -111,6 +118,8 @@ function mapApiProduct(p: ApiProduct): CartProduct {
     image: p.image ?? "/product/product-1.webp",
     size,
     price,
+    currency: p.currency_code || p.currency || "SAR",
+    currencyDecimalPlaces: p.currency_decimal_places ?? 2,
     quantity: 0,
     stockQuantity: formatStock(p.stock_quantity),
     stockStatus: p.stock_status ?? "in_stock",
@@ -198,6 +207,8 @@ export default function CustomGiftsPage() {
   const packPrice = BOX_PRICES[selectedBox.id];
   const productsTotal = addedProducts.reduce((acc, p) => acc + p.price * p.quantity, 0);
   const totalPrice = productsTotal;
+  const checkoutCurrency = addedProducts[0]?.currency || products[0]?.currency || "SAR";
+  const checkoutCurrencyDecimalPlaces = addedProducts[0]?.currencyDecimalPlaces ?? products[0]?.currencyDecimalPlaces ?? 2;
   const filteredProducts = products.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
 
   const changeQuantity = useCallback((id: number, delta: number) => {
@@ -279,6 +290,8 @@ export default function CustomGiftsPage() {
           image: product.image,
           size: product.size,
           price: product.price.toFixed(2),
+          currency: product.currency,
+          currencyDecimalPlaces: product.currencyDecimalPlaces,
           quantity: product.quantity,
         })),
         message: message.trim(),
@@ -288,6 +301,8 @@ export default function CustomGiftsPage() {
         deliveryCharge: "0.00",
         taxAmount: "0.00",
         totalAmount: totalPrice.toFixed(2),
+        currency: checkoutCurrency,
+        currencyDecimalPlaces: checkoutCurrencyDecimalPlaces,
       },
     };
 
@@ -425,7 +440,7 @@ export default function CustomGiftsPage() {
                     </span>
                     {product.price > 0 && (
                       <span className="rounded bg-green-50 px-1.5 py-0.5 text-[8px] font-bold text-[#06402B]">
-                        Rs.{product.price}
+                        {formatCurrencyPrice(product.price, product.currency, product.currencyDecimalPlaces)}
                       </span>
                     )}
                   </div>
@@ -565,12 +580,12 @@ export default function CustomGiftsPage() {
                 <span>
                   {p.name} x{p.quantity}
                 </span>
-                <span>Rs.{(p.price * p.quantity).toFixed(2)}</span>
+                <span>{formatCurrencyPrice(p.price * p.quantity, p.currency, p.currencyDecimalPlaces)}</span>
               </div>
             ))}
             <div className="mt-1 flex justify-between border-t pt-1 font-bold text-[#06402B]">
               <span>Total</span>
-              <span>Rs.{totalPrice.toFixed(2)}</span>
+              <span>{formatCurrencyPrice(totalPrice, checkoutCurrency, checkoutCurrencyDecimalPlaces)}</span>
             </div>
           </section>
         )}

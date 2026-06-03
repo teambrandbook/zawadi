@@ -125,14 +125,16 @@ export default function EventsTable({ rows, selectedIds = [], onToggleSelect, on
                     >
                       <Eye size={14} />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onEdit?.(row.id)}
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]"
-                      title="Edit event"
-                    >
-                      <Pencil size={14} />
-                    </button>
+                    {onEdit && (
+                      <button
+                        type="button"
+                        onClick={() => onEdit(row.id)}
+                        className="inline-flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F3F4F6]"
+                        title="Edit event"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                    )}
                     {onDelete && (
                       <button
                         onClick={() => onDelete(row.id)}

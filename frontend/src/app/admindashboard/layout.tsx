@@ -2,6 +2,9 @@
 
 import { useState, ReactNode } from "react";
 import AdminDashboardSidebar from "@/components/admindashboard/shared/AdminDashboardSidebar";
+import InternalStaffPermissionsBootstrap, {
+  InternalStaffRouteGuard,
+} from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import Navbar from "@/components/communityUsers/commen/Navbar";
 import AuthGuard from "@/components/shared/AuthGuard";
 
@@ -14,6 +17,7 @@ export default function AdminLayout({ children }: Props) {
 
   return (
     <AuthGuard allowedRoles={["admin", "internal_staff"]}>
+    <InternalStaffPermissionsBootstrap>
     <div className="admin-dashboard-shell min-h-screen">
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">
@@ -49,9 +53,10 @@ export default function AdminLayout({ children }: Props) {
 
       {/* ✅ Content */}
       <div className="pt-20 lg:pl-72 bg-gray-50 min-h-screen">
-        {children}
+        <InternalStaffRouteGuard>{children}</InternalStaffRouteGuard>
       </div>
     </div>
+    </InternalStaffPermissionsBootstrap>
     </AuthGuard>
   );
 }

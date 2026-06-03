@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import type { RootState } from "@/redux/store";
 import BlogManagementFilters from "@/components/admindashboard/components/blog-management/components/BlogManagementFilters";
 import BlogManagementHeaderStats from "@/components/admindashboard/components/blog-management/components/BlogManagementHeaderStats";
 import BlogManagementTable from "@/components/admindashboard/components/blog-management/components/BlogManagementTable";
 import BlogDetailsModal from "@/components/admindashboard/components/blog-management/components/BlogDetailsModal";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 
 type BlogRow = {
   id: string;
@@ -66,9 +69,17 @@ function mapApiBlog(item: Record<string, any>, index: number): BlogRow {
 }
 
 export default function BlogManagementPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [rows, setRows] = useState<BlogRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedBlog, setSelectedBlog] = useState<BlogRow | null>(null);
+  const blogPermission = permissions.find(({ module }) => module === "blogs");
+  const canCreateBlogs = role !== "internal_staff" || Boolean(blogPermission?.full_access || blogPermission?.can_create);
+  const canEditBlogs = role !== "internal_staff" || Boolean(blogPermission?.full_access || blogPermission?.can_edit);
+  const canDeleteBlogs = role !== "internal_staff" || Boolean(blogPermission?.full_access || blogPermission?.can_delete);
+  const canApproveBlogs = role !== "internal_staff" || Boolean(blogPermission?.full_access || blogPermission?.can_approve);
+  const canExportBlogs = role !== "internal_staff" || Boolean(blogPermission?.full_access || blogPermission?.can_export);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -93,7 +104,11 @@ export default function BlogManagementPage() {
   return (
     <section className="w-full bg-[#F7F8FA] p-3 lg:p-5">
       <div className="mx-auto max-w-[1180px] space-y-3">
-        <BlogManagementHeaderStats rows={rows} />
+        <BlogManagementHeaderStats
+          rows={rows}
+          canCreateBlogs={canCreateBlogs}
+          canExportBlogs={canExportBlogs}
+        />
         <BlogManagementFilters />
         {isLoading && (
           <div className="rounded-xl border border-[#DFDFDF] bg-white p-4 text-sm text-[#4B5563]">
@@ -104,6 +119,9 @@ export default function BlogManagementPage() {
           <>
             <BlogManagementTable
               rows={rows}
+              canEditBlogs={canEditBlogs}
+              canDeleteBlogs={canDeleteBlogs}
+              canApproveBlogs={canApproveBlogs}
               onView={(blog) => setSelectedBlog(blog)}
               onStatusChange={(id, newStatus) => {
                 setRows((prev) => prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r)));

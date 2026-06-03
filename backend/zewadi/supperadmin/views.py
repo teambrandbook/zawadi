@@ -13,8 +13,13 @@ from io import BytesIO
 from xml.sax.saxutils import escape
 from zipfile import ZIP_DEFLATED, ZipFile
 from accounts.models import User
-from .serializer import UserSerializer, UserUpdateSerializer, RoleSerializer
-from .utils.permissions import has_permission, IsAdminRole
+from .serializer import (
+    RolePermissionSerializer,
+    RoleSerializer,
+    UserSerializer,
+    UserUpdateSerializer,
+)
+from .utils.permissions import has_permission, IsAdminRole, IsInternalStaffRole
 from .models import Role, SiteSettings
 from zewadi.pagination import StandardPagination
 from rest_framework.decorators import api_view, permission_classes
@@ -35,9 +40,12 @@ def format_serializer_errors(errors):
 
 
 class AdminReportsAPIView(APIView):
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not has_permission(request.user, "reports", "view"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         report = build_admin_reports_payload(request)
         if "error" in report:
             return Response({"error": report["error"]}, status=status.HTTP_400_BAD_REQUEST)
@@ -249,6 +257,10 @@ def build_admin_reports_payload(request):
     registrations = filter_datetime_range(EventRegistration.objects.all(), "registered_at", filters)
     recipes = filter_datetime_range(Recipe.objects.all(), "created_at", filters)
     blogs = filter_datetime_range(Blog.objects.all(), "created_at", filters)
+    all_events = Event.objects.all()
+    all_registrations = EventRegistration.objects.all()
+    all_recipes = Recipe.objects.all()
+    all_blogs = Blog.objects.all()
 
     def revenue_trend():
         if not include_orders:
@@ -294,18 +306,18 @@ def build_admin_reports_payload(request):
     def events_analytics():
         if not include_events:
             return {"total": 0, "registrations": 0, "avg_per_event": 0}
-        total = events.count()
-        registration_count = registrations.count()
+        total = all_events.count()
+        registration_count = all_registrations.count()
         avg = round(registration_count / total, 1) if total else 0
         return {"total": total, "registrations": registration_count, "avg_per_event": avg}
 
     def content_analytics():
         if not include_content:
             return {"recipes": 0, "blogs": 0, "approval_rate": 0, "recipes_published_pct": 0}
-        recipe_count = recipes.count()
-        blog_count = blogs.count()
-        published_recipes = recipes.filter(status="published").count()
-        published_blogs = blogs.filter(status="published").count()
+        recipe_count = all_recipes.count()
+        blog_count = all_blogs.count()
+        published_recipes = all_recipes.filter(status="published").count()
+        published_blogs = all_blogs.filter(status="published").count()
         total = recipe_count + blog_count
         published = published_recipes + published_blogs
         approval_rate = round((published / total * 100), 1) if total else 0
@@ -371,9 +383,12 @@ def build_admin_reports_payload(request):
 
 
 class AdminReportsExportAPIView(APIView):
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not has_permission(request.user, "reports", "export"):
+            return Response({"detail": "Permission denied."}, status=status.HTTP_403_FORBIDDEN)
+
         from orders.models import Order
         from consultant.models import ConsultationBooking
         from events.models import Event, EventRegistration
@@ -672,9 +687,15 @@ class AdminReportsExportAPIView(APIView):
 
 
 class AdminStatsAPIView(APIView):
-    permission_classes = [IsAdminRole]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        if not has_permission(request.user, "dashboard", "view"):
+            return Response(
+                {"error": "You do not have permission to view dashboard stats"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
         from orders.models import Order
         from product.models import Product
         from events.models import Event
@@ -724,6 +745,24 @@ class AdminStatsAPIView(APIView):
             "total_revenue": float(total_revenue),
             "total_shipping": float(total_shipping),
             "total_tax": float(total_tax),
+        }, status=status.HTTP_200_OK)
+
+
+class InternalStaffPermissionsAPIView(APIView):
+    permission_classes = [IsInternalStaffRole]
+
+    def get(self, request):
+        role = request.user.role_obj
+        permissions = role.permissions.all() if role else []
+
+        return Response({
+            "role": request.user.role,
+            "role_obj": {
+                "id": role.id,
+                "role_name": role.role_name,
+                "access_level": role.access_level,
+            } if role else None,
+            "permissions": RolePermissionSerializer(permissions, many=True).data,
         }, status=status.HTTP_200_OK)
 
 

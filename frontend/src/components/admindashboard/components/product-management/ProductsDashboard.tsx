@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
@@ -10,6 +11,8 @@ import ProductFilters from "./components/ProductFilters";
 import ProductsHeader from "./components/ProductsHeader";
 import ProductStatsGrid from "./components/ProductStatsGrid";
 import ProductsTable, { ProductRow, ProductVariant } from "./components/ProductsTable";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 
 type ProductDetail = {
   id: string;
@@ -280,6 +283,8 @@ function ProductDetailsDialog({
 
 export default function ProductsDashboard() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -293,6 +298,21 @@ export default function ProductsDashboard() {
   const [selectedProductDetail, setSelectedProductDetail] = useState<ProductDetail | null>(null);
   const [isDetailLoading, setIsDetailLoading] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const productsPermission = internalStaffPermissions.find(
+    (permission) => permission.module === "products"
+  );
+  const canCreateProducts =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_create || productsPermission.full_access));
+  const canEditProducts =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_edit || productsPermission.full_access));
+  const canDeleteProducts =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_delete || productsPermission.full_access));
+  const canExportProducts =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_export || productsPermission.full_access));
 
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -497,6 +517,8 @@ export default function ProductsDashboard() {
         <ProductsHeader
           onExport={() => downloadCsv("products.csv", filtered)}
           onAdd={() => router.push("/admindashboard/products/add")}
+          canCreateProducts={canCreateProducts}
+          canExportProducts={canExportProducts}
         />
 
         <ProductStatsGrid rows={products} />
@@ -538,7 +560,7 @@ export default function ProductsDashboard() {
           }}
         />
 
-        <ProductBulkActions
+        {(canExportProducts || canDeleteProducts) && <ProductBulkActions
           selectedCount={selectedIds.length}
           totalCount={filtered.length}
           onExportSelected={() => {
@@ -556,7 +578,9 @@ export default function ProductsDashboard() {
             }
             setShowArchiveConfirm(true);
           }}
-        />
+          canDeleteProducts={canDeleteProducts}
+          canExportProducts={canExportProducts}
+        />}
 
         <ProductsTable
           rows={pageRows}
@@ -569,6 +593,8 @@ export default function ProductsDashboard() {
           onViewRow={handleViewRow}
           onEditRow={handleEditRow}
           onDeleteRow={handleDeleteRow}
+          canEditProducts={canEditProducts}
+          canDeleteProducts={canDeleteProducts}
         />
       </div>
     </section>

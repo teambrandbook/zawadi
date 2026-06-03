@@ -3,9 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import type { RootState } from "@/redux/store";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import NutritionistStatsGrid from "./components/NutritionistStatsGrid";
 import NutritionistsDataTable from "./components/NutritionistsDataTable";
 import NutritionistsHeader from "./components/NutritionistsHeader";
@@ -305,6 +308,8 @@ function buildStats(rows: NutritionistRow[]): NutritionistStatCard[] {
 
 export default function NutritionistsDashboard() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.user.role);
+  const permissions = useInternalStaffPermissions();
   const [rows, setRows] = useState<NutritionistRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -314,6 +319,15 @@ export default function NutritionistsDashboard() {
   const [detailError, setDetailError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<NutritionistRow | null>(null);
   const [isDeletingNutritionist, setIsDeletingNutritionist] = useState(false);
+  const nutritionistPermission = permissions.find(({ module }) => module === "nutritionists");
+  const canCreateNutritionists =
+    role !== "internal_staff" || Boolean(nutritionistPermission?.full_access || nutritionistPermission?.can_create);
+  const canEditNutritionists =
+    role !== "internal_staff" || Boolean(nutritionistPermission?.full_access || nutritionistPermission?.can_edit);
+  const canDeleteNutritionists =
+    role !== "internal_staff" || Boolean(nutritionistPermission?.full_access || nutritionistPermission?.can_delete);
+  const canExportNutritionists =
+    role !== "internal_staff" || Boolean(nutritionistPermission?.full_access || nutritionistPermission?.can_export);
 
   useEffect(() => {
     const fetchConsultants = async () => {
@@ -409,7 +423,10 @@ export default function NutritionistsDashboard() {
       ) : null}
 
       <div className="mx-auto max-w-[1180px] space-y-4">
-        <NutritionistsHeader />
+        <NutritionistsHeader
+          canCreateNutritionists={canCreateNutritionists}
+          canExportNutritionists={canExportNutritionists}
+        />
         <NutritionistStatsGrid items={stats} />
         {/* <NutritionistFiltersCard /> */}
 
@@ -432,6 +449,9 @@ export default function NutritionistsDashboard() {
         {!isLoading && rows.length > 0 && (
           <NutritionistsDataTable
             rows={rows}
+            canEditNutritionists={canEditNutritionists}
+            canDeleteNutritionists={canDeleteNutritionists}
+            canExportNutritionists={canExportNutritionists}
             onViewRow={handleViewRow}
             onEditRow={handleEditRow}
             onDeleteRow={setDeleteTarget}

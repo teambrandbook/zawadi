@@ -21,6 +21,7 @@ class BlogStatus(models.TextChoices):
     PENDING = "pending", "Pending"
     DRAFT = "draft", "Draft"
     PUBLISHED = "published", "Published"
+    REJECTED = "rejected", "Rejected"
     ARCHIVED = "archived", "Archived"
 
 

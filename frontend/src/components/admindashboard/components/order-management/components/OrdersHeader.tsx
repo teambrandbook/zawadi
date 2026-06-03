@@ -5,9 +5,10 @@ type Props = {
   onSearchChange: (value: string) => void;
   onFilterClick: () => void;
   onExport: () => void;
+  canExportOrders: boolean;
 };
 
-export default function OrdersHeader({ search, onSearchChange, onFilterClick, onExport }: Props) {
+export default function OrdersHeader({ search, onSearchChange, onFilterClick, onExport, canExportOrders }: Props) {
   return (
     <section className="space-y-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
@@ -29,10 +30,10 @@ export default function OrdersHeader({ search, onSearchChange, onFilterClick, on
             <Filter className="h-4 w-4" />
             Filter
           </button>
-          <button type="button" onClick={onExport} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#A88751] px-4 text-sm text-white hover:bg-[#8F7348]">
+          {canExportOrders && <button type="button" onClick={onExport} className="inline-flex h-10 items-center gap-2 rounded-lg bg-[#A88751] px-4 text-sm text-white hover:bg-[#8F7348]">
             <Download className="h-4 w-4" />
             Export
-          </button>
+          </button>}
         </div>
       </div>
 

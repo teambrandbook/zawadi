@@ -18,6 +18,8 @@ type Props = {
   perPage: number;
   totalResults: number;
   onPageChange: (page: number) => void;
+  canEditUser: boolean;
+  canDeleteUser: boolean;
 };
 
 export default function UsersDataTable({
@@ -32,6 +34,8 @@ export default function UsersDataTable({
   perPage,
   totalResults,
   onPageChange,
+  canEditUser,
+  canDeleteUser,
 }: Props) {
   const safePage = Math.min(page, totalPages);
 
@@ -95,18 +99,18 @@ export default function UsersDataTable({
                     <button type="button" onClick={() => onRowAction("view", user)} className="hover:text-[#083927]" aria-label={`View ${user.fullName}`}>
                       <Eye className="h-4 w-4" />
                     </button>
-                    <button type="button" onClick={() => onRowAction("edit", user)} className="hover:text-[#083927]" aria-label={`Edit ${user.fullName}`}>
+                    {canEditUser && <button type="button" onClick={() => onRowAction("edit", user)} className="hover:text-[#083927]" aria-label={`Edit ${user.fullName}`}>
                       <Pencil className="h-4 w-4" />
-                    </button>
+                    </button>}
                     {/* 3. Replaced Ellipsis with Trash2 and updated style/label */}
-                    <button 
+                    {canDeleteUser && <button
                       type="button" 
                       onClick={() => onRowAction("delete", user)} 
                       className="text-red-600 hover:text-red-800" 
                       aria-label={`Delete ${user.fullName}`}
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </button>}
                   </div>
                 </td>
               </tr>

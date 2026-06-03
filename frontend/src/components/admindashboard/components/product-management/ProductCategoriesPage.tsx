@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { Eye, Pencil, Plus, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import api from "@/services/api";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 
 type ProductCategory = {
   id: number;
@@ -162,10 +165,24 @@ function CategoryDialog({
 }
 
 export default function ProductCategoriesPage() {
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [categories, setCategories] = useState<ProductCategory[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [dialog, setDialog] = useState<{ mode: DialogMode; category: ProductCategory | null } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const productsPermission = internalStaffPermissions.find(
+    (permission) => permission.module === "products"
+  );
+  const canCreateCategories =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_create || productsPermission.full_access));
+  const canEditCategories =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_edit || productsPermission.full_access));
+  const canDeleteCategories =
+    role !== "internal_staff" ||
+    Boolean(productsPermission && (productsPermission.can_delete || productsPermission.full_access));
 
   const allSelected = categories.length > 0 && selectedIds.length === categories.length;
 
@@ -221,14 +238,14 @@ export default function ProductCategoriesPage() {
             <h1 className="text-[24px] font-bold leading-8 tracking-[-0.5px] text-[#0A4833]">Category</h1>
           </div>
 
-          <button
+          {canCreateCategories && <button
             type="button"
             onClick={() => setDialog({ mode: "create", category: null })}
             className="inline-flex h-12 items-center gap-2 rounded-[8px] bg-[#0A4833] px-5 text-[16px] font-medium tracking-[-0.5px] text-white"
           >
             <Plus className="h-4 w-4" />
             Add Category
-          </button>
+          </button>}
         </div>
 
         <div className="mx-auto mt-14 w-full max-w-[614px] overflow-x-auto rounded-[5px] border border-[#DFDFDF] bg-white">
@@ -268,12 +285,12 @@ export default function ProductCategoriesPage() {
                   <button type="button" onClick={() => setDialog({ mode: "view", category })} aria-label={`View ${category.name}`}>
                     <Eye className="h-[18px] w-[18px]" />
                   </button>
-                  <button type="button" onClick={() => setDialog({ mode: "edit", category })} aria-label={`Edit ${category.name}`}>
+                  {canEditCategories && <button type="button" onClick={() => setDialog({ mode: "edit", category })} aria-label={`Edit ${category.name}`}>
                     <Pencil className="h-4 w-4" />
-                  </button>
-                  <button type="button" onClick={() => deleteCategory(category)} aria-label={`Delete ${category.name}`}>
+                  </button>}
+                  {canDeleteCategories && <button type="button" onClick={() => deleteCategory(category)} aria-label={`Delete ${category.name}`}>
                     <Trash2 className="h-4 w-4" />
-                  </button>
+                  </button>}
                 </div>
               </div>
             ))

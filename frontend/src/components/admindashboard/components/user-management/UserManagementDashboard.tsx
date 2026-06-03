@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 import { toast } from "sonner";
 import { displayRole, initialUsers, PER_PAGE, toCsv } from "./userManagementShared";
 import type { UserRecord } from "./userManagementShared";
@@ -12,6 +13,8 @@ import UserDetailsModal from "./components/UserDetailsModal";
 import UsersDataTable from "./components/UsersDataTable";
 import api from "@/services/api";
 import { getImageUrl } from "@/lib/utils";
+import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import type { RootState } from "@/redux/store";
 
 function toUserPhotoUrl(photo?: string | null) {
   if (!photo) return null;
@@ -112,6 +115,8 @@ function DeleteUserConfirmDialog({
 
 export default function UserManagementDashboard() {
   const router = useRouter();
+  const role = useSelector((state: RootState) => state.user.role);
+  const internalStaffPermissions = useInternalStaffPermissions();
   const [users, setUsers] = useState<UserRecord[]>(initialUsers);
   const [isLoading, setIsLoading] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -124,6 +129,21 @@ export default function UserManagementDashboard() {
   const [selectedUser, setSelectedUser] = useState<UserRecord | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<UserRecord | null>(null);
   const [isDeletingUser, setIsDeletingUser] = useState(false);
+  const usersPermission = internalStaffPermissions.find(
+    (permission) => permission.module === "users"
+  );
+  const canCreateUser =
+    role !== "internal_staff" ||
+    Boolean(usersPermission && (usersPermission.can_create || usersPermission.full_access));
+  const canEditUser =
+    role !== "internal_staff" ||
+    Boolean(usersPermission && (usersPermission.can_edit || usersPermission.full_access));
+  const canDeleteUser =
+    role !== "internal_staff" ||
+    Boolean(usersPermission && (usersPermission.can_delete || usersPermission.full_access));
+  const canExportUsers =
+    role !== "internal_staff" ||
+    Boolean(usersPermission && (usersPermission.can_export || usersPermission.full_access));
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -298,6 +318,8 @@ export default function UserManagementDashboard() {
           onQuickFilter={handleQuickFilter}
           onExportAll={() => downloadCsv("users-all.csv", filteredUsers)}
           onAddUser={handleAddUser}
+          canAddUser={canCreateUser}
+          canExportUsers={canExportUsers}
         />
 
         <UserStatsGrid users={users} />
@@ -316,6 +338,7 @@ export default function UserManagementDashboard() {
           onClearFilters={handleClearFilters}
           onBulkEmail={handleBulkEmail}
           onExportSelected={handleExportSelected}
+          canExportUsers={canExportUsers}
         />
 
         {isLoading && (
@@ -342,6 +365,8 @@ export default function UserManagementDashboard() {
           perPage={PER_PAGE}
           totalResults={filteredUsers.length}
           onPageChange={setPage}
+          canEditUser={canEditUser}
+          canDeleteUser={canDeleteUser}
         />
 
         <UserDetailsModal user={selectedUser} onClose={() => setSelectedUser(null)} />

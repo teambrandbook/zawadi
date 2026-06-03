@@ -26,7 +26,7 @@ export default function GuestGate({ children }: { children: React.ReactNode }) {
     setUpgrading(true);
     try {
       await dispatch(upgradeToMember()).unwrap();
-      toast.success("Welcome to the Zawadi community!");
+      toast.success("Welcome to the Zewadi community!");
     } catch {
       toast.error("Upgrade failed. Please try again.");
     } finally {
@@ -44,7 +44,7 @@ export default function GuestGate({ children }: { children: React.ReactNode }) {
           </div>
           <h2 className="text-xl font-bold text-[#0a4833]">Members Only</h2>
           <p className="mt-2 text-sm text-[#6b7280]">
-            Upgrade your free account to unlock the full Zawadi community experience.
+            Upgrade your free account to unlock the full Zewadi community experience.
           </p>
         </div>
 

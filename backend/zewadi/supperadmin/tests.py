@@ -1,9 +1,15 @@
+from datetime import timedelta
+
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from accounts.models import User
-from supperadmin.models import RolePermission
+from blog.models import Blog
+from events.models import Event, EventRegistration
+from recipes.models import Recipe
+from supperadmin.models import Role, RolePermission
 from supperadmin.serializer import RoleSerializer
 
 
@@ -39,6 +45,118 @@ class AdminStatsAPITests(APITestCase):
         self.assertEqual(data["total_revenue"], 0.0)
         self.assertIn("total_shipping", data)
         self.assertIn("total_tax", data)
+
+    def test_stats_returns_200_for_internal_staff_with_dashboard_view_permission(self):
+        role = Role.objects.create(role_name="Dashboard Viewer")
+        RolePermission.objects.create(role=role, module="dashboard", can_view=True)
+        staff = User.objects.create_user(
+            email="dashboard-staff@example.com",
+            password="Pass@1234",
+            user_name="dashboard-staff",
+            full_name="Dashboard Staff",
+            phone="+10000000003",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        response = self.client.get(reverse("admin-stats"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total_users"], 1)
+
+
+class AdminReportsAPITests(APITestCase):
+    def test_events_and_content_analytics_include_records_created_before_selected_period(self):
+        admin = User.objects.create_user(
+            email="reports-admin@example.com",
+            password="Pass@1234",
+            user_name="reports-admin",
+            full_name="Reports Admin",
+            phone="+10000000004",
+            role="ADMIN",
+        )
+        event = Event.objects.create(title="Older Event", short_description="Older event")
+        EventRegistration.objects.create(event=event, user=admin)
+        recipe = Recipe.objects.create(
+            author=admin,
+            title="Older Recipe",
+            short_description="Older recipe",
+            prep_time_minutes=5,
+            cooking_time_minutes=10,
+            servings=2,
+            status="published",
+        )
+        blog = Blog.objects.create(
+            author=admin,
+            title="Older Blog",
+            short_excerpt="Older blog",
+            content="Older blog content",
+            status="published",
+        )
+        older_date = timezone.now() - timedelta(days=45)
+        Event.objects.filter(pk=event.pk).update(created_at=older_date)
+        EventRegistration.objects.filter(event=event).update(registered_at=older_date)
+        Recipe.objects.filter(pk=recipe.pk).update(created_at=older_date)
+        Blog.objects.filter(pk=blog.pk).update(created_at=older_date)
+        self.client.force_authenticate(user=admin)
+
+        response = self.client.get(reverse("admin-reports"), {"period": "today"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["analytics"]["events"], {"total": 1, "registrations": 1, "avg_per_event": 1.0})
+        self.assertEqual(
+            response.data["analytics"]["content"],
+            {"recipes": 1, "blogs": 1, "approval_rate": 100.0, "recipes_published_pct": 100.0},
+        )
+
+
+class InternalStaffPermissionsAPITests(APITestCase):
+    def test_internal_staff_can_get_their_permissions(self):
+        role = Role.objects.create(
+            role_name="Content Manager",
+            access_level="medium",
+        )
+        RolePermission.objects.create(
+            role=role,
+            module="blogs",
+            can_view=True,
+            can_approve=True,
+        )
+        staff = User.objects.create_user(
+            email="staff@example.com",
+            password="Pass@1234",
+            user_name="staff",
+            full_name="Internal Staff",
+            phone="+10000000001",
+            role="INTERNAL_STAFF",
+            role_obj=role,
+        )
+        self.client.force_authenticate(user=staff)
+
+        response = self.client.get(reverse("internal-staff-permissions"))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["role"], "INTERNAL_STAFF")
+        self.assertEqual(response.data["role_obj"]["role_name"], "Content Manager")
+        self.assertEqual(response.data["permissions"][0]["module"], "blogs")
+        self.assertTrue(response.data["permissions"][0]["can_view"])
+        self.assertTrue(response.data["permissions"][0]["can_approve"])
+
+    def test_admin_cannot_get_internal_staff_permissions(self):
+        admin = User.objects.create_user(
+            email="admin-permissions@example.com",
+            password="Pass@1234",
+            user_name="admin",
+            full_name="Admin User",
+            phone="+10000000002",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+
+        response = self.client.get(reverse("internal-staff-permissions"))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class RoleSerializerTests(APITestCase):
