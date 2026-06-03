@@ -1,5 +1,7 @@
 "use client";
 
+import type { ClipboardEvent, KeyboardEvent } from "react";
+import { useRef } from "react";
 import { ArrowLeft, CalendarCheck2, Check, CheckCircle2, Edit3, Shield, Star } from "lucide-react";
 import { getImageUrl } from "@/lib/utils";
 
@@ -56,10 +58,15 @@ type Props = {
   formData: ConsultationFormData;
   isAgreed: boolean;
   onToggleAgreement: () => void;
+  otpCode: string;
+  onOtpChange: (value: string) => void;
+  onResendOtp: () => void;
   onConfirm: () => void;
   onBack: () => void;
   isSubmitting: boolean;
 };
+
+const OTP_LENGTH = 6;
 
 function formatLabel(value: string) {
   return value
@@ -139,10 +146,14 @@ export default function ConfirmBookingSection({
   formData,
   isAgreed,
   onToggleAgreement,
+  otpCode,
+  onOtpChange,
+  onResendOtp,
   onConfirm,
   onBack,
   isSubmitting,
 }: Props) {
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
   const expertName = matchedConsultant?.consultant_name || selectedExpert?.name || "Dr. Emma Thompson";
   const expertSpecialty = matchedConsultant?.qualification || selectedExpert?.specialty || "Certified Nutritionist";
   const displayDate = formatDate(selectedDate || formData.date);
@@ -151,7 +162,58 @@ export default function ConfirmBookingSection({
   const focusArea = formData.focus_area || healthDetails.mainConcern || "belly";
   const wellnessGoal = formData.primary_wellness_goal || healthDetails.primaryWellnessGoal || "fitness";
   const expertPhoto = matchedConsultant?.photo ? getImageUrl(matchedConsultant.photo) : null;
-  const consultationFee = matchedConsultant?.consultation_fee ?? 75;
+  const otpDigits = Array.from({ length: OTP_LENGTH }, (_, index) => otpCode[index] || "");
+
+  function focusInput(index: number) {
+    inputRefs.current[index]?.focus();
+    inputRefs.current[index]?.select();
+  }
+
+  function setDigit(index: number, value: string) {
+    const digits = otpDigits;
+    digits[index] = value;
+    onOtpChange(digits.join("").slice(0, OTP_LENGTH));
+  }
+
+  function handleOtpChange(index: number, value: string) {
+    const sanitized = value.replace(/\D/g, "");
+
+    if (!sanitized) {
+      setDigit(index, "");
+      return;
+    }
+
+    if (sanitized.length > 1) {
+      const digits = [...otpDigits];
+      sanitized.slice(0, OTP_LENGTH - index).split("").forEach((digit, offset) => {
+        digits[index + offset] = digit;
+      });
+      onOtpChange(digits.join("").slice(0, OTP_LENGTH));
+      focusInput(Math.min(index + sanitized.length, OTP_LENGTH - 1));
+      return;
+    }
+
+    setDigit(index, sanitized);
+    if (index < OTP_LENGTH - 1) focusInput(index + 1);
+  }
+
+  function handleOtpKeyDown(index: number, event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key === "Backspace" && !otpDigits[index] && index > 0) {
+      setDigit(index - 1, "");
+      focusInput(index - 1);
+    }
+
+    if (event.key === "ArrowLeft" && index > 0) focusInput(index - 1);
+    if (event.key === "ArrowRight" && index < OTP_LENGTH - 1) focusInput(index + 1);
+  }
+
+  function handleOtpPaste(event: ClipboardEvent<HTMLInputElement>) {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, OTP_LENGTH);
+    if (!pasted) return;
+    onOtpChange(pasted);
+    focusInput(Math.min(pasted.length, OTP_LENGTH - 1));
+  }
 
   return (
     <section className="space-y-5">
@@ -217,10 +279,6 @@ export default function ConfirmBookingSection({
 
           <section className="rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
             <h2 className="text-xl font-semibold tracking-[-0.5px] text-[#0A4833]">Session Overview</h2>
-            <div className="mt-6 flex items-center justify-between text-sm">
-              <span className="text-[#4B5563]">Consultation Fee</span>
-              <span className="font-semibold text-[#0A4833]">${consultationFee}</span>
-            </div>
             <div className="mt-6 rounded-lg bg-[#EBE1CF] p-4">
               <h3 className="font-medium text-[#0A4833]">What to Expect</h3>
               <ul className="mt-3 list-disc space-y-2 pl-4 text-sm text-[#4B5563]">
@@ -233,7 +291,7 @@ export default function ConfirmBookingSection({
           </section>
         </div>
 
-        <aside className="h-max rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm">
+        <aside className="h-max self-start rounded-xl border border-[#DFDFDF] bg-white p-6 shadow-sm xl:sticky xl:bottom-0">
           <div className="text-center">
             <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-[#EBE1CF] text-[#9F8151]">
               <CalendarCheck2 className="h-7 w-7" />
@@ -259,21 +317,35 @@ export default function ConfirmBookingSection({
           <div className="mt-6">
             <p className="text-sm font-medium text-[#0A4833]">Verify your OTP</p>
             <p className="mt-1 text-xs leading-4 text-[#6B7280]">
-              6 Digit otp number sent to your mail . Please verify your OTP.
+              A 6-digit code has been sent to your account email. Enter it before confirming.
             </p>
-            <div className="mt-3 flex gap-1.5">
-              {Array.from({ length: 5 }).map((_, index) => (
-                <button
+            <div className="mt-3 grid grid-cols-6 gap-2">
+              {otpDigits.map((digit, index) => (
+                <input
                   key={index}
-                  type="button"
-                  onClick={index === 0 ? onToggleAgreement : undefined}
-                  className={`h-12 w-[52px] rounded-lg border ${
-                    index === 0 && isAgreed ? "border-[#0A4833] bg-[#EBE1CF]" : "border-transparent bg-[#C9C9C9]"
-                  }`}
+                  ref={(element) => {
+                    inputRefs.current[index] = element;
+                  }}
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  maxLength={1}
+                  value={digit}
+                  onChange={(event) => handleOtpChange(index, event.target.value)}
+                  onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                  onPaste={handleOtpPaste}
+                  className="aspect-square h-auto w-full min-w-0 rounded-lg border border-[#DFDFDF] bg-white text-center text-lg font-semibold text-[#0A4833] outline-none transition focus:border-[#0A4833]"
                   aria-label={`OTP digit ${index + 1}`}
                 />
               ))}
             </div>
+            <button
+              type="button"
+              onClick={onResendOtp}
+              disabled={isSubmitting}
+              className="mt-3 text-xs font-semibold text-[#0A4833] hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Resend code
+            </button>
             <label className="mt-3 flex items-center gap-2 text-xs text-[#4B5563]">
               <input type="checkbox" checked={isAgreed} onChange={onToggleAgreement} className="h-4 w-4 accent-[#0A4833]" />
               I confirm all details are correct.
@@ -284,7 +356,7 @@ export default function ConfirmBookingSection({
             <button
               type="button"
               onClick={onConfirm}
-              disabled={!isAgreed || isSubmitting}
+              disabled={!isAgreed || otpCode.length !== OTP_LENGTH || !matchedConsultant?.consultant_id || isSubmitting}
               className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#0A4833] text-base font-medium text-white hover:bg-[#083B2A] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Check className="h-4 w-4" /> {isSubmitting ? "Booking..." : "Confirm Booking"}

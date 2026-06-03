@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 import type { AxiosError } from "axios";
 import api from "@/services/api";
 import ChooseExpertSection, { type SessionType } from "./components/ChooseExpertSection";
@@ -82,7 +83,6 @@ export default function AddConsaltation() {
   const [selectedSessionType, setSelectedSessionType] = useState<SessionType | "">("Video Call");
   const [selectedGoal, setSelectedGoal] = useState("lose fat");
   const [selectedLanguage, setSelectedLanguage] = useState("english");
-  const [creditUsed, setCreditUsed] = useState(false);
   const [selectedDate, setSelectedDate] = useState(getTodayIsoDate());
   const [selectedSlot, setSelectedSlot] = useState(getDefaultBookingTime());
   const [healthDetails, setHealthDetails] = useState<HealthDetails>(initialHealthDetails);
@@ -92,9 +92,42 @@ export default function AddConsaltation() {
   const [isFindingConsultant, setIsFindingConsultant] = useState(false);
   const [statusMessage, setStatusMessage] = useState("");
   const [matchedConsultant, setMatchedConsultant] = useState<MatchedConsultant | null>(null);
+  const [otpCode, setOtpCode] = useState("");
+  const [otpRequestKey, setOtpRequestKey] = useState("");
+  const [isRequestingOtp, setIsRequestingOtp] = useState(false);
+  const statusToastId = useRef<string | number | null>(null);
   const stepLabels = ["Choose Session Type", "Select Date & Time", "Health Details", "Confirm Booking"];
 
   const selectedExpert = experts.find((item) => item.id === selectedExpertId) ?? null;
+  const isStatusLoading = isSubmitting || isFindingConsultant || isRequestingOtp;
+  const isStatusError = /^(please|unable|no |could not|invalid|consultant details)/i.test(statusMessage.trim());
+
+  useEffect(() => {
+    if (!statusMessage) {
+      if (statusToastId.current) {
+        toast.dismiss(statusToastId.current);
+        statusToastId.current = null;
+      }
+      return;
+    }
+
+    if (statusToastId.current) {
+      toast.dismiss(statusToastId.current);
+      statusToastId.current = null;
+    }
+
+    if (isStatusLoading) {
+      statusToastId.current = toast.loading(statusMessage);
+      return;
+    }
+
+    if (isStatusError) {
+      toast.error(statusMessage);
+      return;
+    }
+
+    toast.success(statusMessage);
+  }, [isStatusError, isStatusLoading, statusMessage]);
 
   function formatTimeForApi(value: string) {
     const twelveHourMatch = value.match(/^\d{1,2}:\d{2}\s?(AM|PM)$/i);
@@ -135,6 +168,83 @@ export default function AddConsaltation() {
     if (normalizedValue.includes("chat")) return "chat";
     return "video";
   }
+
+  function getBookingPayload() {
+    return {
+      consultant_id: Number(matchedConsultant?.consultant_id),
+      time: formatTimeForApi(formData.time || selectedSlot),
+      booked_date: formData.date || selectedDate,
+      session_type: mapSessionTypeForApi(selectedSessionType || "Video Call"),
+      primary_goal: selectedGoal || formData.primary_goal,
+      primary_wellness_goal: formData.primary_wellness_goal || healthDetails.primaryWellnessGoal,
+      focuses_area: formData.focus_area || healthDetails.mainConcern,
+      diet_preferences: formData.diet_restriction || healthDetails.dietPreferences.join(", "),
+      lifestyle_activity_level: formData.lifestyle_activity || healthDetails.lifestyle,
+      buckwheat_journey_goal: formData.journey_goal || healthDetails.buckwheatGoals,
+      message: formData.additional_message || healthDetails.additionalMessage,
+      language: selectedLanguage || formData.language,
+      is_agreed: isAgreed,
+    };
+  }
+
+  function getReschedulePayload() {
+    return {
+      booking_id: Number(rescheduleBookingId),
+      consultant_id: Number(matchedConsultant?.consultant_id),
+      booked_date: formData.date || selectedDate,
+      booked_slot: formatTimeForApi(formData.time || selectedSlot),
+    };
+  }
+
+  function getOtpRequestKey() {
+    const action = rescheduleBookingId ? "reschedule" : "create";
+    const payload = rescheduleBookingId ? getReschedulePayload() : getBookingPayload();
+    return JSON.stringify({ action, payload });
+  }
+
+  async function requestBookingOtp(force = false) {
+    if (!matchedConsultant?.consultant_id) return;
+
+    const action = rescheduleBookingId ? "reschedule" : "create";
+    const booking = rescheduleBookingId ? getReschedulePayload() : getBookingPayload();
+    const nextKey = JSON.stringify({ action, payload: booking });
+
+    if (!force && otpRequestKey === nextKey) return;
+
+    setIsRequestingOtp(true);
+    setStatusMessage(force ? "Sending a new verification code..." : "Sending verification code to your email...");
+
+    try {
+      const response = await api.post<{ message?: string }>("/consultant/community/booking-otp/request/", {
+        action,
+        booking,
+      });
+      setOtpRequestKey(nextKey);
+      setOtpCode("");
+      setStatusMessage(response.data.message || "A verification code has been sent to your email.");
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ error?: string; detail?: string; time?: string; booking_id?: string }>;
+      const backendMessage =
+        axiosError.response?.data?.error ||
+        axiosError.response?.data?.detail ||
+        axiosError.response?.data?.time ||
+        axiosError.response?.data?.booking_id ||
+        "Unable to send verification code. Please try again.";
+      setStatusMessage(backendMessage);
+    } finally {
+      setIsRequestingOtp(false);
+    }
+  }
+
+  useEffect(() => {
+    if (currentStep !== 4 || !matchedConsultant?.consultant_id) return;
+
+    const nextKey = getOtpRequestKey();
+    if (otpRequestKey === nextKey) return;
+
+    void requestBookingOtp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, matchedConsultant?.consultant_id]);
 
   function onSelectGoal(goal: string) {
     setSelectedGoal(goal);
@@ -221,6 +331,10 @@ export default function AddConsaltation() {
       setStatusMessage("Please confirm details before booking.");
       return;
     }
+    if (otpCode.length !== 6) {
+      setStatusMessage("Please enter the 6-digit verification code sent to your email.");
+      return;
+    }
     if (!matchedConsultant?.consultant_id) {
       setStatusMessage("Consultant details are missing. Please go back and try again.");
       return;
@@ -230,38 +344,16 @@ export default function AddConsaltation() {
     setStatusMessage("Confirming your booking...");
 
     try {
-      const payload = {
-        consultant_id: Number(matchedConsultant.consultant_id),
-        time: formatTimeForApi(formData.time || selectedSlot),
-        booked_date: formData.date || selectedDate,
-        session_type: mapSessionTypeForApi(selectedSessionType || "Video Call"),
-        primary_goal: selectedGoal || formData.primary_goal,
-        primary_wellness_goal: formData.primary_wellness_goal || healthDetails.primaryWellnessGoal,
-        focuses_area: formData.focus_area || healthDetails.mainConcern,
-        diet_preferences: formData.diet_restriction || healthDetails.dietPreferences.join(", "),
-        lifestyle_activity_level: formData.lifestyle_activity || healthDetails.lifestyle,
-        buckwheat_journey_goal: formData.journey_goal || healthDetails.buckwheatGoals,
-        message: formData.additional_message || healthDetails.additionalMessage,
-        language: selectedLanguage || formData.language,
-        is_agreed: isAgreed,
-      };
+      const action = rescheduleBookingId ? "reschedule" : "create";
+      const booking = rescheduleBookingId ? getReschedulePayload() : getBookingPayload();
 
-      if (rescheduleBookingId) {
-        const response = await api.patch<{ message?: string }>(
-          `/consultant/bookings/${rescheduleBookingId}/reschedule/`,
-          {
-            consultant_id: Number(matchedConsultant.consultant_id),
-            booked_date: payload.booked_date,
-            booked_slot: payload.time,
-          },
-        );
-        setStatusMessage(response.data.message || "Consultation rescheduled successfully.");
-        router.push("/communityDashBoard/consultation");
-        return;
-      }
-
-      const response = await api.post<CreateBookingResponse>("/consultant/community/create-booking/", payload);
+      const response = await api.post<CreateBookingResponse>("/consultant/community/booking-otp/confirm/", {
+        action,
+        booking,
+        code: otpCode,
+      });
       setStatusMessage(response.data.message || "Consultation booked successfully.");
+      router.push("/communityDashBoard/consultation");
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ error?: string; detail?: string }>;
       const backendMessage =
@@ -332,15 +424,12 @@ export default function AddConsaltation() {
               onSelectSessionType={setSelectedSessionType}
               onSelectGoal={onSelectGoal}
               onSelectLanguage={onSelectLanguage}
-              onUseCredit={() => setCreditUsed((prev) => !prev)}
               onContinue={goNext}
-              creditUsed={creditUsed}
             />
           )}
           {currentStep === 2 && (
             <SelectDateTimeSection
               expertName={selectedExpert?.name ?? "Dr. Sarah Chen"}
-              expertRole={selectedExpert?.specialty ?? "Certified Buckwheat Nutrition Specialist"}
               selectedDate={selectedDate}
               selectedSlot={selectedSlot}
               sessionType={selectedSessionType || "Video Call"}
@@ -348,7 +437,6 @@ export default function AddConsaltation() {
               onSelectSlot={onSelectSlot}
               onContinue={goNext}
               onBack={goBack}
-              onSaveForLater={() => setStatusMessage("Booking details saved for later.")}
             />
           )}
           {currentStep === 3 && (
@@ -357,8 +445,6 @@ export default function AddConsaltation() {
               onChange={onChangeHealthDetails}
               onContinue={goNext}
               onBack={goBack}
-              onSaveForLater={() => setStatusMessage("Health details saved for later.")}
-              selectedExpertName={selectedExpert?.name ?? "Dr. Emily Chen"}
               selectedDate={formatDateForDisplay(selectedDate) || "May 15, 2024"}
               selectedTime={formatTimeForApi(selectedSlot) || "2:00 PM"}
               sessionType={selectedSessionType || "Video Call"}
@@ -377,18 +463,16 @@ export default function AddConsaltation() {
               formData={formData}
               isAgreed={isAgreed}
               onToggleAgreement={() => setIsAgreed((prev) => !prev)}
+              otpCode={otpCode}
+              onOtpChange={setOtpCode}
+              onResendOtp={() => requestBookingOtp(true)}
               onConfirm={onConfirmBooking}
               onBack={goBack}
-              isSubmitting={isSubmitting || isFindingConsultant}
+              isSubmitting={isSubmitting || isFindingConsultant || isRequestingOtp}
             />
           )}
         </div>
 
-        {statusMessage && (
-          <div className="rounded-lg border border-[#DFDFDF] bg-[#F8F9FA] px-4 py-3 text-sm text-[#6B7280]">
-            {statusMessage}
-          </div>
-        )}
       </div>
     </section>
   );

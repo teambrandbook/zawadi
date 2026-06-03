@@ -100,9 +100,11 @@ class User(AbstractUser):
 class OTP(models.Model):
     PURPOSE_EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
     PURPOSE_PASSWORD_RESET = "PASSWORD_RESET"
+    PURPOSE_CONSULTATION_BOOKING = "CONSULTATION_BOOKING"
     PURPOSE_CHOICES = [
         (PURPOSE_EMAIL_VERIFICATION, "Email Verification"),
         (PURPOSE_PASSWORD_RESET, "Password Reset"),
+        (PURPOSE_CONSULTATION_BOOKING, "Consultation Booking"),
     ]
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="otps")

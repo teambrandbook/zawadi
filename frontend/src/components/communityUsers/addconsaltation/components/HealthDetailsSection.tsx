@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Check, Clock3, Heart, UserRound } from "lucide-react";
+import { Calendar, Check, Clock3, Heart } from "lucide-react";
 import HealthDetailsInfoPanel from "./HealthDetailsInfoPanel";
 
 type HealthDetails = {
@@ -18,8 +18,6 @@ type Props = {
   onChange: <K extends keyof HealthDetails>(field: K, fieldValue: HealthDetails[K]) => void;
   onContinue: () => void;
   onBack: () => void;
-  onSaveForLater: () => void;
-  selectedExpertName: string;
   selectedDate: string;
   selectedTime: string;
   sessionType: string;
@@ -76,8 +74,6 @@ export default function HealthDetailsSection({
   onChange,
   onContinue,
   onBack,
-  onSaveForLater,
-  selectedExpertName,
   selectedDate,
   selectedTime,
   sessionType,
@@ -99,13 +95,7 @@ export default function HealthDetailsSection({
         <div className="space-y-4">
           <div className="rounded-lg border border-[#E0E4E1] bg-white p-4">
             <h2 className="text-lg font-semibold text-[#0A4833]">Your Selection</h2>
-            <div className="mt-3 grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-              <div className="rounded-lg border border-[#E6EAE7] bg-[#F8FAF8] p-2.5">
-                <p className="mb-1 inline-flex items-center gap-1 text-xs text-[#6B7280]">
-                  <UserRound className="h-3.5 w-3.5" /> Expert
-                </p>
-                <p className="font-medium text-[#0A4833]">{selectedExpertName}</p>
-              </div>
+            <div className="mt-3 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div className="rounded-lg border border-[#E6EAE7] bg-[#F8FAF8] p-2.5">
                 <p className="mb-1 inline-flex items-center gap-1 text-xs text-[#6B7280]">
                   <Calendar className="h-3.5 w-3.5" /> Date
@@ -229,18 +219,10 @@ export default function HealthDetailsSection({
             >
               Back
             </button>
-            <button
-              type="button"
-              onClick={onSaveForLater}
-              className="inline-flex h-11 min-w-[130px] items-center justify-center rounded-lg border border-[#C9B590] bg-white px-4 text-sm font-medium text-[#8B6A3A]"
-            >
-              Save for Later
-            </button>
           </div>
         </div>
 
         <HealthDetailsInfoPanel
-          selectedExpertName={selectedExpertName}
           selectedDate={selectedDate}
           selectedTime={selectedTime}
         />
