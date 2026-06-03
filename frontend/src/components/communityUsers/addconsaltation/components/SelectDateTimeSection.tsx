@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Image from "next/image";
 import { ChevronLeft, ChevronRight, Info } from "lucide-react";
 
 type Props = {
   expertName: string;
-  expertRole: string;
   selectedDate: string;
   selectedSlot: string;
   sessionType: string;
@@ -14,7 +12,6 @@ type Props = {
   onSelectSlot: (slot: string) => void;
   onContinue: () => void;
   onBack: () => void;
-  onSaveForLater: () => void;
 };
 
 const weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -86,7 +83,6 @@ function formatDisplayDate(value: string) {
 
 export default function SelectDateTimeSection({
   expertName,
-  expertRole,
   selectedDate,
   selectedSlot,
   sessionType,
@@ -94,7 +90,6 @@ export default function SelectDateTimeSection({
   onSelectSlot,
   onContinue,
   onBack,
-  onSaveForLater,
 }: Props) {
   const today = useMemo(() => startOfDay(new Date()), []);
   const parsedSelectedDate = useMemo(() => parseIsoDate(selectedDate), [selectedDate]);
@@ -127,19 +122,6 @@ export default function SelectDateTimeSection({
     <section className="rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_260px]">
         <div className="space-y-4">
-          <div className="rounded-lg border border-[#DFDFDF] bg-white p-4">
-            <div className="flex items-center gap-3">
-              <div className="relative h-12 w-12 overflow-hidden rounded-full border border-[#DFDFDF]">
-                <Image src="/recipe/recipe-2.webp" alt={expertName} fill className="object-cover" />
-              </div>
-              <div>
-                <p className="text-2xl font-semibold text-[#0A4833]">{expertName}</p>
-                <p className="text-sm text-[#A88751]">{expertRole}</p>
-                <p className="text-xs text-[#6B7280]">60-minute consultation • {sessionType || "Video Call"}</p>
-              </div>
-            </div>
-          </div>
-
           <div className="rounded-lg border border-[#DFDFDF] bg-white p-4">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="text-2xl font-semibold text-[#0A4833]">Select Date</h3>
@@ -236,7 +218,7 @@ export default function SelectDateTimeSection({
           </div>
         </div>
 
-        <aside className="rounded-lg border border-[#DFDFDF] bg-white p-4">
+        <aside className="h-max rounded-lg border border-[#DFDFDF] bg-white p-4">
           <h3 className="text-2xl font-semibold text-[#0A4833]">Booking Summary</h3>
 
           <div className="mt-4 space-y-2 text-sm">
@@ -285,13 +267,6 @@ export default function SelectDateTimeSection({
             className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-md border border-[#DFDFDF] bg-white text-sm text-[#4B5563]"
           >
             Back
-          </button>
-          <button
-            type="button"
-            onClick={onSaveForLater}
-            className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-md bg-white text-sm text-[#A88751]"
-          >
-            Save for Later
           </button>
         </aside>
       </div>

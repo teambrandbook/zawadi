@@ -11,9 +11,7 @@ type Props = {
   onSelectSessionType: (value: SessionType) => void;
   onSelectGoal: (value: string) => void;
   onSelectLanguage: (value: string) => void;
-  onUseCredit: () => void;
   onContinue: () => void;
-  creditUsed: boolean;
 };
 
 const sessionTypes: Array<{ label: SessionType; duration: string; Icon: typeof Video }> = [
@@ -68,12 +66,8 @@ export default function ChooseExpertSection({
   onSelectSessionType,
   onSelectGoal,
   onSelectLanguage,
-  onUseCredit,
   onContinue,
-  creditUsed,
 }: Props) {
-  const total = 75;
-
   return (
     <section className="overflow-hidden rounded-xl border border-[#DFDFDF] bg-white p-4 lg:p-5">
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -165,34 +159,12 @@ export default function ChooseExpertSection({
             </p>
           </div>
 
-          <div className="mt-4 flex items-center justify-between rounded-md bg-[#F8F3E9] px-3 py-2 text-xs">
-            <span className="text-[#8B6A3A]">Monthly Credit: 5min</span>
-            <button
-              type="button"
-              onClick={onUseCredit}
-              className={`rounded px-3 py-1 font-medium ${creditUsed ? "bg-[#0A4833] text-white" : "bg-[#A88751] text-white"}`}
-            >
-              {creditUsed ? "Used" : "Use"}
-            </button>
-          </div>
-
-          <p className="mt-4 flex items-center justify-between text-lg font-semibold text-[#0A4833]">
-            <span>Total:</span>
-            <span>${total}</span>
-          </p>
-
           <button
             type="button"
             onClick={onContinue}
             className="mt-3 inline-flex h-10 w-full items-center justify-center rounded-md bg-[#0A4833] text-sm font-medium text-white hover:bg-[#083B2A]"
           >
             Continue to Date & Time
-          </button>
-          <button
-            type="button"
-            className="mt-2 inline-flex h-10 w-full items-center justify-center rounded-md border border-[#D6C7A9] bg-white text-sm text-[#A88751]"
-          >
-            Save for Later
           </button>
 
           <div className="mt-4 space-y-1 text-xs text-[#6B7280]">

@@ -4,7 +4,6 @@ import type { ReactNode } from "react";
 import { Heart, Lock, Shield } from "lucide-react";
 
 type Props = {
-  selectedExpertName: string;
   selectedDate: string;
   selectedTime: string;
 };
@@ -31,7 +30,7 @@ function InfoBlock({
   );
 }
 
-export default function HealthDetailsInfoPanel({ selectedExpertName, selectedDate, selectedTime }: Props) {
+export default function HealthDetailsInfoPanel({ selectedDate, selectedTime }: Props) {
   return (
     <aside className="rounded-lg border border-[#D7DDDA] bg-white p-5">
       <div className="space-y-5">
@@ -59,10 +58,6 @@ export default function HealthDetailsInfoPanel({ selectedExpertName, selectedDat
         <h4 className="text-sm font-semibold text-[#0A4833]">Booking Summary</h4>
         <div className="mt-4 space-y-3 text-sm">
           <div className="flex items-center justify-between text-[#6B847B]">
-            <span>Expert</span>
-            <span className="font-medium text-[#0A4833]">{selectedExpertName}</span>
-          </div>
-          <div className="flex items-center justify-between text-[#6B847B]">
             <span>Date</span>
             <span className="font-medium text-[#0A4833]">{selectedDate}</span>
           </div>
@@ -73,10 +68,6 @@ export default function HealthDetailsInfoPanel({ selectedExpertName, selectedDat
           <div className="flex items-center justify-between text-[#6B847B]">
             <span>Duration</span>
             <span className="font-medium text-[#0A4833]">60 minutes</span>
-          </div>
-          <div className="mt-2 flex items-center justify-between border-t border-[#D7DDDA] pt-4">
-            <span className="text-sm text-[#6B847B]">Session Fee</span>
-            <span className="text-lg font-semibold text-[#0A5A3F]">$75</span>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import serializers, status
 from rest_framework.permissions import AllowAny, IsAuthenticated, BasePermission
 from django.db.models import Q
 
@@ -15,6 +15,8 @@ from django.utils import timezone
 from django.db.models import Q
 from supperadmin.utils.permissions import has_permission
 from notifications.utils import send_user_notification
+from accounts.email import send_otp_email
+from accounts.models import OTP
 
 
 
@@ -643,6 +645,152 @@ class CreateConsultationBookingView(APIView):
 
         serializer = ConsultationBookingListSerializer(bookings, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ConsultationBookingOTPBase:
+    permission_classes = [IsAuthenticated, IsCommunityUser]
+
+    def _get_action_and_payload(self, request):
+        action = str(request.data.get("action", "create")).strip().lower()
+        payload = request.data.get("booking")
+        if payload is None:
+            payload = request.data
+        return action, payload
+
+    def _validate_create_payload(self, request, payload):
+        serializer = ConsultationBookingCreateSerializer(
+            data=payload,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
+    def _validate_reschedule_payload(self, request, payload):
+        booking_id = payload.get("booking_id") or payload.get("reschedule_booking_id")
+        if not booking_id:
+            raise serializers.ValidationError({"booking_id": "booking_id is required for reschedule."})
+
+        try:
+            booking = ConsultationBooking.objects.select_related("consultant").get(pk=booking_id)
+        except ConsultationBooking.DoesNotExist:
+            raise serializers.ValidationError({"booking_id": "Booking not found."})
+
+        if booking.user != request.user:
+            raise serializers.ValidationError({"booking_id": "You do not have permission to reschedule this booking."})
+
+        date_value = payload.get("booked_date")
+        time_value = payload.get("booked_slot") or payload.get("time")
+        if not date_value or not time_value:
+            raise serializers.ValidationError({"detail": "booked_date and booked_slot are required."})
+
+        try:
+            new_date = datetime.strptime(str(date_value), "%Y-%m-%d").date()
+            start_time = convert_time(str(time_value))
+        except (TypeError, ValueError):
+            raise serializers.ValidationError({"detail": "Use booked_date as YYYY-MM-DD and booked_slot like 10:30 AM."})
+
+        consultant_id = payload.get("consultant_id")
+        if consultant_id:
+            try:
+                consultant = Consultant.objects.get(id=consultant_id)
+            except Consultant.DoesNotExist:
+                raise serializers.ValidationError({"consultant_id": "Consultant not found."})
+
+            available, error = is_slot_available(consultant, new_date, str(time_value))
+            if not available:
+                raise serializers.ValidationError({"time": error})
+        else:
+            consultant = find_available_consultant(new_date, start_time)
+            if not consultant:
+                raise serializers.ValidationError({"detail": "No consultant is available for the selected date and time."})
+
+        return {
+            "booking": booking,
+            "consultant": consultant,
+            "booked_date": new_date,
+            "booked_slot": str(time_value),
+        }
+
+    def _validate_payload(self, request):
+        action, payload = self._get_action_and_payload(request)
+        if action == "create":
+            return action, self._validate_create_payload(request, payload)
+        if action == "reschedule":
+            return action, self._validate_reschedule_payload(request, payload)
+        raise serializers.ValidationError({"action": "action must be 'create' or 'reschedule'."})
+
+
+class ConsultationBookingOTPRequestView(ConsultationBookingOTPBase, APIView):
+    def post(self, request):
+        self._validate_payload(request)
+        otp = OTP.generate(request.user, OTP.PURPOSE_CONSULTATION_BOOKING)
+        email_sent = send_otp_email(request.user.email, otp.code, OTP.PURPOSE_CONSULTATION_BOOKING)
+        if not email_sent:
+            return Response(
+                {"detail": "Could not send verification code. Please check SMTP email settings."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+        return Response(
+            {
+                "message": "A booking verification code has been sent to your email.",
+                "email": request.user.email,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+
+class ConsultationBookingOTPConfirmView(ConsultationBookingOTPBase, APIView):
+    @transaction.atomic
+    def post(self, request):
+        code = str(request.data.get("code", "")).strip()
+        if not code:
+            return Response({"error": "code is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        action, validated_data = self._validate_payload(request)
+        otp = OTP.verify(request.user, code, OTP.PURPOSE_CONSULTATION_BOOKING)
+        if otp is None:
+            return Response({"error": "Invalid or expired code."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if action == "create":
+            serializer = ConsultationBookingCreateSerializer(
+                data=request.data.get("booking") or request.data,
+                context={"request": request},
+            )
+            serializer.is_valid(raise_exception=True)
+            booking = serializer.save()
+            return Response(
+                {
+                    "message": "Booking created successfully",
+                    "booking_id": booking.id,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
+        booking = validated_data["booking"]
+        booking.consultant = validated_data["consultant"]
+        booking.booked_date = validated_data["booked_date"]
+        booking.booked_slot = validated_data["booked_slot"]
+        booking.status = ConsultationBooking.BookingStatus.PENDING
+        booking.meeting_link = ""
+        booking.save(
+            update_fields=[
+                "consultant",
+                "booked_date",
+                "booked_slot",
+                "status",
+                "meeting_link",
+                "updated_at",
+            ]
+        )
+        booking.rejected_consultants.clear()
+
+        return Response(
+            {
+                "message": "Booking rescheduled and sent to an available consultant.",
+                "booking": ConsultationBookingListSerializer(booking).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class CommunityBookingCancelView(APIView):
