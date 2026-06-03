@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import type { AppDispatch } from "@/redux/store";
+import type { UserPermission } from "@/redux/userSlice";
 import { clearCredentials, setCredentials } from "@/redux/userSlice";
 import api from "@/services/api";
 
@@ -16,6 +17,7 @@ type MeResponse = {
   full_name?: string;
   photo?: string;
   user_type?: string;
+  permissions?: "all" | UserPermission[];
 };
 
 const roleHome: Record<GuardRole, string> = {
@@ -105,6 +107,7 @@ function BrowserAuthGuard({
             fullName: data.full_name,
             photo: data.photo ?? null,
             userType,
+            permissions: data.permissions ?? [],
           })
         );
 

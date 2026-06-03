@@ -9,7 +9,7 @@ from accounts.models import User
 from blog.models import Blog
 from events.models import Event, EventRegistration
 from recipes.models import Recipe
-from supperadmin.models import Role, RolePermission
+from supperadmin.models import Role, RolePermission, SiteSettings
 from supperadmin.serializer import RoleSerializer
 
 
@@ -64,6 +64,52 @@ class AdminStatsAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["total_users"], 1)
+
+
+class SiteConfigAPITests(APITestCase):
+    def test_admin_can_get_and_patch_site_config(self):
+        admin = User.objects.create_user(
+            email="config-admin@example.com",
+            password="Pass@1234",
+            user_name="configadmin",
+            full_name="Config Admin",
+            phone="+10000000001",
+            role="ADMIN",
+        )
+        self.client.force_authenticate(user=admin)
+
+        get_response = self.client.get(reverse("site-config"))
+        self.assertEqual(get_response.status_code, status.HTTP_200_OK)
+
+        patch_response = self.client.patch(
+            reverse("site-config"),
+            {"platform_name": "Zewadi Admin"},
+            format="json",
+        )
+
+        self.assertEqual(patch_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(SiteSettings.get().platform_name, "Zewadi Admin")
+
+    def test_internal_staff_cannot_get_or_patch_site_config(self):
+        staff = User.objects.create_user(
+            email="config-staff@example.com",
+            password="Pass@1234",
+            user_name="configstaff",
+            full_name="Config Staff",
+            phone="+10000000002",
+            role="INTERNAL_STAFF",
+        )
+        self.client.force_authenticate(user=staff)
+
+        get_response = self.client.get(reverse("site-config"))
+        patch_response = self.client.patch(
+            reverse("site-config"),
+            {"platform_name": "Blocked"},
+            format="json",
+        )
+
+        self.assertEqual(get_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(patch_response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class AdminReportsAPITests(APITestCase):

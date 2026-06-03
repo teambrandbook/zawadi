@@ -21,7 +21,7 @@ export default function AdminLayout({ children }: Props) {
     <div className="admin-dashboard-shell min-h-screen">
       {/* Navbar */}
       <div className="fixed top-0 left-0 w-full h-20 z-50 bg-white shadow">
-        <Navbar onMenuClick={() => setIsOpen(true)} settingsHref="/admindashboard/settings" />
+        <Navbar onMenuClick={() => setIsOpen(true)} settingsHref="/admindashboard/profile" />
       </div>
 
       {/* ✅ Desktop Sidebar ONLY (lg and above) */}

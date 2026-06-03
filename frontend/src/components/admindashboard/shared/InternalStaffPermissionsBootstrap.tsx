@@ -72,6 +72,10 @@ export function InternalStaffRouteGuard({ children }: Props) {
     return <>{children}</>;
   }
 
+  if (pathname.startsWith("/admindashboard/profile")) {
+    return <>{children}</>;
+  }
+
   const rule = internalStaffRouteRules.find(
     ({ path }) =>
       pathname === path ||
@@ -127,7 +131,6 @@ export default function InternalStaffPermissionsBootstrap({ children }: Props) {
         const { data } = await api.get<InternalStaffPermissionsResponse>(
           "/superadmin/internal-staff/permissions/"
         );
-        console.log("Internal staff permissions:", data);
         if (!cancelled) {
           setStaffPermissions({ userId, permissions: data.permissions });
         }
