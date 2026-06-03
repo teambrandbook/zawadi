@@ -7,6 +7,7 @@ type Props = {
 function channelLabel(channel: string) {
   if (channel === "email") return "Email";
   if (channel === "in_app") return "In-App";
+  if (channel === "push") return "Push";
   return channel;
 }
 
@@ -50,6 +51,14 @@ export default function CreateNotificationLivePreview({ title, body, channels = 
           </div>
           <p className="mt-2 text-[12px] font-semibold text-[#0A4833]">{displayTitle}</p>
           <p className="mt-1 text-[11px] text-[#6B7280] line-clamp-4">{displayBody}</p>
+        </div>
+      </div> : null}
+
+      {channels.includes("push") ? <div className="mt-3 rounded-lg border border-[#E4E7EC] bg-[#F9FAFB] p-3">
+        <p className="mb-2 text-[10px] font-semibold uppercase text-[#9CA3AF]">Browser Push</p>
+        <div className="rounded-md border border-[#E4E7EC] bg-white p-3 shadow-sm">
+          <p className="text-[12px] font-semibold text-[#0A4833]">{displayTitle}</p>
+          <p className="mt-1 line-clamp-3 text-[11px] text-[#6B7280]">{displayBody}</p>
         </div>
       </div> : null}
     </aside>

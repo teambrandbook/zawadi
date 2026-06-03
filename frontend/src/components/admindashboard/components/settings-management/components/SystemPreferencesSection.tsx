@@ -1,5 +1,6 @@
 import { BarChart3, ChevronDown, Save, Settings2, Wrench } from "lucide-react";
 import type { SystemPreferencesSettings } from "../settingsTypes";
+import BrowserPushToggle from "@/components/notifications/BrowserPushToggle";
 
 type SystemPreferencesSectionProps = {
   data: SystemPreferencesSettings;
@@ -186,6 +187,8 @@ export default function SystemPreferencesSection({ data, onChange, onSave, onRes
               />
             </button>
           </div>
+
+          <BrowserPushToggle />
 
           <div className="flex items-center justify-between rounded-md bg-[#EBE1CF4D] px-3 py-2.5">
             <div>

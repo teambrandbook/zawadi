@@ -7,12 +7,13 @@ import {
   Cog,
   Mail,
   Send,
+  Smartphone,
   Tag,
   TriangleAlert,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
-export type DeliveryChannel = "in_app" | "email";
+export type DeliveryChannel = "in_app" | "email" | "push";
 export type ScheduleMode = "now" | "later";
 
 const notificationTypes = [
@@ -33,6 +34,7 @@ const audienceOptions = [
 const channels: Array<{ id: DeliveryChannel; label: string; Icon: LucideIcon }> = [
   { id: "in_app", label: "In-App", Icon: BellRing },
   { id: "email", label: "Email", Icon: Mail },
+  { id: "push", label: "Push", Icon: Smartphone },
 ];
 
 type Props = {
@@ -40,6 +42,8 @@ type Props = {
   onTitleChange: (value: string) => void;
   body: string;
   onBodyChange: (value: string) => void;
+  actionUrl: string;
+  onActionUrlChange: (value: string) => void;
   notificationType: string;
   onTypeChange: (value: string) => void;
   targetRole: string;
@@ -59,6 +63,8 @@ export default function CreateNotificationFormSections({
   onTitleChange,
   body,
   onBodyChange,
+  actionUrl,
+  onActionUrlChange,
   notificationType,
   onTypeChange,
   targetRole,
@@ -103,6 +109,16 @@ export default function CreateNotificationFormSections({
               rows={5}
               placeholder="Write your complete notification message here..."
               className="w-full resize-none rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 py-2 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
+            />
+          </label>
+          <label className="block">
+            <p className="mb-1 text-[11px] font-medium text-[#0A4833]">Destination Path (Optional)</p>
+            <input
+              type="text"
+              value={actionUrl}
+              onChange={(event) => onActionUrlChange(event.target.value)}
+              placeholder="/communityDashBoard/notifications"
+              className="h-10 w-full rounded-md border border-[#DFDFDF] bg-[#F3F3F3] px-3 text-xs text-[#111827] outline-none placeholder:text-[#9CA3AF]"
             />
           </label>
         </div>

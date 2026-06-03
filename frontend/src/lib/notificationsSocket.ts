@@ -1,5 +1,4 @@
 import { API_BASE_URL } from "@/lib/config";
-import { getAccessToken } from "@/services/api";
 
 export function getNotificationSocketUrl(): string {
   const configuredUrl = process.env.NEXT_PUBLIC_WS_URL;
@@ -8,11 +7,6 @@ export function getNotificationSocketUrl(): string {
   if (!configuredUrl) {
     socketUrl.protocol = socketUrl.protocol === "https:" ? "wss:" : "ws:";
     socketUrl.pathname = "/ws/notifications/";
-  }
-
-  const token = getAccessToken();
-  if (token) {
-    socketUrl.searchParams.set("token", token);
   }
 
   socketUrl.hash = "";

@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
+import { Trash2 } from "lucide-react";
 import type { NotificationRow } from "../types";
 
 type NotificationsTableProps = {
   rows: NotificationRow[];
+  deletingId?: string | null;
+  onDelete?: (row: NotificationRow) => void;
 };
 
 const PAGE_SIZE = 10;
@@ -32,7 +35,7 @@ function formatDate(value?: string | null) {
   });
 }
 
-export default function NotificationsTable({ rows }: NotificationsTableProps) {
+export default function NotificationsTable({ rows, deletingId, onDelete }: NotificationsTableProps) {
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -57,12 +60,13 @@ export default function NotificationsTable({ rows }: NotificationsTableProps) {
         <table className="w-full min-w-[980px] table-fixed text-left">
           <thead className="bg-[#F8F6F1] text-xs font-semibold uppercase tracking-[0.04em] text-[#0A4833]">
             <tr>
-              <th className="w-[34%] px-4 py-3">Title</th>
+              <th className="w-[30%] px-4 py-3">Title</th>
               <th className="w-[13%] px-4 py-3">Type</th>
               <th className="w-[13%] px-4 py-3">Audience</th>
               <th className="w-[14%] px-4 py-3">Channel</th>
               <th className="w-[10%] px-4 py-3">Status</th>
-              <th className="w-[16%] px-4 py-3">Delivery Time</th>
+              <th className="w-[14%] px-4 py-3">Delivery Time</th>
+              <th className="w-[6%] px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#EEF0F2]">
@@ -96,6 +100,20 @@ export default function NotificationsTable({ rows }: NotificationsTableProps) {
                 </td>
                 <td className="px-4 py-4 text-sm text-[#4B5563]">
                   {row.status === "Scheduled" ? formatDate(row.scheduledAt) : formatDate(row.sentAt || row.createdAt)}
+                </td>
+                <td className="px-4 py-4">
+                  {onDelete ? (
+                    <button
+                      type="button"
+                      onClick={() => onDelete(row)}
+                      disabled={deletingId === row.id}
+                      className="rounded-md p-2 text-[#B91C1C] transition-colors hover:bg-[#FEF2F2] disabled:opacity-50"
+                      aria-label={`Delete ${row.title}`}
+                      title="Delete notification"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  ) : null}
                 </td>
               </tr>
             ))}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Search, Bell, Menu, Settings, LogOut } from 'lucide-react';
 import api from '@/services/api';
 import { getImageUrl } from '@/lib/utils';
+import { subscribeLiveNotifications } from "@/lib/liveNotifications";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -57,6 +58,10 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => subscribeLiveNotifications(() => {
+    setUnreadCount((current) => current + 1);
+  }), []);
 
   useEffect(() => {
     function handleProfileUpdated(event: Event) {

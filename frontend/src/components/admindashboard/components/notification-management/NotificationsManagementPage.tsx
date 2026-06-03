@@ -3,9 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import api from "@/services/api";
-import { getNotificationSocketUrl } from "@/lib/notificationsSocket";
+
 import type { RootState } from "@/redux/store";
 import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
+import { toast } from "sonner";
+import api from "@/services/api";
+import { subscribeLiveNotifications } from "@/lib/liveNotifications";
 import NotificationsFilters from "./components/NotificationsFilters";
 import NotificationsHeaderAndStats from "./components/NotificationsHeaderAndStats";
 import NotificationsTable from "./components/NotificationsTable";
@@ -21,7 +24,7 @@ function mapApiNotification(item: Record<string, any>): NotificationRow {
   };
   const channels: NotificationChannel[] = Array.isArray(item.delivery_channels)
     ? item.delivery_channels
-        .map((channel: string) => (channel === "email" ? "Email" : channel === "in_app" ? "In-App" : null))
+        .map((channel: string) => (channel === "email" ? "Email" : channel === "in_app" ? "In-App" : channel === "push" ? "Push" : null))
         .filter((channel: NotificationChannel | null): channel is NotificationChannel => channel !== null)
     : ["In-App"];
   const typeValue = String(item.notification_type ?? "SYSTEM") as NotificationRow["typeValue"];
@@ -61,6 +64,7 @@ export default function NotificationsManagementPage() {
   const [rows, setRows] = useState<NotificationRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<NotificationFiltersState>({
     status: "all",
@@ -96,42 +100,24 @@ export default function NotificationsManagementPage() {
   }, []);
 
   useEffect(() => {
-    const socket = new WebSocket(getNotificationSocketUrl());
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data?.type !== "notification") {
-          return;
-        }
-
-        setRows((currentRows) => {
-          const nextRow = mapApiNotification({
-            id: data.notification_id ?? data.id,
-            title: data.title,
-            body: data.body ?? data.message,
-            notification_type: data.notification_type,
-            target_role: data.target_role,
-            delivery_channels: ["in_app"],
-            status: "SENT",
-            created_at: data.created_at ?? new Date().toISOString(),
-            sent_at: data.created_at ?? new Date().toISOString(),
-          });
-
-          if (currentRows.some((row) => row.id === nextRow.id)) {
-            return currentRows;
-          }
-
-          return [nextRow, ...currentRows];
+    return subscribeLiveNotifications((data) => {
+      setRows((currentRows) => {
+        const nextRow = mapApiNotification({
+          id: data.notification_id ?? data.id,
+          title: data.title,
+          body: data.body ?? data.message,
+          notification_type: data.notification_type,
+          target_role: data.target_role,
+          delivery_channels: ["in_app"],
+          status: "SENT",
+          created_at: data.created_at ?? new Date().toISOString(),
+          sent_at: data.created_at ?? new Date().toISOString(),
         });
-      } catch {
-        // Ignore malformed socket payloads.
-      }
-    };
 
-    return () => {
-      socket.close();
-    };
+        if (currentRows.some((row) => row.id === nextRow.id)) return currentRows;
+        return [nextRow, ...currentRows];
+      });
+    });
   }, []);
 
   const stats = useMemo(() => buildStats(rows), [rows]);
@@ -159,6 +145,20 @@ export default function NotificationsManagementPage() {
       return filters.sort === "oldest" ? aTime - bTime : bTime - aTime;
     });
   }, [filters, rows, searchTerm]);
+
+  async function handleDelete(row: NotificationRow) {
+    if (!window.confirm(`Delete "${row.title}"? This removes it from recipient inboxes too.`)) return;
+    setDeletingId(row.id);
+    try {
+      await api.delete(`/notifications/${row.id}/`);
+      setRows((currentRows) => currentRows.filter((item) => item.id !== row.id));
+      toast.success("Notification deleted.");
+    } catch {
+      toast.error("Failed to delete notification.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   return (
     <section className="w-full bg-[#F6F7F9] px-4 py-6 lg:px-6">
@@ -192,7 +192,9 @@ export default function NotificationsManagementPage() {
           </div>
         )}
 
-        {!isLoading && filteredRows.length > 0 && <NotificationsTable rows={filteredRows} />}
+        {!isLoading && filteredRows.length > 0 && (
+          <NotificationsTable rows={filteredRows} deletingId={deletingId} onDelete={handleDelete} />
+        )}
       </div>
     </section>
   );
