@@ -7,7 +7,6 @@ import api from "@/services/api";
 import type { RootState } from "@/redux/store";
 import { useInternalStaffPermissions } from "@/components/admindashboard/shared/InternalStaffPermissionsBootstrap";
 import { toast } from "sonner";
-import api from "@/services/api";
 import { subscribeLiveNotifications } from "@/lib/liveNotifications";
 import NotificationsFilters from "./components/NotificationsFilters";
 import NotificationsHeaderAndStats from "./components/NotificationsHeaderAndStats";
