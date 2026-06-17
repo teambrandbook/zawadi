@@ -193,7 +193,7 @@ const HistorySection = () => {
       onTouchCancel={() => {
         touchGestureRef.current = null;
       }}
-      className="relative w-full bg-[#fffef5] py-20 lg:py-32 select-none touch-pan-y"
+      className="relative w-full bg-[#fffef5] pt-10 pb-20 lg:pt-14 lg:pb-32 select-none touch-pan-y"
       style={{ touchAction: "pan-y" }}
     >
       <div className="container mx-auto px-6 lg:px-12">

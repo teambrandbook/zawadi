@@ -5,6 +5,7 @@ import { CalendarDays, Search } from "lucide-react";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import ContentSection from "@/components/common/ContentSection";
+import BlogReadingProgress from "@/components/blogs/BlogReadingProgress";
 import { getImageUrl } from "@/lib/utils";
 import { API_BASE_URL } from "@/lib/config";
 
@@ -93,17 +94,8 @@ export default async function BlogDetailPage({
       <section className="pb-20 pt-10 sm:pb-24 sm:pt-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 xl:px-24 2xl:px-48">
           <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,850px)_340px] xl:gap-24">
-            <article className="max-w-[850px]">
-              <div className="mb-4 flex w-full gap-[4px]">
-                {Array.from({ length: 6 }).map((_, index) => (
-                  <div key={index} className="h-[3px] flex-1 overflow-hidden bg-[#d8d6d1]">
-                    <div
-                      className="blog-detail-progress h-full bg-[#1f4d3a]"
-                      style={{ animationDelay: `${index * 120}ms` }}
-                    />
-                  </div>
-                ))}
-              </div>
+            <article id="blog-detail-article" className="max-w-[850px]">
+              <BlogReadingProgress targetId="blog-detail-article" />
 
               <div className="relative h-[250px] overflow-hidden rounded-[20px] sm:h-[360px] lg:h-[416px]">
                 <Image
