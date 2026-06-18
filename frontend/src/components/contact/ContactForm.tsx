@@ -9,11 +9,14 @@ import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 import { cn } from "@/lib/utils";
 
+const mapQuery = "88 Brooklyn Golden USA";
+const mapEmbedUrl = `https://www.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed`;
+const mapLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`;
+
 const ContactForm = () => {
   const { locale } = useLocale();
   const isRtl = locale === "ar";
   const contactText = translations[locale]?.contactPage?.form || translations.en.contactPage.form;
-  const { map } = contactData;
   const sectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -133,15 +136,43 @@ const ContactForm = () => {
         </div>
 
         {/* Map Section Container */}
-        <div className="mt-24 relative w-full h-[400px] md:h-[500px] rounded-[1rem] overflow-hidden bg-gray-50 border border-gray-100 group shadow-sm flex items-center justify-center">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d98169.78498569176!2d-105.2835841698285!3d39.74401336929289!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x876b981287686cf7%3A0x14c64654208055dc!2sGolden%2C%20CO%2C%20USA!5e0!3m2!1sen!2sin!4v1777295173458!5m2!1sen!2sin" 
-              className="w-full h-full border-0" 
+        <div className="contact-stagger mt-24 overflow-hidden rounded-[1rem] border border-gray-100 bg-white shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className={cn(isRtl ? "text-right" : "text-left")}>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">
+                {contactText.locationLabel}
+              </p>
+              <h3 className="mt-1 text-lg font-bold text-[#1A4331]">
+                {contactText.locationValue}
+              </h3>
+            </div>
+            <a
+              href={mapLink}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-[#1A4331] px-5 py-2 text-sm font-bold text-white transition hover:bg-[#1A4331]/90"
+            >
+              <MapPin size={16} />
+              {contactText.mapTitle}
+            </a>
+          </div>
+          <div className="relative h-[400px] w-full bg-gray-50 md:h-[500px]">
+            <Image
+              src={contactData.map.image}
+              alt=""
+              fill
+              sizes="100vw"
+              className="object-cover opacity-20"
+            />
+            <iframe
+              src={mapEmbedUrl}
+              className="relative z-10 h-full w-full border-0"
               allowFullScreen={true}
-              loading="lazy" 
+              loading="eager"
               referrerPolicy="no-referrer-when-downgrade"
               title={contactText.mapTitle}
-            ></iframe>
+            />
+          </div>
         </div>
       </div>
     </section>

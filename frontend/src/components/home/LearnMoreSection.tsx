@@ -86,7 +86,7 @@ const LearnMoreSection = () => {
       </div>
 
       {/* 2. White Spacer */}
-      <div className="h-[180px] lg:h-[300px] bg-[#fffef5] w-full" />
+      <div className="h-[120px] lg:h-[190px] bg-[#fffef5] w-full" />
     </section>
   );
 };
