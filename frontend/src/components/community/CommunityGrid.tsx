@@ -71,7 +71,7 @@ const CommunityGrid = () => {
   return (
     <section ref={sectionRef} className="pt-24 pb-12 bg-[#fffef5] relative z-10">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 [@media_(min-width:768px)_and_(max-width:1366px)]:!grid-cols-3 [@media_(min-width:768px)_and_(max-width:1366px)]:!gap-5 gap-8 max-w-6xl mx-auto">
           {gridSection.items.map((item: GridItem, index: number) => {
             const localizedItem = localizedGridSection.items[index] || {};
 
@@ -93,11 +93,11 @@ const CommunityGrid = () => {
                     />
                   </div>
                 ) : (
-                  <div className="w-full h-full bg-[#1a4331] flex flex-col items-center justify-center p-8 md:p-12 text-center text-white">
-                    <h3 className="text-2xl md:text-3xl lg:text-[2.5rem] font-playfair font-medium mb-4 leading-tight">
+                  <div className="w-full h-full bg-[#1a4331] flex flex-col items-center justify-center p-8 md:p-12 [@media_(min-width:768px)_and_(max-width:1366px)]:!p-4 text-center text-white">
+                    <h3 className="text-2xl md:text-3xl lg:text-[2.5rem] [@media_(min-width:768px)_and_(max-width:1366px)]:!text-[1.2rem] font-playfair font-medium mb-4 [@media_(min-width:768px)_and_(max-width:1366px)]:!mb-2 leading-tight">
                       {localizedItem.title || item.title}
                     </h3>
-                    <p className="text-sm md:text-base text-white/80 leading-relaxed font-inter max-w-[280px]">
+                    <p className="text-sm md:text-base [@media_(min-width:768px)_and_(max-width:1366px)]:!text-[11.5px] text-white/80 leading-relaxed [@media_(min-width:768px)_and_(max-width:1366px)]:!leading-[1.45] font-inter max-w-[280px] [@media_(min-width:768px)_and_(max-width:1366px)]:!max-w-[210px]">
                       {localizedItem.description || item.description}
                     </p>
                   </div>

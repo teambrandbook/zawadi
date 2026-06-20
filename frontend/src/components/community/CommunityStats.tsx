@@ -123,10 +123,10 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
         },
       });
 
-      // 1. Large Image Pure Swipe (Up to Down)
+      // 1. Large image entrance without clipping the rounded corners.
       tl.fromTo("#large-img",
-        { clipPath: "inset(0% 0% 100% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut", clearProps: "all" }
+        { autoAlpha: 0, y: 24 },
+        { autoAlpha: 1, y: 0, duration: 1.0, ease: "power3.out", clearProps: "transform,visibility" }
       );
 
       // 2. Promo box entrance without clipping the rounded corners.
@@ -156,7 +156,7 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
 
           {/* Left: Large Image */}
-          <div className="md:col-span-5 relative group md:h-full" id="large-img">
+          <div className="md:col-span-5 relative group md:h-full opacity-0" id="large-img">
             <div className="relative aspect-[4/5] md:aspect-auto md:h-full rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(26,67,49,0.2)]">
               <Image
                 src={statsSection.largeImage}
