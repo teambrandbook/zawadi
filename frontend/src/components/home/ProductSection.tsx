@@ -146,7 +146,7 @@ const ProductSection = () => {
       <div className="relative z-10 w-full px-6 lg:px-14 xl:px-24">
         {/* Header Container for Mobile Positioning */}
         <div className="relative mb-8 flex flex-row items-center justify-between rtl:flex-row-reverse">
-          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-[42px] xl:text-5xl text-left rtl:text-right">
+          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-[262.5%] xl:text-5xl text-left rtl:text-right">
             {sectionData.title}
           </h2>
           

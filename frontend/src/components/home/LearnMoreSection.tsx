@@ -31,11 +31,11 @@ const LearnMoreSection = () => {
           {/* Left Content */}
           <div className="w-full lg:w-1/2 flex flex-col items-center lg:items-start z-10 mb-10 lg:mb-18 xl:mb-24">
             <h2 
-              className="fade-in text-[#d9c5a7] text-4xl lg:text-[46px] xl:text-[54px] font-bold font-['Playfair_Display'] leading-[1.1] mb-6 tracking-tight text-center lg:text-left rtl:lg:text-right"
+            className="fade-in text-[#d9c5a7] text-4xl lg:text-[287.5%] xl:text-[337.5%] font-bold font-['Playfair_Display'] leading-[1.1] mb-6 tracking-tight text-center lg:text-left rtl:lg:text-right"
               dangerouslySetInnerHTML={{ __html: sanitizeHTML(learnMoreTranslations.titleHTML) }}
             />
 
-            <p className="fade-in text-white/90 text-sm lg:text-[16px] font-normal font-['Inter'] leading-relaxed mb-10 max-w-[440px] text-center lg:text-left rtl:lg:text-right">
+          <p className="fade-in text-white/90 text-sm lg:text-[100%] font-normal font-['Inter'] leading-relaxed mb-10 max-w-[440px] text-center lg:text-left rtl:lg:text-right">
               {learnMoreTranslations.description}
             </p>
 
@@ -43,7 +43,7 @@ const LearnMoreSection = () => {
               href="/about"
               className="bg-[#b47800] text-white rounded-full ltr:pl-7 ltr:pr-2 rtl:pr-7 rtl:pl-2 py-2 flex items-center gap-5 hover:bg-[#a36d00] transition-all group shadow-lg cursor-pointer"
             >
-              <span className="font-bold text-[14px] font-['Inter']">{learnMoreTranslations.exploreBtn}</span>
+              <span className="font-bold text-[87.5%] font-['Inter']">{learnMoreTranslations.exploreBtn}</span>
               <div className="w-9 h-9 rounded-full bg-[#244d3a] flex items-center justify-center shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="transform transition-transform ltr:group-hover:translate-x-0.5 rtl:-rotate-180 rtl:group-hover:-translate-x-0.5">
                   <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -73,8 +73,8 @@ const LearnMoreSection = () => {
 
               {/* BADGE: Flips sides natively between left or right depending on locale */}
               <div className="absolute -top-4 md:-top-6 lg:-top-8 xl:-top-10 w-16 h-16 md:w-20 md:h-20 lg:w-[110px] lg:h-[110px] xl:w-[130px] xl:h-[130px] bg-[#3a6351] rounded-full flex flex-col items-center justify-center shadow-2xl z-30 text-white border-2 border-white/20 ltr:-left-4 ltr:md:-left-6 ltr:lg:-left-8 ltr:xl:-left-10 rtl:-right-4 rtl:md:-right-6 rtl:lg:-right-8 rtl:xl:-right-10">
-                <span className="text-lg lg:text-[30px] xl:text-[36px] font-bold font-['Inter'] leading-none">30%</span>
-                <span className="text-[7px] lg:text-[10px] xl:text-[12px] font-medium opacity-90 mt-0.5 uppercase tracking-widest text-center">
+                  <span className="text-lg lg:text-[187.5%] xl:text-[225%] font-bold font-['Inter'] leading-none">30%</span>
+                  <span className="text-[43.75%] lg:text-[62.5%] xl:text-[75%] font-medium opacity-90 mt-0.5 uppercase tracking-widest text-center">
                   {learnMoreTranslations.badgeText}
                 </span>
               </div>

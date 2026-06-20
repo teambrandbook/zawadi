@@ -46,7 +46,7 @@ const NewsletterSection = () => {
             {/* Content Side Container - Fully Multi-directional Alignment handling */}
             <div className="relative z-10 flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-16 xl:px-20 text-left rtl:text-right">
               
-              <h2 className="text-white text-3xl lg:text-[46px] xl:text-[50px] font-semibold leading-[1.1] mb-6">
+            <h2 className="text-white text-3xl lg:text-[287.5%] xl:text-[312.5%] font-semibold leading-[1.1] mb-6">
                 {sectionData.title}
               </h2>
 

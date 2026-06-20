@@ -68,7 +68,7 @@ const HeroSection = () => {
           <div className="w-full lg:w-auto flex justify-center lg:justify-start">
             <Link href="/about">
               <button className="bg-white rounded-full ltr:pl-6 ltr:pr-1.5 rtl:pr-6 rtl:pl-1.5 py-1.5 flex items-center gap-5 hover:bg-gray-100 transition-all group mb-12 lg:mb-28 xl:mb-32 cursor-pointer">
-                <span className="font-['Inter'] text-[13px] text-[#0e2207] font-bold">
+                <span className="font-['Inter'] text-[81.25%] text-[#0e2207] font-bold">
                   {heroTranslations.discoverBtn}
                 </span>
                 <div className="w-9 h-9 rounded-full bg-[#b47800] flex items-center justify-center shrink-0">
@@ -95,7 +95,7 @@ const HeroSection = () => {
           {/* Localized About Us Badge/Card */}
           <div className="relative w-full max-w-[420px] lg:absolute lg:bottom-12">
             <div className={`inline-block bg-white px-6 py-2 ${locale === "ar" ? "rounded-t-lg" : "rounded-t-lg"}`}>
-              <span className="font-['Playfair_Display'] font-bold text-[15px] text-[#121414]">
+              <span className="font-['Playfair_Display'] font-bold text-[93.75%] text-[#121414]">
                 {heroTranslations.cardBadge}
               </span>
             </div>
@@ -118,11 +118,11 @@ const HeroSection = () => {
                 ))}
               </div>
               <div className="flex flex-col">
-                <h3 className="font-['Inter'] font-semibold text-[15px] lg:text-[16px] text-[#171717] leading-tight mb-2 lg:mb-3">
+                <h3 className="font-['Inter'] font-semibold text-[93.75%] lg:text-[100%] text-[#171717] leading-tight mb-2 lg:mb-3">
                   {heroTranslations.cardHeading}
                 </h3>
                 <Link href="/about" className="w-fit">
-                  <button className="flex items-center gap-1 font-['Inter'] text-[11px] text-[#555] font-bold uppercase tracking-widest group cursor-pointer">
+                  <button className="flex items-center gap-1 font-['Inter'] text-[68.75%] text-[#555] font-bold uppercase tracking-widest group cursor-pointer">
                     {heroTranslations.cardLink}
                     <svg 
                       width="14" 
@@ -144,7 +144,7 @@ const HeroSection = () => {
         {/* Right Side: Localized Massive Heading */}
         <div className="w-full lg:w-[58%] xl:w-7/12 flex justify-center lg:justify-end -mt-6 lg:-mt-12 xl:-mt-17">
           <h1 
-            className="font-['Playfair_Display'] font-black text-4xl md:text-7xl lg:text-[72px] xl:text-[100px] text-white text-center lg:text-right rtl:lg:text-left leading-[1.1] lg:leading-[0.98] xl:leading-[0.95] tracking-tight fade-in"
+            className="font-['Playfair_Display'] font-black text-4xl md:text-7xl lg:text-[450%] xl:text-[625%] text-white text-center lg:text-right rtl:lg:text-left leading-[1.1] lg:leading-[0.98] xl:leading-[0.95] tracking-tight fade-in"
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(heroTranslations.titleHTML) }}
           />
         </div>

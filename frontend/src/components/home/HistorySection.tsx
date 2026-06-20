@@ -209,7 +209,7 @@ const HistorySection = () => {
 
           <div className="relative z-10 mb-16 flex flex-col items-start justify-between gap-12 lg:flex-row lg:items-end">
             <div className="fade-in flex w-full flex-col gap-6 lg:w-2/3 text-left rtl:text-right">
-              <h2 className="font-['Playfair_Display'] text-4xl font-semibold uppercase text-white lg:text-[42px] xl:text-[48px]">
+              <h2 className="font-['Playfair_Display'] text-4xl font-semibold uppercase text-white lg:text-[262.5%] xl:text-[300%]">
                 {sectionData.title}
               </h2>
               <p className="max-w-[600px] text-sm text-white/80">
@@ -279,7 +279,7 @@ const HistorySection = () => {
                 />
               </div>
 
-              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
+              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[75%] text-white shadow-lg text-center">
                 {historyItems[activeIndex].text}
               </div>
             </div>
@@ -310,7 +310,7 @@ const HistorySection = () => {
                   </div>
 
                   {isActive && (
-                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
+                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[75%] text-white shadow-lg text-center">
                       {item.text}
                     </div>
                   )}

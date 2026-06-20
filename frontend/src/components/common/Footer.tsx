@@ -60,7 +60,7 @@ const Footer = () => {
                />
             </Link>
 
-            <p className="mb-8 max-w-[340px] text-[15px] font-medium leading-relaxed text-white/80">
+          <p className="mb-8 max-w-[340px] text-[93.75%] font-medium leading-relaxed text-white/80">
               {meaningSection.description1}
             </p>
 
@@ -93,7 +93,7 @@ const Footer = () => {
             
             {/* Quick Links */}
             <div className="col-span-1">
-              <h4 className="text-[17px] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
                 {footer.headers.quickLinks}
               </h4>
               <ul className="space-y-4">
@@ -101,7 +101,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={getHref(item.href)}
-                      className="block h-full w-full text-[14px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px]"
+                      className="block h-full w-full text-[87.5%] font-medium text-white/60 transition-colors hover:text-white sm:text-[93.75%]"
                     >
                       {item.name}
                     </Link>
@@ -112,7 +112,7 @@ const Footer = () => {
 
             {/* Inner Pages Links */}
             <div className="col-span-1">
-              <h4 className="text-[17px] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
                 {footer.headers.innerPages}
               </h4>
               <ul className="space-y-4">
@@ -120,7 +120,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={getHref(item.href)}
-                      className="block h-full w-full text-[14px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px]"
+                      className="block h-full w-full text-[87.5%] font-medium text-white/60 transition-colors hover:text-white sm:text-[93.75%]"
                     >
                       {item.name}
                     </Link>
@@ -131,7 +131,7 @@ const Footer = () => {
 
             {/* Support Rules Links */}
             <div className="col-span-1 col-start-1 row-start-2 md:col-start-auto md:row-start-auto">
-              <h4 className="text-[17px] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
                 {footer.headers.support}
               </h4>
               <ul className="space-y-4">
@@ -139,7 +139,7 @@ const Footer = () => {
                   <li key={item.name}>
                     <Link
                       href={getHref(item.href)}
-                      className="block h-full w-full whitespace-nowrap text-[13px] font-medium text-white/60 transition-colors hover:text-white sm:text-[15px] md:whitespace-normal"
+                      className="block h-full w-full whitespace-nowrap text-[81.25%] font-medium text-white/60 transition-colors hover:text-white sm:text-[93.75%] md:whitespace-normal"
                     >
                       {item.name}
                     </Link>
@@ -152,7 +152,7 @@ const Footer = () => {
 
         {/* Dynamic Timestamp Legal & Copyright Area */}
         <div className="mt-24 flex flex-col items-center justify-center gap-4 border-t border-white/10 pt-10 md:flex-row">
-          <p className="text-[13px] font-medium text-white/40">
+            <p className="text-[81.25%] font-medium text-white/40">
             &copy; {new Date().getFullYear()} Zewadi. {footer.headers.copyright}
           </p>
         </div>

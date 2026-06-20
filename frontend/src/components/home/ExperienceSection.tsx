@@ -27,10 +27,10 @@ const ExperienceSection = () => {
       <div className="container mx-auto px-6 lg:px-10 xl:px-12 flex flex-col items-center">
         
         {/* Localization Text Headers */}
-        <h2 className="text-black text-4xl lg:text-[42px] xl:text-[48px] font-semibold font-serif text-center mb-6 max-w-[600px]">
+        <h2 className="text-black text-4xl lg:text-[262.5%] xl:text-[300%] font-semibold font-serif text-center mb-6 max-w-[600px]">
           {sectionData.title}
         </h2>
-        <p className="text-[#3f4e50] text-sm lg:text-[14px] font-medium font-sans text-center max-w-[550px] mb-20 lg:mb-14 xl:mb-12">
+        <p className="text-[#3f4e50] text-sm lg:text-[87.5%] font-medium font-sans text-center max-w-[550px] mb-20 lg:mb-14 xl:mb-12">
           {sectionData.description}
         </p>
 
@@ -58,10 +58,10 @@ const ExperienceSection = () => {
 
           {/* SVG anchor pins */}
           {[
-            'lg:left-[370px] xl:left-[432px] top-[145px] xl:top-[160px]',
-            'lg:right-[370px] xl:right-[432px] top-[145px] xl:top-[160px]',
-            'lg:left-[370px] xl:left-[432px] bottom-[145px] xl:bottom-[160px]',
-            'lg:right-[370px] xl:right-[432px] bottom-[145px] xl:bottom-[160px]',
+            'lg:left-[38.8%] xl:left-[39.2727%] top-[26.8519%] xl:top-[26.6667%]',
+            'lg:right-[38.8%] xl:right-[39.2727%] top-[26.8519%] xl:top-[26.6667%]',
+            'lg:right-[59.5%] xl:left-[39.2727%] bottom-[26.8519%] xl:bottom-[26.6667%]',
+            'lg:right-[38.8%] xl:right-[39.2727%] bottom-[26.8519%] xl:bottom-[26.6667%]',
           ].map((pos, i) => (
             <div
               key={i}
@@ -79,14 +79,14 @@ const ExperienceSection = () => {
               
               {/* Item 01 */}
               <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-[-28%] lg:left-auto lg:right-[-16%] xl:right-[-1%] xl:top-[-72px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-[-20%] lg:left-auto lg:right-[-16%] xl:right-[-1%] xl:top-[-40%] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   01
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                   <h3 className="text-black text-base xl:text-lg font-bold mb-2">
                     {sectionData.item1Title}
                   </h3>
-                  <p className="text-[#2D4A3E] text-[11px] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
+                  <p className="text-[#2D4A3E] text-[68.75%] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
                     {sectionData.item1Desc}
                   </p>
                 </div>
@@ -94,14 +94,14 @@ const ExperienceSection = () => {
 
               {/* Item 03 */}
               <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-auto lg:bottom-[-28%] lg:left-auto lg:right-[-26%] xl:right-[-6%] xl:bottom-[-66px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-auto lg:bottom-[-18%] lg:left-auto lg:right-[-20%] xl:right-[-2%] xl:bottom-[-36%] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   03
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                   <h3 className="text-black text-base xl:text-lg font-bold mb-2">
                     {sectionData.item3Title}
                   </h3>
-                  <p className="text-[#2D4A3E] text-[11px] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
+                  <p className="text-[#2D4A3E] text-[68.75%] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
                     {sectionData.item3Desc}
                   </p>
                 </div>
@@ -113,14 +113,14 @@ const ExperienceSection = () => {
               
               {/* Item 02 */}
               <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-30%] lg:top-[-25%] xl:left-[-16px] xl:top-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-15%] lg:top-[-25%] xl:left-[-5%] xl:top-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   02
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                   <h3 className="text-black text-base xl:text-lg font-bold mb-2">
                     {sectionData.item2Title}
                   </h3>
-                  <p className="text-[#2D4A3E] text-[11px] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
+                  <p className="text-[#2D4A3E] text-[68.75%] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
                     {sectionData.item2Desc}
                   </p>
                 </div>
@@ -128,14 +128,14 @@ const ExperienceSection = () => {
 
               {/* Item 04 */}
               <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-38px] lg:top-auto lg:bottom-[-27%] xl:bottom-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-15.8333%] xl:left-[-11.875%] lg:top-auto lg:bottom-[-27%] xl:bottom-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   04
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
                   <h3 className="text-black text-base xl:text-lg font-bold mb-2">
                     {sectionData.item4Title}
                   </h3>
-                  <p className="text-[#2D4A3E] text-[11px] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
+                  <p className="text-[#2D4A3E] text-[68.75%] xl:text-xs font-semibold leading-5 xl:leading-relaxed">
                     {sectionData.item4Desc}
                   </p>
                 </div>

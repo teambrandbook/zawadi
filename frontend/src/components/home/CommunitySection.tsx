@@ -60,7 +60,7 @@ const CommunitySection = () => {
               <div className="absolute bottom-2 left-2 right-2 lg:bottom-4 lg:left-4 lg:right-4 bg-[#1a3d2e]/90 backdrop-blur-md px-4 py-3 lg:px-5 lg:py-4 xl:px-6 rounded-t-2xl rounded-bl-2xl rounded-br-none lg:rounded-t-3xl lg:rounded-bl-3xl text-white flex items-center gap-3 xl:gap-4 z-20">
                 <span className="text-2xl lg:text-3xl xl:text-4xl font-bold font-['Inter']">100%</span>
                 <span
-                  className="text-[10px] lg:text-[12px] xl:text-[14px] leading-tight font-medium opacity-90 uppercase tracking-wide"
+                  className="text-[62.5%] lg:text-[75%] xl:text-[87.5%] leading-tight font-medium opacity-90 uppercase tracking-wide"
                   dangerouslySetInnerHTML={{ __html: sanitizeHTML(communityTranslations.badgeTextHTML) }}
                 />
               </div>
@@ -85,16 +85,16 @@ const CommunitySection = () => {
           
           {/* Tablet/desktop headings to preserve side-by-side flexbox columns */}
           <div className="hidden md:block w-full">
-            <p className="text-[#3d634d] md:text-[16px] lg:text-[18px] xl:text-[22px] font-semibold font-['Inter'] mb-3 text-left fade-in">
+            <p className="text-[#3d634d] md:text-[100%] lg:text-[112.5%] xl:text-[137.5%] font-semibold font-['Inter'] mb-3 text-left fade-in">
               {communityTranslations.tagline}
             </p>
 
-            <h2 className="text-[#121414] md:text-[36px] lg:text-[48px] xl:text-[64px] font-bold font-['Playfair_Display'] leading-[1.1] mb-8 text-left fade-in">
+            <h2 className="text-[#121414] md:text-[225%] lg:text-[300%] xl:text-[400%] font-bold font-['Playfair_Display'] leading-[1.1] mb-8 text-left fade-in">
               {communityTranslations.title}
             </h2>
           </div>
 
-          <p className="text-[#444] text-sm lg:text-[15px] font-medium font-['Inter'] leading-relaxed mb-10 max-w-[480px] text-center md:text-left fade-in w-full md:w-auto">
+          <p className="text-[#444] text-sm lg:text-[93.75%] font-medium font-['Inter'] leading-relaxed mb-10 max-w-[480px] text-center md:text-left fade-in w-full md:w-auto">
             {communityTranslations.description}
           </p>
 
@@ -104,7 +104,7 @@ const CommunitySection = () => {
               <div className="w-10 h-10 relative">
                 <Image src="/home/wellness.webp" alt="Wellness" width={40} height={40} />
               </div>
-              <h3 className="text-[#121414] text-[16px] font-bold font-['Inter']">
+              <h3 className="text-[#121414] text-[100%] font-bold font-['Inter']">
                 {communityTranslations.iconText1}
               </h3>
             </div>
@@ -112,7 +112,7 @@ const CommunitySection = () => {
               <div className="w-10 h-10 relative">
                 <Image src="/home/inclusive.webp" alt="Inclusive" width={40} height={40} />
               </div>
-              <h3 className="text-[#121414] text-[16px] font-bold font-['Inter']">
+              <h3 className="text-[#121414] text-[100%] font-bold font-['Inter']">
                 {communityTranslations.iconText2}
               </h3>
             </div>
@@ -121,7 +121,7 @@ const CommunitySection = () => {
           {/* Action Link */}
           <Link
             href="/about"
-            className="bg-[#244d3a] text-white rounded-full ps-8 pe-1.5 py-1.5 flex items-center gap-5 hover:opacity-90 transition-all font-bold font-['Inter'] text-[14px] mx-auto md:mx-0 cursor-pointer"
+            className="bg-[#244d3a] text-white rounded-full ps-8 pe-1.5 py-1.5 flex items-center gap-5 hover:opacity-90 transition-all font-bold font-['Inter'] text-[87.5%] mx-auto md:mx-0 cursor-pointer"
           >
             {communityTranslations.discoverBtn}
             <div className="w-9 h-9 rounded-full bg-[#b47800] flex items-center justify-center shrink-0">

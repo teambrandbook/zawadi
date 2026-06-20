@@ -13,12 +13,12 @@ const MeaningSection = () => {
   const sectionData = translations[locale]?.meaningSection || translations["en"].meaningSection;
 
   return (
-    <section className="relative w-full py-10 lg:py-20 xl:py-32 bg-[#fffef5] overflow-hidden lg:px-10 xl:px-20">
-      <div className="container mx-auto px-6 lg:px-16 xl:px-32">
-        <div className="flex flex-col lg:flex-row items-start gap-0 lg:gap-12 xl:gap-20">
+    <section className="relative w-full py-10 md:py-20 xl:py-32 bg-[#fffef5] overflow-hidden md:px-10 xl:px-20">
+      <div className="container mx-auto px-6 md:px-16 xl:px-32">
+        <div className="flex flex-col md:flex-row items-start gap-0 md:gap-12 xl:gap-20">
 
           {/* Left Content Column */}
-          <div className="w-full lg:w-1/2 flex flex-col text-left rtl:text-right">
+          <div className="w-full md:w-1/2 flex flex-col text-left rtl:text-right">
 
             {/* Custom Heading Decor */}
             <div className="flex items-center gap-6 mb-8 fade-in">
@@ -27,17 +27,17 @@ const MeaningSection = () => {
                   <path d="M0 12.5986H90L81.0373 0.598633" stroke="#121414" strokeWidth="2" />
                 </svg>
               </div>
-              <span className="text-[#121414] text-[11px] font-bold font-sans uppercase tracking-[2.5px]">
+              <span className="text-[#121414] text-[68.75%] font-bold font-sans uppercase tracking-[2.5px]">
                 {sectionData.badge}
               </span>
             </div>
 
             <h2 
-              className="text-[#121414] text-4xl lg:text-[46px] xl:text-[54px] font-serif leading-[1.1] mb-6 fade-in"
+              className="text-[#121414] text-4xl md:text-[187.5%] xl:text-[337.5%] font-serif leading-[1.1] mb-6 fade-in"
               dangerouslySetInnerHTML={{ __html: sanitizeHTML(sectionData.titleHTML) }}
             />
 
-            <p className="text-[#121414] text-[14px] font-normal font-sans leading-relaxed mb-12 max-w-[520px] xl:max-w-[460px] fade-in lg:rtl:ml-auto">
+            <p className="text-[#121414] text-[87.5%] font-normal font-sans leading-relaxed mb-12 max-w-[520px] xl:max-w-[460px] fade-in md:rtl:ml-auto">
               {sectionData.description1}
             </p>
 
@@ -54,8 +54,8 @@ const MeaningSection = () => {
           </div>
 
           {/* Right Content Column - Tall Image */}
-          <div className="w-full lg:w-1/2 lg:pt-15 xl:pt-0">
-            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] lg:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
+          <div className="w-full md:w-1/2 md:pt-15 xl:pt-0">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] md:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
               <Image
                 src="/home/meaningImg1.webp"
                 alt="Meaningful moments"
@@ -67,14 +67,14 @@ const MeaningSection = () => {
         </div>
 
         {/* Bottom Row - Text and Button */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mt-12 gap-8 text-left rtl:text-right rtl:lg:flex-row-reverse">
-          <p className="text-[#121414] text-[15px] font-normal font-sans leading-relaxed max-w-[580px] fade-in">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end mt-12 gap-8 text-left rtl:text-right rtl:md:flex-row-reverse">
+            <p className="text-[#121414] text-[93.75%] font-normal font-sans leading-relaxed max-w-[580px] fade-in">
             {sectionData.description2}
           </p>
 
           {/* Corrected Button: Using Tailwind Logical Padding and Auto-Reversing Direction */}
-          <button className="group bg-[#1a3c34] hover:bg-[#132d27] text-white rounded-full ps-7 pe-1.5 py-1.5 flex items-center gap-5 transition-all duration-300 shrink-0 self-start lg:self-auto rtl:self-end rtl:lg:self-auto">
-            <span className="text-[14px] font-semibold tracking-wide">
+          <button className="group bg-[#1a3c34] hover:bg-[#132d27] text-white rounded-full ps-7 pe-1.5 py-1.5 flex items-center gap-5 transition-all duration-300 shrink-0 self-start md:self-auto rtl:self-end rtl:md:self-auto">
+                <span className="text-[87.5%] font-semibold tracking-wide">
               {sectionData.discoverBtn}
             </span>
             

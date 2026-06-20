@@ -196,7 +196,7 @@ const Navbar = () => {
                     </p>
                     <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
                     {userType === "guest" && (
-                      <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
+                      <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[62.5%] font-semibold uppercase tracking-wide text-[#92400e]">
                         {profileLabels.guest}
                       </span>
                     )}
@@ -236,7 +236,7 @@ const Navbar = () => {
                         <>
                           <Lock size={14} className="shrink-0 text-gray-400" />
                           <span>{profileLabels.communityDashboard}</span>
-                          <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                          <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[64.285714%] font-semibold uppercase tracking-wide text-[#92400e]">
                             {profileLabels.membersOnly}
                           </span>
                         </>
@@ -298,7 +298,7 @@ const Navbar = () => {
                       aria-expanded={desktopExpandedLink === link.name}
                       aria-haspopup="menu"
                       onClick={() => setDesktopExpandedLink(link.name)}
-                      className="flex items-center gap-1 text-[15px] font-semibold text-white/90 hover:text-brand-primary transition-all duration-300 cursor-pointer"
+                      className="flex items-center gap-1 text-[93.75%] font-semibold text-white/90 hover:text-brand-primary transition-all duration-300 cursor-pointer"
                     >
                       {link.name}
                       <ChevronDown
@@ -338,7 +338,7 @@ const Navbar = () => {
                   <Link
                     href={link.href}
                     className={cn(
-                      "text-[15px] font-semibold transition-all duration-300",
+                      "text-[93.75%] font-semibold transition-all duration-300",
                       isLinkActive(link.href) ? "text-brand-primary" : "text-white/90 hover:text-brand-primary"
                     )}
                   >
@@ -368,7 +368,7 @@ const Navbar = () => {
             >
               <ShoppingCart size={22} strokeWidth={1.5} className="lg:size-6" />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#b47800] px-1 text-[10px] font-bold leading-none text-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#b47800] px-1 text-[62.5%] font-bold leading-none text-white">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -436,7 +436,7 @@ const Navbar = () => {
                         </p>
                         <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
                         {userType === "guest" && (
-                          <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
+                        <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[62.5%] font-semibold uppercase tracking-wide text-[#92400e]">
                             {profileLabels.guest}
                           </span>
                         )}
@@ -476,7 +476,7 @@ const Navbar = () => {
                             <>
                               <Lock size={14} className="shrink-0 text-gray-400" />
                               <span>{profileLabels.communityDashboard}</span>
-                              <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                              <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[64.285714%] font-semibold uppercase tracking-wide text-[#92400e]">
                                 {profileLabels.membersOnly}
                               </span>
                             </>
