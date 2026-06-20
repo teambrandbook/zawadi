@@ -13,9 +13,9 @@ const MeaningSection = () => {
   const sectionData = translations[locale]?.meaningSection || translations["en"].meaningSection;
 
   return (
-    <section className="relative w-full py-10 lg:py-32 bg-[#fffef5] overflow-hidden lg:px-20">
-      <div className="container mx-auto px-6 lg:px-32">
-        <div className="flex flex-col lg:flex-row items-start gap-0 lg:gap-20">
+    <section className="relative w-full py-10 lg:py-20 xl:py-32 bg-[#fffef5] overflow-hidden lg:px-10 xl:px-20">
+      <div className="container mx-auto px-6 lg:px-16 xl:px-32">
+        <div className="flex flex-col lg:flex-row items-start gap-0 lg:gap-12 xl:gap-20">
 
           {/* Left Content Column */}
           <div className="w-full lg:w-1/2 flex flex-col text-left rtl:text-right">
@@ -33,11 +33,11 @@ const MeaningSection = () => {
             </div>
 
             <h2 
-              className="text-[#121414] text-4xl lg:text-[54px] font-serif leading-[1.1] mb-6 fade-in"
+              className="text-[#121414] text-4xl lg:text-[46px] xl:text-[54px] font-serif leading-[1.1] mb-6 fade-in"
               dangerouslySetInnerHTML={{ __html: sanitizeHTML(sectionData.titleHTML) }}
             />
 
-            <p className="text-[#121414] text-[14px] font-normal font-sans leading-relaxed mb-12 max-w-[460px] fade-in lg:rtl:ml-auto">
+            <p className="text-[#121414] text-[14px] font-normal font-sans leading-relaxed mb-12 max-w-[520px] xl:max-w-[460px] fade-in lg:rtl:ml-auto">
               {sectionData.description1}
             </p>
 
@@ -54,8 +54,8 @@ const MeaningSection = () => {
           </div>
 
           {/* Right Content Column - Tall Image */}
-          <div className="w-full lg:w-1/2 lm:pt-12">
-            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] lg:h-[600px] overflow-hidden shadow-sm">
+          <div className="w-full lg:w-1/2 lg:pt-15 xl:pt-0">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] lg:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
               <Image
                 src="/home/meaningImg1.webp"
                 alt="Meaningful moments"

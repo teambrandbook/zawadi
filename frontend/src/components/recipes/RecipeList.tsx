@@ -252,7 +252,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
   };
 
   return (
-    <section className="bg-[#fffef5] pb-10 pt-16 sm:px-6 md:pb-14 md:pt-20 lg:px-23">
+    <section className="bg-[#fffef5] pb-10 pt-16 sm:px-6 md:pb-14 md:pt-20 lg:px-12 xl:px-23">
       <div className="mx-auto max-w-[1920px]">
         <RecipeFilter
           categories={categories}
@@ -266,7 +266,7 @@ export default function RecipeList({ recipes: initialRecipes }: { recipes: Recip
         ) : filteredRecipes.length === 0 ? (
           <p className="mt-16 text-center text-sm text-[#6B7280]">{recipeText.empty}</p>
         ) : (
-          <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12 md:mt-14 md:space-y-14 lg:mt-16 ">
+          <div className="mt-10 space-y-10 sm:mt-12 sm:space-y-12 md:mt-14 md:space-y-14 lg:mt-14 xl:mt-16 ">
             {filteredRecipes.map((recipe, index: number) => (
               <RecipeCard
                 key={recipe.id}

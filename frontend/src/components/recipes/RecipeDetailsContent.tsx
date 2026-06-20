@@ -191,7 +191,7 @@ export default function RecipeDetailsContent({
         subtitle="Delicious Zewadi Buckwheat Recipes"
       /> */}
 
-      <section className="px-4 pb-12 pt-8 sm:px-6 md:pb-24 md:pt-16 lg:px-0">
+      <section className="px-4 pb-12 pt-8 sm:px-6 md:pb-24 md:pt-16 lg:px-20 xl:px-0">
         <div className="mx-auto max-w-[1190px]">
           <div className="grid gap-8 lg:grid-cols-[360px_1fr] lg:items-start lg:gap-10 xl:grid-cols-[450px_1fr] xl:gap-[100px]">
             <div className="recipe-detail-image-topdown relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[12px] xl:max-w-[450px]">
@@ -251,7 +251,7 @@ export default function RecipeDetailsContent({
                 {recipe.description}
               </p>
 
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-[170px_1fr]">
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-[150px_1fr] xl:grid-cols-[170px_1fr]">
                 <div className="h-fit rounded-[10px] bg-[#1f4d3a] px-4 py-5">
                   <h3 className="mb-4 font-['Playfair_Display'] text-[14px] font-semibold text-white">
                     {detailText.nutritionFacts}
@@ -306,7 +306,7 @@ export default function RecipeDetailsContent({
           </div>
 
           {steps.length > 0 ? (
-            <div className="fade-in mt-12 rounded-[6px] bg-[#f4f6ed] px-5 py-8 text-left rtl:text-right sm:px-8 sm:py-10 md:mt-16 lg:mt-20 lg:px-[76px] lg:py-12">
+            <div className="fade-in mt-12 rounded-[6px] bg-[#f4f6ed] px-5 py-8 text-left rtl:text-right sm:px-8 sm:py-10 md:mt-16 lg:mt-18 lg:px-12 lg:py-10 xl:mt-20 xl:px-[76px] xl:py-12">
               <h3 className="mb-6 font-['Playfair_Display'] text-[26px] font-bold text-[#1f4d3a] md:mb-8 md:text-[36px]">
                 {detailText.howToCook}
               </h3>
@@ -328,7 +328,7 @@ export default function RecipeDetailsContent({
           ) : null}
 
           {moreRecipes.length > 0 ? (
-            <section className="mt-10 md:mt-14 lg:mt-16">
+            <section className="mt-10 md:mt-14 lg:mt-14 xl:mt-16">
               <div className="mb-6 flex items-center justify-between gap-4 sm:mb-7">
                 <h3 className="font-['Playfair_Display'] text-[26px] font-medium text-[#102508] sm:text-[31px] md:text-[34px]">
                   More Recipes

@@ -27,7 +27,7 @@ export default function EventTestimonials() {
   };
 
   return (
-    <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-8">
+    <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-20 xl:px-0">
       <div className="mx-auto max-w-[1100px]">
         {/* Header */}
         <div className="mb-12 text-center">
@@ -50,8 +50,8 @@ export default function EventTestimonials() {
         <div className="relative flex flex-col-reverse items-center md:flex-row">
           
           {/* Testimonial Card */}
-          <div className="left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-32 rtl:lg:-ml-32 md:w-[60%]">
-            <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-14">
+          <div className="left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-28 rtl:lg:-ml-28 ltr:xl:-mr-32 rtl:xl:-ml-32 md:w-[60%]">
+            <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-12 xl:p-14">
               
               {/* Giant Quote SVG Background */}
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
@@ -61,7 +61,7 @@ export default function EventTestimonials() {
               </div>
 
               <div className="relative z-10">
-                <p className="fade-in text-[18px] md:text-[18px] lg:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
+                <p className="fade-in text-[18px] md:text-[18px] lg:text-[20px] xl:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
                   {activeTestimonial.quote}
                 </p>
 
@@ -105,7 +105,7 @@ export default function EventTestimonials() {
             and introduced a bottom margin ('mb-8 lg:mb-0') so it separates naturally from the text card beneath it.
           */}
           <div className="w-full mb-8 md:mb-0 md:w-[50%]">
-            <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[500px]">
+            <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[460px] xl:h-[500px]">
               <Image
                 src="/about/testimonial.webp " 
                 alt="Community hands"

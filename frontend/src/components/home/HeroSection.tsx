@@ -55,10 +55,10 @@ const HeroSection = () => {
         <div className="absolute inset-0 bg-black/40" />
       </div>
 
-      <div className="container mx-auto px-6 lg:px-32 xl:px-40 relative z-10 flex flex-col-reverse lg:flex-row items-center justify-between h-full pt-28 pb-12 lg:py-0">
+      <div className="container mx-auto px-6 lg:px-24 xl:px-40 relative z-10 flex flex-col-reverse lg:flex-row items-center justify-between h-full pt-28 pb-12 lg:py-0">
 
         {/* Copy and CTA Column */}
-        <div className="w-full lg:w-5/12 flex flex-col items-center lg:items-start z-20 mt-12 lg:mt-0">
+        <div className="w-full lg:w-[42%] xl:w-5/12 flex flex-col items-center lg:items-start z-20 mt-12 lg:mt-0">
           <div className="max-w-[480px] mb-8 lg:mb-10">
             <p className="text-white text-sm lg:text-base font-medium font-['Inter'] leading-relaxed opacity-90 text-center lg:text-left rtl:lg:text-right fade-in">
               {heroTranslations.description}
@@ -67,7 +67,7 @@ const HeroSection = () => {
 
           <div className="w-full lg:w-auto flex justify-center lg:justify-start">
             <Link href="/about">
-              <button className="bg-white rounded-full ltr:pl-6 ltr:pr-1.5 rtl:pr-6 rtl:pl-1.5 py-1.5 flex items-center gap-5 hover:bg-gray-100 transition-all group mb-12 lg:mb-32 cursor-pointer">
+              <button className="bg-white rounded-full ltr:pl-6 ltr:pr-1.5 rtl:pr-6 rtl:pl-1.5 py-1.5 flex items-center gap-5 hover:bg-gray-100 transition-all group mb-12 lg:mb-28 xl:mb-32 cursor-pointer">
                 <span className="font-['Inter'] text-[13px] text-[#0e2207] font-bold">
                   {heroTranslations.discoverBtn}
                 </span>
@@ -142,9 +142,9 @@ const HeroSection = () => {
         </div>
 
         {/* Right Side: Localized Massive Heading */}
-        <div className="w-full lg:w-7/12 flex justify-center lg:justify-end -mt-6 lg:-mt-17">
+        <div className="w-full lg:w-[58%] xl:w-7/12 flex justify-center lg:justify-end -mt-6 lg:-mt-12 xl:-mt-17">
           <h1 
-            className="font-['Playfair_Display'] font-black text-4xl md:text-7xl lg:text-[76px] xl:text-[100px] text-white text-center lg:text-right rtl:lg:text-left leading-[1.1] lg:leading-[0.95] tracking-tight fade-in"
+            className="font-['Playfair_Display'] font-black text-4xl md:text-7xl lg:text-[72px] xl:text-[100px] text-white text-center lg:text-right rtl:lg:text-left leading-[1.1] lg:leading-[0.98] xl:leading-[0.95] tracking-tight fade-in"
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(heroTranslations.titleHTML) }}
           />
         </div>

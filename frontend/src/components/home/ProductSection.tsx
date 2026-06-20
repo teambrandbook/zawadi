@@ -132,7 +132,7 @@ const ProductSection = () => {
       onWheel={handleWheel}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="relative w-full overflow-hidden bg-[#1f4b3f] py-12 lg:py-16 select-none"
+      className="relative w-full overflow-hidden bg-[#1f4b3f] py-12 lg:py-14 xl:py-16 select-none"
     >
       <div className="pointer-events-none absolute inset-0 opacity-10">
         <Image
@@ -143,10 +143,10 @@ const ProductSection = () => {
         />
       </div>
 
-      <div className="relative z-10 w-full px-6 lg:px-24">
+      <div className="relative z-10 w-full px-6 lg:px-14 xl:px-24">
         {/* Header Container for Mobile Positioning */}
         <div className="relative mb-8 flex flex-row items-center justify-between rtl:flex-row-reverse">
-          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-5xl text-left rtl:text-right">
+          <h2 className="font-serif text-3xl text-[#fdf6ee] sm:text-4xl lg:text-[42px] xl:text-5xl text-left rtl:text-right">
             {sectionData.title}
           </h2>
           
@@ -169,12 +169,12 @@ const ProductSection = () => {
           </div>
         </div>
 
-        <div className="relative flex h-[280px] items-center justify-center sm:h-[360px] lg:h-[440px]">
+        <div className="relative flex h-[280px] items-center justify-center sm:h-[360px] lg:h-[400px] xl:h-[440px]">
           {/* Desktop/Tablet Arrows: Mirrored cleanly inside layout trees */}
           <button
             onClick={isRtl ? next : prev}
             aria-label="Previous product"
-            className="group absolute left-0 rtl:right-0 rtl:left-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:left-20 lg:rtl:right-20 lg:rtl:left-auto lg:h-12 lg:w-12"
+            className="group absolute left-0 rtl:right-0 rtl:left-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:left-10 lg:rtl:right-10 lg:rtl:left-auto lg:h-11 lg:w-11 xl:left-20 xl:rtl:right-20 xl:rtl:left-auto xl:h-12 xl:w-12"
           >
             <ArrowLeft className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
           </button>
@@ -182,7 +182,7 @@ const ProductSection = () => {
           {productItems.map((item: any, i: number) => (
             <div
               key={i}
-              className="card absolute h-[180px] w-[160px] overflow-hidden rounded-xl border border-[#fdf6ee]/25 opacity-90 shadow-[0_18px_45px_rgba(0,0,0,0.22)] sm:h-[260px] sm:w-[190px] lg:h-[300px] lg:w-[330px]"
+              className="card absolute h-[180px] w-[160px] overflow-hidden rounded-xl border border-[#fdf6ee]/25 opacity-90 shadow-[0_18px_45px_rgba(0,0,0,0.22)] sm:h-[260px] sm:w-[190px] lg:h-[280px] lg:w-[280px] xl:h-[300px] xl:w-[330px]"
               style={{ left: "50%", transform: "translateX(-50%)" }}
             >
               <Image
@@ -197,7 +197,7 @@ const ProductSection = () => {
           <button
             onClick={isRtl ? prev : next}
             aria-label="Next product"
-            className="group absolute right-0 rtl:left-0 rtl:right-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:right-20 lg:rtl:left-20 lg:rtl:right-auto lg:h-12 lg:w-12"
+            className="group absolute right-0 rtl:left-0 rtl:right-auto z-50 hidden h-10 w-10 items-center justify-center rounded-full border border-[#fdf6ee]/30 transition-all duration-300 hover:border-[#b47b00] hover:bg-[#b47b00] sm:flex lg:right-10 lg:rtl:left-10 lg:rtl:right-auto lg:h-11 lg:w-11 xl:right-20 xl:rtl:left-20 xl:rtl:right-auto xl:h-12 xl:w-12"
           >
             <ArrowRight className="h-5 w-5 text-[#fdf6ee] transform rtl:rotate-180" />
           </button>
