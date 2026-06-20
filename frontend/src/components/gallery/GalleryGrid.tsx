@@ -4,7 +4,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import gsap, { animatePopUp } from "@/lib/gsap";
+import gsap from "@/lib/gsap";
 import galleryData from "@/data/gallery.json";
 import { cn } from "@/lib/utils";
 import { useLocale } from "@/context/LocaleContext";
@@ -30,11 +30,18 @@ const GalleryGrid = () => {
     if (!mounted) return;
 
     const ctx = gsap.context(() => {
-      animatePopUp(".gallery-item", {
-        scrollTrigger: {
-          trigger: gridRef.current,
-          start: "top 85%",
-        },
+      gsap.fromTo(".gallery-item",
+        { opacity: 0, y: 24 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          stagger: 0.12,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: gridRef.current,
+            start: "top 85%",
+          },
       });
     }, gridRef);
     return () => ctx.revert();
@@ -79,7 +86,7 @@ const GalleryGrid = () => {
                 src={item.image}
                 alt={title}
                 fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                className="object-cover"
               />
 
               {/* New Hover Overlay (Gold) with Pill Title */}
