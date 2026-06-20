@@ -72,7 +72,7 @@ export function UpcomingCard({
   href?: string;
 }) {
   return (
-    <article className="group relative h-[450px] w-full overflow-hidden rounded-[20px] md:h-[360px] xl:h-[450px]">
+    <article className="group relative h-[450px] w-full overflow-hidden rounded-[20px] md:h-[360px] lg:h-[400px] xl:h-[450px]">
       {/* Background Image */}
       <div className="image-topdown absolute inset-0">
         {/* eslint-disable-next-line @next/next/no-img-element */}

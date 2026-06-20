@@ -14,11 +14,11 @@ const NewsletterSection = () => {
   return (
     // White background + spacing container wrapper
     <section className="w-full bg-[#fffef5] ">
-      <div className="w-full lg:container lg:mx-auto">
+      <div className="w-full xl:container xl:mx-auto">
         
         {/* Inner Green Box */}
         <div className=" overflow-hidden shadow-xl">
-          <div className="relative flex w-full h-auto flex-col bg-[#244d3a] lg:h-[562px] lg:flex-row rtl:lg:flex-row-reverse">
+          <div className="relative flex w-full h-auto flex-col bg-[#244d3a] lg:h-[520px] xl:h-[562px] lg:flex-row rtl:lg:flex-row-reverse">
             
             {/* Background Texture Overlay */}
             <div className="pointer-events-none absolute inset-0 opacity-10">
@@ -44,9 +44,9 @@ const NewsletterSection = () => {
             </div>
 
             {/* Content Side Container - Fully Multi-directional Alignment handling */}
-            <div className="relative z-10 flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-20 text-left rtl:text-right">
+            <div className="relative z-10 flex w-full flex-col justify-center px-8 py-12 lg:w-1/2 lg:px-16 xl:px-20 text-left rtl:text-right">
               
-              <h2 className="text-white text-3xl lg:text-[50px] font-semibold leading-[1.1] mb-6">
+            <h2 className="text-white text-3xl lg:text-[287.5%] xl:text-[312.5%] font-semibold leading-[1.1] mb-6">
                 {sectionData.title}
               </h2>
 

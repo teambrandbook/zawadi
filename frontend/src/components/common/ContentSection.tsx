@@ -35,7 +35,7 @@ const ContentSection = ({
         />
       </div>
 
-      <div className={cn("relative z-10 container mx-auto px-4 sm:px-6 md:px-20 lg:px-40", containerClassName)}>
+      <div className={cn("relative z-10 container mx-auto px-4 sm:px-6 md:px-20 lg:px-0 xl:px-40", containerClassName)}>
         <div className={cn("h-[140px] md:h-[180px]", spacerClassName)} />
 
         <div

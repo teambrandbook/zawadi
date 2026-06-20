@@ -36,7 +36,7 @@ export default function RecipeCard({
 
   return (
     <article
-      className={`recipe-card grid min-h-[520px] origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:min-h-[680px] lg:grid-cols-[490px_minmax(0,1fr)] lg:gap-[100px] lg:px-20 lg:pt-0
+      className={`recipe-card grid min-h-[520px] origin-top items-start gap-6 bg-[#fffef5] px-4 pt-6 sm:gap-7 sm:px-6 sm:pt-8 md:gap-8 md:pt-10 lg:min-h-[620px] lg:grid-cols-[420px_minmax(0,1fr)] lg:gap-14 lg:px-12 lg:pt-0 xl:min-h-[680px] xl:grid-cols-[490px_minmax(0,1fr)] xl:gap-[100px] xl:px-20
       ${
         reverse
           ? "lg:[&>div:first-child]:order-2 lg:[&>div:last-child]:order-1"
@@ -44,7 +44,7 @@ export default function RecipeCard({
       }`}
     >
       {/* Image Section */}
-      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[12px] sm:h-[420px] lg:h-[600px] lg:max-w-[490px]">
+      <div className="relative mx-auto h-[360px] w-full max-w-[380px] overflow-hidden rounded-[12px] sm:h-[420px] lg:h-[520px] lg:max-w-[420px] xl:h-[600px] xl:max-w-[490px]">
         <Image
           src={imageSrc}
           alt={recipe.title}
@@ -69,7 +69,7 @@ export default function RecipeCard({
       </div>
 
       {/* Content Section */}
-      <div className="max-w-[560px] pt-1 text-left rtl:text-right md:max-w-none lg:max-w-[560px]">
+      <div className="max-w-[560px] pt-1 text-left rtl:text-right md:max-w-none lg:max-w-[520px] xl:max-w-[560px]">
         {/* Title */}
         <h2 className="font-[600] text-[30px] leading-[38px] text-black md:text-[46px] md:leading-[52px] [font-family:'Playfair_Display']">
           {recipe.title}

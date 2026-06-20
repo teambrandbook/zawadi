@@ -72,7 +72,7 @@ export default function UpcomingEvents() {
   const secondaryEvents = events.slice(2, 4);
 
   return (
-    <section className="px-4 py-14 sm:px-6 lg:px-0">
+    <section className="px-4 py-14 sm:px-6 lg:px-8 xl:px-0 lg:px-20 xl:px-0">
       <div className="mx-auto max-w-[1200px]">
         <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
           <div className="min-w-0 flex-1 text-left rtl:text-right">
@@ -95,7 +95,7 @@ export default function UpcomingEvents() {
           </Link>
         </div>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-[1fr_1fr_424px]">
+        <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-[1fr_1fr_340px] xl:grid-cols-[1fr_1fr_424px]">
           {primaryEvents.map((event) => {
             let day = "-";
             let month = "-";
@@ -118,7 +118,7 @@ export default function UpcomingEvents() {
             );
           })}
 
-          <div className="grid gap-6 md:col-span-2 md:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+          <div className="grid gap-6 md:col-span-2 md:grid-cols-2 lg:col-span-1 lg:grid-cols-1 xl:col-span-1 xl:grid-cols-1">
             {secondaryEvents.map((event) => {
               let day = "-";
               let month = "-";

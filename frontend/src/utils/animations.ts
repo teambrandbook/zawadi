@@ -235,7 +235,10 @@ export const productCarouselAnimation = (
   const isSmScreen = window.matchMedia(
     "(min-width: 640px) and (max-width: 1023px)"
   ).matches;
-  const sideOffset = isMobileScreen ? 100 : isSmScreen ? 165 : 220;
+  const isLgScreen = window.matchMedia(
+    "(min-width: 1024px) and (max-width: 1279px)"
+  ).matches;
+  const sideOffset = isMobileScreen ? 100 : isSmScreen ? 165 : isLgScreen ? 190 : 220;
 
   cards.forEach((card, i) => {
     let pos = i - activeIndex;

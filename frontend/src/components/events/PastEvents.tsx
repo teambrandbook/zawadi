@@ -105,9 +105,9 @@ export default function PastEventsSection() {
   }, [locale]);
 
   return (
-    <section className="w-full px-4 py-16 sm:px-6 md:px-10 bg-[#fffef5]">
+    <section className="w-full px-4 py-16 sm:px-6 md:px-10 bg-[#fffef5] lg:px-20 xl:px-0">
       {/* Main Rounded Container */}
-      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#f1f5eb] px-6 py-12 sm:px-8 md:px-20 md:py-20 xl:px-60">
+      <div className="relative mx-auto max-w-[1400px] overflow-hidden rounded-[40px] bg-[#f1f5eb] px-6 py-12 sm:px-8 md:px-20 md:py-20 lg:px-32 xl:px-60">
 
         {/* Background Leaf Pattern */}
         <div

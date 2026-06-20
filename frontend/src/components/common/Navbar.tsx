@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock, User } from "lucide-react";
+import { Menu, X, Globe, ChevronDown, ArrowRight, ShoppingCart, LogOut, LayoutDashboard, Lock } from "lucide-react";
 import { cn, getImageUrl } from "@/lib/utils";
 import gsap from "@/lib/gsap";
 import { useDispatch, useSelector } from "react-redux";
@@ -26,6 +26,7 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMenuBgVisible, setIsMenuBgVisible] = useState(false);
   const [expandedLink, setExpandedLink] = useState<string | null>(null);
+  const [desktopExpandedLink, setDesktopExpandedLink] = useState<string | null>(null);
   const pathname = usePathname();
   const dispatch = useDispatch<AppDispatch>();
   const cartCount = useSelector((s: RootState) => s.user.cartCount);
@@ -195,7 +196,7 @@ const Navbar = () => {
                     </p>
                     <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
                     {userType === "guest" && (
-                      <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
+                      <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[62.5%] font-semibold uppercase tracking-wide text-[#92400e]">
                         {profileLabels.guest}
                       </span>
                     )}
@@ -235,7 +236,7 @@ const Navbar = () => {
                         <>
                           <Lock size={14} className="shrink-0 text-gray-400" />
                           <span>{profileLabels.communityDashboard}</span>
-                          <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                          <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[64.285714%] font-semibold uppercase tracking-wide text-[#92400e]">
                             {profileLabels.membersOnly}
                           </span>
                         </>
@@ -260,13 +261,13 @@ const Navbar = () => {
           </div>
 
           {/* Hanging Logo */}
-          <div className="absolute left-1/2 z-50 w-25 -translate-x-1/2 md:w-40 lg:relative lg:left-auto lg:ml-20 lg:translate-x-0">
+          <div className="absolute left-1/2 z-50 w-25 -translate-x-1/2 md:w-40 lg:relative lg:left-auto lg:ml-8 lg:mr-14 lg:w-32 lg:translate-x-0 xl:ml-12 xl:mr-16 xl:w-36 2xl:ml-20 2xl:mr-8 2xl:w-40">
             <Link href="/" className="block">
               <div className={cn(
                 "absolute transition-all duration-500 overflow-hidden flex items-center justify-center p-2 md:p-3",
                 "bg-[#1A4331] border-x border-b border-white/10 rounded-b-xl shadow-2xl",
-                "w-21.25 h-21.25 md:w-26.25 md:h-26.25 lg:w-30 lg:h-30 xl:w-33.75 xl:h-33.75",
-                "-top-10 translate-y-0 left-1/2 -translate-x-1/2 lg:left-1 lg:translate-x-0 xl:left-4 2xl:-left-8"
+                "w-21.25 h-21.25 md:w-26.25 md:h-26.25 lg:w-30 lg:h-30 2xl:w-33.75 2xl:h-33.75",
+                "-top-10 translate-y-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 xl:left-1 2xl:left-4"
               )}>
                 <div className="relative w-full h-full scale-100 transition-transform duration-500">
                   <Image
@@ -282,20 +283,47 @@ const Navbar = () => {
           </div>
 
           {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-10">
+          <div className="hidden lg:flex items-center gap-6 xl:gap-8 2xl:gap-10">
             {navLinks.map((link: NavLink) => (
-              <div key={link.name} className="relative group py-4">
+              <div
+                key={link.name}
+                className="relative group py-4"
+                onMouseEnter={() => link.hasDropdown && setDesktopExpandedLink(link.name)}
+                onMouseLeave={() => link.hasDropdown && setDesktopExpandedLink(null)}
+              >
                 {link.hasDropdown ? (
-                  <div className="flex items-center gap-1 text-[15px] font-semibold text-white/90 hover:text-brand-primary transition-all duration-300 cursor-pointer">
-                    {link.name}
-                    <ChevronDown size={14} className="group-hover:rotate-180 transition-transform duration-300" />
-                    <div className="absolute top-full left-0 mt-0 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-1100">
+                  <>
+                    <button
+                      type="button"
+                      aria-expanded={desktopExpandedLink === link.name}
+                      aria-haspopup="menu"
+                      onClick={() => setDesktopExpandedLink(link.name)}
+                      className="flex items-center gap-1 text-[93.75%] font-semibold text-white/90 hover:text-brand-primary transition-all duration-300 cursor-pointer"
+                    >
+                      {link.name}
+                      <ChevronDown
+                        size={14}
+                        className={cn(
+                          "transition-transform duration-300",
+                          desktopExpandedLink === link.name && "rotate-180"
+                        )}
+                      />
+                    </button>
+                    <div
+                      className={cn(
+                        "absolute top-full left-0 mt-0 pt-4 transition-all duration-300 z-1100",
+                        desktopExpandedLink === link.name
+                          ? "opacity-100 visible translate-y-0"
+                          : "opacity-0 invisible translate-y-2 pointer-events-none"
+                      )}
+                    >
                       <div className="bg-[#1A4331] border border-white/10 rounded-xl shadow-2xl p-4 min-w-50 backdrop-blur-xl">
                         <div className="flex flex-col space-y-1">
                           {(link.items ?? innerPages).map((item: NavItem) => (
                             <Link
                               key={item.name}
                               href={item.href}
+                              onClick={() => setDesktopExpandedLink(null)}
                               className="text-white/70 hover:text-brand-primary hover:bg-white/5 px-4 py-2.5 rounded-lg transition-all text-sm font-medium whitespace-nowrap flex items-center justify-between group/item"
                             >
                               {item.name}
@@ -305,12 +333,12 @@ const Navbar = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </>
                 ) : (
                   <Link
                     href={link.href}
                     className={cn(
-                      "text-[15px] font-semibold transition-all duration-300",
+                      "text-[93.75%] font-semibold transition-all duration-300",
                       isLinkActive(link.href) ? "text-brand-primary" : "text-white/90 hover:text-brand-primary"
                     )}
                   >
@@ -322,7 +350,7 @@ const Navbar = () => {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-3 lg:space-x-6">
+          <div className="flex items-center space-x-3 lg:space-x-4 xl:space-x-6">
             {/* Dynamic Language Switcher (desktop) */}
             <button
               onClick={() => changeLocale(locale === "en" ? "ar" : "en")}
@@ -340,7 +368,7 @@ const Navbar = () => {
             >
               <ShoppingCart size={22} strokeWidth={1.5} className="lg:size-6" />
               {cartCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#b47800] px-1 text-[10px] font-bold leading-none text-white">
+                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#b47800] px-1 text-[62.5%] font-bold leading-none text-white">
                   {cartCount > 99 ? "99+" : cartCount}
                 </span>
               )}
@@ -408,7 +436,7 @@ const Navbar = () => {
                         </p>
                         <p className="text-xs text-gray-400 truncate mt-0.5">{userEmail}</p>
                         {userType === "guest" && (
-                          <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#92400e]">
+                        <span className="inline-block mt-1 rounded-full bg-[#fef3c7] px-2 py-0.5 text-[62.5%] font-semibold uppercase tracking-wide text-[#92400e]">
                             {profileLabels.guest}
                           </span>
                         )}
@@ -448,7 +476,7 @@ const Navbar = () => {
                             <>
                               <Lock size={14} className="shrink-0 text-gray-400" />
                               <span>{profileLabels.communityDashboard}</span>
-                              <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
+                              <span className="ms-auto rounded-full bg-[#fef3c7] px-2 py-0.5 text-[64.285714%] font-semibold uppercase tracking-wide text-[#92400e]">
                                 {profileLabels.membersOnly}
                               </span>
                             </>
@@ -572,88 +600,6 @@ const Navbar = () => {
             </div>
           ))}
 
-          {/* Mobile Profile Section View (appears when authenticated) */}
-          {isAuthenticated && (
-            <div className="mobile-link pt-6 border-t border-white/10 flex flex-col space-y-4">
-              <div className="flex items-center gap-3 bg-white/5 p-3 rounded-xl">
-                <div className="w-10 h-10 rounded-full overflow-hidden bg-[#b47800] flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {showProfileImage ? (
-                    <Image
-                      src={profileImageSrc}
-                      alt={fullName || "Profile"}
-                      width={40}
-                      height={40}
-                      className="object-cover w-full h-full"
-                      onError={() => setProfileImageFailed(true)}
-                    />
-                  ) : (
-                    initials
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-white truncate">
-                    {fullName || userEmail}
-                  </p>
-                  <p className="text-xs text-white/40 truncate">{userEmail}</p>
-                </div>
-              </div>
-
-              <Link
-                href={routes.profile}
-                onClick={handleCloseMenu}
-                className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
-              >
-                <span className="flex items-center gap-3"><User size={18} className="text-brand-primary/60" /> My Profile</span>
-                <ArrowRight size={18} className="text-brand-primary/40" />
-              </Link>
-
-              <Link
-                href={routes.orders}
-                onClick={handleCloseMenu}
-                className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
-              >
-                <span className="flex items-center gap-3"><ShoppingCart size={18} className="text-brand-primary/60" /> My Orders</span>
-                <ArrowRight size={18} className="text-brand-primary/40" />
-              </Link>
-
-              {role === "community_user" && (
-                <Link
-                  href="/communityDashBoard"
-                  onClick={handleCloseMenu}
-                  className="text-xl font-playfair font-bold text-white/80 hover:text-brand-primary transition-colors flex items-center justify-between py-1"
-                >
-                  <span className="flex items-center gap-3">
-                    {userType === "member" ? (
-                      <>
-                        <LayoutDashboard size={18} className="text-brand-primary/60" />
-                        Community Dashboard
-                      </>
-                    ) : (
-                      <>
-                        <Lock size={18} className="text-white/30" />
-                        <span className="text-white/40">Community Dashboard</span>
-                      </>
-                    )}
-                  </span>
-                  {userType === "member" ? (
-                    <ArrowRight size={18} className="text-brand-primary/40" />
-                  ) : (
-                    <span className="rounded-full bg-[#fef3c7] px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#92400e]">
-                      Members only
-                    </span>
-                  )}
-                </Link>
-              )}
-
-              <button
-                onClick={handleLogout}
-                className="text-xl font-playfair font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-3 py-2 mt-2 w-fit"
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Dynamic Language Switcher (mobile bottom dock) */}

@@ -9,12 +9,12 @@ export default function MomentsSection() {
   const momentsText = translations[locale]?.eventsPage?.moments || translations.en.eventsPage.moments;
 
   return (
-    <section className="bg-[#fffef5] px-4 pb-10 pt-6 sm:px-6 md:pb-14 md:pt-8 lg:px-0">
+    <section className="bg-[#fffef5] px-4 pb-10 pt-6 sm:px-6 md:pb-14 md:pt-8 lg:px-20 xl:px-0">
       <div className="mx-auto max-w-[1200px] pt-20">
         <div className="relative overflow-hidden rounded-[12px]">
 
           {/* ✅ Reduced image height */}
-          <div className="image-topdown relative h-[180px] sm:h-[280px] lg:h-[380px]">
+          <div className="image-topdown relative h-[180px] sm:h-[280px] lg:h-[340px] xl:h-[380px]">
             <video
               src="/event/moments_main.webm"
               autoPlay

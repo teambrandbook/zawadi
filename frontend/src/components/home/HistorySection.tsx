@@ -193,11 +193,11 @@ const HistorySection = () => {
       onTouchCancel={() => {
         touchGestureRef.current = null;
       }}
-      className="relative w-full bg-[#fffef5] pt-10 pb-20 lg:pt-14 lg:pb-32 select-none touch-pan-y"
+      className="relative w-full bg-[#fffef5] pt-10 pb-20 lg:pt-14 lg:pb-24 xl:pb-32 select-none touch-pan-y"
       style={{ touchAction: "pan-y" }}
     >
-      <div className="container mx-auto px-6 lg:px-12">
-        <div className="relative w-full overflow-hidden rounded-[40px] bg-[#244d3a] p-8 lg:rounded-[50px] lg:p-20">
+      <div className="container mx-auto px-6 lg:px-10 xl:px-12">
+        <div className="relative w-full overflow-hidden rounded-[40px] bg-[#244d3a] p-8 lg:p-12 xl:rounded-[50px] xl:p-20">
           <div className="pointer-events-none absolute inset-0 opacity-10">
             <Image
               src="/Patterns-03.webp"
@@ -209,10 +209,10 @@ const HistorySection = () => {
 
           <div className="relative z-10 mb-16 flex flex-col items-start justify-between gap-12 lg:flex-row lg:items-end">
             <div className="fade-in flex w-full flex-col gap-6 lg:w-2/3 text-left rtl:text-right">
-              <h2 className="font-['Playfair_Display'] text-4xl font-semibold uppercase text-white lg:text-[48px]">
+              <h2 className="font-['Playfair_Display'] text-4xl font-semibold uppercase text-white lg:text-[262.5%] xl:text-[300%]">
                 {sectionData.title}
               </h2>
-              <p className="max-w-[600px] text-sm text-white/80 lg:text-[14px]">
+              <p className="max-w-[600px] text-sm text-white/80">
                 {sectionData.description}
               </p>
             </div>
@@ -238,7 +238,7 @@ const HistorySection = () => {
           </div>
 
           {/* Timeline Dots */}
-          <div className="relative z-10 my-10 flex items-center justify-between ltr:ml-10 rtl:mr-10 ltr:md:pl-18 rtl:md:pr-18 lg:my-12 ltr:lg:pl-50 rtl:lg:pr-50">
+          <div className="relative z-10 my-10 flex items-center justify-between ltr:ml-10 rtl:mr-10 ltr:md:pl-18 rtl:md:pr-18 lg:my-12 ltr:lg:pl-24 rtl:lg:pr-24 ltr:xl:pl-50 rtl:xl:pr-50">
             {historyItems.map((_, i) => (
               <div key={i} className="flex flex-1 items-center">
                 <button
@@ -279,14 +279,14 @@ const HistorySection = () => {
                 />
               </div>
 
-              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
+              <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[75%] text-white shadow-lg text-center">
                 {historyItems[activeIndex].text}
               </div>
             </div>
           </div>
 
           {/* Desktop Display */}
-          <div className="relative z-10 hidden overflow-hidden lg:flex lg:min-h-[420px] lg:items-end lg:gap-6">
+          <div className="relative z-10 hidden overflow-hidden lg:flex lg:min-h-[380px] lg:items-end lg:gap-4 xl:min-h-[420px] xl:gap-6">
             {historyItems.map((item, i) => {
               const isActive = i === activeIndex;
 
@@ -296,8 +296,8 @@ const HistorySection = () => {
                   data-history-card
                   className={`relative transition-all duration-700 ease-out ${
                     isActive
-                      ? "active-card z-10 h-[420px] w-[50%]"
-                      : "inactive-card h-[300px] w-[20%] opacity-70"
+                      ? "active-card z-10 h-[380px] w-[50%] xl:h-[420px]"
+                      : "inactive-card h-[270px] w-[20%] opacity-70 xl:h-[300px]"
                   }`}
                 >
                   <div className="history-image relative h-full w-full overflow-hidden rounded-[24px]">
@@ -310,7 +310,7 @@ const HistorySection = () => {
                   </div>
 
                   {isActive && (
-                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[12px] text-white shadow-lg text-center">
+                    <div className="active-text absolute bottom-4 left-1/2 w-[90%] -translate-x-1/2 rounded-[10px] bg-[#244d3a] p-5 text-[75%] text-white shadow-lg text-center">
                       {item.text}
                     </div>
                   )}
