@@ -7,7 +7,11 @@ import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 import { sanitizeHTML } from "@/utils/sanitize";
 
-export default function EventTestimonials() {
+type EventTestimonialsProps = {
+  variant?: "default" | "about";
+};
+
+export default function EventTestimonials({ variant = "default" }: EventTestimonialsProps) {
   const { locale } = useLocale();
   const testimonialText = translations[locale]?.eventsPage?.testimonials || translations.en.eventsPage.testimonials;
   const testimonials = testimonialText.items ?? [
@@ -31,13 +35,19 @@ export default function EventTestimonials() {
       <div className="mx-auto max-w-[1100px]">
         {/* Header */}
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1f4d3a] ">
-            <span>{testimonialText.badge}</span>
+          <div className={variant === "about" ? "testimonial-heading inline-flex items-center bg-[#1f4d3a] pl-1 pr-0.5 text-left shadow-sm [&>span:nth-child(2)]:hidden" : "inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1f4d3a]"}>
+            <span className={variant === "about" ? "text-[16px] font-medium uppercase leading-none tracking-[0.08em] text-white sm:text-[18px]" : undefined}>{testimonialText.badge}</span>
             <span className="text-[8px]">▼</span>
+            {variant === "about" && (
+              <span className="relative ml-1.5 flex h-4 w-5 shrink-0 items-center justify-center overflow-hidden">
+                <span className="absolute h-0 w-0 border-b-[8px] border-l-[16px] border-t-[8px] border-b-transparent border-l-[#7ed321] border-t-transparent" />
+                <span className="absolute right-0.5 top-0 h-0 w-0 border-b-[5px] border-l-[9px] border-b-transparent border-l-[#37a000]" />
+              </span>
+            )}
           </div>
 
           <h2
-            className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
+            className={variant === "about" ? "sr-only" : "testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"}
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(testimonialText.titleHTML) }}
           />
         </div>

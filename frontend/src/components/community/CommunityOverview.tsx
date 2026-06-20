@@ -115,7 +115,7 @@ const CommunityOverview = () => {
             </div>
 
             {/* Right Side: Headlines (Now hosts the green bg itself) */}
-            <div id="overview-green" className="relative z-10 flex w-full flex-col items-center justify-start overflow-hidden bg-brand-green p-8 pb-48 text-center md:w-[58%] md:items-start md:p-16 md:pb-64 md:text-left rtl:md:items-end rtl:md:text-right lg:p-24">
+            <div id="overview-green" className="relative z-10 flex w-full flex-col items-center justify-start overflow-hidden bg-brand-green p-8 pb-48 text-center md:w-[58%] md:items-start md:p-16 md:pb-64 md:text-left rtl:md:items-end rtl:md:text-right lg:p-24 [@media_(min-width:768px)_and_(max-width:1366px)]:!p-16 [@media_(min-width:768px)_and_(max-width:1366px)]:!pb-64">
               <div
                 className="pointer-events-none absolute inset-0 opacity-10"
                 style={{
@@ -133,7 +133,7 @@ const CommunityOverview = () => {
                 <WavyArrow />
               </div>
 
-              <h2 className="overview-text relative z-10 mb-12 text-4xl font-playfair font-medium leading-[1.1] text-white md:text-5xl lg:text-7xl">
+              <h2 className="overview-text relative z-10 mb-12 text-4xl font-playfair font-medium leading-[1.1] text-white md:text-5xl lg:text-7xl [@media_(min-width:768px)_and_(max-width:1366px)]:!text-5xl">
                 {localizedOverviewSection.title}
               </h2>
             </div>

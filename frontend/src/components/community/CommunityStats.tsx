@@ -129,10 +129,10 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
         { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut", clearProps: "all" }
       );
 
-      // 2. Entire Promo Box Pure Swipe Entrance
+      // 2. Promo box entrance without clipping the rounded corners.
       tl.fromTo("#promo-box",
-        { clipPath: "inset(0% 100% 0% 0%)" },
-        { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "power3.inOut", clearProps: "all" },
+        { autoAlpha: 0, y: 24 },
+        { autoAlpha: 1, y: 0, duration: 1.0, ease: "power3.out", clearProps: "transform,visibility" },
         "-=0.8" // Start wiping out while image finishes
       );
 
@@ -153,11 +153,11 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
   return (
     <section ref={sectionRef} className="py-24 bg-[#fffef5] overflow-hidden">
       <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
 
           {/* Left: Large Image */}
-          <div className="lg:col-span-5 relative group" id="large-img">
-            <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(26,67,49,0.2)]">
+          <div className="md:col-span-5 relative group md:h-full" id="large-img">
+            <div className="relative aspect-[4/5] md:aspect-auto md:h-full rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(26,67,49,0.2)]">
               <Image
                 src={statsSection.largeImage}
                 alt="Community Activity"
@@ -168,26 +168,26 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
           </div>
 
           {/* Right Column Grid */}
-          <div className="lg:col-span-7 flex flex-col gap-8">
+          <div className="md:col-span-7 flex flex-col gap-8 md:h-full md:justify-between">
 
             {/* Top Card: Community Promo */}
-            <div id="promo-box" className="bg-white rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden border border-gray-100 flex flex-col md:flex-row rtl:md:flex-row-reverse h-full relative z-10 transition-shadow hover:shadow-[0_25px_65px_rgba(0,0,0,0.2)]">
-              <div className="p-8 md:p-12 flex-1 flex flex-col justify-center text-left rtl:text-right" ref={textRef}>
+            <div id="promo-box" className="bg-white rounded-[1.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.15)] overflow-hidden border border-gray-100 flex flex-col md:flex-row rtl:md:flex-row-reverse relative z-10 opacity-0 transition-shadow hover:shadow-[0_25px_65px_rgba(0,0,0,0.2)]">
+              <div className="p-6 md:p-7 lg:p-9 [@media_(min-width:768px)_and_(max-width:1366px)]:!p-5 flex-1 flex flex-col justify-center text-left rtl:text-right" ref={textRef}>
                 <div
                   ref={iconRef}
-                  className="w-14 h-14 bg-brand-green rounded-full flex items-center justify-center text-brand-primary mb-6 shadow-md"
+                  className="w-12 h-12 md:w-12 md:h-12 lg:w-14 lg:h-14 [@media_(min-width:768px)_and_(max-width:1366px)]:!w-10 [@media_(min-width:768px)_and_(max-width:1366px)]:!h-10 bg-brand-green rounded-full flex items-center justify-center text-brand-primary mb-4 lg:mb-5 [@media_(min-width:768px)_and_(max-width:1366px)]:!mb-3 shadow-md"
                 >
-                  <Leaf size={28} />
+                  <Leaf size={28} className="[@media_(min-width:768px)_and_(max-width:1366px)]:!h-5 [@media_(min-width:768px)_and_(max-width:1366px)]:!w-5" />
                 </div>
-                <h3 className="text-animate-left text-3xl font-playfair font-bold text-brand-green mb-4">
+                <h3 className="text-animate-left text-3xl md:text-2xl lg:text-3xl [@media_(min-width:768px)_and_(max-width:1366px)]:!text-[1.35rem] font-playfair font-bold text-brand-green mb-3 lg:mb-4 [@media_(min-width:768px)_and_(max-width:1366px)]:!mb-2">
                   {statsSection.card.title}
                 </h3>
-                <p className="text-animate-left text-gray-600 mb-8 leading-relaxed font-inter">
+                <p className="text-animate-left text-gray-600 mb-5 lg:mb-6 [@media_(min-width:768px)_and_(max-width:1366px)]:!mb-4 text-sm lg:text-base [@media_(min-width:768px)_and_(max-width:1366px)]:!text-[13px] [@media_(min-width:768px)_and_(max-width:1366px)]:!leading-[1.5] leading-relaxed font-inter">
                   {statsSection.card.description}
                 </p>
                 <div className="text-animate-left">
                   <Link href="/login">
-                    <button className="border border-brand-green/20 text-brand-green font-bold px-8 py-3 rounded-full hover:bg-brand-green hover:text-white transition-all duration-300 flex items-center gap-2 w-fit group">
+                    <button className="border border-brand-green/20 text-brand-green font-bold px-7 py-2.5 lg:px-8 lg:py-3 [@media_(min-width:768px)_and_(max-width:1366px)]:!px-6 [@media_(min-width:768px)_and_(max-width:1366px)]:!py-2 rounded-full hover:bg-brand-green hover:text-white transition-all duration-300 flex items-center gap-2 w-fit group">
                       {statsSection.card.ctaText}
                       <ArrowRight size={18} className="transition-transform ltr:group-hover:translate-x-1 rtl:rotate-180 rtl:group-hover:-translate-x-1" />
                     </button>
@@ -196,7 +196,7 @@ const CommunityStats = ({ initialStats = null }: CommunityStatsProps) => {
               </div>
               <div
                 ref={imageRevealRef}
-                className="relative w-full md:w-[280px] h-[300px] md:h-auto overflow-hidden"
+                className="relative w-full md:w-[280px] h-[300px] md:h-auto overflow-hidden rounded-b-[1.5rem] md:rounded-b-none md:rounded-r-[1.5rem] rtl:md:rounded-l-[1.5rem] rtl:md:rounded-r-none"
               >
                 <Image
                   src={statsSection.card.image}
