@@ -505,12 +505,12 @@ export default function About() {
             </section>
 
             <section className="pt-16 pb-10 sm:py-12">
-                <div className="container mx-auto px-4 sm:px-6 lg:max-w-[1120px] ltr:lg:pl-16 ltr:lg:pr-6 ltr:xl:pl-20 rtl:lg:pr-16 rtl:lg:pl-6 rtl:xl:pr-20">
+                <div className="container mx-auto px-4 sm:px-6 lg:max-w-[1120px] [@media_(min-width:768px)_and_(max-width:1023px)]:max-w-[1120px] ltr:lg:pl-16 ltr:lg:pr-6 ltr:xl:pl-20 rtl:lg:pr-16 rtl:lg:pl-6 rtl:xl:pr-20">
                     <h2 className={`${sectionTitleClass} text-left rtl:text-right`}>{aboutData.approachTitle}</h2>
 
-                    <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,440px)] lg:items-start lg:justify-between lg:gap-8 xl:gap-10">
+                    <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,440px)] lg:items-start lg:justify-between lg:gap-8 xl:gap-10 [@media_(min-width:768px)_and_(max-width:1023px)]:grid-cols-[minmax(0,500px)_minmax(0,440px)] [@media_(min-width:768px)_and_(max-width:1023px)]:items-start [@media_(min-width:768px)_and_(max-width:1023px)]:justify-between [@media_(min-width:768px)_and_(max-width:1023px)]:gap-8">
                         <div>
-                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [will-change:clip-path]">
+                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [@media_(min-width:768px)_and_(max-width:1023px)]:mx-0 [will-change:clip-path]">
                                 <img
                                     src={approachImage}
                                     alt="Woman cooking in a bright kitchen"
@@ -524,7 +524,7 @@ export default function About() {
                             </p>
                         </div>
 
-                        <div className="approach-steps-container max-w-[440px] space-y-4 lg:w-full lg:justify-self-start">
+                        <div className="approach-steps-container max-w-[440px] space-y-4 lg:w-full lg:justify-self-start [@media_(min-width:768px)_and_(max-width:1023px)]:w-full [@media_(min-width:768px)_and_(max-width:1023px)]:justify-self-start">
                             {approachSteps.map((step) => {
                                 return (
                                     <div
