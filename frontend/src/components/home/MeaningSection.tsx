@@ -55,7 +55,7 @@ const MeaningSection = () => {
 
           {/* Right Content Column - Tall Image */}
           <div className="w-full md:w-1/2 md:pt-15 xl:pt-0">
-            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] md:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
+            <div className="image-topdown rounded-2xl relative h-[310px] w-full md:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
               <Image
                 src="/home/meaningImg1.webp"
                 alt="Meaningful moments"

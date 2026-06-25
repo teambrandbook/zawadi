@@ -64,7 +64,7 @@ export const historySliderAnimation = (
 ) => {
   if (!container) return;
 
-  const isMobile = window.matchMedia("(max-width: 1023px)").matches;
+  const isMobile = window.matchMedia("(max-width: 767px)").matches;
   const activeCard = container.querySelector<HTMLElement>(".active-card");
   const inactiveCards = container.querySelectorAll<HTMLElement>(".inactive-card");
   const activeText = container.querySelector<HTMLElement>(".active-text");

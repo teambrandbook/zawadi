@@ -193,8 +193,8 @@ export default function RecipeDetailsContent({
 
       <section className="px-4 pb-12 pt-8 sm:px-6 md:pb-24 md:pt-16 lg:px-20 xl:px-0">
         <div className="mx-auto max-w-[1190px]">
-          <div className="grid gap-8 lg:grid-cols-[360px_1fr] lg:items-start lg:gap-10 xl:grid-cols-[450px_1fr] xl:gap-[100px]">
-            <div className="recipe-detail-image-topdown relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[12px] xl:max-w-[450px]">
+          <div className="grid gap-8 md:grid-cols-[280px_1fr] md:items-start md:gap-8 lg:grid-cols-[360px_1fr] lg:gap-10 xl:grid-cols-[450px_1fr] xl:gap-[100px]">
+            <div className="recipe-detail-image-topdown relative mx-auto w-full max-w-[360px] overflow-hidden rounded-[12px] md:max-w-[280px] lg:max-w-[360px] xl:max-w-[450px]">
               <div className="relative aspect-[4/5] sm:aspect-[450/540]">
                 <Image
                   src={recipe.image}
@@ -251,7 +251,7 @@ export default function RecipeDetailsContent({
                 {recipe.description}
               </p>
 
-              <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-[150px_1fr] xl:grid-cols-[170px_1fr]">
+              <div className="mt-8 grid gap-6 sm:grid-cols-2 md:grid-cols-[130px_1fr] md:gap-4 lg:grid-cols-[150px_1fr] lg:gap-6 xl:grid-cols-[170px_1fr]">
                 <div className="h-fit rounded-[10px] bg-[#1f4d3a] px-4 py-5">
                   <h3 className="mb-4 font-['Playfair_Display'] text-[14px] font-semibold text-white">
                     {detailText.nutritionFacts}

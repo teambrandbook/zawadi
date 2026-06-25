@@ -263,7 +263,7 @@ const HistorySection = () => {
           </div>
 
           {/* Mobile Display */}
-          <div className="relative z-10 min-h-[380px] overflow-hidden lg:hidden">
+          <div className="relative z-10 min-h-[380px] overflow-hidden md:hidden">
             <div
               key={activeIndex} 
               data-history-card
@@ -286,7 +286,7 @@ const HistorySection = () => {
           </div>
 
           {/* Desktop Display */}
-          <div className="relative z-10 hidden overflow-hidden lg:flex lg:min-h-[380px] lg:items-end lg:gap-4 xl:min-h-[420px] xl:gap-6">
+          <div className="relative z-10 hidden overflow-hidden md:flex md:min-h-[310px] md:items-end md:gap-4 lg:min-h-[380px] xl:min-h-[420px] xl:gap-6">
             {historyItems.map((item, i) => {
               const isActive = i === activeIndex;
 
@@ -296,8 +296,8 @@ const HistorySection = () => {
                   data-history-card
                   className={`relative transition-all duration-700 ease-out ${
                     isActive
-                      ? "active-card z-10 h-[380px] w-[50%] xl:h-[420px]"
-                      : "inactive-card h-[270px] w-[20%] opacity-70 xl:h-[300px]"
+                      ? "active-card z-10 md:h-[310px] md:w-[44%] lg:h-[380px] lg:w-[50%] xl:h-[420px]"
+                      : "inactive-card md:h-[205px] md:w-[18.66%] lg:h-[270px] lg:w-[20%] opacity-70 xl:h-[300px]"
                   }`}
                 >
                   <div className="history-image relative h-full w-full overflow-hidden rounded-[24px]">

@@ -10,6 +10,9 @@ const ExperienceSection = () => {
   const { locale } = useLocale();
   const isRtl = locale === 'ar';
   const mobileBadgeSide = isRtl ? 'left-[-12px]' : 'right-[-12px]';
+  const alternateMobileBadgeSide = isRtl
+    ? 'right-[-12px] md:right-auto md:left-[-12px]'
+    : 'left-[-12px] md:left-auto md:right-[-12px]';
 
   // Fallback structural safety pointers
   const sectionData = translations[locale]?.experienceSection || translations["en"].experienceSection;
@@ -75,10 +78,10 @@ const ExperienceSection = () => {
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:block lg:absolute lg:inset-0 z-10 gap-8 lg:gap-0">
             
             {/* Left Column Stack (Items 01 & 03) */}
-            <div className="flex min-w-0 flex-col justify-center gap-8 lg:absolute lg:inset-y-0 lg:left-0 lg:w-[240px] xl:w-[320px]">
+            <div className="contents md:flex md:min-w-0 md:flex-col md:justify-center md:gap-8 lg:absolute lg:inset-y-0 lg:left-0 lg:w-[240px] xl:w-[320px]">
               
               {/* Item 01 */}
-              <div className="relative w-full">
+              <div className="relative order-1 w-full md:order-none">
                 <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-[-20%] lg:left-auto lg:right-[-16%] xl:right-[-1%] xl:top-[-40%] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   01
                 </div>
@@ -93,7 +96,7 @@ const ExperienceSection = () => {
               </div>
 
               {/* Item 03 */}
-              <div className="relative w-full">
+              <div className="relative order-3 w-full md:order-none">
                 <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:top-auto lg:bottom-[-18%] lg:left-auto lg:right-[-20%] xl:right-[-2%] xl:bottom-[-36%] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   03
                 </div>
@@ -109,11 +112,11 @@ const ExperienceSection = () => {
             </div>
 
             {/* Right Column Stack (Items 02 & 04) */}
-            <div className="flex min-w-0 flex-col justify-center gap-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[240px] xl:w-[320px]">
+            <div className="contents md:flex md:min-w-0 md:flex-col md:justify-center md:gap-8 lg:absolute lg:inset-y-0 lg:right-0 lg:w-[240px] xl:w-[320px]">
               
               {/* Item 02 */}
-              <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-15%] lg:top-[-25%] xl:left-[-5%] xl:top-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+              <div className="relative order-2 w-full md:order-none">
+                <div className={`experience-number-dot absolute top-[-20px] ${alternateMobileBadgeSide} lg:right-auto lg:left-[-15%] lg:top-[-25%] xl:left-[-5%] xl:top-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   02
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
@@ -127,8 +130,8 @@ const ExperienceSection = () => {
               </div>
 
               {/* Item 04 */}
-              <div className="relative w-full">
-                <div className={`experience-number-dot absolute top-[-20px] ${mobileBadgeSide} lg:right-auto lg:left-[-15.8333%] xl:left-[-11.875%] lg:top-auto lg:bottom-[-27%] xl:bottom-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
+              <div className="relative order-4 w-full md:order-none">
+                <div className={`experience-number-dot absolute top-[-20px] ${alternateMobileBadgeSide} lg:right-auto lg:left-[-15.8333%] xl:left-[-11.875%] lg:top-auto lg:bottom-[-27%] xl:bottom-[-62px] w-10 h-10 bg-[#2D4A3E] rounded-full text-white flex items-center justify-center font-semibold text-xs z-30 shadow-md`}>
                   04
                 </div>
                 <div dir={isRtl ? 'rtl' : 'ltr'} className={`experience-card-item bg-[#e6ceae] rounded-xl p-5 xl:p-6 shadow-sm ${isRtl ? 'text-right' : 'text-left'}`}>
