@@ -89,11 +89,11 @@ const Footer = () => {
           </div>
 
           {/* Navigational Links Configuration Columns */}
-          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-5 gap-y-12 md:grid-cols-3 md:gap-x-12 lg:col-span-8 lg:gap-16">
+          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-x-5 gap-y-12 md:grid-cols-4 md:gap-x-10 lg:col-span-8 lg:gap-12">
             
             {/* Quick Links */}
             <div className="col-span-1">
-            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest inline-block">
                 {footer.headers.quickLinks}
               </h4>
               <ul className="space-y-4">
@@ -112,7 +112,7 @@ const Footer = () => {
 
             {/* Inner Pages Links */}
             <div className="col-span-1">
-            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest inline-block">
                 {footer.headers.innerPages}
               </h4>
               <ul className="space-y-4">
@@ -131,7 +131,7 @@ const Footer = () => {
 
             {/* Support Rules Links */}
             <div className="col-span-1 col-start-1 row-start-2 md:col-start-auto md:row-start-auto">
-            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest border-b border-white/10 pb-2 inline-block">
+            <h4 className="text-[106.25%] font-bold mb-8 text-white uppercase tracking-widest inline-block">
                 {footer.headers.support}
               </h4>
               <ul className="space-y-4">
@@ -146,6 +146,21 @@ const Footer = () => {
                   </li>
                 ))}
               </ul>
+            </div>
+
+            {/* Powered By */}
+            <div className="col-span-1 row-start-2 md:row-start-auto">
+              <h4 className="text-[106.25%] font-bold mb-6 text-white uppercase tracking-widest inline-block">
+                Powered by:
+              </h4>
+              <div className="relative h-12 w-32 sm:h-14 sm:w-36 md:h-16 md:w-40">
+                <Image
+                  src="/logo/tijaruk-logo.png"
+                  alt="Tijaruk Logo"
+                  fill
+                  className="object-contain object-left"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -162,3 +177,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

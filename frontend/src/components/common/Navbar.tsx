@@ -269,7 +269,7 @@ const Navbar = () => {
                 "w-21.25 h-21.25 md:w-26.25 md:h-26.25 lg:w-30 lg:h-30 2xl:w-33.75 2xl:h-33.75",
                 "-top-10 translate-y-0 left-1/2 -translate-x-1/2 lg:left-0 lg:translate-x-0 xl:left-1 2xl:left-4"
               )}>
-                <div className="relative w-full h-full scale-100 transition-transform duration-500">
+                <div className="relative w-full h-full scale-125 transition-transform duration-500">
                   <Image
                     src="/logo/zewadi-logo.webp"
                     alt="Zewadi Logo"
@@ -623,3 +623,4 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
