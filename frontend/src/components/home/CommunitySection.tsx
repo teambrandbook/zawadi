@@ -99,20 +99,20 @@ const CommunitySection = () => {
           </p>
 
           {/* Icons Row */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-8 lg:gap-8 xl:gap-12 mb-12 fade-in w-full md:w-auto">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 relative">
-                <Image src="/home/wellness.webp" alt="Wellness" width={40} height={40} />
+          <div className="flex flex-row flex-nowrap items-center justify-between gap-2 sm:gap-5 md:flex-wrap md:justify-start md:gap-8 lg:gap-8 xl:gap-12 mb-12 fade-in w-full md:w-auto">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="relative h-8 w-8 shrink-0 sm:h-9 sm:w-9 md:h-10 md:w-10">
+                <Image src="/home/wellness.webp" alt="Wellness" width={40} height={40} className="h-full w-full object-contain" />
               </div>
-              <h3 className="text-[#121414] text-[100%] font-bold font-['Inter']">
+              <h3 className="whitespace-nowrap text-xs font-bold text-[#121414] sm:text-sm md:text-[100%] font-['Inter']">
                 {communityTranslations.iconText1}
               </h3>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 relative">
-                <Image src="/home/inclusive.webp" alt="Inclusive" width={40} height={40} />
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="relative h-8 w-8 shrink-0 sm:h-9 sm:w-9 md:h-10 md:w-10">
+                <Image src="/home/inclusive.webp" alt="Inclusive" width={40} height={40} className="h-full w-full object-contain" />
               </div>
-              <h3 className="text-[#121414] text-[100%] font-bold font-['Inter']">
+              <h3 className="whitespace-nowrap text-xs font-bold text-[#121414] sm:text-sm md:text-[100%] font-['Inter']">
                 {communityTranslations.iconText2}
               </h3>
             </div>
