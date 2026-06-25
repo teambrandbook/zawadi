@@ -15,10 +15,10 @@ const MeaningSection = () => {
   return (
     <section className="relative w-full py-10 md:py-20 xl:py-32 bg-[#fffef5] overflow-hidden md:px-10 xl:px-20">
       <div className="container mx-auto px-6 md:px-16 xl:px-32">
-        <div className="flex flex-col md:flex-row items-start gap-0 md:gap-12 xl:gap-20">
+        <div className="flex flex-col [@media_(min-width:640px)]:flex-row [@media_(min-width:640px)]:items-stretch gap-0 [@media_(min-width:640px)]:gap-8 md:gap-12 xl:gap-20">
 
           {/* Left Content Column */}
-          <div className="w-full md:w-1/2 flex flex-col text-left rtl:text-right">
+          <div className="w-full [@media_(min-width:640px)]:w-1/2 flex flex-col text-left rtl:text-right [@media_(min-width:640px)]:min-h-[580px] xl:min-h-[600px]">
 
             {/* Custom Heading Decor */}
             <div className="flex items-center gap-6 mb-8 fade-in">
@@ -42,7 +42,7 @@ const MeaningSection = () => {
             </p>
 
             {/* Horizontal Image */}
-            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 overflow-hidden shadow-sm pt-73">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[16/8] mb-12 [@media_(min-width:640px)]:mt-auto [@media_(min-width:640px)]:mb-0 overflow-hidden shadow-sm pt-73">
               <Image
                 src="/home/meaningImg2.webp"
                 alt="Shared meals"
@@ -54,8 +54,8 @@ const MeaningSection = () => {
           </div>
 
           {/* Right Content Column - Tall Image */}
-          <div className="w-full md:w-1/2 md:pt-15 xl:pt-0">
-            <div className="image-topdown rounded-2xl relative h-[310px] w-full md:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
+          <div className="w-full [@media_(min-width:640px)]:w-1/2 [@media_(min-width:640px)]:min-h-[580px] xl:min-h-[600px] [@media_(min-width:640px)]:pt-15 xl:pt-0 flex flex-col">
+            <div className="image-topdown rounded-2xl relative w-full aspect-[3/4] [@media_(min-width:640px)]:mt-auto [@media_(min-width:640px)]:h-[520px] xl:h-[600px] overflow-hidden shadow-sm">
               <Image
                 src="/home/meaningImg1.webp"
                 alt="Meaningful moments"
@@ -105,3 +105,4 @@ const MeaningSection = () => {
 };
 
 export default MeaningSection;
+

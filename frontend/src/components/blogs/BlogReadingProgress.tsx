@@ -19,18 +19,27 @@ export default function BlogReadingProgress({
 
   useEffect(() => {
     let frame = 0;
+    setProgress(0);
 
     const updateProgress = () => {
       const target = document.getElementById(targetId);
       if (!target) return;
 
-      const rect = target.getBoundingClientRect();
-      const targetTop = rect.top + window.scrollY;
-      const targetHeight = target.offsetHeight;
-      const readableDistance = Math.max(1, targetHeight - window.innerHeight + 160);
-      const currentProgress = (window.scrollY - targetTop + 96) / readableDistance;
+      const targetTop = target.getBoundingClientRect().top + window.scrollY;
+      const targetHeight = target.scrollHeight || target.offsetHeight;
+      const targetBottom = targetTop + targetHeight;
+      const documentMaxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const start = Math.max(0, targetTop - 96);
+      const end = Math.min(
+        documentMaxScroll,
+        Math.max(start + 1, targetBottom - window.innerHeight + 96)
+      );
+      const currentProgress = (window.scrollY - start) / Math.max(1, end - start);
 
-      setProgress(clamp(currentProgress));
+      setProgress((previousProgress) => Math.max(previousProgress, clamp(currentProgress)));
     };
 
     const requestUpdate = () => {

@@ -7,7 +7,11 @@ import { useLocale } from "@/context/LocaleContext";
 import { translations } from "@/locales/translations";
 import { sanitizeHTML } from "@/utils/sanitize";
 
-export default function EventTestimonials() {
+type EventTestimonialsProps = {
+  variant?: "default" | "about";
+};
+
+export default function EventTestimonials({ variant = "default" }: EventTestimonialsProps) {
   const { locale } = useLocale();
   const testimonialText = translations[locale]?.eventsPage?.testimonials || translations.en.eventsPage.testimonials;
   const testimonials = testimonialText.items ?? [
@@ -27,17 +31,23 @@ export default function EventTestimonials() {
   };
 
   return (
-    <section className="bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-20 xl:px-0">
+    <section className={variant === "about" ? "bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-8" : "bg-[#fffef5] px-4 py-16 sm:px-6 lg:px-20 xl:px-0"}>
       <div className="mx-auto max-w-[1100px]">
         {/* Header */}
         <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1f4d3a] ">
-            <span>{testimonialText.badge}</span>
+          <div className={variant === "about" ? "testimonial-heading inline-flex items-center bg-[#1f4d3a] pl-1 pr-0.5 text-left shadow-sm [&>span:nth-child(2)]:hidden" : "inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.2em] text-[#1f4d3a]"}>
+            <span className={variant === "about" ? "text-[16px] font-medium uppercase leading-none tracking-[0.08em] text-white sm:text-[18px]" : undefined}>{testimonialText.badge}</span>
             <span className="text-[8px]">▼</span>
+            {variant === "about" && (
+              <span className="relative ml-1.5 flex h-4 w-5 shrink-0 items-center justify-center overflow-hidden">
+                <span className="absolute h-0 w-0 border-b-[8px] border-l-[16px] border-t-[8px] border-b-transparent border-l-[#7ed321] border-t-transparent" />
+                <span className="absolute right-0.5 top-0 h-0 w-0 border-b-[5px] border-l-[9px] border-b-transparent border-l-[#37a000]" />
+              </span>
+            )}
           </div>
 
           <h2
-            className="testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"
+            className={variant === "about" ? "sr-only" : "testimonial-heading mx-auto text-center font-serif font-bold text-[2rem] leading-tight text-[#1a4331] sm:text-[2.75rem]"}
             dangerouslySetInnerHTML={{ __html: sanitizeHTML(testimonialText.titleHTML) }}
           />
         </div>
@@ -50,8 +60,8 @@ export default function EventTestimonials() {
         <div className="relative flex flex-col-reverse items-center md:flex-row">
           
           {/* Testimonial Card */}
-          <div className="left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-28 rtl:lg:-ml-28 ltr:xl:-mr-32 rtl:xl:-ml-32 md:w-[60%]">
-            <div className="relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-12 xl:p-14">
+          <div className={variant === "about" ? "left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-32 rtl:lg:-ml-32 md:w-[60%]" : "left-move relative z-20 w-full ltr:md:-mr-24 rtl:md:-ml-24 ltr:lg:-mr-28 rtl:lg:-ml-28 ltr:xl:-mr-32 rtl:xl:-ml-32 md:w-[60%]"}>
+            <div className={variant === "about" ? "relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-14" : "relative overflow-hidden rounded-[20px] bg-[#f2f6eb] p-8 shadow-2xl shadow-black/5 md:p-10 lg:p-12 xl:p-14"}>
               
               {/* Giant Quote SVG Background */}
               <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
@@ -61,7 +71,7 @@ export default function EventTestimonials() {
               </div>
 
               <div className="relative z-10">
-                <p className="fade-in text-[18px] md:text-[18px] lg:text-[20px] xl:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right">
+                <p className={variant === "about" ? "fade-in text-[18px] md:text-[18px] lg:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right" : "fade-in text-[18px] md:text-[18px] lg:text-[20px] xl:text-[22px] leading-[1.6] text-[#1f4d3a] font-medium text-left rtl:text-right"}>
                   {activeTestimonial.quote}
                 </p>
 
@@ -105,7 +115,7 @@ export default function EventTestimonials() {
             and introduced a bottom margin ('mb-8 lg:mb-0') so it separates naturally from the text card beneath it.
           */}
           <div className="w-full mb-8 md:mb-0 md:w-[50%]">
-            <div className="image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[460px] xl:h-[500px]">
+            <div className={variant === "about" ? "image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[500px]" : "image-topdown relative h-[350px] w-full overflow-hidden rounded-[20px] md:h-[420px] lg:h-[460px] xl:h-[500px]"}>
               <Image
                 src="/about/testimonial.webp " 
                 alt="Community hands"

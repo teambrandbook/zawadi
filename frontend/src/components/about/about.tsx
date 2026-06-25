@@ -505,12 +505,12 @@ export default function About() {
             </section>
 
             <section className="pt-16 pb-10 sm:py-12">
-                <div className="container mx-auto px-4 sm:px-6 lg:max-w-[1120px] ltr:lg:pl-16 ltr:lg:pr-6 ltr:xl:pl-20 rtl:lg:pr-16 rtl:lg:pl-6 rtl:xl:pr-20">
+                <div className="container mx-auto px-4 sm:px-6 lg:max-w-[1120px] [@media_(min-width:768px)_and_(max-width:1023px)]:max-w-[1120px] ltr:lg:pl-16 ltr:lg:pr-6 ltr:xl:pl-20 rtl:lg:pr-16 rtl:lg:pl-6 rtl:xl:pr-20">
                     <h2 className={`${sectionTitleClass} text-left rtl:text-right`}>{aboutData.approachTitle}</h2>
 
-                    <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,440px)] lg:items-start lg:justify-between lg:gap-8 xl:gap-10">
+                    <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,500px)_minmax(0,440px)] lg:items-start lg:justify-between lg:gap-8 xl:gap-10 [@media_(min-width:768px)_and_(max-width:1023px)]:grid-cols-[minmax(0,500px)_minmax(0,440px)] [@media_(min-width:768px)_and_(max-width:1023px)]:items-start [@media_(min-width:768px)_and_(max-width:1023px)]:justify-between [@media_(min-width:768px)_and_(max-width:1023px)]:gap-8">
                         <div>
-                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [will-change:clip-path]">
+                            <div className="approach-image-wrapper overflow-hidden rounded-[16px] max-w-[500px] mx-auto lg:mx-0 [@media_(min-width:768px)_and_(max-width:1023px)]:mx-0 [will-change:clip-path]">
                                 <img
                                     src={approachImage}
                                     alt="Woman cooking in a bright kitchen"
@@ -524,24 +524,24 @@ export default function About() {
                             </p>
                         </div>
 
-                        <div className="approach-steps-container max-w-[440px] space-y-4 lg:w-full lg:justify-self-start">
+                        <div className="approach-steps-container max-w-[440px] space-y-4 lg:w-full lg:justify-self-start [@media_(min-width:768px)_and_(max-width:1023px)]:w-full [@media_(min-width:768px)_and_(max-width:1023px)]:justify-self-start">
                             {approachSteps.map((step) => {
                                 return (
                                     <div
                                         key={step.number}
-                                        className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-5 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-6 sm:py-4"
+                                        className="group approach-step-card flex cursor-pointer items-center justify-between rounded-r-[999px] border-2 border-black/10 bg-white px-5 py-3 text-[#121414] transition-all hover:border-[#b47800] hover:bg-[#b47800] hover:text-white active:border-[#b47800] active:bg-[#b47800] active:text-white rtl:flex-row-reverse rtl:rounded-l-[999px] rtl:rounded-r-none sm:px-6 sm:py-4"
                                     >
                                         <div className="flex min-w-0 items-center gap-4 rtl:flex-row-reverse">
-                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center text-[#121414] transition-colors group-hover:text-white">
+                                            <div className="flex h-9 w-9 shrink-0 items-center justify-center text-[#121414] transition-colors group-hover:text-white group-active:text-white">
                                                 <ApproachIcon size={24} />
                                             </div>
                                             <p className="min-w-0 font-serif text-base leading-tight sm:text-[1.1rem]">
                                                 {step.label}
                                             </p>
                                         </div>
-                                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
+                                        <div className="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#1f4d3a] text-sm font-bold text-white transition-colors group-hover:bg-white group-hover:text-[#1f4d3a] group-active:bg-white group-active:text-[#1f4d3a] sm:h-10 sm:w-10 sm:text-lg">
                                             <div
-                                                className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden"
+                                                className="pointer-events-none absolute inset-0 opacity-10 group-hover:hidden group-active:hidden"
                                                 style={{
                                                     backgroundImage: "url('/Patterns-03.webp')",
                                                     backgroundSize: "cover",
@@ -586,7 +586,7 @@ export default function About() {
                 </div>
             </section>
 
-            <EventTestimonials />
+            <EventTestimonials variant="about" />
         </div>
     );
 }
